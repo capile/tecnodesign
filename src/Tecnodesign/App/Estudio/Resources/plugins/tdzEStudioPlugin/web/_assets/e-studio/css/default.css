@@ -1,0 +1,41 @@
+html,body{margin:0;padding:0;background:#aabbee;}
+body{font: normal 300 14px/20px Helvetica Neue Light, Helvetica Light, Arial Narrow, Arial, Helvetica, Sans-serif;text-align: left;}
+h1, .Titulo1{font: normal 200 2.5em/.75em Helvetica Neue Light, Helvetica Light, Arial Narrow, Arial, Helvetica, Sans-serif;margin: 0 0 .2em 0;color: #001122;}
+h2, .Titulo2{font: normal 500 2em/1em Helvetica Neue, Helvetica, Arial Narrow, Arial, Helvetica, Sans-serif;margin: 0 0 .5em 0;color: #003366;}
+h3, .Titulo3{font: normal 200 1.5em/1em Helvetica Neue Light, Helvetica Light, Arial Narrow, Arial, Helvetica, Sans-serif;margin: 0 0 .5em 0;color: #ff8000;}
+h4, .entry-title {font: normal 200 1.25em/1em Helvetica Neue Light, Helvetica Light, Arial Narrow, Arial, Helvetica, Sans-serif;margin: .25em 0 .25em 0;color: #006699;}
+h5 {font: normal 200 1.5em/1em Helvetica Neue Light, Helvetica Light, Arial Narrow, Arial, Helvetica, Sans-serif;margin: 1em 0 0;color: #d70000;}
+img{border:none}
+
+#header,#body, #footer{max-width:1200px;width:80%;margin:0 auto;position:relative;}
+#header .container,#body .container, #footer .container{padding:25px;}
+#body{background:#ffffff}
+
+.nav{position:absolute;top:0;right:0;}
+.nav ul, .nav li{list-style:none;padding:0;margin:0}
+.nav li{display:inline-block;float:left;position:relative;}
+
+.nav a{display:block;padding:15px 25px;background:#ffffff;}
+
+
+
+
+/* Connect 
+#connect-info{display:none}
+*/
+#connect-info{display:none;position:absolute;width:80%;margin:0 auto;background:#666666;}
+#connect-info .container{margin:10px;border:1px solid #000000;background:#ffffff;padding:25px;}
+#connect-info form{float:left;width:50%;height:195px;}
+#connect-info fieldset{border:none;padding:0;margin:0;}
+#connect-info legend{text-indent:0;padding:0;margin:0;display:none;}
+#connect-info ul, #connect-info li{padding:0;margin:0;list-style:none;line-height:15px;}
+#connect-info input{font-size:30px;line-height:35px;height:35px;width:90%;}
+#connect-info button{border:0;margin:15px 0 0 0;font-size:20px;line-height:25px;height:50px;width:80%;background:url(/_assets/e-studio/images/connect.png) -100px 0 no-repeat;width:100px;color:#ffffff;}
+
+#connect-info iframe{position:absolute;left:0;top:0;border:none;background:#cccccc;z-index:1;width:100%;height:100%;border:1px solid #000000;}
+#connect-info .buttons{position:relative;float:left;width:47%;border-left:1px solid #666666;height:165px;margin:15px 0 0 0}
+#connect-info .buttons a{position:relative;float:left;width:50px;height:50px;margin: 0 0 15px 15px;overflow:hidden;}
+#connect-info .buttons img{position:absolute;left:0;top:0;}
+
+#connect-info .profile-picture{position:relative;float:left;width:50px;height:50px;margin: 0 15px 15px 0;overflow:hidden;}
+#connect-info .profile-picture img{position:absolute;left:0;top:-50px;}

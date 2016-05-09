@@ -1,0 +1,31 @@
+ExpiresActive On
+ExpiresByType image/gif "modification plus 6 days"
+ExpiresByType image/png "modification plus 6 days"
+ExpiresByType image/jpeg "modification plus 6 days"
+ExpiresByType text/css  "modification plus 6 hours"
+ExpiresByType text/plain  "modification plus 6 days"
+ExpiresByType text/javascript "modification plus 6 hours"
+<Files ~ "\.(gif|jpe?g|png|js|css|zip|ico)$">
+Header set Cache-Control "must-revalidate, proxy-revalidate, max-age=21600, s-maxage=21600"
+SetEnvIf ^Secure_Request ^1 HTTPS
+Header append Cache-Control "public" env=HTTPS
+</Files>
+SetEnvIf Accept-Encoding gzip withetag
+Header unset Etag env=!withetag
+Header unset Pragma
+
+Options -Indexes +FollowSymLinks +ExecCGI
+
+RewriteEngine On
+RewriteBase /
+#RewriteCond %{REQUEST_URI} !\.html$
+#RewriteRule .* - [L]
+RewriteCond %{REQUEST_URI} ^/(sf.*)
+RewriteCond %{REQUEST_URI} !^/_assets/
+RewriteRule ^(.*) _assets/$1 [L]
+#RewriteRule ^$ index.html [QSA]
+#RewriteRule ^([^.]+)$ $1.html [QSA]
+#RewriteCond %{REQUEST_FILENAME} \.php$ [OR]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ %project%.php [QSA,L]
+

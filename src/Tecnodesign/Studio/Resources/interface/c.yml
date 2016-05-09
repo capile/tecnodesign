@@ -1,0 +1,4 @@
+---
+all:
+  model: tdzContent
+  priority: 11

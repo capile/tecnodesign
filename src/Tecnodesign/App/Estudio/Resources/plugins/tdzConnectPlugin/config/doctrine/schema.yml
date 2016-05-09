@@ -1,0 +1,214 @@
+# @package      tdzConnectPlugin
+# @author       Tecnodesign <ti@tecnodz.com>
+# @link         http://tecnodz.com/
+# @copyright    Tecnodesign (c) 2011
+# @version      SVN: $Id$
+
+tdzPeople:
+  connection: '<?php echo sfConfig::get("app_connect_connection_name") ?>'
+  options:
+    symfony:
+      form: false
+      filter: false
+  actAs:
+    SoftDelete:
+      name: expired
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+  tableName: tdz_people
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    name: { type: string(200) }
+    created: { type: datetime, notnull: true }
+    updated: { type: datetime, notnull: true }
+    expired: { type: datetime }
+  relations:
+    Connection:
+      class: tdzConnect
+      local: id
+      foreign: person
+      type: many
+    Groups:
+      class: tdzGroups
+      local: person
+      foreign: groupid
+      type: many
+      refClass: tdzParticipation
+    Details:
+      class: tdzDetails
+      local: id
+      foreign: person
+      type: many
+    Access:
+      class: tdzAccess
+      local: id
+      foreign: person
+      type: many
+
+
+tdzConnect:
+  connection: '<?php echo sfConfig::get("app_connect_connection_name") ?>'
+  options:
+    symfony:
+      form: false
+      filter: false
+  actAs:
+    SoftDelete:
+      name: expired
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+  tableName: tdz_connect
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    ns: { type: string(100), notnull: true }
+    username: { type: string(200), notnull: true }
+    hash: { type: string(100) }
+    person: { type: integer, notnull: true }
+    created: { type: datetime, notnull: true }
+    updated: { type: datetime, notnull: true }
+    expired: { type: datetime }
+  relations:
+    People:
+      class: tdzPeople
+      local: person
+      foreign: id
+      type: one
+    Access:
+      class: tdzAccess
+      local: id
+      foreign: connection
+      type: many
+
+tdzAccess:
+  connection: '<?php echo sfConfig::get("app_connect_connection_name") ?>'
+  options:
+    symfony:
+      form: false
+      filter: false
+  actAs:
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+  tableName: tdz_access
+  columns:
+    person: { type: integer, primary: true, notnull: true }
+    connection: { type: integer, primary: true, notnull: true }
+    created: { type: datetime, primary: true, notnull: true }
+    ip: { type: string(50) }
+    client: { type: string(250) }
+  relations:
+    People:
+      class: tdzPeople
+      local: person
+      foreign: id
+      type: one
+    Connection:
+      class: tdzConnect
+      local: connection
+      foreign: id
+      type: one
+
+tdzDetails:
+  connection: '<?php echo sfConfig::get("app_connect_connection_name") ?>'
+  options:
+    symfony:
+      form: false
+      filter: false
+  actAs:
+    SoftDelete:
+      name: expired
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+  tableName: tdz_details
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    person: { type: integer, notnull: true }
+    category: { type: string(100), notnull: true }
+    text: { type: string(1000) }
+    verified: { type: datetime }
+    created: { type: datetime, notnull:true }
+    updated: { type: datetime, notnull:true }
+    expired: { type: datetime }
+  relations:
+    People:
+      class: tdzPeople
+      local: person
+      foreign: id
+      type: one
+
+tdzParticipation:
+  connection: '<?php echo sfConfig::get("app_connect_connection_name") ?>'
+  options:
+    symfony:
+      form: false
+      filter: false
+  actAs:
+    SoftDelete:
+      name: expired
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+  tableName: tdz_participation
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    person: { type: integer, notnull: true }
+    groupid: { type: integer, notnull: true }
+    created: { type: datetime, notnull: true }
+    updated: { type: datetime, notnull: true }
+    expired: { type: datetime }
+  relations:
+    People:
+      class: tdzPeople
+      local: person
+      foreign: id
+      type: one
+    Groups:
+      class: tdzGroups
+      local: groupid
+      foreign: id
+      type: one
+
+tdzGroups:
+  connection: '<?php echo sfConfig::get("app_connect_connection_name") ?>'
+  options:
+    symfony:
+      form: false
+      filter: false
+  actAs:
+    SoftDelete:
+      name: expired
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+  tableName: tdz_groups
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    name: { type: string(200), notnull: true }
+    description: { type: string(2000) }
+    created: { type: datetime, notnull: true }
+    updated: { type: datetime, notnull: true }
+    expired: { type: datetime }
+  relations:
+    People:
+      class: tdzPeople
+      local: groupid
+      foreign: person
+      type: many
+      refClass: tdzParticipation
+
+# add invitations

@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+<?php
+$env='dev';
+define('TDZ_CLI', true);
+$app_root = dirname(__FILE__);
+require_once($app_root.'/lib/vendor/tecnodesign/tdz.php');
+$config = $app_root.'/config/%project%.yml';
+$app = tdz::app($config, '%project%', $env);
+$app->run();

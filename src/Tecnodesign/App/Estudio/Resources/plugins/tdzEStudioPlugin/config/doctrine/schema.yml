@@ -1,0 +1,268 @@
+# @package      tdzEStudioPlugin
+# @author       Tecnodesign <ti@tecnodz.com>
+# @link         http://tecnodz.com/
+# @copyright    Tecnodesign (c) 2011
+# @version      SVN: $Id: schema.yml 554 2011-01-10 16:11:40Z capile $
+
+tdzEntries:
+  connection: '<?php echo sfConfig::get("app_e-studio_connection_name") ?>'
+  options:
+    symfony:
+      filter: false
+  actAs:
+    Versionable: { className: tdzEntriesVersion }
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+        onInsert: true
+    SoftDelete:
+      name: expired
+  tableName: tdz_entries
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    title: { type: string(200) }
+    summary: { type: string(2000) }
+    link: { type: string(200) }
+    source: { type: string(200) }
+    format: { type: string(100) }
+    language: { type: string(10) }
+    type: { type: string(100) }
+    master: { type: string(100) }
+    published: { type: datetime }
+    version: { type: integer }
+    created: { type: datetime, notnull:true }
+    updated: { type: datetime, notnull:true }
+    expired: { type: datetime }
+  indexes:
+    updated:
+      fields:
+        updated:
+          sorting: desc
+    published:
+      fields:
+        published:
+          sorting: desc
+    link:
+      fields: [link]
+    type:
+      fields: [type]
+    format:
+      fields: [format]
+  relations:
+    Relations:
+      class: tdzRelations
+      local: id
+      foreign: entry
+      type: many
+    ParentRelations:
+      class: tdzRelations
+      local: id
+      foreign: entry
+      type: many
+    Parents:
+      class: tdzEntries
+      local: entry
+      foreign: parent
+      type: many
+      refClass: tdzRelations
+    Children:
+      class: tdzEntries
+      local: parent
+      foreign: entry
+      type: many
+      refClass: tdzRelations
+    Contents:
+      class: tdzContents
+      local: id
+      foreign: entry
+      type: many
+    Tags:
+      class: tdzTags
+      local: id
+      foreign: entry
+      type: many
+    Permissions:
+      class: tdzPermissions
+      local: id
+      foreign: entry
+      type: many
+    Version:
+      class: tdzEntriesVersion
+      local: id
+      foreign: id
+      type: many
+
+tdzContents:
+  connection: '<?php echo sfConfig::get("app_e-studio_connection_name") ?>'
+  options:
+    symfony:
+      filter: false
+  actAs:
+    Versionable: { className: tdzContentsVersion }
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+        onInsert: true
+    SoftDelete:
+      name: expired
+  tableName: tdz_contents
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    entry: { type: integer }
+    slot: { type: string(50) }
+    content_type: { type: string(100) }
+    content: { type: longtext }
+    position: { type: integer }
+    show_at: { type: string(500) }
+    hide_at: { type: string(500) }
+    published: { type: datetime }
+    version: { type: integer }
+    created: { type: datetime, notnull:true }
+    updated: { type: datetime, notnull:true }
+    expired: { type: datetime }
+  indexes:
+    updated:
+      fields:
+        updated:
+          sorting: desc
+    published:
+      fields:
+        published:
+          sorting: desc
+    position:
+      fields:
+        position:
+          sorting: asc
+    slot:
+      fields: [slot]
+    entry:
+      fields: [entry]
+  relations:
+    Entries:
+      class: tdzEntries
+      local: entry
+      foreign: id
+      type: one
+
+tdzRelations:
+  connection: '<?php echo sfConfig::get("app_e-studio_connection_name") ?>'
+  options:
+    symfony:
+      filter: false
+  actAs:
+    Versionable: { className: tdzRelationsVersion }
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+        onInsert: true
+    SoftDelete:
+      name: expired
+  tableName: tdz_relations
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    entry: { type: integer, notnull: true }
+    parent: { type: integer, default: null }
+    position: { type: integer, default: 1 }
+    version: { type: integer }
+    created: { type: datetime, notnull:true }
+    updated: { type: datetime, notnull:true }
+    expired: { type: datetime }
+  indexes:
+    parent:
+      fields: [parent]
+    position:
+      fields: [position]
+    entry:
+      fields: [entry]
+  relations:
+    Entries:
+      class: tdzEntries
+      local: entry
+      foreign: id
+      type: one
+    Parents:
+      class: tdzEntries
+      local: parent
+      foreign: id
+      type: one
+
+tdzPermissions:
+  connection: '<?php echo sfConfig::get("app_e-studio_connection_name") ?>'
+  options:
+    symfony:
+      filter: false
+  actAs:
+    Versionable: { className: tdzPermissionsVersion }
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+        onInsert: true
+    SoftDelete:
+      name: expired
+  tableName: tdz_permissions
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    entry: { type: integer }
+    role: { type: string(100), notnull: true }
+    credentials: { type: string(1000) }
+    version: { type: integer }
+    created: { type: datetime, notnull:true }
+    updated: { type: datetime, notnull:true }
+    expired: { type: datetime }
+  indexes:
+    entry:
+      fields: [entry]
+    role:
+      fields: [role]
+  relations:
+    Entries:
+      class: tdzEntries
+      local: entry
+      foreign: id
+      type: one
+
+tdzTags:
+  connection: '<?php echo sfConfig::get("app_e-studio_connection_name") ?>'
+  options:
+    symfony:
+      filter: false
+  actAs:
+    Versionable: { className: tdzTagsVersion }
+    Timestampable:
+      created:
+        name: created
+      updated:
+        name: updated
+        onInsert: true
+    SoftDelete:
+      name: expired
+  tableName: tdz_tags
+  columns:
+    id: { type: integer, primary: true, autoincrement: true }
+    entry: { type: integer, notnull: true }
+    tag: { type: string(100) }
+    slug: { type: string(100) }
+    version: { type: integer }
+    created: { type: datetime, notnull: true }
+    updated: { type: datetime, notnull: true }
+    expired: { type: datetime }
+  indexes:
+    slug:
+      fields: [slug]
+    entry:
+      fields: [entry]
+  relations:
+    Entries:
+      class: tdzEntries
+      local: entry
+      foreign: id
+      type: one
+

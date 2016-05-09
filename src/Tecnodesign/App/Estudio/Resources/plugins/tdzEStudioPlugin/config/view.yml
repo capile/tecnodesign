@@ -1,0 +1,32 @@
+# @package      tdzEStudioPlugin
+# @author       Tecnodesign <ti@tecnodz.com>
+# @link         http://tecnodz.com/
+# @copyright    Tecnodesign (c) 2010
+# @version      SVN: $Id: view.yml 878 2011-09-05 07:39:10Z capile $
+
+new_tdz_cms:
+  stylesheets:    [-*,%APP_E-STUDIO_ASSETS_URL%/css/e-studio.css,%APP_E-STUDIO_ASSETS_URL%/css/e-studio-ui.css]
+  javascripts:    [-*,%APP_E-STUDIO_ASSETS_URL%/js/jquery.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio-ui.js,%APP_E-STUDIO_ASSETS_URL%/js/loader.js]
+  has_layout:     true
+  layout:         %APP_E-STUDIO_TEMPLATE_DIR%/e-studio
+edit_tdz_cms:
+  stylesheets:    [-*,%APP_E-STUDIO_ASSETS_URL%/css/e-studio.css,%APP_E-STUDIO_ASSETS_URL%/css/e-studio-ui.css]
+  javascripts:    [-*,%APP_E-STUDIO_ASSETS_URL%/js/jquery.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio-ui.js,%APP_E-STUDIO_ASSETS_URL%/js/loader.js]
+  has_layout:     true
+  layout:          %APP_E-STUDIO_TEMPLATE_DIR%/e-studio
+list_tdz_cms:
+  stylesheets:    [-*,%APP_E-STUDIO_ASSETS_URL%/css/e-studio.css,%APP_E-STUDIO_ASSETS_URL%/css/e-studio-ui.css]
+  javascripts:    [-*,%APP_E-STUDIO_ASSETS_URL%/js/jquery.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio-ui.js,%APP_E-STUDIO_ASSETS_URL%/js/loader.js]
+  has_layout:     true
+  layout:          %APP_E-STUDIO_TEMPLATE_DIR%/e-studio
+delete_tdz_cms:
+  stylesheets:    [-*,%APP_E-STUDIO_ASSETS_URL%/css/e-studio.css,%APP_E-STUDIO_ASSETS_URL%/css/e-studio-ui.css]
+  javascripts:    [-*,%APP_E-STUDIO_ASSETS_URL%/js/jquery.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio-ui.js,%APP_E-STUDIO_ASSETS_URL%/js/loader.js]
+  has_layout:     true
+  layout:          %APP_E-STUDIO_TEMPLATE_DIR%/e-studio
+files_tdz_cms:
+  stylesheets:    [-*,%APP_E-STUDIO_ASSETS_URL%/css/e-studio.css,%APP_E-STUDIO_ASSETS_URL%/css/e-studio-ui.css]
+  javascripts:    [-*,%APP_E-STUDIO_ASSETS_URL%/js/jquery.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio.js,%APP_E-STUDIO_ASSETS_URL%/js/e-studio-ui.js,%APP_E-STUDIO_ASSETS_URL%/js/loader.js]
+  has_layout:     true
+  layout:          %APP_E-STUDIO_TEMPLATE_DIR%/e-studio
+
