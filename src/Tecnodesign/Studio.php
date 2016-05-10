@@ -362,6 +362,10 @@ class Tecnodesign_Studio
                 return false;
             }
             tdz::cacheControl($r['c'], self::$cacheTimeout);
+            foreach($r['h'] as $k=>$v) {
+                header($k.': '.$v);
+                unset($k, $v);
+            }
             if(isset($r['f'])) {
                 tdz::download($r['f'], $r['h']['Content-Type']);
             } else {
