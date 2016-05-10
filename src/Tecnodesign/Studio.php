@@ -696,7 +696,9 @@ class Tecnodesign_Studio
                 }
                 if(file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/lang/'.$table.'.'.$lang.'.yml') || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/lang/'.$table.'.en.yml')) {
                     if(!self::$t[$table]) self::$t[$table] = array();
-                    self::$t[$table] += Tecnodesign_Yaml::load($f);
+                    $trans = Tecnodesign_Yaml::load($f);
+                    if($trans)
+                        self::$t[$table] += $trans;
                 }
                 if(self::$cacheTimeout) Tecnodesign_Cache::set($ckey, self::$t[$table], self::$cacheTimeout);
             }
@@ -752,6 +754,8 @@ class Tecnodesign_Studio
         if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();
         tdz::$variables['variables'] += $a;
     }
+
+
 }
 
 if(!class_exists('tdzEntry')) {
