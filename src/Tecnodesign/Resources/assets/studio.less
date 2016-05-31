@@ -38,6 +38,7 @@
   }
 
   .studio-list {
+    display:none;
     position:absolute;
     left:0;
     bottom:3.5em;
@@ -98,26 +99,31 @@
   .s-right{float:right}
 
   button {
-    font-size:2em;
-    vertical-align:top;
-    background:#fff;
+    .studio-type();
+    font-size:1em;
+    font-weight:bold;
+    vertical-align:baseline;
     box-shadow: none;
-    border: 2px solid #0cf;
-    color:#0cf;
-    border-radius:0.5em;
-    line-height:1em;
-    max-height:1em;
-    min-width:1em;
+    background:@bg + #222;
+    border-top:@btop;
+    border-left:@bleft;
+    border-bottom:@bbottom;
+    border-right:@bright;
+
+    color:@border - #222;
+    border-radius:0.25em;
+    line-height:2em;
+    max-height:2.5em;
+    min-width:4em;
     text-align:center;
-    padding:0;
-    margin:0;
+    padding:0 1em 0 0;
+    margin:0 0 1em 1em;
     display:inline-block;
     position:relative;
-    .studio-type();
-    opacity:0.5;
 
-    &:after {
-      content:'!';display:inline-block;margin-top:0;padding:0;line-height:1em;vertical-align:top;position:relative;top:-6px
+    &:before {
+      .studio();
+      content:' \e912 ';display:inline-block;margin-top:0;padding:0;line-height:2em;vertical-align:top;
     }
     &:hover, &:focus, &:active{
       color:@hover;
@@ -158,7 +164,7 @@
 
   .tdz-i-header {
     position:absolute;
-    top:10vw;
+    top:10vh;
     height:0;
     width:80vw;
     left:10vw;
@@ -175,7 +181,7 @@
 
   .tdz-i{
     position:relative;
-    top:10vw;
+    top:10vh;
     width:80vw;
     margin:0 10vw;
     opacity:0;
@@ -404,7 +410,7 @@
     }
   }
   .tdz-i-label-action{
-    display:none;
+    padding-right:0.5em;
   }
   .tdz-i-actions a, .tdz-i-header .tdz-i-title, .tdz-i-summary, .tdz-i-a{
       &:before{
@@ -475,14 +481,25 @@
   dl {
     margin:1em;
   }
+  dl.s-inline dt, dl.s-inline dd {
+    display:inline-block;
+  }
   /* label */
   dt {
-
+    padding:0 0.5em 0.5em 0;
   }
 
   /* form */
   dd {
     margin:0;
+  }
+  select, option {
+    font-size: 1em;
+    line-height:1.5em;
+  }
+  select {
+    min-width:25%;
+    height:1.5em;
   }
 
   textarea {

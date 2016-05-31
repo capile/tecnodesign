@@ -49,10 +49,6 @@ class Tecnodesign_Database
     public static function getTables($db=null)
     {
         if (is_null($db) || !is_array($db)) {
-            $app = tdz::getApp();
-            if(!$app) {
-                return false;
-            }
             $dbs = tdz::$database;
             if(is_null($db)) {
                 $dbnames = array_keys($dbs);
@@ -60,10 +56,17 @@ class Tecnodesign_Database
             } else {
                 $dbn = $db;
             }
-            $db = $dbs[$dbn];
+        } else if(is_array($db)) {
+            foreach(tdz::$database as $dbn=>$dbo) {
+                if($dbo['dsn']==$db['dsn']) break;
+                unset($dbn, $dbo);
+            }
+        } else {
+            $dbn = $db;
+            $db = tdz::$database[$dbn];
         }
         $tables = array();
-        $conn = tdz::connect($db);
+        $conn = tdz::connect($dbn);
         if(preg_match('/\;dbname=([^\;]+)/', $db['dsn'], $m)){
             $dbname = $m[1];
             $driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -236,13 +239,9 @@ class Tecnodesign_Database
     public static function syncronizeModels($tns=array(), $lib=false, $metadata=false, $dbs=null)
     {
         if(is_null($dbs) || !is_array($dbs)) {
-            $app = tdz::getApp();
-            if(!$app) {
-                tdz::debug('no app');
-                return false;
-            }
             $dbs = tdz::$database;
         }
+        if(!$dbs) return false;
         $ctns = count($tns);
         if(!$lib) {
             $libs = tdz::$lib;
@@ -254,7 +253,7 @@ class Tecnodesign_Database
             if(isset($dbo['sync']) && !$dbo['sync']) continue;
             self::$database = $db;
             self::$dbo = $dbo;
-            tdz::setConnection('', tdz::connect($dbo));
+            tdz::setConnection('', tdz::connect($db));
             $tbls = Tecnodesign_Database::getTables($dbo);
             if(!$tbls) continue;
             foreach($tbls as $td) {
@@ -317,9 +316,9 @@ class Tecnodesign_Database
             }
             $tables[$tid]['file']=$cfile;
             
-            if(!$meta && ($metadata || $app)){
+            if(!$meta && $metadata){
                 if(!$metadata || !is_array($metadata)) {
-                    $metadata = $app->metadata;
+                    $metadata = tdz::getApp()->metadata;
                 }
                 if($metadata){
                     $ml = 0;

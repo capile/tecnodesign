@@ -323,6 +323,7 @@ class tdz
                 }
             }
         } else {
+            tdz::debug($db, func_get_args());
             $name = md5(implode(':',$db));
             if(isset(tdz::$_connection[$name])) {
                 //tdz::$_connection[$name] = null;

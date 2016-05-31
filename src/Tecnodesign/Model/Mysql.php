@@ -44,6 +44,7 @@ class Tecnodesign_Model_Mysql
         $tn = $schema['tableName'];
         $db = $schema['database'];
         $cn = (isset($schema['className']))?($schema['className']):(tdz::camelize(ucfirst($tn)));
+        tdz::setConnection('', tdz::connect($db));
         $tdesc = tdz::query('show full columns from '.$tn);
         $schema['columns'] = array();
         if(!$tdesc) {

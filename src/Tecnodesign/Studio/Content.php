@@ -77,7 +77,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         'active-records' => 'expired is null',
       ),
       'form' => array (
-        'content_type' => array ( 'bind' => 'content_type', 'type' => 'select', 'class' => 'studio-field-content-type', 'attributes'=>array('data-callback'=>'contentType')),
+        'content_type' => array ( 'bind' => 'content_type', 'type' => 'select', 'class' => 'studio-field-content-type s-inline', 'attributes'=>array('data-callback'=>'contentType')),
         'content' => array ( 'bind' => 'content', 'type' => 'textarea', 'class' => 'studio-field-content' ),
       ),
       'actAs' => array (

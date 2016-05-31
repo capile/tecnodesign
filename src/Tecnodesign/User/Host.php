@@ -49,8 +49,13 @@ class Tecnodesign_User_Host
     public function find($id)
     {
         if($r=self::authenticate()) {
-            $H = new Tecnodesign_Collection();
-            $H->id = $id;
+            if(isset(Tecnodesign_User::$cfg['ns']['host']['className'])) {
+                $cn = Tecnodesign_User::$cfg['ns']['host']['className'];
+                $H = $cn::find($r,1,'minimal');
+            } else {
+                $H = new Tecnodesign_Collection();
+                $H->id = $id;
+            }
             return $H;
         }
     }

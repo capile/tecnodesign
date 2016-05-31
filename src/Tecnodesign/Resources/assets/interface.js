@@ -340,8 +340,8 @@ if(!('Z' in window)) {
                         h['Content-Type'] = enc;
                     }
                     if(!data) data = Z.formData(this);
-                } else if(this.className.search(/\btdz-auto\b/)<0) {
-                    t = t.replace(/\?.*$/, '')+'?'+Z.formData(this);
+                } else {
+                    t = t.replace(/\?(.*)$/, '')+'?'+Z.formData(this);
                 }
                 urls.push(t);
             } else {
@@ -639,7 +639,7 @@ if(!('Z' in window)) {
     function interfaceError()
     {
         console.log('ERROR', arguments, this);
-        msg(Z.l.Error, 'tdz-i-error');
+        msg(Z.l[Z.language].Error, 'tdz-i-error');
         Z.delay(msg, 5000, 'msg');
     }
 

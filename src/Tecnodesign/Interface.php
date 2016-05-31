@@ -74,7 +74,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $actionsDefault     = array( 'preview', 'list' ),
         $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
         $headingTemplate    = '<hr /><h3>$LABEL</h3>',
-        $previewTemplate    = '<dl class="if--$ID tdz-i-field $CLASS">$ERROR<dt>$LABEL</dt><dd data-action-item="$ID">$INPUT</dd></dl>',
+        $previewTemplate    = '<dl class="if--$ID tdz-i-field $CLASS"><dt>$LABEL$ERROR</dt><dd data-action-item="$ID">$INPUT</dd></dl>',
         $updateTemplate,
         $newTemplate,
         $renderer           = 'renderPreview',
@@ -2004,7 +2004,6 @@ class Tecnodesign_Interface implements ArrayAccess
         $cn = $this->model;
         $scope = (isset($cn::$schema['scope']['search']))?($cn::$schema['scope']['search']):('review');
         if(!is_array($scope)) $scope = $cn::columns($scope);
-
         $fns = array();
         $ff=array();
         $fo=array(
@@ -2190,7 +2189,10 @@ class Tecnodesign_Interface implements ArrayAccess
                     $c1=(in_array('1', $v))?(true):(false);
                     if($c0 && $c1) { // do nothing
                     } else if($c0||$c1) {
-                        if(substr($ff[$k], 0, 8)=='bool-rel-' && ($rcn=substr($ff[$k], 8))) {
+                        if((substr($ff[$k], 0, 8)=='bool-rel-' && ($rcn=substr($ff[$k], 8)))||(isset($cn::$schema['relations'][$fns[$k]]) && ($rcn=$cn::$schema['relations'][$fns[$k]]))) {
+                            if(is_array($rcn)) {
+                                $rcn = (isset($rcn['className']))?($rcn['className']):($fns[$k]);
+                            }
                             $fk=$rcn::pk();
                             if(is_array($fk)) $fk=array_shift($fk);
                             if($c1) $fk.='!=';

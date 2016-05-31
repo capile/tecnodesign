@@ -1145,7 +1145,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($bind && isset($schema['relations'][$bind])) {
             $M = $this->getModel();
             $cn = get_class($M);
-            $arg['value'] = $M->$bind;
+            if(!isset($arg['value'])) $arg['value'] = $M->getRelation($bind, null, null, false);
             if(!is_array($arg['value']) && !($arg['value'] instanceof Tecnodesign_Collection)) {
                 if($arg['value']) $arg['value'] = array($arg['value']);
                 else $arg['value']=array();

@@ -24,6 +24,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             'body'=>null,
             'footer'=>null,
         ),
+        $slot='body',
         $types = array(
             'page'=>'Page',
             'feed'=>'Newsfeed',
@@ -659,6 +660,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
         }
         unset($f);
+        $sort = false;
         if($pages) {
             //$link = (substr($this->link, -1)=='/')?(self::$indexFile):(basename($this->link));
             if(!$r) $r=array();
@@ -666,11 +668,20 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 if(is_dir($page)) continue;
                 $C = Tecnodesign_Studio::content($page, $checkLang, $checkTemplate);
                 if($C) {
-                    $r[] = $C;
+                    if($C->_position) {
+                        $r[$C->_position] = $C;
+                        $sort = true;
+                    } else {
+                        $r[] = $C;
+                    }
                 }
                 unset($C, $page);
             }
             unset($link);
+            if($sort) {
+                ksort($r);
+                unset($sort);
+            }
         }
         unset($pages);
         return $r;
