@@ -2175,11 +2175,22 @@ class tdz
 
     public static function text($s)
     {
+        static $c;
+        if(is_null($c)) {
+            $c = new League\HTMLToMarkdown\HtmlConverter();
+        }
+        $r = strip_tags($c->convert($s));
+        if(!$r && $s) {
+            $r = strip_tags(html_entity_decode($s));
+        }
+        return $r;
+        /*
         if(!class_exists('HTML_To_Markdown')) require_once TDZ_ROOT.'/src/HTML_To_Markdown/HTML_To_Markdown.php';
-        $o = new HTML_To_Markdown(strip_tags($s, '<h1><h2><h3><h4><h5><p></p><br><a><b><i><strong><em><table><tr><td><th><tbody><thead><blockquote>'));
+        //$o = new HTML_To_Markdown(strip_tags($s, '<h1><h2><h3><h4><h5><p></p><br><a><b><i><strong><em><table><tr><td><th><tbody><thead><blockquote>'));
         $r = $o->output();
         unset($o);
         return $r;
+        */
     }
 
     public static function safeHtml($s)

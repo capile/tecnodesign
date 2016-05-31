@@ -403,12 +403,9 @@ class Tecnodesign_Mail
          * Load swiftMailer mailer class if is not loaded
          * http://swiftmailer.org/
          */
-        if (!class_exists('Swift')) {
+        if (!class_exists('Swift_SmtpTransport')) {
             try {
-                if (!defined('TDZ_ROOT')) {
-                    define('TDZ_ROOT', dirname(dirname(dirname(__FILE__))));
-                }
-                require_once TDZ_ROOT.'/src/Swift/lib/swift_required.php';
+                require_once TDZ_APP_ROOT.'/lib/vendor/Swift-src/lib/swift_required.php';
             } catch (Exception $e) {
                 $this->error($e);
             }
@@ -416,7 +413,8 @@ class Tecnodesign_Mail
         $transport = false;
         $config = self::$config;
         if(isset($config['transport']) && $config['transport']=='smtp') {
-            $transport = Swift_SmtpTransport::newInstance($config['server'], $config['port']);
+            $ssl = (isset($config['encryption']) && $config['encryption'])?('ssl'):(null);
+            $transport = Swift_SmtpTransport::newInstance($config['server'], $config['port'], $ssl);
             if(isset($config['encryption']) && $config['encryption']) {
                 $transport->setEncryption($config['encryption']);
             }
