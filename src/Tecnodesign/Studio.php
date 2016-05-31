@@ -250,8 +250,8 @@ class Tecnodesign_Studio
     public static function content($page, $checkLang=true, $checkTemplates=true)
     {
         static $langs;
-        $slotname = null;
-        $pos = 0;
+        $slotname = tdzEntry::$slot;
+        $pos = null;
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
         $pp = explode('.', $pn);
@@ -280,11 +280,11 @@ class Tecnodesign_Studio
         if(count($pp)>0) {
             $tmp = array_shift($pp);
             if(preg_match('/^[^a-z]/i', $tmp)) {
-                $pos = (int) $tmp;
+                $pos = $tmp;
             } else {
                 $slotname = $tmp;
                 if(count($pp)>0) {
-                    $pos = (int) array_shift($pp);
+                    $pos = array_shift($pp);
                 }
             }
             unset($tmp);
@@ -312,6 +312,7 @@ class Tecnodesign_Studio
             //'subposition'=>$pos,
         ));
         $C->pageFile = $id;
+        if(!is_null($pos)) $C->_position = $slotname.$pos;
         if(isset($meta)) {
             Tecnodesign_Studio::addResponse($meta);
             foreach(tdzContent::$schema['columns'] as $fn=>$fd) {

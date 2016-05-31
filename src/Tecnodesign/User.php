@@ -36,6 +36,7 @@ class Tecnodesign_User
      */
     public static 
         $timeout=0,             // session timeout in seconds
+        $cfg, 
         $hashType='sha256',     // hashing method
         $usePhpSession=false,   // load/destroy user based on PHP session
         $setLastAccess='lastAccess', // property to use when setting last access, set to false to disable
@@ -48,7 +49,7 @@ class Tecnodesign_User
     const MAX_ATTEMPTS_TIMEOUT = 300;
     const LASTCOOKIE_ATTR = 'lastSessionCookie';
 
-    protected static $_current = null, $_cookies=array(), $cfg, $audit=array('REMOTE_ADDR'=>'ip','HTTP_USER_AGENT'=>'ua');
+    protected static $_current = null, $_cookies=array(), $audit=array('REMOTE_ADDR'=>'ip','HTTP_USER_AGENT'=>'ua');
     protected $_uid, $_me, $_session, $_superAdmin, $_ns, 
         $_map=array(), $_attr, $_cname=null, $_cid=null, $_credentials=null,
         $_message=null, $_o=array(), $_useMem=false, $lastAccess;

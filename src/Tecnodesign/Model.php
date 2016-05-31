@@ -380,7 +380,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $fo;
     }
     
-    public static function columns($scope='default', $type=null, $expand=3)
+    public static function columns($scope='default', $type=null, $expand=3, $clean=false)
     {
         if(!$scope) $scope = 'default';
         if(!is_array($scope)) {
@@ -452,6 +452,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             $scope = $r;
             unset($r);
+        }
+        if($clean) {
+            foreach($scope as $i=>$fn) {
+                if(is_array($fn) || (substr($fn, 0, 2)=='--' && substr($fn, -2)=='--')) {
+                    unset($scope[$i]);
+                }
+            }
         }
         return $scope;
     }
@@ -1469,13 +1476,25 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!$groupBy) {
             $c = static::pk();
             if(!is_array($c)) $c=array($c);
-            $q['select'] = $c + static::columns($scope);
+            $q['select'] = array_merge($c, static::columns($scope, null, 3, true));
+            unset($c);
         } else {
-            $q['select'] = static::columns($scope);
+            $q['select'] = static::columns($scope, null, 3, true);
         }
-        if($s) $q['where'] = $s;
+        if($s) {
+            if(!is_array($s)) {
+                $c = static::pk();
+                if(is_array($c)) $c=array_shift($c);
+                $q['where'] = array($c=>$s);
+
+            } else {
+                $q['where'] = $s;
+            }
+        }
         if(!is_null($orderBy)) $q['orderBy'] = $orderBy;
+        else if(isset(static::$schema['order'])) $q['orderBy'] = static::$schema['order'];
         if(!is_null($groupBy)) $q['group'] = $groupBy;
+        else if(isset(static::$schema['group-by'])) $q['groupBy'] = static::$schema['group-by'];
         $q['limit'] = $limit;
         $Q = Tecnodesign_Query::handler(get_called_class())->find($q);
         if(!$Q) {
@@ -2473,6 +2492,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public static function __set_state($a, $underscore=false)
     {
         $M = new static();
+        if(!is_array($a) && $a) {
+            $pk = static::pk();
+            if(is_array($pk)) $pk = array_shift($pk);
+            $a = array($pk => $a);
+        }
         foreach($a as $k=>$v) {
             $M->$k = $v;
             $M->_original[$k] = $v;
