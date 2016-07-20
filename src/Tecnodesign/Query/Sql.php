@@ -494,12 +494,16 @@ class Tecnodesign_Query_Sql
                 }
             } else {
                 $cop = $op;
+                $pxor = (isset($cxor))?($cxor):(null);
                 $cxor = $xor;
                 $cnot = $not;
                 $c1=substr($k, 0, 1);
                 if(isset($xors[$c1])) {
-                    $xor = $xors[$c1];
+                    $cxor = $xors[$c1];
                     $k = substr($k, 1);
+                }
+                if($pxor && $pxor=='or' && $pxor!=$cxor) {
+                    $r = ' ('.trim($r).')';
                 }
                 unset($c1);
                 if(preg_match('/(\~|\<\>|[\<\>\^\$\*\!\%]?\=?|[\>\<])$/', $k, $m) && $m[1]) {
@@ -548,7 +552,7 @@ class Tecnodesign_Query_Sql
                     else if($cop=='%') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v))."%'";
                     else $r .= ($not)?(" not({$fn}{$cop}".self::escape($v).')'):(" {$fn}{$cop}".self::escape($v));
                 }
-                unset($cop, $cxor, $cnot);
+                unset($cop, $cnot);
             }
             unset($k, $fn, $v);
         }

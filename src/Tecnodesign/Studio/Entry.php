@@ -300,7 +300,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
                 $layout .= "\n\${$slotname} = '<{$slotname}><div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></{$slotname}>{$addbr}';";
             } else if($slotname!='meta' && $slotname!='title') {
-                $layout .= "\n\${$slotname} = '<section><div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></section>{$addbr}';";
+                $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
             }
         }
         $layout .= "\n\$meta.=tdz::meta();";

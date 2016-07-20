@@ -1983,8 +1983,9 @@ class Tecnodesign_Interface implements ArrayAccess
         if($this->model) {
             $cn = $this->model;
             $pk = $cn::pk();
-            if(is_array($pk) || strpos($pk, ' ')) $pk='*';
-            $R = $cn::find($this->search,1,array('count(`'.$pk.'`) _count'),true,false,true);
+            if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';
+            else $pk = 'distinct `'.$pk.'`';
+            $R = $cn::find($this->search,1,array('count('.$pk.') _count'),true,false,true);
             if($R) $r = (int) $R->_count;
             unset($R);
         }

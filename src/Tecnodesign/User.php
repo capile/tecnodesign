@@ -755,6 +755,7 @@ class Tecnodesign_User
             return true;
         }
         $uc = $this->getCredentials();
+        if(!is_array($uc)) $uc=array();
         if(!is_array($credentials)) {
             if (!$credentials) {
                 return true;
