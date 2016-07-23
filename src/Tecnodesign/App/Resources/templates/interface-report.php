@@ -164,7 +164,9 @@ while($list || $worksheet) {
                 foreach($S as $k=>$c) {
                     $vc = (isset($M[$c]))?($v->{$M[$c]}()):($v[$c]);
                     if($vc!=='' && $vc!==false && $vc!==null) {
-                        $e[$k] = tdz::raw($vc);
+                        $vc = tdz::raw($vc);
+                        if(is_array($vc)) $vc = implode("; ", $vc);
+                        $e[$k] = $vc;
                     } else {
                         $e[$k] = '';
                     }

@@ -15,15 +15,24 @@
  */
 class Tecnodesign_Interface implements ArrayAccess
 {
-    const MAX_LIMIT=1000;
+    const MAX_LIMIT=10000;
     const REQ_LIMIT='limit';
     const REQ_OFFSET='offset';
     const REQ_ENVELOPE='envelope';
     const REQ_PRETTY='pretty';
     const REQ_CALLBACK='callback';
+    const REQ_SCOPE='scope';
     const REQ_FIELDS='fields';
+    const H_STATUS='status';
+    const H_STATUS_CODE='status-code';
+    const H_TOTAL_COUNT='total-count';
+    const H_LAST_MODIFIED='last-modified';
+    const H_CACHE_CONTROL='cache-control';
+    const H_MESSAGE='message';
 
     public static
+        $envelope           = true,
+        $pretty             = true,
         $listResult         = 'There\'s only one record available.',
         $listResults        = 'There are %s records available.',
         $listSearchResult   = 'There\'s only one record in %s that match your query for %s.',
@@ -85,7 +94,7 @@ class Tecnodesign_Interface implements ArrayAccess
             'run'           => 'listInterfaces',
         ),
         $authDefault        = false,
-        $dateFormat         = 'D, d M Y H:i:s O',
+        $dateFormat         = 'D, d M Y H:i:s T',
         $currentAction,
         $xmlRoot = 'response',
         $xmlRootAttributes = array(),
@@ -107,7 +116,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $csvFixedBottomBorder = false,
         $csvFixedHeaderBorder = true,
         $headers=array(),
-        $status;
+        $status,
+        $expires;
 
 
     protected $uid, $model, $action, $id, $search, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params;
@@ -117,7 +127,23 @@ class Tecnodesign_Interface implements ArrayAccess
         $base,
         $formats=array( 'html', 'json', 'xls', 'xlsx', 'csv', 'yml', 'xml' ),
         $format,
-        $ext;
+        $ext,
+        $statusCodes = array(
+            200 => 'OK',
+            201 => 'Created',
+            202 => 'Accepted',
+            301 => 'Moved Permanently',
+            302 => 'Found',
+            304 => 'Not Modified',
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            409 => 'Conflict',
+            412 => 'Precondition Failed',
+            500 => 'Internal Server Error',
+        );
 
 
     /**
@@ -312,7 +338,7 @@ class Tecnodesign_Interface implements ArrayAccess
             //Tecnodesign_App::response(array('script'=>array(700=>tdz::$assetsUrl.'/tecnodesign/js/interface.js')));
             $I = static::currentInterface($p);
 
-            if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
+            //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
 
             if(is_null(static::$format)) {
                 $f = static::$formats;
@@ -553,6 +579,12 @@ class Tecnodesign_Interface implements ArrayAccess
         return static::checkAuth($this->getAuth($action));
     }
 
+    public static function authHeaders($U, $h='private')
+    {
+        tdz::cacheControl($h, static::$expires);
+        self::$headers[static::H_CACHE_CONTROL] = $h;
+    }
+
     public static function checkAuth($c)
     {
         static $H, $U;
@@ -561,7 +593,12 @@ class Tecnodesign_Interface implements ArrayAccess
             if(is_null($U)) {
                 $U = tdz::getUser();
             }
-            return $U->isAuthenticated();
+            if($U->isAuthenticated()) {
+                self::authHeaders($U);
+                return true;
+            } else {
+                return false;
+            }
         }
         if(isset($c['host']) && is_array($c['host'])) {
             if(is_null($H)) {
@@ -575,7 +612,10 @@ class Tecnodesign_Interface implements ArrayAccess
             if(is_null($U)) {
                 $U = tdz::getUser();
             }
-            if(!$c['credential'] || $U->hasCredential($c['credential'], false)) {
+            if(!$c['credential']) {
+                return true;
+            } else if($U->hasCredential($c['credential'], false)) {
+                self::authHeaders($U);
                 return true;
             }
         }
@@ -833,6 +873,25 @@ class Tecnodesign_Interface implements ArrayAccess
         return false;
     }
 
+    public static function status($code=200)
+    {
+        static::$status = $code;
+
+        // add status headers
+        static::$headers = array(
+                static::H_STATUS=>static::$statusCodes[static::$status],
+                static::H_STATUS_CODE=>static::$status,
+            ) + static::$headers;
+        if(static::H_CACHE_CONTROL && !isset(static::$headers[static::H_CACHE_CONTROL])) {
+            if($code==200) {
+                static::$headers[static::H_CACHE_CONTROL] = 'public';
+                tdz::cacheControl('public', static::$expires);
+            } else {
+                static::$headers[static::H_CACHE_CONTROL] = 'nocache';
+                tdz::cacheControl('nocache', 0);
+            }
+        }
+    }
 
     public static function error($code=500, $msg=null)
     {
@@ -842,9 +901,19 @@ class Tecnodesign_Interface implements ArrayAccess
             static::$format = array_shift($f);
             unset($f);
         }
+        static::status($code);
+        if($msg) static::$headers[static::H_MESSAGE] = $msg;
+
         if(static::$format!='html') {
+            if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
+                static::$envelope = (bool)tdz::raw($p);
+            }
+            if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
+                static::$pretty = (bool)tdz::raw($p);
+            }
+            unset($p);
             $cn = get_called_class();
-            if(method_exists($cn, $m='to'.ucfirst(static::$format))) $msg = static::$m(array('error'=>$code, 'message'=>$msg));
+            if(method_exists($cn, $m='to'.ucfirst(static::$format))) $msg = static::$m(array());
 
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($msg, $code);
@@ -855,13 +924,11 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function toXml($ret)
     {
         $a = $b = '';
-        $pretty = true;
         $a = '<?xml version="1.0" encoding="utf-8" ?'.'>';
         $ln = "\n";
         $in = "  ";
         $ix = 1;
-        if(($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) && !tdz::raw($p)) {
-            $pretty = false;
+        if(!static::$pretty) {
             $a = '';
             $ln = '';
             $in = '';
@@ -869,7 +936,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
         if(!isset($ret[0])) $ret = array($ret);
 
-        if(($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) && tdz::raw($p)) {
+        if(static::$envelope) {
             $a .= $ln.'<'.static::$xmlRoot;
             if(!static::$xmlPropertiesAsElements && static::$headers) {
                 if(!is_array(static::$xmlRootAttributes)) static::$xmlRootAttributes=static::$headers;
@@ -946,14 +1013,10 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public static function toJson($ret)
     {
-        if(($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) && tdz::raw($p)) {
+        if(static::$envelope) {
             $ret = static::envelope($ret);
         }
-        $pretty = true;
-        if(($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) && !tdz::raw($p)) {
-            $pretty = false;
-        }
-        $flags = ($pretty)?(JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE):(JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+        $flags = (static::$pretty)?(JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE):(JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
         $b = $a = '';
         if(($p=Tecnodesign_App::request('get', static::REQ_CALLBACK)) && is_string($p)) {
             $b = preg_replace('/[^a-z0-9\_\.]+/i', '', $p).'(';
@@ -965,7 +1028,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public static function toYml($ret)
     {
-        if(($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) && tdz::raw($p)) {
+        if(static::$envelope) {
             $ret = static::envelope($ret);
         }
         unset($p);
@@ -976,9 +1039,16 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         $r='';
         if(!isset($ret[0])) $ret = array($ret);
-        $pretty = true;
-        if(($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) && !tdz::raw($p)) {
-            $pretty = false;
+        if(!static::$pretty && !static::$envelope) {
+            if($i=count($ret)) {
+                while($i-- > 0) {
+                    $d=array_shift($ret);
+                    $r.="\n".static::csv($d, "\t", '');
+                    unset($d);
+                }
+            }
+            $r .= "\n";
+        } else if(!static::$pretty) {
 
             if($i=count($ret)) {
                 while($i-- > 0) {
@@ -1210,11 +1280,25 @@ class Tecnodesign_Interface implements ArrayAccess
         $this->text['count'] = $this->count();
         $req = Tecnodesign_App::request('post') + Tecnodesign_App::request('get');
         if(isset($req['ajax'])) unset($req['ajax']);
+        if($req) {
+            $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS);
+            foreach($noreq as $k) {
+                if(isset($req[$k])) unset($req[$k]);
+            }
+        }
         if(!$req) {
             if(isset($this->options[$this->action.'-filter'])) {
                 $req = $this->options[$this->action.'-filter'];
             }
         }
+
+        if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
+            static::$envelope = (bool)tdz::raw($p);
+        }
+        if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
+            static::$pretty = (bool)tdz::raw($p);
+        }
+        unset($p);
 
         $cn = $this->model;
         if(isset($this->options['scope']) && is_array($this->options['scope'])) {
@@ -1248,6 +1332,8 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->getButtons();
             $this->getList($req);
         }
+        static::status(200);
+
         unset($req);
         unset($m, $cn);
     }
@@ -1335,12 +1421,12 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function headers()
     {
         foreach(static::$headers as $k=>$v) {
-            if($k=='last-modified') header('Last-Modified: '.$v);
+            if($k==static::H_LAST_MODIFIED) header('Last-Modified: '.$v);
             else if(strtolower($k)=='location') header('Location: '.$v);
-            else header('X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k)))).': '.$v);
+            else if($k) header('X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k)))).': '.$v);
         }
         if(static::$status) {
-            Tecnodesign_App::status(static::$status);
+            Tecnodesign_App::status(static::$status, static::$statusCodes[static::$status]);
         }
     }
 
@@ -1372,7 +1458,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 Tecnodesign_App::end('', 304);
             }
         }
-        static::$headers['last-modified']=date(static::$dateFormat, $lmod);
+        static::$headers[static::H_LAST_MODIFIED]=gmdate(static::$dateFormat, $lmod);
     }
 
     protected static $proc, $procTimeout=180;
@@ -1858,7 +1944,10 @@ class Tecnodesign_Interface implements ArrayAccess
             } else if(isset($this->options['order'])) {
                 $order=$this->options['order'];
             }
-            if(isset($this->options[$this->action])) {
+            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
+                $scope = $this->scope($rs);
+                unset($rs);
+            } else if(isset($this->options[$this->action])) {
                 $scope = $this->scope($this->action);
             } else {
                 $scope = $this->scope('review');
@@ -1872,7 +1961,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $count = $found->count();
             $start = 0;
         }
-        static::$headers['total-count'] = $count;
+        static::$headers[static::H_TOTAL_COUNT] = $count;
         $this->options['link'] = ($this->hasAction(static::$listAction))?($this->link(static::$listAction, false, false)):(false);
         $this->text['listLimit'] = static::$hitsPerPage;
         $p=Tecnodesign_App::request('get', static::REQ_LIMIT);
@@ -1909,16 +1998,18 @@ class Tecnodesign_Interface implements ArrayAccess
             static::$headers['offset'] = $this->text['listOffset']; 
         }
         if(isset($scope)) {
-            if(isset($req[static::REQ_FIELDS])) {
-                $f = (is_array($req[static::REQ_FIELDS]))?($req[static::REQ_FIELDS]):(explode(',',$req[static::REQ_FIELDS]));
+            if($f=Tecnodesign_App::request('get', static::REQ_FIELDS)) {
+                if(!is_array($f)) $f=explode(',',$f);
                 foreach($scope as $k=>$v) {
                     if(!in_array($k, $f)) unset($scope[$k]);
                     unset($v, $k);
                 }
             }
             $this->options['scope'] = $scope;
+            unset($scope);
         }
         $this->text['list'] = $found;
+        if(isset($this->options['list-key'])) $this->text['key'] = $this->options['list-key'];
         unset($found, $s, $start, $count, $cn, $order, $error);
         return $this->text['list'];
     }
@@ -1957,7 +2048,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(!is_array($this->scope)) $this->scope = $cn::columns($this->scope);
             unset($cn);
         }
-        if(isset($_GET['scope']) && ($rs=tdz::slug($_GET['scope'])) && is_array($this->scope)) {
+        if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && is_array($this->scope)) {
             if(in_array('scope::'.$rs, $this->scope) || in_array('sub::'.$rs, $this->scope)) {
                 return array('scope::'.$rs);
             }
@@ -2017,136 +2108,171 @@ class Tecnodesign_Interface implements ArrayAccess
         );
         $fieldset = tdz::t('Search options', 'interface');
         $active = false;
-        foreach($scope as $label=>$fn) {
-            if(is_array($fn)) {
-                $fd0 = $fn;
-                if(isset($fd0['bind'])) {
-                    $fn = $fd0['bind'];
-                    unset($fd0['bind']);
-                } else {
-                    $fn=null;
-                }
-                if(isset($fd0['label'])) $label = $fd0['label'];
-            }
-            if(strpos($fn, ' ')) {
-                $fn = preg_replace('/\s+_[a-z0-9\_]+$/', '', $fn);
-                $scope[$label]=$fn;
-            }
-            if(is_int($label)) $label = $cn::fieldLabel($fn);
-            $fd = $cn::column($fn, true, true);
-            if(!isset($fd['type'])) $fd['type']=null;
-
-            if(!$fd) {
-                if(isset($fd0)) {
-                    $fd = $fd0;
-                    unset($fd0);
-                } else {
-                    $fd = array('type'=>'text');
-                }
-            } else if(isset($fd0)) {
-                $fd = array_merge($fd, $fd0);
-                unset($fd0);
-            }
-            $slug=tdz::slug($label);
-            $fns[$slug]=$fn;
-
-            if(substr($fd['type'],0,4)=='date') {
-                $fo['fields'][$slug.'-0']=array(
-                    'type'=>$fd['type'],
-                    'label'=>$label,
-                    'id'=>$slug.'-0',
-                    //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'), 
-                    'placeholder'=>tdz::t('From', 'interface'),
-                    'fieldset'=>$fieldset,
-                    'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$fd['type'].'-input', 
-                );
-                $fo['fields'][$slug.'-1']=array(
-                    'type'=>$fd['type'],
-                    'label'=>'',
-                    'id'=>$slug.'-1',
-                    'placeholder'=>tdz::t('To', 'interface'),
-                    'fieldset'=>$fieldset,
-                    'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$fd['type'].'-input', 
-                );
-                $ff[$slug]='date';
-                if(isset($post[$slug.'-0']) || isset($post[$slug.'-1'])) $active = true;
-                else if(isset($post[$slug])) {
-                    if(is_array($post[$slug])) {
-                        if(implode('', $post[$slug])) {
-                            $active = true;
-                            if(isset($post[$slug][0])) {
-                                $post[$slug.'-0'] = $post[$slug][0];
-                                unset($post[$slug][0]);
-                            }
-                            if(isset($post[$slug][1])) {
-                                $post[$slug.'-1'] = $post[$slug][1];
-                                unset($post[$slug][1]);
-                            }
-                        }
-                    } else if($post[$slug]) {
-                        $active = true;
-                        @list($post[$slug.'-0'], $post[$slug.'-1']) = preg_split('/\s*[\,\~]\s*/', $post[$slug], 2);
-                        unset($post[$slug]);
+        $noq = false;
+        $scopes = 1;
+        if(isset($scope['q']) && is_array($scope['q'])) {
+            $scopes++;
+            $addScope = array($scope);
+            $scope = $scope['q'];
+            unset($addScope[0]['q']);
+        }
+        while($scopes-- > 0) {
+            foreach($scope as $k=>$fn) {
+                $label = $k;
+                if(is_array($fn)) {
+                    $fd0 = $fn;
+                    if(isset($fd0['bind'])) {
+                        $fn = $fd0['bind'];
+                        unset($fd0['bind']);
+                    } else {
+                        $fn=null;
                     }
+                    if(isset($fd0['label'])) $label = $fd0['label'];
                 }
+                if(strpos($fn, ' ')) {
+                    $fn = preg_replace('/\s+_[a-z0-9\_]+$/', '', $fn);
+                    $scope[$label]=$fn;
+                }
+                if(is_int($label)) $label = $cn::fieldLabel($fn);
+                $fd = $cn::column($fn, true, true);
+                if(!isset($fd['type'])) $fd['type']=null;
 
-            } else if(isset($fd['choices'])) {
-                $ff[$slug]='choices';
-                if(!isset($fd['type']))$fd['type']='checkbox';
-                $type = ($fd['type']!='select')?($fd['type']):('select');
+                if(!$fd) {
+                    if(isset($fd0)) {
+                        $fd = $fd0;
+                        unset($fd0);
+                    } else {
+                        $fd = array('type'=>'text');
+                    }
+                } else if(isset($fd0)) {
+                    $fd = array_merge($fd, $fd0);
+                    unset($fd0);
+                }
+                $slug=tdz::slug($label);
+                $fns[$slug]=$fn;
 
-                if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className'])) 
-                    $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
+                if(substr($fd['type'],0,4)=='date') {
+                    $fo['fields'][$slug.'-0']=array(
+                        'type'=>$fd['type'],
+                        'label'=>$label,
+                        'id'=>$slug.'-0',
+                        //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'), 
+                        'placeholder'=>tdz::t('From', 'interface'),
+                        'fieldset'=>$fieldset,
+                        'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$fd['type'].'-input', 
+                    );
+                    $fo['fields'][$slug.'-1']=array(
+                        'type'=>$fd['type'],
+                        'label'=>'',
+                        'id'=>$slug.'-1',
+                        'placeholder'=>tdz::t('To', 'interface'),
+                        'fieldset'=>$fieldset,
+                        'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$fd['type'].'-input', 
+                    );
+                    $ff[$slug]='date';
+                    if(isset($post[$slug.'-0']) || isset($post[$slug.'-1'])) $active = true;
+                    else if(isset($post[$slug])) {
+                        if(is_array($post[$slug])) {
+                            if(implode('', $post[$slug])) {
+                                $active = true;
+                                if(isset($post[$slug][0])) {
+                                    $post[$slug.'-0'] = $post[$slug][0];
+                                    unset($post[$slug][0]);
+                                }
+                                if(isset($post[$slug][1])) {
+                                    $post[$slug.'-1'] = $post[$slug][1];
+                                    unset($post[$slug][1]);
+                                }
+                            }
+                        } else if($post[$slug]) {
+                            $active = true;
+                            @list($post[$slug.'-0'], $post[$slug.'-1']) = preg_split('/\s*[\,\~]\s*/', $post[$slug], 2);
+                            unset($post[$slug]);
+                        }
+                    }
 
-                $fo['fields'][$slug]=array(
-                    'type'=>$type,
-                    'choices'=>$fd['choices'],
-                    'multiple'=>((isset($fd['multiple']) && $fd['multiple']) || $type=='checkbox'),
-                    'label'=>$label,
-                    'placeholder'=>$label,
-                    'fieldset'=>$fieldset,
-                    'class'=>'tdz-search-input tdz-'.$type.'-input',
-                );
-                if(isset($post[$slug])) $active=true;
-            } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && $fdo['type']=='bool'))) {
-                if(!isset($cb))
-                    $cb=array('1'=>tdz::t('Yes', 'interface'), '-1'=>tdz::t('No', 'interface'));
-                $fo['fields'][$slug]=array(
-                    'type'=>'checkbox',
-                    'choices'=>$cb,
-                    'label'=>$label,
-                    'multiple'=>true,
-                    'fieldset'=>$fieldset,
-                    'class'=>'tdz-search-input tdz-check-input',
-                );
-                $ff[$slug]='bool'.((isset($fdo) && $fdo['type']!='bool')?('-rel-'.$fd['className']):('bool'));
-            } else {
-                $ff['q'][$slug]=$label;
-                if(!isset($fo['fields']['q'])) {
-                    $fo['fields']['q']=array(
+                } else if(isset($fd['choices'])) {
+                    $ff[$slug]='choices';
+                    if(!isset($fd['type']))$fd['type']='checkbox';
+                    $type = ($fd['type']!='select')?($fd['type']):('select');
+
+                    if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className'])) 
+                        $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
+
+                    $fo['fields'][$slug]=array(
+                        'type'=>$type,
+                        'choices'=>$fd['choices'],
+                        'multiple'=>((isset($fd['multiple']) && $fd['multiple']) || $type=='checkbox'),
+                        'label'=>$label,
+                        'placeholder'=>$label,
+                        'fieldset'=>$fieldset,
+                        'class'=>'tdz-search-input tdz-'.$type.'-input',
+                    );
+                    if(isset($post[$slug])) $active=true;
+                } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && $fdo['type']=='bool'))) {
+                    if(!isset($cb))
+                        $cb=array('1'=>tdz::t('Yes', 'interface'), '-1'=>tdz::t('No', 'interface'));
+                    $fo['fields'][$slug]=array(
+                        'type'=>'checkbox',
+                        'choices'=>$cb,
+                        'label'=>$label,
+                        'multiple'=>true,
+                        'fieldset'=>$fieldset,
+                        'class'=>'tdz-search-input tdz-check-input',
+                    );
+                    $ff[$slug]='bool'.((isset($fdo) && $fdo['type']!='bool')?('-rel-'.$fd['className']):('bool'));
+                    if(isset($post[$slug])) {
+                        $active = true;
+                        if(!is_array($post[$slug]) && !isset($cb[$post[$slug]])) {
+                            $post[$slug] = (tdz::raw($post[$slug]))?('1'):('-1');
+                        }
+                    }
+                } else if($noq) {
+                    $ff[$slug]='choices';
+                    $fo['fields'][$slug]=array(
                         'type'=>'text',
                         'size'=>'200',
-                        'label'=>'',
-                        'placeholder'=>tdz::t('Search for', 'interface'),
+                        'label'=>$label,
                         'fieldset'=>$fieldset,
                         'class'=>'tdz-search-input'
                     );
+                    if(isset($post[$slug])) $active = true;
                 } else {
-                    if(!isset($fo['fields']['w'])) {
-                        $fo['fields']['w']=array(
-                            'type'=>'checkbox',
-                            'choices'=>$ff['q'],
-                            'label'=>tdz::t('Search at', 'interface'),
-                            'multiple'=>true, 'fieldset'=>$fieldset,
-                            'class'=>'tdz-search-input tdz-check-input',
+                    $ff['q'][$slug]=$label;
+                    if(!isset($fo['fields']['q'])) {
+                        $fo['fields']['q']=array(
+                            'type'=>'text',
+                            'size'=>'200',
+                            'label'=>'',
+                            'placeholder'=>tdz::t('Search for', 'interface'),
+                            'fieldset'=>$fieldset,
+                            'class'=>'tdz-search-input'
                         );
                     } else {
-                        $fo['fields']['w']['choices'][$slug]=$label;
+                        if(!isset($fo['fields']['w'])) {
+                            $fo['fields']['w']=array(
+                                'type'=>'checkbox',
+                                'choices'=>$ff['q'],
+                                'label'=>tdz::t('Search at', 'interface'),
+                                'multiple'=>true, 'fieldset'=>$fieldset,
+                                'class'=>'tdz-search-input tdz-check-input',
+                            );
+                        } else {
+                            $fo['fields']['w']['choices'][$slug]=$label;
+                        }
                     }
+                    if(isset($post['q'])) $active = true;
                 }
-                if(isset($post['q'])) $active = true;
+                unset($scope[$k], $k, $fd, $fdo, $label, $fn, $slug);
             }
-            unset($fd, $fdo, $label, $fn, $slug);
+            if($scopes > 0) {
+                if(isset($addScope) && $addScope) {
+                    $scope = array_shift($addScope);
+                    $noq = true;
+                } else {
+                    break;
+                }
+            }
         }
         $F = new Tecnodesign_Form($fo);
         if(!$F->id) $F->id = 'q-'.$this->text['interface'];
@@ -2248,6 +2374,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
             $this->text['searchCount'] = $this->count();
+        } else {
+            tdz::debug(var_export($F, true));
         }
         $this->text['searchForm'] = $F;
         return (isset($this->text['searchCount']))?($this->text['searchCount']):($this->text['count']);

@@ -519,7 +519,7 @@ class Tecnodesign_Excel
         unset($c, $s);
     }
 
-    public function style($x, $y, $c)
+    public function style($x, $y, $c, $cn=null)
     {
         $style = (isset($c['style']))?($this->val($c['style'])):(array());
         $on = '::nth-child('.((int)$x).')';
@@ -537,6 +537,9 @@ class Tecnodesign_Excel
                 //tdz::log(array($on, $oy.$on, $c['use'].$on, $o, $ox, $oy, $c['use']));
             }
             if(isset($this->_style[$c['use']]))$style += $this->_style[$c['use']];
+        }
+        if($cn && !is_numeric($cn) && isset($this->_style[$cn])) {
+            $style += $this->_style[$cn];
         }
         return $style;
     }
@@ -921,7 +924,7 @@ class Tecnodesign_Excel
                         }
                         unset($cv);
                     } else {
-                        $sty=$this->style($this->x, $this->y, $c);
+                        $sty=$this->style($this->x, $this->y, $c, $y);
                         $ty = $t;
                         if(isset($sty['type'])) {
                             if($sty['type']=='string' || $sty['type']=='text') $ty = Tecnodesign_Excel::TYPE_STRING;
