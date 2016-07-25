@@ -95,7 +95,7 @@ if(isset($list) || (isset($preview) && ($preview instanceof Tecnodesign_Model)))
             $d = array($preview);
             unset($preview);
         } else {
-            $d = ($listLimit==1)?(array($list->getItems($listOffset, $listLimit))):($list->getItems($listOffset, ($listLimit<100)?($listLimit):(100)));
+            $d = $list->getItems($listOffset, ($listLimit<100)?($listLimit):(100));
         }
         $o = $listOffset;
         $l = $o + $listLimit;
@@ -110,7 +110,11 @@ if(isset($list) || (isset($preview) && ($preview instanceof Tecnodesign_Model)))
                     }
                     unset($k, $c, $vc);
                 }
-                $r[] = $e;
+                if(isset($key)) {
+                    $r[$v[$key]] = $e;
+                } else {
+                    $r[] = $e;
+                }
                 unset($e, $d[$i], $i, $v);
             }
             unset($d);
