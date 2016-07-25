@@ -92,8 +92,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
     protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry;
     //--tdz-schema-end--
     protected static $content_types=null;
-    protected $subposition, $show_at, $hide_at;
-    public $pageFile;
+    protected $show_at, $hide_at;
+    public $pageFile, $attributes, $subposition;
 
 
     public function __toString()
@@ -271,12 +271,22 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         $code = $this->getContents();
         $code['slot']=$this->slot;
         $type = $this->content_type;
+        $attr = array('id'=>'c'.$id, 'data-studio-c'=>$this->id);
+        if(isset($this->attributes)) {
+            $attr += $this->attributes;
+        }
+        $a = '';
+        foreach($attr as $n=>$v) {
+            $a .= ' '.$n.'="'.tdz::xmlEscape($v).'"';
+            unset($attr[$n], $n, $v);
+        }
+        unset($attr);
         if(file_exists($tpl=Tecnodesign_Studio::$app->tecnodesign['templates-dir'].'/tdz-contents-'.$type.'.php')) {
             if(!isset($code['txt']) && isset($code[0])) {
                 $code['txt']=$code[0];
                 unset($code[0]);
             }
-            $s = "<div id=\"c{$id}\" data-studio-c=\"{$this->id}\">"
+            $s = "<div{$a}>"
                 . tdz::exec(array('script'=>$tpl, 'variables'=>$code))
                 . '</div>';
             return $s;
@@ -306,7 +316,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             }
             unset($r);
             if($this->slot=='meta') return $result;
-            $result = "<div id=\"c{$id}\" data-studio-c=\"{$this->id}\">{$result}</div>";
+            $result = "<div{$a}>{$result}</div>";
             return $result;
         }
         return $r;

@@ -251,7 +251,7 @@ class Tecnodesign_Studio
     {
         static $langs;
         $slotname = tdzEntry::$slot;
-        $pos = null;
+        $pos = '0000';
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
         $pp = explode('.', $pn);
@@ -309,9 +309,10 @@ class Tecnodesign_Studio
             'content'=>$p,
             'content_type'=>$ext,
             'position'=>$id,
-            //'subposition'=>$pos,
+            //'_position'=>$pos,
         ));
         $C->pageFile = $id;
+        if(isset($meta['attributes']) && is_array($meta['attributes'])) $C->attributes = $meta['attributes'];
         if(!is_null($pos)) $C->_position = $slotname.$pos;
         if(isset($meta)) {
             Tecnodesign_Studio::addResponse($meta);
