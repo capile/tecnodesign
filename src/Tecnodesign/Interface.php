@@ -23,6 +23,7 @@ class Tecnodesign_Interface implements ArrayAccess
     const REQ_CALLBACK='callback';
     const REQ_SCOPE='scope';
     const REQ_FIELDS='fields';
+    const REQ_ORDER='order';
     const H_STATUS='status';
     const H_STATUS_CODE='status-code';
     const H_TOTAL_COUNT='total-count';
@@ -1281,7 +1282,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $req = Tecnodesign_App::request('post') + Tecnodesign_App::request('get');
         if(isset($req['ajax'])) unset($req['ajax']);
         if($req) {
-            $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS);
+            $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS, static::REQ_ORDER);
             foreach($noreq as $k) {
                 if(isset($req[$k])) unset($req[$k]);
             }
@@ -1938,12 +1939,6 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         if(!isset($found)) {
             $cn = $this->model;
-            $order = null;
-            if(isset($req['o']) && preg_match('/^[a-z0-9\.\_]+$/i', $req['o'])) {
-                $order=array($req['o']=>(isset($req['d']) && $req['d']=='desc')?('desc'):('asc'));
-            } else if(isset($this->options['order'])) {
-                $order=$this->options['order'];
-            }
             if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
                 $scope = $this->scope($rs);
                 unset($rs);
@@ -1951,6 +1946,18 @@ class Tecnodesign_Interface implements ArrayAccess
                 $scope = $this->scope($this->action);
             } else {
                 $scope = $this->scope('review');
+            }
+            $order = null;
+            if(($order=Tecnodesign_App::request('get', static::REQ_ORDER)) && preg_match('/^(\!)?(.+)$/', $order, $m) && isset($scope[$m[2]])) {
+                $fn = $scope[$m[2]];
+                if(is_array($fn)) $fn=$fn['bind'];
+                if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' '));
+                $order=array($fn=>($m[1])?('desc'):('asc'));
+                unset($m, $fn);
+            } else if(isset($this->options['order'])) {
+                $order=$this->options['order'];
+            } else {
+                $order = null;
             }
             $found = $cn::find($this->search,0,$this->scope(null,true),true,$order);
         }
@@ -2374,8 +2381,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
             $this->text['searchCount'] = $this->count();
-        } else {
-            tdz::debug(var_export($F, true));
         }
         $this->text['searchForm'] = $F;
         return (isset($this->text['searchCount']))?($this->text['searchCount']):($this->text['count']);

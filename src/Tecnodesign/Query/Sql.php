@@ -140,6 +140,7 @@ class Tecnodesign_Query_Sql
             . ((!$count && $this->_limit)?(' limit '.$this->_limit):(''))
             . ((!$count && $this->_offset)?(' offset '.$this->_offset):(''))
         ;
+        if($this->_schema=='certificates')tdz::log(__METHOD__, $q);
         return $q;
 
     }

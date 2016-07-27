@@ -297,7 +297,9 @@ class Tecnodesign_Studio
         if($m) {
             $meta = Tecnodesign_Yaml::load($m);
             if(isset($meta['credential'])) {
-                if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) return false;
+                if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) {
+                    return false;
+                }
                 Tecnodesign_Studio::$private = true;
                 unset($meta['credential'], $U);
             }

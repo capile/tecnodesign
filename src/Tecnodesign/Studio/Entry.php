@@ -153,8 +153,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 $c = Tecnodesign_Studio::credential('previewPublished');
             }
         }
+        if(is_null($c) && $this->credential) $c = $this->credential;
+
         if($c && !(($U=tdz::getUser()) && $U->hasCredential($c, false))) {
-            //tdz::debug(__METHOD__, $c);
             Tecnodesign_Studio::error(403);
             return false;
         }
