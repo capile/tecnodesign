@@ -396,6 +396,15 @@ class Tecnodesign_Studio
                     'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css'),
                 );
             }
+            if($U->isAuthenticated() && ($cfg=Tecnodesign_Studio::$app->user)) {
+                if(isset($cfg['export']) && is_array($cfg['export'])) {
+                    foreach($cfg['export'] as $k=>$v) {
+                        $r[$k] = $U->$v;
+                        unset($cfg['export'][$k], $k, $v);
+                    }
+                }
+                unset($cfg);
+            }
         } else {
             $r = array();
         }

@@ -2445,7 +2445,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $value = $this->$m($value);
         }
         if ($schema['type']=='string') {
-            $value = (string) $value;
+            $value = @(string) $value;
             if (isset($schema['size']) && $schema['size'] && strlen($value) > $schema['size']) {
                 $value = mb_strimwidth($value, 0, (int)$schema['size'], '', 'UTF-8');
             }
