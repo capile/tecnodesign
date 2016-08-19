@@ -370,8 +370,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 }
             }
         }
+        if(substr($this->format, -4)!='html') tdz::download($file,($this->format)?($this->format):(tdz::fileFormat($file)),$fname);
         return $file;
-        tdz::download($file,$this->format,$fname);
     }
     public function renderFile()
     {
@@ -505,7 +505,11 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(substr($f, -1)=='/') $f.=static::$indexFile;
             else if(is_dir($f)) $f .= '/'.static::$indexFile; // redirect?
 
-            $pages = glob($f.'{,.*}', GLOB_BRACE);
+            static $pat;
+            if(is_null($pat)) {
+                $pat = '{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
+            }
+            $pages = glob($f.$pat, GLOB_BRACE);
 
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
@@ -653,7 +657,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $f = tdzEntry::file(static::$pageDir.$this->link, false);
         if(substr($f, -1)=='/') $f.=static::$indexFile;
         else if(is_dir($f)) $f .= '/'.static::$indexFile; // redirect?
-        $pages = glob($f.'.*');
+
+        static $pat;
+        if(is_null($pat)) {
+            $pat = '{,.*}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
+        }
+        $pages = glob($f.$pat, GLOB_BRACE);
+        //$pages = glob($f.'.*');
         if($checkTemplate) {
             while(strrpos($f, '/')!==false) {
                 $f = substr($f, 0, strrpos($f, '/'));

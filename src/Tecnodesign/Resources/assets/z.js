@@ -145,6 +145,40 @@ Z.cookie=function(name, value, expires, path, domain, secure) {
     return value;
 }
 
+Z.slug=function(s)
+{
+    return s.toLowerCase()
+      .replace(/[ąàáäâãåæă]/g, 'a')
+      .replace(/[ćčĉç]/g, 'c')
+      .replace(/[ęèéëê]/g, 'e')
+      .replace(/ĝ/g, 'g')
+      .replace(/ĥ/g, 'h')
+      .replace(/[ìíïî]/g, 'i')
+      .replace(/ĵ/g, 'j')
+      .replace(/[łľ]/g, 'l')
+      .replace(/[ńňñ]/g, 'n')
+      .replace(/[òóöőôõðø]/g, 'o')
+      .replace(/[śșşšŝ]/g, 's')
+      .replace(/[ťțţ]/g, 't')
+      .replace(/[ŭùúüűû]/g, 'u')
+      .replace(/[ÿý]/g, 'y')
+      .replace(/[żźž]/g, 'z')
+      .replace(/[^\w\s-]/g, '') // remove non-word [a-z0-9_], non-whitespace, non-hyphen characters
+      .replace(/[\s_-]+/g, '-') // swap any length of whitespace, underscore, hyphen characters with a single -
+      .replace(/^-+|-+$/g, ''); // remove leading, trailing -
+}
+
+Z.unique=function(array) {
+    var a = array.concat();
+    for(var i=0; i<a.length; ++i) {
+        for(var j=i+1; j<a.length; ++j) {
+            if(a[i] === a[j])
+                a.splice(j--, 1);
+        }
+    }
+    return a;
+}
+
 function _cookieValue(offset) {
     var endstr = document.cookie.indexOf (";", offset);
     if (endstr == -1) { endstr = document.cookie.length; }

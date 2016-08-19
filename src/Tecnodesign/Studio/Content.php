@@ -22,7 +22,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         $contentType = array(
             'html'=>'HTML',
             'md'=>'Markdown',
-            'txt'=>'Plain text',
             'feed'=>'Feed',
             'media'=>'Media file',
             'php'=>'PHP script',
