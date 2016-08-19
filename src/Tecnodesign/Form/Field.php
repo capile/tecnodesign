@@ -585,7 +585,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             $message = '%s should have at least %s items.';
         } else {
-            $size = strlen($value);
+            $size = (is_array($value))?(count($value)):(strlen($value));
         }
         if (($this->min_size && $size < $this->min_size && $size>0) || ($this->size && $size > $this->size)) {
             if(is_array($message)) {
