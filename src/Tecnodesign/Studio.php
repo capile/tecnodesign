@@ -35,7 +35,7 @@ class Tecnodesign_Studio
             'style'=>array(),
         ),
         $languages=array(),
-        $ignore=array('.meta', '.less', '.md'),
+        $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio');
     const VERSION = 1.1; 
 
@@ -251,7 +251,7 @@ class Tecnodesign_Studio
     {
         static $langs;
         $slotname = tdzEntry::$slot;
-        $pos = '0000';
+        $pos = '00000';
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
         $pp = explode('.', $pn);
@@ -520,6 +520,26 @@ class Tecnodesign_Studio
             $layout = tdz::$variables['route']['layout'];
         } else {
             $layout = self::templateFile(tdzEntry::$layout, 'layout');
+        }
+        $E = new tdzEntry(array('link'=>'@error'.$code),false, false);
+        $C = $E->getRelatedContent();
+        unset($E);
+        $tpl = array();
+        if($C) {
+            foreach($C as $i=>$o) {
+                if(!isset($tpl[$o->slot]))$tpl[$o->slot]='';
+                $tpl[$o->slot] .= $o->render();
+                unset($C[$i], $o, $i);
+            }
+            $slotelements = array('header'=>true,'footer'=>true,'nav'=>true);
+            foreach($tpl as $slotname=>$slot) {
+                $tpl[$slotname] = "<div id=\"{$slotname}\">".tdz::get('before-'.$slotname).$slot.tdz::get($slotname).tdz::get('after-'.$slotname)."</div>";
+                if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
+                    $tpl[$slotname] = "<{$slotname}>{$tpl[$slotname]}</{$slotname}>";
+                }
+            }
+            $tpl['slots'] = array_keys($tpl);
+            tdz::$variables+=$tpl;
         }
         return Tecnodesign_Studio::$app->runError($code, $layout);
     }

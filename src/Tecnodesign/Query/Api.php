@@ -19,6 +19,7 @@ class Tecnodesign_Query_Api
         $limit='limit',
         $offset='offset',
         $sort='sort',
+        $scope='scope',
         $curlOptions=array(
             CURLOPT_HEADER=>1,
             CURLOPT_FOLLOWLOCATION => true,
@@ -32,7 +33,8 @@ class Tecnodesign_Query_Api
             CURLOPT_HTTPHEADER     => array('Accept'=>'application/json'),
         ),
         $successPattern='/ 200 +OK/',
-        $headerCount='X-Total-Count';
+        $headerCount='X-Total-Count',
+        $headerModified='Last-Modified';
     protected static $options, $conn=array();
     protected $_schema, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $headers, $response;
 
@@ -129,7 +131,7 @@ class Tecnodesign_Query_Api
 
     public function find($options=array(), $asArray=false)
     {
-        $this->_select = $this->_where = $this->_orderBy = $this->_limit = $this->_offset = null;
+        $this->_select = $this->_scope = $this->_where = $this->_orderBy = $this->_limit = $this->_offset = $this->response = $this->headers = null;
         $sc = $this->schema();
         if(isset($sc['defaults']['find'])) $this->filter($sc['defaults']['find']);
         unset($sc);
@@ -165,42 +167,67 @@ class Tecnodesign_Query_Api
             $qs .= (($qs)?('&'):('?'))
                  . http_build_query($this->_where);
         }
+        if($this->_scope) {
+            $k = (isset($this->_options['scope']))?($this->_options['scope']):(static::$scope);
+            $qs .= (($qs)?('&'):('?'))
+                 . $k.'='.urlencode($this->_scope);
+            unset($k);
+            if($this->_select && ($cn=$this->_schema) && implode(',',$this->_select)===implode(',',$cn::columns($this->_scope))) {
+                $this->_select=null;
+            }
+        }
         if($this->_select) {
             $k = (isset($this->_options['fieldnames']))?($this->_options['fieldnames']):(static::$fieldnames);
             $qs .= (($qs)?('&'):('?'))
                  . $k.'='.urlencode(implode(',', $this->_select));
             unset($k);
         }
-        if(!is_null($this->_limit)) {
+        if($count) {
             $k = (isset($this->_options['limit']))?($this->_options['limit']):(static::$limit);
             $qs .= (($qs)?('&'):('?'))
-                 . $k.'='.((int)$this->_limit);
-            unset($k);
-        }
-        if(!is_null($this->_offset)) {
-            $k = (isset($this->_options['offset']))?($this->_options['offset']):(static::$offset);
-            $qs .= (($qs)?('&'):('?'))
-                 . $k.'='.((int)$this->_offset);
-            unset($k);
-        }
-        if($this->_orderBy) {
-            $k = (isset($this->_options['sort']))?($this->_options['sort']):(static::$sort);
-            $order = '';
-            foreach($this->_orderBy as $fn=>$asc) {
-                if(!$asc || $asc=='desc') $fn = '-'.$fn;
-                $order .= ($order)?(','.$fn):($fn);
-                unset($fn, $asc);
+                 . $k.'=0';
+        } else {
+            if(!is_null($this->_limit)) {
+                $k = (isset($this->_options['limit']))?($this->_options['limit']):(static::$limit);
+                $qs .= (($qs)?('&'):('?'))
+                     . $k.'='.((int)$this->_limit);
+                unset($k);
             }
-            $qs .= (($qs)?('&'):('?'))
-                 . $k.'='.urlencode($order);
-            unset($k);
+            if(!is_null($this->_offset)) {
+                $k = (isset($this->_options['offset']))?($this->_options['offset']):(static::$offset);
+                $qs .= (($qs)?('&'):('?'))
+                     . $k.'='.((int)$this->_offset);
+                unset($k);
+            }
+            if($this->_orderBy) {
+                $k = (isset($this->_options['sort']))?($this->_options['sort']):(static::$sort);
+                $order = '';
+                foreach($this->_orderBy as $fn=>$asc) {
+                    if(!$asc || $asc=='desc') $fn = '-'.$fn;
+                    $order .= ($order)?(','.$fn):($fn);
+                    unset($fn, $asc);
+                }
+                $qs .= (($qs)?('&'):('?'))
+                     . $k.'='.urlencode($order);
+                unset($k);
+            }
+
         }
         $url .= $qs;
         unset($qs);
         return $url;
     }
 
-    public function fetch($o=null, $l=null)
+    public function scope($s=null)
+    {
+        if(is_string($s) && ($cn=$this->_schema) && isset($cn::$schema['scope'][$s])) {
+            $this->_scope = $s;
+        }
+        return $this->_scope;
+    }
+
+
+    public function fetch($o=null, $l=null, $scope=null)
     {
         if(!$this->_schema) return false;
         $prop = array('_new'=>false);
@@ -227,13 +254,34 @@ class Tecnodesign_Query_Api
         if(is_null($this->response)) {
             $this->query($this->buildQuery(true));
         }
-        if($this->response) {
+        if(!is_null($r=$this->header('headerCount'))) {
+            return (int) $r;
+        } else if($this->response) {
             return count($this->response);
-        } else if($this->headers && static::$headerCount && ($p=strpos($this->headers, static::$headerCount.':'))) {
-            $p += strlen(static::$headerCount.':');
-            return (int) trim(substr($this->headers, $p, strpos($this->headers, "\n", $p)-$p));
         }
+
         return 0;
+    }
+
+    public function header($n=null)
+    {
+        if($n && $this->headers) {
+            if(isset($this->_options[$n]) && $this->_options[$n]) {
+                $h = $this->_options[$n];
+            } else if(property_exists($this, $n)) {
+                $h = static::$$n;
+            } else {
+                $h = $n;
+            }
+            $h .= ':';
+            if($p=strpos($this->headers, $h)) {
+                $p += strlen($h);
+                return trim(substr($this->headers, $p, strpos($this->headers, "\n", $p)-$p));
+            }
+            return null;
+        } else if(!$n) {
+            return $this->headers;
+        }
     }
 
     public function select($o)
@@ -266,7 +314,7 @@ class Tecnodesign_Query_Api
                 unset($s);
             }
         } else {
-            $this->addSelect($this->schema()->getScope($o));
+            //$this->addSelect($this->schema()->getScope($o));
             $this->_scope = $o;
         }
         return $this;
@@ -677,6 +725,30 @@ class Tecnodesign_Query_Api
     }
     public function delete()
     {
+    }
+
+    /**
+     * Gets the timestampable last update
+     */
+    public function timestamp()
+    {
+        if(!$this->_schema) return false;
+        $cn = $this->schema('className');
+        if(!isset(tdz::$variables['timestamp']))tdz::$variables['timestamp']=array();
+        if(isset(tdz::$variables['timestamp'][$cn])) {
+            return tdz::$variables['timestamp'][$cn];
+        }
+        tdz::$variables['timestamp'][$cn] = false;
+        if(is_null($this->headers)) {
+            $this->_limit = 0;
+            $this->query($this->buildQuery(true));
+            $this->_limit = null;
+        }
+        if(($r=$this->header('headerModified')) && ($t=strtotime($r))) {
+            tdz::$variables['timestamp'][$cn] = $t;
+        }
+        if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage()).' mem: '.tdz::$variables['timestamp'][$cn]);
+        return tdz::$variables['timestamp'][$cn];
     }
 
 }
