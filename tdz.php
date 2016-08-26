@@ -1058,6 +1058,9 @@ class tdz
             tdz::$variables['meta'] = $s;
         } else if($s) {
             tdz::$variables['meta'].=$s;
+        } else if(isset(tdz::$variables['variables']['meta'])) {
+            tdz::$variables['meta'].= tdz::$variables['variables']['meta'];
+            unset(tdz::$variables['variables']['meta']);
         }
         if($og) tdz::$variables['meta'] .= tdz::openGraph();
         return tdz::$variables['meta'];

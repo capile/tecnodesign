@@ -625,7 +625,6 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             } else {
                 $ret = $this->{$this->_items[$p]};
             }
-
         } else if($p < $this->_count && $p >= 0) {
             if(is_object($this->_query)) {
                 $this->_offset = (int) $p;
