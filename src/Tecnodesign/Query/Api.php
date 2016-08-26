@@ -248,6 +248,25 @@ class Tecnodesign_Query_Api
         return $this->query($this->buildQuery(), 'array');
     }
 
+    public function fetchItem($i)
+    {
+        if(!$this->_schema) return false;
+        $prop = array('_new'=>false);
+        if($this->_scope) $prop['_scope'] = $this->_scope;
+        $url = $this->_url;
+        $qs = '';
+        if($p=strpos($url, '?')) {
+            $qs = substr($url, $p);
+            $url = substr($url, 0, $p);
+        }
+        $url .= '/'.urlencode($i).$qs;
+        $r = $this->query($url);
+        if($r) {
+            $cn = $this->schema('className');
+            return $cn::__set_state($r, true);
+        }
+    }
+
     public function count($column='1')
     {
         if(!$this->_schema) return false;
