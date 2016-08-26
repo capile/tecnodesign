@@ -1411,7 +1411,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if(!is_null($orderBy)) $q['orderBy'] = $orderBy;
         else if(isset(static::$schema['order'])) $q['orderBy'] = static::$schema['order'];
-        if(!is_null($groupBy)) $q['group'] = $groupBy;
+        if(!is_null($groupBy) && !is_bool($groupBy)) $q['groupBy'] = $groupBy;
         else if(isset(static::$schema['group-by'])) $q['groupBy'] = static::$schema['group-by'];
         $q['limit'] = $limit;
         $Q = Tecnodesign_Query::handler(get_called_class())->find($q);

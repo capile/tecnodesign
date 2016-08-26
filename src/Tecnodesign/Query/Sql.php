@@ -128,19 +128,27 @@ class Tecnodesign_Query_Sql
         if(is_null($this->_where)) {
             $this->_where = $this->getWhere(array());
         }
+        if($count) {
+            $s = ' count(1)';
+            if($count && $this->_from && strpos($this->_from, ' left outer join ')) {
+                $pk = $this->scope('uid');
+                if(is_array($pk)) $pk = array_shift($pk);
+                $s = ' count(distinct a.'.$pk.')';
+                unset($pk);
+            }
+        } else {
+            $s = ($this->_select)?($this->_distinct.$this->_select):(' a.*');
+        }
+
         $q = 'select'
-            . (($count)
-                ?(' count(1)')
-                :(($this->_select)?($this->_distinct.$this->_select):(' a.*'))
-              )
+            . $s
             . ' from '.$this->_from
             . (($this->_where)?(' where '.$this->_where):(''))
-            . (($this->_groupBy)?(' group by'.$this->_groupBy):(''))
+            . ((!$count && $this->_groupBy)?(' group by'.$this->_groupBy):(''))
             . ((!$count && $this->_orderBy)?(' order by'.$this->_orderBy):(''))
             . ((!$count && $this->_limit)?(' limit '.$this->_limit):(''))
             . ((!$count && $this->_offset)?(' offset '.$this->_offset):(''))
         ;
-        if($this->_schema=='certificates')tdz::log(__METHOD__, $q);
         return $q;
 
     }
@@ -205,8 +213,8 @@ class Tecnodesign_Query_Sql
                 $this->addScope($s);
                 unset($s);
             }
-        } else {
-            $this->addSelect($this->scope($o));
+        } else if($s=$this->scope($o)) {
+            $this->addSelect($s);
             $this->_scope = $o;
         }
         return $this;
@@ -413,7 +421,7 @@ class Tecnodesign_Query_Sql
                     $fn = $ta.'.'.$fn;
                 }
             } else {
-                tdz::debug(__METHOD__, func_get_args(), "Cannot find by [{$fn}] at [{$sc['tableName']}]");
+                //tdz::debug(__METHOD__, func_get_args(), "Cannot find by [{$fn}] at [{$sc['tableName']}]");
                 tdz::log("Cannot find by [{$fn}] at [{$sc['tableName']}]");
                 throw new Exception("Cannot find by [{$fn}] at [{$sc['tableName']}]");
             }

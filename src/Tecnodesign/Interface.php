@@ -121,7 +121,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $expires;
 
 
-    protected $uid, $model, $action, $id, $search, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params;
+    protected $uid, $model, $action, $id, $search, $groupBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params;
     protected static 
         $instances=array(), 
         $is=0,
@@ -1141,7 +1141,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if($this->id) {
             $cn = $this->model;
-            $r = $cn::find($this->search,0,'string',false);
+            $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
             if($r) return implode(', ', $r);
         }
         if(!isset($this->text['title'])) {
@@ -1320,6 +1320,8 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->searchForm($req);
         }
 
+        if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
+
         if($this->isOne() && method_exists($this->model, $m)) {
             $this->getButtons();
             $this->scope((isset($cn::$schema['scope'][$this->action]))?($this->action):('preview'));
@@ -1424,6 +1426,7 @@ class Tecnodesign_Interface implements ArrayAccess
         foreach(static::$headers as $k=>$v) {
             if($k==static::H_LAST_MODIFIED) header('Last-Modified: '.$v);
             else if(strtolower($k)=='location') header('Location: '.$v);
+            else if(preg_match('/^([A-Z][a-z0-9]+\-)+([A-Z][a-z0-9]+)$/', $k)) header($k.': '.$v);
             else if($k) header('X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k)))).': '.$v);
         }
         if(static::$status) {
@@ -1785,7 +1788,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $cn = $this->model;
             $pk = $cn::pk();
             if(!is_array($pk)) $pk=array($pk=>$pk);
-            $R = $cn::find($this->search,0,$pk,false);
+            $R = $cn::find($this->search,0,$pk,false,null,$this->groupBy);
             if($R) {
                 foreach($R as $k=>$o) {
                     $I = clone $this;
@@ -1959,7 +1962,7 @@ class Tecnodesign_Interface implements ArrayAccess
             } else {
                 $order = null;
             }
-            $found = $cn::find($this->search,0,$this->scope(null,true),true,$order);
+            $found = $cn::find($this->search,0,$this->scope(null,true),true,$order,$this->groupBy);
         }
         if(!$found) {
             $count = 0;
@@ -2037,7 +2040,7 @@ class Tecnodesign_Interface implements ArrayAccess
         } else {
             $a = 'review';
         }
-        return $cn::find($this->search,$max,$this->scope($a, true),$collection,$order);
+        return $cn::find($this->search,$max,$this->scope($a, true),$collection,$order,$this->groupBy);
     }
 
     public function scope($a=null, $clean=false)
