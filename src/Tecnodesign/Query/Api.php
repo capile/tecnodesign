@@ -640,10 +640,20 @@ class Tecnodesign_Query_Api
         //$O[CURLOPT_URL]=$url;
         */
         curl_setopt($C, CURLOPT_URL, $q);
+        if(isset($this->_options['certificate']) && $this->_options['certificate']) {
+            if(strpos($this->_options['certificate'], ':')>1) {
+                list($cert, $cpass) = explode(':', $this->_options['certificate'], 2);
+                curl_setopt($C, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$cert);
+                curl_setopt($C, CURLOPT_SSLCERTPASSWD,$cpass);
+            } else {
+                curl_setopt($C, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$this->_options['certificate']);
+            }
+        }
         $r = curl_exec($C);
         if(!preg_match(static::$successPattern, $r)) {
             $this->headers = $r;
             $this->response = false;
+            //tdz::log("[ERROR] API:\n", curl_error($C), "\n{$r}");
         } else if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
             list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
             $this->response = json_decode($body, true);
