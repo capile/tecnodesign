@@ -24,8 +24,11 @@ function initZ(d)
             return;
         }
     }
-
     if(!d) return;
+    if(Object.prototype.toString.call(d)=='[object Array]') {
+        Z.user = false;
+        return;
+    }
     var n, start=false;
     if('plugins' in d) {
         if(!('plugins' in Z)) Z.plugins = {};
