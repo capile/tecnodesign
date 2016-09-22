@@ -613,7 +613,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             Tecnodesign_Studio::addResponse($meta);
             foreach($meta as $fn=>$v) {
                 if(property_exists($P, $fn)) {
-                    $P->$fn = $v;
+                    if($fn=='layout' || $fn=='slots') static::$$fn = $v;
+                    else $P->$fn = $v;
                 }
                 unset($meta[$fn], $fn, $v);
             }

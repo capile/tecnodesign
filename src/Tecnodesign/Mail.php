@@ -194,8 +194,10 @@ class Tecnodesign_Mail
             foreach($m[1] as $i=>$file) {
                 if(file_exists($documentRoot.'/'.$file)) {
                     $nf='cid:'.md5(realpath($documentRoot.'/'.$file));
-                    $s[]=$m[0][$i];
-                    $r[]=str_replace($file, $nf, $m[0][$i]);
+                    //$s[]=$m[0][$i];
+                    //$r[]=str_replace($file, $nf, $m[0][$i]);
+                    $s[]=$file;
+                    $r[]=$nf;
                     if(!isset($added[$nf])) {
                         $this->addPart($documentRoot.'/'.$file, $nf);
                     }

@@ -210,6 +210,9 @@ class Tecnodesign_App
         if(isset($this->_vars['tecnodesign']['document-root'])) {
             $_SERVER['DOCUMENT_ROOT'] = $this->_vars['tecnodesign']['document-root'];
         }
+        if(isset($this->_vars['database']) && !tdz::$database) {
+            tdz::$database = $this->_vars['database'];
+        }
     }
     
     public static function end($output='', $status=200)
