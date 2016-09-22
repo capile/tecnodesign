@@ -1062,7 +1062,7 @@ class tdz
             tdz::$variables['meta'].= tdz::$variables['variables']['meta'];
             unset(tdz::$variables['variables']['meta']);
         }
-        if($og) tdz::$variables['meta'] .= tdz::openGraph();
+        if($og && !strpos(tdz::$variables['meta'], '<meta property="og:')) tdz::$variables['meta'] .= tdz::openGraph();
         return tdz::$variables['meta'];
     }
 
@@ -1129,7 +1129,7 @@ class tdz
             if(substr($k, 0, 6)=='image:')continue;
             $tag = (strpos($k, ':')) ? ($k) : ('og:'.$k);
             foreach ($v as $i=>$m) {
-                if (in_array($k, $urls) && substr($m, 0, 8)!='https://') {
+                if (in_array($k, $urls) && substr($m, 0, 4)!='http') {
                     $m = tdz::buildUrl($m);
                 }
                 $m = tdz::xmlEscape($m);
@@ -1297,8 +1297,10 @@ class tdz
          * Nothing has changed since their last request - serve a 304 and exit
          */
         @header('HTTP/1.1 304 Not Modified');
-        exit();
-    }
+        if(tdz::getApp()) {
+            Tecnodesign_App::afterRun();
+        }
+        exit();    }
 
     public static function redirect($url='')
     {

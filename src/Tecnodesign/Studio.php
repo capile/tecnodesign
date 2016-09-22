@@ -20,7 +20,7 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
-        $private,           // updated at runtime, indicates when a cache-control: private,nocache should be sent
+        $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
@@ -94,7 +94,7 @@ class Tecnodesign_Studio
             if($sn!=self::$home) tdz::scriptName($sn);
             return self::_runInterface();
         } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
-            tdz::cacheControl('private,nocache', 0);
+            tdz::cacheControl('private', 60);
             tdz::output(json_encode(self::uid()), 'json');
         } else if(self::ignore($sn)) {
             self::error(404);
@@ -300,7 +300,9 @@ class Tecnodesign_Studio
                 if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) {
                     return false;
                 }
-                Tecnodesign_Studio::$private = true;
+                $c = (!is_array($meta['credential']))?(array($meta['credential'])):($meta['credential']);
+                if(!is_array(Tecnodesign_Studio::$private)) Tecnodesign_Studio::$private = $c;
+                else Tecnodesign_Studio::$private = array_merge($c, Tecnodesign_Studio::$private);
                 unset($meta['credential'], $U);
             }
         }
@@ -311,6 +313,7 @@ class Tecnodesign_Studio
             'content'=>$p,
             'content_type'=>$ext,
             'position'=>$id,
+            'modified'=>filemtime($page),
             //'_position'=>$pos,
         ));
         $C->pageFile = $id;
@@ -448,13 +451,13 @@ class Tecnodesign_Studio
             'expired'=>'',
         );
         static $scope = array('id','title','link','source','master','format','updated','published','version');
-        self::$private = false;
+        self::$private = array();
         self::addResponse(self::$response);
         if(is_null($published)) {
             // get information from user credentials
-            if(self::$connection && ($U=tdz::getUser()) && $U->hasCredential(self::credential('previewUnpublished'), false)) {
+            if(self::$connection && ($U=tdz::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
                 $published = false;
-                self::$private = true;
+                self::$private = (is_array($c))?($c):(array($c));
                 // replace tdzEntry by tdzEntryVersion and probe for latest version (?)
                 if(isset(self::$params['!rev'])) {
                     $f['version'] = self::$params['!rev'];
