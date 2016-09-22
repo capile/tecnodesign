@@ -642,9 +642,9 @@ class tdz
     public static function minify($s, $root=false, $compress=true, $before=true, $raw=false, $output=false)
     {
         if(!$root) {
-            if(isset(tdz::$variables['document-root'])) {
+            if(isset(tdz::$variables['document-root']) && tdz::$variables['document-root']) {
                 $root = tdz::$variables['document-root'];
-            } else if(($app=tdz::getApp()) && isset($app->tecnodesign['document-root'])) {
+            } else if(($app=tdz::getApp()) && isset($app->tecnodesign['document-root']) && $app->tecnodesign['document-root']) {
                 $root = tdz::$variables['document-root'] = $app->tecnodesign['document-root'];
             } else {
                 $root = TDZ_DOCUMENT_ROOT;
@@ -1052,16 +1052,117 @@ class tdz
         }
     }
 
-    public static function meta($s='')
+    public static function meta($s='', $og=false)
     {
         if (!isset(tdz::$variables['meta'])) {
             tdz::$variables['meta'] = $s;
-        } else {
+        } else if($s) {
             tdz::$variables['meta'].=$s;
+        } else if(isset(tdz::$variables['variables']['meta'])) {
+            tdz::$variables['meta'].= tdz::$variables['variables']['meta'];
+            unset(tdz::$variables['variables']['meta']);
         }
+        if($og && !strpos(tdz::$variables['meta'], '<meta property="og:')) tdz::$variables['meta'] .= tdz::openGraph();
         return tdz::$variables['meta'];
     }
 
+    public static function openGraph($args=array())
+    {
+        $exists = true;
+        if(!isset(tdz::$variables['open-graph'])) {
+            if(($app=tdz::getApp()) && isset($app->tecnodesign['open-graph'])) {
+                $og = $app->tecnodesign['open-graph'];
+            } else {
+                $og = array();
+            }
+            $e = tdz::get('entry');
+            if($e && is_object($e)) {
+                if($e->title)   $og['title'] = $e->title;
+                if($e->link)    $og['url']   = $e->link;
+                if($e->summary) $og['description'] = $e->summary;
+            }
+            tdz::$variables['open-graph'] = $og;
+            $exists = false;
+        } else {
+            $og = tdz::$variables['open-graph'];
+        }
+        if(!is_array($args)) {
+            return $og;
+        }
+        if ($args && is_array($args)) {
+            if($exists) {
+                foreach ($args as $k=>$v) {
+                    if (!empty($v) && $k!='image') {
+                        $og[$k]=$v;
+                    } else if (!empty($v)) {
+                        if (isset($og[$k]) && !is_array($og[$k])) {
+                            $og[$k]=array($og[$k]);
+                        }
+                        if (is_array($v)) {
+                            $og[$k] = array_merge($og[$k], $v);
+                        } else {
+                            $og[$k][]=$v;
+                        }
+                    }
+                }
+                $og += $args;
+            } else {
+                if(isset($args['image']) && $args['image']=='') {
+                    unset($args['image']);
+                }
+                $args+=$og;
+                $og = $args;
+            }
+            tdz::$variables['open-graph'] = $og;
+        }
+        $s = '';
+        $gs='';
+        $tw=array();
+        $urls = array('image','video','url');
+        $gplus=array('title'=>'name', 'description'=>'description', 'image'=>'image');
+        //$twitter=array('image'=>'image');
+        //$twitter=array('title'=>'title','description'=>'description','image'=>'image');
+        foreach ($og as $k=>$v) {
+            if (!is_array($v)) {
+                $v=array($v);
+            }
+            if(substr($k, 0, 6)=='image:')continue;
+            $tag = (strpos($k, ':')) ? ($k) : ('og:'.$k);
+            foreach ($v as $i=>$m) {
+                if (in_array($k, $urls) && substr($m, 0, 4)!='http') {
+                    $m = tdz::buildUrl($m);
+                }
+                $m = tdz::xmlEscape($m);
+                $s .= "\n<meta property=\"{$tag}\" content=\"{$m}\" />";
+                if($k=='image' && isset($og['image:width'])) {
+                    $s .= "\n<meta property=\"{$tag}:url\" content=\"{$m}\" />";
+                    if(is_array($og['image:width'])) {
+                        $s .= "\n<meta property=\"{$tag}:width\" content=\"{$og['image:width'][$i]}\" />";
+                    } else {
+                        $s .= "\n<meta property=\"{$tag}:width\" content=\"{$og['image:width']}\" />";
+                    }
+                    if(isset($og['image:height'])) {
+                        if(is_array($og['image:height'])) {
+                            $s .= "\n<meta property=\"{$tag}:height\" content=\"{$og['image:height'][$i]}\" />";
+                        } else {
+                            $s .= "\n<meta property=\"{$tag}:height\" content=\"{$og['image:height']}\" />";
+                        }
+                    }
+                }
+                if(isset($gplus[$k])) {
+                    $gs .= "\n<meta itemprop=\"{$gplus[$k]}\" content=\"{$m}\" />";
+                }
+                /*
+                if(isset($twitter[$k]) && !isset($tw[$k])) {
+                    $tw[$k] = "\n<meta itemprop=\"twitter:{$twitter[$k]}\" content=\"{$m}\" />";
+                }
+                */
+            }
+        }
+        //if($tw) $s .= implode('', $tw);
+        $s .= $gs;
+        return $s;
+    }
     public static function exec($a)
     {
         $script_name = false;
@@ -1196,8 +1297,10 @@ class tdz
          * Nothing has changed since their last request - serve a 304 and exit
          */
         @header('HTTP/1.1 304 Not Modified');
-        exit();
-    }
+        if(tdz::getApp()) {
+            Tecnodesign_App::afterRun();
+        }
+        exit();    }
 
     public static function redirect($url='')
     {
@@ -2845,7 +2948,7 @@ class tdz
     /**
      * Validate an email address.
      */
-    public static function checkEmail($email)
+    public static function checkEmail($email, $checkDomain=true)
     {
         $isValid = true;
         $atIndex = strrpos($email, '@');
@@ -2881,7 +2984,7 @@ class tdz
                     $isValid = false;
                 }
             }
-            if ($isValid && !tdz::checkDomain($domain, array('MX', 'A'))) {
+            if ($checkDomain &&  $isValid && !tdz::checkDomain($domain, array('MX', 'A'))) {
                 // domain not found in DNS
                 $isValid = false;
             }

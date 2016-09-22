@@ -22,7 +22,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         $contentType = array(
             'html'=>'HTML',
             'md'=>'Markdown',
-            'txt'=>'Plain text',
             'feed'=>'Feed',
             'media'=>'Media file',
             'php'=>'PHP script',
@@ -92,8 +91,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
     protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry;
     //--tdz-schema-end--
     protected static $content_types=null;
-    protected $subposition, $show_at, $hide_at;
-    public $pageFile;
+    protected $show_at, $hide_at, $modified;
+    public $pageFile, $attributes, $subposition;
 
 
     public function __toString()
@@ -145,6 +144,15 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         return false;
     }
 
+    public function getModified()
+    {
+        if(is_null($this->modified)) $this->modified = strtotime($this->updated);
+        return $this->modified;
+    }
+    public function setModified($t)
+    {
+        $this->modified = $t;
+    }
     /*
     public function getContent()
     {
@@ -162,7 +170,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
     {
         if(substr($this->content, 0,1)=='{') {
             $r = json_decode($this->content, true);
-        } else if(preg_match('#^(---[^\n]+\n)?[a-z0-9\- ]+\:#i', $this->content)) {
+        } else if(preg_match('#^\n*(---[^\n]*\n)?[a-z0-9\- ]+\:#i', $this->content)) {
             $r = str_replace('\r\n', "\n", Tecnodesign_Yaml::load($this->content));
             //$r = Tecnodesign_Yaml::load($this->content);
         } else {
@@ -271,12 +279,22 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         $code = $this->getContents();
         $code['slot']=$this->slot;
         $type = $this->content_type;
+        $attr = array('id'=>'c'.$id, 'data-studio-c'=>$this->id);
+        if(isset($this->attributes)) {
+            $attr += $this->attributes;
+        }
+        $a = '';
+        foreach($attr as $n=>$v) {
+            $a .= ' '.$n.'="'.tdz::xmlEscape($v).'"';
+            unset($attr[$n], $n, $v);
+        }
+        unset($attr);
         if(file_exists($tpl=Tecnodesign_Studio::$app->tecnodesign['templates-dir'].'/tdz-contents-'.$type.'.php')) {
             if(!isset($code['txt']) && isset($code[0])) {
                 $code['txt']=$code[0];
                 unset($code[0]);
             }
-            $s = "<div id=\"c{$id}\" data-studio-c=\"{$this->id}\">"
+            $s = "<div{$a}>"
                 . tdz::exec(array('script'=>$tpl, 'variables'=>$code))
                 . '</div>';
             return $s;
@@ -306,7 +324,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             }
             unset($r);
             if($this->slot=='meta') return $result;
-            $result = "<div id=\"c{$id}\" data-studio-c=\"{$this->id}\">{$result}</div>";
+            $result = "<div{$a}>{$result}</div>";
             return $result;
         }
         return $r;
@@ -326,59 +344,11 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         } else {
             $f='download';
         }
-        if($f=='image') {
-            $s = '<img src="'.tdz::xmlEscape($code['src']).'"';
-            if(isset($code['alt']) && $code['alt']) {
-                $s .= ' alt="'.tdz::xmlEscape($code['alt']).'"';
-            }
-            if(isset($code['title']) && $code['title']) {
-                $s .= ' title="'.tdz::xmlEscape($code['title']).'"';
-            }
-            if(isset($code['id']) && $code['id']) {
-                $s .= ' id="'.tdz::xmlEscape($code['id']).'"';
-            }
-            $s .= ' />';
-            if(isset($code['href']) && $code['href']) {
-                $s = '<a href="'.tdz::xmlEscape($code['href']).'">'.$s.'</a>';
-            }
-        } else if($f=='video') {
-            $s = '<video src="'.tdz::xmlEscape($code['src']).'"';
-            if(isset($code['alt']) && $code['alt']) {
-                $s .= ' alt="'.tdz::xmlEscape($code['alt']).'"';
-            }
-            if(isset($code['title']) && $code['title']) {
-                $s .= ' title="'.tdz::xmlEscape($code['title']).'"';
-            }
-            if(isset($code['id']) && $code['id']) {
-                $s .= ' id="'.tdz::xmlEscape($code['id']).'"';
-            }
-            $s .= ' autobuffer="true" controls="true">alternate part';
-            // alternate -- using flash?
-            $s .= '</video>';
-        } else if($f=='flashzzzz') {
-            $s = '<div src="'.tdz::xmlEscape($code['src']).'"';
-            if(isset($code['alt']) && $code['alt']) {
-                $s .= ' alt="'.tdz::xmlEscape($code['alt']).'"';
-            }
-            if(isset($code['title']) && $code['title']) {
-                $s .= ' title="'.tdz::xmlEscape($code['title']).'"';
-            }
-            if(isset($code['id']) && $code['id']) {
-                $s .= ' id="'.tdz::xmlEscape($code['id']).'"';
-            }
-            $s .= ' autobuffer="true" controls="true">alternate part';
-            // alternate -- using flash?
-            $s .= '</video>';
-        } else {
-            $s = '<p';
-            if(isset($code['id']) && $code['id']) {
-                $s .= ' id="'.tdz::xmlEscape($code['id']).'"';
-            }
-            $s .= '><a href="'.tdz::xmlEscape($code['src']).'">';
-            $s .= (isset($code['title']) && $code['title'])?(tdz::xmlEscape($code['title'])):(basename($code['src']));
-            $s .= '</a></p>';
-        }
-        return $s;
+        $code['format'] = $f;
+        foreach($code as $k=>$v) if($v===null || $v==='') unset($code[$k]);
+        $tpl = Tecnodesign_Studio::templateFile('tdz_media_'.$f, 'tdz_media');
+
+        return tdz::exec(array('script'=>$tpl, 'variables'=>$code));
     }
 
 
@@ -396,11 +366,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             $code = isset($code['txt'])?($code['txt']):(array_shift($code));
         }
         return $code;
-    }
-
-    public static function renderJpg()
-    {
-        \tdz::debug(__METHOD__, $code);
     }
 
     public static function renderMd($code=null)

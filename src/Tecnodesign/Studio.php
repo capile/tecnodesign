@@ -20,7 +20,7 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
-        $private,           // updated at runtime, indicates when a cache-control: private,nocache should be sent
+        $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
@@ -35,7 +35,7 @@ class Tecnodesign_Studio
             'style'=>array(),
         ),
         $languages=array(),
-        $ignore=array('.meta', '.less', '.md'),
+        $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio');
     const VERSION = 1.1; 
 
@@ -94,7 +94,7 @@ class Tecnodesign_Studio
             if($sn!=self::$home) tdz::scriptName($sn);
             return self::_runInterface();
         } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
-            tdz::cacheControl('private,nocache', 0);
+            tdz::cacheControl('private', 60);
             tdz::output(json_encode(self::uid()), 'json');
         } else if(self::ignore($sn)) {
             self::error(404);
@@ -251,7 +251,7 @@ class Tecnodesign_Studio
     {
         static $langs;
         $slotname = tdzEntry::$slot;
-        $pos = null;
+        $pos = '00000';
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
         $pp = explode('.', $pn);
@@ -297,8 +297,12 @@ class Tecnodesign_Studio
         if($m) {
             $meta = Tecnodesign_Yaml::load($m);
             if(isset($meta['credential'])) {
-                if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) return false;
-                Tecnodesign_Studio::$private = true;
+                if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) {
+                    return false;
+                }
+                $c = (!is_array($meta['credential']))?(array($meta['credential'])):($meta['credential']);
+                if(!is_array(Tecnodesign_Studio::$private)) Tecnodesign_Studio::$private = $c;
+                else Tecnodesign_Studio::$private = array_merge($c, Tecnodesign_Studio::$private);
                 unset($meta['credential'], $U);
             }
         }
@@ -309,9 +313,11 @@ class Tecnodesign_Studio
             'content'=>$p,
             'content_type'=>$ext,
             'position'=>$id,
-            //'subposition'=>$pos,
+            'modified'=>filemtime($page),
+            //'_position'=>$pos,
         ));
         $C->pageFile = $id;
+        if(isset($meta['attributes']) && is_array($meta['attributes'])) $C->attributes = $meta['attributes'];
         if(!is_null($pos)) $C->_position = $slotname.$pos;
         if(isset($meta)) {
             Tecnodesign_Studio::addResponse($meta);
@@ -393,6 +399,15 @@ class Tecnodesign_Studio
                     'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css'),
                 );
             }
+            if($U->isAuthenticated() && ($cfg=Tecnodesign_Studio::$app->user)) {
+                if(isset($cfg['export']) && is_array($cfg['export'])) {
+                    foreach($cfg['export'] as $k=>$v) {
+                        $r[$k] = $U->$v;
+                        unset($cfg['export'][$k], $k, $v);
+                    }
+                }
+                unset($cfg);
+            }
         } else {
             $r = array();
         }
@@ -436,13 +451,13 @@ class Tecnodesign_Studio
             'expired'=>'',
         );
         static $scope = array('id','title','link','source','master','format','updated','published','version');
-        self::$private = false;
+        self::$private = array();
         self::addResponse(self::$response);
         if(is_null($published)) {
             // get information from user credentials
-            if(self::$connection && ($U=tdz::getUser()) && $U->hasCredential(self::credential('previewUnpublished'), false)) {
+            if(self::$connection && ($U=tdz::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
                 $published = false;
-                self::$private = true;
+                self::$private = (is_array($c))?($c):(array($c));
                 // replace tdzEntry by tdzEntryVersion and probe for latest version (?)
                 if(isset(self::$params['!rev'])) {
                     $f['version'] = self::$params['!rev'];
@@ -508,6 +523,26 @@ class Tecnodesign_Studio
             $layout = tdz::$variables['route']['layout'];
         } else {
             $layout = self::templateFile(tdzEntry::$layout, 'layout');
+        }
+        $E = new tdzEntry(array('link'=>'@error'.$code),false, false);
+        $C = $E->getRelatedContent();
+        unset($E);
+        $tpl = array();
+        if($C) {
+            foreach($C as $i=>$o) {
+                if(!isset($tpl[$o->slot]))$tpl[$o->slot]='';
+                $tpl[$o->slot] .= $o->render();
+                unset($C[$i], $o, $i);
+            }
+            $slotelements = array('header'=>true,'footer'=>true,'nav'=>true);
+            foreach($tpl as $slotname=>$slot) {
+                $tpl[$slotname] = "<div id=\"{$slotname}\">".tdz::get('before-'.$slotname).$slot.tdz::get($slotname).tdz::get('after-'.$slotname)."</div>";
+                if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
+                    $tpl[$slotname] = "<{$slotname}>{$tpl[$slotname]}</{$slotname}>";
+                }
+            }
+            $tpl['slots'] = array_keys($tpl);
+            tdz::$variables+=$tpl;
         }
         return Tecnodesign_Studio::$app->runError($code, $layout);
     }

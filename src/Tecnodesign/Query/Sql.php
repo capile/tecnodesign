@@ -128,14 +128,23 @@ class Tecnodesign_Query_Sql
         if(is_null($this->_where)) {
             $this->_where = $this->getWhere(array());
         }
+        if($count) {
+            $s = ' count(1)';
+            if($count && $this->_from && strpos($this->_from, ' left outer join ')) {
+                $pk = $this->scope('uid');
+                if(is_array($pk)) $pk = array_shift($pk);
+                $s = ' count(distinct a.'.$pk.')';
+                unset($pk);
+            }
+        } else {
+            $s = ($this->_select)?($this->_distinct.$this->_select):(' a.*');
+        }
+
         $q = 'select'
-            . (($count)
-                ?(' count(1)')
-                :(($this->_select)?($this->_distinct.$this->_select):(' a.*'))
-              )
+            . $s
             . ' from '.$this->_from
             . (($this->_where)?(' where '.$this->_where):(''))
-            . (($this->_groupBy)?(' group by'.$this->_groupBy):(''))
+            . ((!$count && $this->_groupBy)?(' group by'.$this->_groupBy):(''))
             . ((!$count && $this->_orderBy)?(' order by'.$this->_orderBy):(''))
             . ((!$count && $this->_limit)?(' limit '.$this->_limit):(''))
             . ((!$count && $this->_offset)?(' offset '.$this->_offset):(''))
@@ -204,8 +213,8 @@ class Tecnodesign_Query_Sql
                 $this->addScope($s);
                 unset($s);
             }
-        } else {
-            $this->addSelect($this->scope($o));
+        } else if($s=$this->scope($o)) {
+            $this->addSelect($s);
             $this->_scope = $o;
         }
         return $this;
@@ -412,7 +421,7 @@ class Tecnodesign_Query_Sql
                     $fn = $ta.'.'.$fn;
                 }
             } else {
-                tdz::debug(__METHOD__, func_get_args(), "Cannot find by [{$fn}] at [{$sc['tableName']}]");
+                //tdz::debug(__METHOD__, func_get_args(), "Cannot find by [{$fn}] at [{$sc['tableName']}]");
                 tdz::log("Cannot find by [{$fn}] at [{$sc['tableName']}]");
                 throw new Exception("Cannot find by [{$fn}] at [{$sc['tableName']}]");
             }
@@ -494,12 +503,16 @@ class Tecnodesign_Query_Sql
                 }
             } else {
                 $cop = $op;
+                $pxor = (isset($cxor))?($cxor):(null);
                 $cxor = $xor;
                 $cnot = $not;
                 $c1=substr($k, 0, 1);
                 if(isset($xors[$c1])) {
-                    $xor = $xors[$c1];
+                    $cxor = $xors[$c1];
                     $k = substr($k, 1);
+                }
+                if($pxor && $pxor=='or' && $pxor!=$cxor) {
+                    $r = ' ('.trim($r).')';
                 }
                 unset($c1);
                 if(preg_match('/(\~|\<\>|[\<\>\^\$\*\!\%]?\=?|[\>\<])$/', $k, $m) && $m[1]) {
@@ -548,7 +561,7 @@ class Tecnodesign_Query_Sql
                     else if($cop=='%') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v))."%'";
                     else $r .= ($not)?(" not({$fn}{$cop}".self::escape($v).')'):(" {$fn}{$cop}".self::escape($v));
                 }
-                unset($cop, $cxor, $cnot);
+                unset($cop, $cnot);
             }
             unset($k, $fn, $v);
         }
@@ -752,4 +765,98 @@ class Tecnodesign_Query_Sql
         return false;
     }
 
+    /**
+     * Gets the timestampable last update
+     */
+    public function timestamp($tns=null)
+    {
+        $cn = $this->schema('className');
+        if(!isset(tdz::$variables['timestamp']))tdz::$variables['timestamp']=array();
+        if(isset(tdz::$variables['timestamp'][$cn])) {
+            return tdz::$variables['timestamp'][$cn];
+        }
+        tdz::$variables['timestamp'][$cn] = false;
+        $tn=array();
+        $fn=array();
+        $sc = $this->schema();
+        if(is_null($tns)) {
+            if(!is_null(tdz::$variables['timestamp'][$cn])) {
+                return tdz::$variables['timestamp'][$cn];
+            }
+            tdz::$variables['timestamp'][$cn] = false;
+            if(isset($sc['actAs']['before-insert']['timestampable'])) {
+                foreach($sc['actAs']['before-insert']['timestampable'] as $c) {
+                    $fn[$c]='max(c.'.$c.')';
+                }
+                $tn[$sc['tableName']]=$sc['tableName'].' as c';
+            }
+            if(isset($sc['actAs']['before-update']['timestampable'])) {
+                foreach($sc['actAs']['before-update']['timestampable'] as $c) {
+                    $fn[$c]='max(c.'.$c.')';
+                }
+                $tn[$sc['tableName']]=$sc['tableName'].' as c';
+            }
+            if(isset($sc['relations'])) {
+                $i=0;
+                foreach($sc['relations'] as $rn=>$rel) {
+                    $rcn = (isset($rel['className']))?($rel['className']):($rn);
+                    if(!isset($rcn::$schema['tableName']) || isset($tn[$rcn::$schema['tableName']])) {
+                        continue;
+                    }
+                    if(isset($rcn::$schema['actAs']['before-insert']['timestampable'])) {
+                        foreach($rcn::$schema['actAs']['before-insert']['timestampable'] as $c) {
+                            $fn[$rn.'.'.$c]='max(r'.$i.'.'.$c.')';
+                        }
+                        $tn[$rcn::$schema['tableName']]=$rcn::$schema['tableName'].' as r'.$i;
+                    }
+                    if(isset($rcn::$schema['actAs']['before-update']['timestampable'])) {
+                        foreach($rcn::$schema['actAs']['before-update']['timestampable'] as $c) {
+                            $fn[$rn.'.'.$c]='max(r'.$i.'.'.$c.')';
+                        }
+                        $tn[$rcn::$schema['tableName']]=$rcn::$schema['tableName'].' as r'.$i;
+                    }
+                    $i++;
+                }
+            }
+        } else {
+            foreach($tns as $i=>$cn) {
+                if(isset($sc['actAs']['before-insert']['timestampable'])) {
+                    foreach($sc['actAs']['before-insert']['timestampable'] as $c) {
+                        $fn[$i.'.'.$c]='max(t'.$i.'.'.$c.')';
+                    }
+                    $tn[$sc['tableName']]=$sc['tableName'].' as t'.$i;
+                }
+                if(isset($sc['actAs']['before-update']['timestampable'])) {
+                    foreach($sc['actAs']['before-update']['timestampable'] as $c) {
+                        $fn[$i.'.'.$c]='max(t'.$i.'.'.$c.')';
+                    }
+                    $tn[$sc['tableName']]=$sc['tableName'].' as t'.$i;
+                }
+            }
+        }
+        if(count($fn)==0) {
+            return time();
+        }
+        $sql = 'select greatest('.implode(',', $fn).') as date from '.implode(',', $tn);
+        $conn = tdz::connect($sc['database'], null, true);
+        if(tdz::$perfmon) tdz::$perfmon = microtime(true);
+        try
+        {
+            $query = $conn->query($sql);
+            $result=array();
+            if ($query) {
+                $result = $query->fetchAll(PDO::FETCH_COLUMN, 0);
+                //$query->closeCursor();
+                tdz::$variables['timestamp'][$cn] = strtotime($result[0]);
+            }
+            
+        }
+        catch(PDOException $e)
+        {
+            tdz::log(__METHOD__.': '.$e->getMessage());
+            return false;
+        }
+        if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage()).' mem: '.tdz::$variables['timestamp'][$cn]);
+        return tdz::$variables['timestamp'][$cn];
+    }
 }

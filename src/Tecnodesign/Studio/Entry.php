@@ -102,12 +102,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
     protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Content, $Permission, $Child, $Parent, $Relation, $Children;
     //--tdz-schema-end--
     
-    protected $dynamic=false, $credential;
+    protected $dynamic=false, $modified, $credential;
 
     public function render()
     {
-        if(Tecnodesign_Studio::$private) tdz::cacheControl('nocache, private', 0);
-        else if(Tecnodesign_Studio::$staticCache) {
+        if(Tecnodesign_Studio::$private) {
+            tdz::cacheControl('private', 60);
+        } else if(Tecnodesign_Studio::$staticCache) {
             Tecnodesign_App::$afterRun['staticCache']=array('callback'=>array('Tecnodesign_Studio','setStaticCache'));
             tdz::cacheControl('public', Tecnodesign_Studio::$cacheTimeout);
         }
@@ -153,10 +154,14 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 $c = Tecnodesign_Studio::credential('previewPublished');
             }
         }
+        if(is_null($c) && $this->credential) $c = $this->credential;
+
         if($c && !(($U=tdz::getUser()) && $U->hasCredential($c, false))) {
-            //tdz::debug(__METHOD__, $c);
             Tecnodesign_Studio::error(403);
             return false;
+        }
+        if($c) {
+            Tecnodesign_Studio::$private = (is_array($c))?($c):(array($c));
         }
         if(Tecnodesign_Studio::$staticCache && !is_null($c)) {
             Tecnodesign_Studio::$staticCache=false;
@@ -199,9 +204,15 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
         }
 
+        if($this->modified) {
+            Tecnodesign_App::response(array('headers'=>array('Last-Modified'=>gmdate('D, d M Y H:i:s', $this->modified).' GMT')));
+        } else {
+            $this->modified = time();
+        }
+
         array_unshift(
             $slots['meta'], 
-            '<meta http-equiv="last-modified" content="'.gmdate("D, d M Y H:i:s") . ' GMT" />'
+            '<meta http-equiv="last-modified" content="'. gmdate('D, d M Y H:i:s',$this->modified) . ' GMT" />'
             . '<meta name="generator" content="Tecnodesign E-Studio - https://tecnodz.com" />'
             . $langs
         );
@@ -253,7 +264,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $slotelements = array('header'=>true,'footer'=>true,'nav'=>true);
         $addbr='';
         $layout = '<'."?php\n"
-            .(($this->dynamic)?("//dynamic\n"):("//static\ntdz::cacheControl('public');\n"));
+            .(($this->dynamic)?("//dynamic\n"):("//static\n"));
         if($dyn && Tecnodesign_Studio::$staticCache) Tecnodesign_Studio::$staticCache=false;
         foreach($slots as $slotname=>$slot) {
             ksort($slot);
@@ -300,7 +311,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
                 $layout .= "\n\${$slotname} = '<{$slotname}><div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></{$slotname}>{$addbr}';";
             } else if($slotname!='meta' && $slotname!='title') {
-                $layout .= "\n\${$slotname} = '<section><div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></section>{$addbr}';";
+                $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
             }
         }
         $layout .= "\n\$meta.=tdz::meta();";
@@ -312,6 +323,10 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         if(substr($mc, 0, 5)=='<'.'?php') $layout .= "\n".substr($mc, 5);
         else $layout .= "\n?".'>'.$mc;
         unset($mc, $master);
+        if(Tecnodesign_Studio::$private) {
+            Tecnodesign_Studio::$private = array_unique(Tecnodesign_Studio::$private);
+            tdz::cacheControl('private', 60);
+        }
         if(Tecnodesign_Studio::$cacheTimeout && isset($cf) && tdz::save($cf, $layout, true)) {
             return array('layout'=>substr($cf, 0, strlen($cf)-4), 'template'=>'');
         } else {
@@ -369,8 +384,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 }
             }
         }
+        if(substr($this->format, -4)!='html') tdz::download($file,($this->format)?($this->format):(tdz::fileFormat($file)),$fname);
         return $file;
-        tdz::download($file,$this->format,$fname);
     }
     public function renderFile()
     {
@@ -504,7 +519,11 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(substr($f, -1)=='/') $f.=static::$indexFile;
             else if(is_dir($f)) $f .= '/'.static::$indexFile; // redirect?
 
-            $pages = glob($f.'{,.*}', GLOB_BRACE);
+            static $pat;
+            if(is_null($pat)) {
+                $pat = '{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
+            }
+            $pages = glob($f.$pat, GLOB_BRACE);
 
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
@@ -631,8 +650,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
      */
     public function getRelatedContent($where='', $wherep=array(), $checkLang=true, $checkTemplate=true)
     {
+        $this->modified = strtotime($this->updated);
         if($this->id) {
-            $published = !Tecnodesign_Studio::$private;
+            $published = !(Tecnodesign_Studio::$private);
             $f = array(
                 '|entry'=>$this->id,
                 '|ContentDisplay.link'=>array('*', $this->link),
@@ -653,7 +673,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $f = tdzEntry::file(static::$pageDir.$this->link, false);
         if(substr($f, -1)=='/') $f.=static::$indexFile;
         else if(is_dir($f)) $f .= '/'.static::$indexFile; // redirect?
-        $pages = glob($f.'.*');
+
+        static $pat;
+        if(is_null($pat)) {
+            $pat = '{,.*}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
+        }
+        $pages = glob($f.$pat, GLOB_BRACE);
+        //$pages = glob($f.'.*');
         if($checkTemplate) {
             while(strrpos($f, '/')!==false) {
                 $f = substr($f, 0, strrpos($f, '/'));
@@ -668,7 +694,10 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             foreach($pages as $page) {
                 if(is_dir($page)) continue;
                 $C = Tecnodesign_Studio::content($page, $checkLang, $checkTemplate);
+                $mod=null;
                 if($C) {
+                    $mod = $C->modified;
+                    if($mod && $mod > $this->modified) $this->modified = $mod;
                     if($C->_position) {
                         $r[$C->_position] = $C;
                         $sort = true;
@@ -676,7 +705,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                         $r[] = $C;
                     }
                 }
-                unset($C, $page);
+                unset($C, $page, $mod);
             }
             unset($link);
             if($sort) {

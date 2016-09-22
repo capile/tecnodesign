@@ -45,7 +45,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public static $keepCollection = false, $microsecondsLength=3, $transaction=true;
     protected static $found=array();
     protected static $relations=null, $relationDepth=1;
-    protected static $_timestamp=null, $_conn=null;
+    protected static $_conn=null;
     protected $_new = false;
     protected $_delete = null;
     protected $_connected = false;
@@ -105,92 +105,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      */
     public static function timestamp($tns=null)
     {
-        $cn = get_called_class();
-        if(!is_null($cn::$_timestamp)) {
-            return $cn::$_timestamp;
-        }
-        $cn::$_timestamp = false;
-        $tn=array();
-        $fn=array();
-        if(is_null($tns)) {
-            if(!is_null($cn::$_timestamp)) {
-                return $cn::$_timestamp;
-            }
-            $cn::$_timestamp = false;
-            if(isset($cn::$schema['actAs']['before-insert']['timestampable'])) {
-                foreach($cn::$schema['actAs']['before-insert']['timestampable'] as $c) {
-                    $fn[$c]='max(c.'.$c.')';
-                }
-                $tn[$cn::$schema['tableName']]=$cn::$schema['tableName'].' as c';
-            }
-            if(isset($cn::$schema['actAs']['before-update']['timestampable'])) {
-                foreach($cn::$schema['actAs']['before-update']['timestampable'] as $c) {
-                    $fn[$c]='max(c.'.$c.')';
-                }
-                $tn[$cn::$schema['tableName']]=$cn::$schema['tableName'].' as c';
-            }
-            if(isset($cn::$schema['relations'])) {
-                $i=0;
-                foreach($cn::$schema['relations'] as $rn=>$rel) {
-                    $rcn = (isset($rel['className']))?($rel['className']):($rn);
-                    if(!isset($rcn::$schema['tableName']) || isset($tn[$rcn::$schema['tableName']])) {
-                        continue;
-                    }
-                    if(isset($rcn::$schema['actAs']['before-insert']['timestampable'])) {
-                        foreach($rcn::$schema['actAs']['before-insert']['timestampable'] as $c) {
-                            $fn[$rn.'.'.$c]='max(r'.$i.'.'.$c.')';
-                        }
-                        $tn[$rcn::$schema['tableName']]=$rcn::$schema['tableName'].' as r'.$i;
-                    }
-                    if(isset($rcn::$schema['actAs']['before-update']['timestampable'])) {
-                        foreach($rcn::$schema['actAs']['before-update']['timestampable'] as $c) {
-                            $fn[$rn.'.'.$c]='max(r'.$i.'.'.$c.')';
-                        }
-                        $tn[$rcn::$schema['tableName']]=$rcn::$schema['tableName'].' as r'.$i;
-                    }
-                    $i++;
-                }
-            }
-        } else {
-            foreach($tns as $i=>$cn) {
-                if(isset($cn::$schema['actAs']['before-insert']['timestampable'])) {
-                    foreach($cn::$schema['actAs']['before-insert']['timestampable'] as $c) {
-                        $fn[$i.'.'.$c]='max(t'.$i.'.'.$c.')';
-                    }
-                    $tn[$cn::$schema['tableName']]=$cn::$schema['tableName'].' as t'.$i;
-                }
-                if(isset($cn::$schema['actAs']['before-update']['timestampable'])) {
-                    foreach($cn::$schema['actAs']['before-update']['timestampable'] as $c) {
-                        $fn[$i.'.'.$c]='max(t'.$i.'.'.$c.')';
-                    }
-                    $tn[$cn::$schema['tableName']]=$cn::$schema['tableName'].' as t'.$i;
-                }
-            }
-        }
-        if(count($fn)==0) {
-            return time();
-        }
-        $sql = 'select greatest('.implode(',', $fn).') as date from '.implode(',', $tn);
-        $cn::$_conn = tdz::connect($cn::$schema['database'], null, true);
-        if(tdz::$perfmon) tdz::$perfmon = microtime(true);
-        try
-        {
-            $query = $cn::$_conn->query($sql);
-            $result=array();
-            if ($query) {
-                $result = $query->fetchAll(PDO::FETCH_COLUMN, 0);
-                //$query->closeCursor();
-                $cn::$_timestamp = strtotime($result[0]);
-            }
-            
-        }
-        catch(PDOException $e)
-        {
-            tdz::log(__METHOD__.': '.$e->getMessage());
-            return false;
-        }
-        if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage()).' mem: '.$cn::$_timestamp);
-        return $cn::$_timestamp;
+        return Tecnodesign_Query::handler(get_called_class())->timestamp($tns);
     }
     
     public function __sleep()
@@ -1478,8 +1393,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!is_array($c)) $c=array($c);
             $q['select'] = array_merge($c, static::columns($scope, null, 3, true));
             unset($c);
-        } else {
+        } else  {
             $q['select'] = static::columns($scope, null, 3, true);
+        }
+        if(is_string($scope)) {
+            $q['scope'] = $scope;
         }
         if($s) {
             if(!is_array($s)) {
@@ -1493,7 +1411,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if(!is_null($orderBy)) $q['orderBy'] = $orderBy;
         else if(isset(static::$schema['order'])) $q['orderBy'] = static::$schema['order'];
-        if(!is_null($groupBy)) $q['group'] = $groupBy;
+        if(!is_null($groupBy) && !is_bool($groupBy)) $q['groupBy'] = $groupBy;
         else if(isset(static::$schema['group-by'])) $q['groupBy'] = static::$schema['group-by'];
         $q['limit'] = $limit;
         $Q = Tecnodesign_Query::handler(get_called_class())->find($q);
@@ -1509,6 +1427,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else {
             return new Tecnodesign_Collection(null, get_called_class(), $Q, null);
         }
+    }
+
+    public static function query($q=null, $cn=null)
+    {
+        if(!$cn) $cn = get_called_class();
+        if($q) return Tecnodesign_Query::handler($cn)->find($q);
+        else return Tecnodesign_Query::handler($cn);
     }
 
     public static function find2($s=null, $limit=1, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
@@ -2438,7 +2363,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $value = $this->$m($value);
         }
         if ($schema['type']=='string') {
-            $value = (string) $value;
+            $value = @(string) $value;
             if (isset($schema['size']) && $schema['size'] && strlen($value) > $schema['size']) {
                 $value = mb_strimwidth($value, 0, (int)$schema['size'], '', 'UTF-8');
             }

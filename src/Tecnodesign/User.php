@@ -39,6 +39,7 @@ class Tecnodesign_User
         $cfg, 
         $hashType='sha256',     // hashing method
         $usePhpSession=false,   // load/destroy user based on PHP session
+        $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess='lastAccess', // property to use when setting last access, set to false to disable
         $resetCookie=0.5;       // percentage of timeout to set a new cookie
 
@@ -755,19 +756,32 @@ class Tecnodesign_User
             return true;
         }
         $uc = $this->getCredentials();
+        if(!is_array($uc)) $uc=array();
         if(!is_array($credentials)) {
-            if (!$credentials) {
-                return true;
-            } else if(is_bool($credentials)) {
-                return $this->isAuthenticated();
-            } else {
-                return in_array($credentials, $uc);
+            $neg = false;
+            if(static::$enableNegCredential && substr($credentials, 0, 1)=='!') {
+                $neg = true;
+                $credentials = substr($credentials, 1);
             }
+            if (!$credentials) {
+                $r = true;
+            } else if(is_bool($credentials)) {
+                $r = $this->isAuthenticated();
+            } else {
+                $r = in_array($credentials, $uc);
+            }
+            if($neg) return !$r;
+            else return $r;
         }
+        $r = false;
         foreach ($credentials as $i=>$cn) {
+            if(static::$enableNegCredential && substr($cn, 0, 1)=='!') {
+                $r = true;
+                $cn = substr($cn, 1);
+            }
             if(in_array($cn, $uc)) {
                 if (!$useAnd) {
-                    return true;
+                    return !$r;
                 }
                 unset($credentials[$i]);
             }
@@ -775,7 +789,7 @@ class Tecnodesign_User
         if (count($credentials)==0) {
             return true;
         }
-        return false;
+        return $r;
     }
     public function hasCredential($credentials, $useAnd=true) { return $this->hasCredentials($credentials, $useAnd); }
 

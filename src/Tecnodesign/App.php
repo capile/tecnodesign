@@ -411,14 +411,10 @@ class Tecnodesign_App
     
     public function runError($error, $layout=null)
     {
-        $errors = array(
-            403=>'200 OK',
-            404=>'404 Not Found',
-            500=>'500 Internal Server Error',
-        );
         @ob_clean();
-        if(!isset($errors[$error])) {
+        if(!self::status($error)) {
             $error = 500;
+            self::status($error);
         }
         if(is_null($layout)) {
             if(isset($this->_vars['tecnodesign']['controller-options']['layout'])) {
@@ -430,14 +426,13 @@ class Tecnodesign_App
         self::$_response['layout']=$layout;
         if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();
         if(!isset(self::$_response['variables'])) self::$_response['variables']=tdz::$variables['variables'];
+        //tdz::debug(__METHOD__, var_export(self::$_response));
         self::$_response['data']=$this->runTemplate(self::$_response['template'], self::$_response['variables'], self::$_response['cache']);
         $result=self::$_response['data'];
         if(self::$_response['layout']) {
             self::$_response += tdz::$variables;
             $result = $this->runTemplate(self::$_response['layout'], self::$_response);
         }
-        $proto = (isset($_SERVER['SERVER_PROTOCOL']))?($_SERVER['SERVER_PROTOCOL']):('HTTP/1.1');
-        @header($proto.' '.$errors[$error]);
         @header('Content-Type: text/html; charset=utf-8');
         @header('Content-Length: '.strlen($result));
         tdz::cacheControl('no-cache, private, must-revalidate', false);
