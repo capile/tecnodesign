@@ -670,23 +670,24 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         }
 
         // get file-based page definitions
-        $f = tdzEntry::file(static::$pageDir.$this->link, false);
-        if(substr($f, -1)=='/') $f.=static::$indexFile;
-        else if(is_dir($f)) $f .= '/'.static::$indexFile; // redirect?
+        $u = $this->link;
+        $root = TDZ_VAR.'/'.static::$pageDir;//tdzEntry::file(static::$pageDir, false);
+        if(substr($u, -1)=='/') $u.=static::$indexFile;
+        else if(is_dir($root.$u)) $u .= '/'.static::$indexFile; // redirect?
 
         static $pat;
         if(is_null($pat)) {
             $pat = '{,.*}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
         }
-        $pages = glob($f.$pat, GLOB_BRACE);
+        $pages = glob($root.$u.$pat, GLOB_BRACE);
         //$pages = glob($f.'.*');
         if($checkTemplate) {
-            while(strrpos($f, '/')!==false) {
-                $f = substr($f, 0, strrpos($f, '/'));
-                $pages = array_merge($pages, glob(TDZ_VAR.'/'.static::$pageDir.$f.'/_tpl_.*'));
+            while(strrpos($u, '/')!==false) {
+                $u = substr($u, 0, strrpos($u, '/'));
+                $pages = array_merge($pages, glob($root.$u.'/_tpl_.*'));
             }
         }
-        unset($f);
+        unset($f, $u);
         $sort = false;
         if($pages) {
             //$link = (substr($this->link, -1)=='/')?(self::$indexFile):(basename($this->link));
@@ -699,7 +700,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                     $mod = $C->modified;
                     if($mod && $mod > $this->modified) $this->modified = $mod;
                     if($C->_position) {
-                        $r[$C->_position] = $C;
+                        if(!isset($r[$C->_position])) $r[$C->_position] = $C;
                         $sort = true;
                     } else {
                         $r[] = $C;

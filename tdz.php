@@ -533,11 +533,15 @@ class tdz
         $a = func_get_args();
         $res = array_shift($a);
         foreach($a as $args) {
-            foreach($args as $k=>$v) {
-                if(!isset($res[$k])) {
-                    $res[$k] = $v;
-                } else if(is_array($res[$k]) && is_array($v)) {
-                    $res[$k] = tdz::mergeRecursive($v, $res[$k]);
+            if(!is_array($res)) {
+                $res = $a;
+            } else {
+                foreach($args as $k=>$v) {
+                    if(!isset($res[$k])) {
+                        $res[$k] = $v;
+                    } else if(is_array($res[$k]) && is_array($v)) {
+                        $res[$k] = tdz::mergeRecursive($v, $res[$k]);
+                    }
                 }
             }
         }
@@ -1074,6 +1078,9 @@ class tdz
                 $og = $app->tecnodesign['open-graph'];
             } else {
                 $og = array();
+            }
+            if(isset(tdz::$variables['variables']['open-graph']) && is_array(tdz::$variables['variables']['open-graph'])) {
+                $og = array_merge($og, tdz::$variables['variables']['open-graph']);
             }
             $e = tdz::get('entry');
             if($e && is_object($e)) {
