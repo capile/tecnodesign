@@ -118,6 +118,9 @@ class Tecnodesign_Form implements ArrayAccess
 
     public static function instance($id)
     {
+        if(!$id) {
+            $id = array_shift(array_keys((array)self::$_instances));
+        }
         if(!isset(self::$_instances[$id])) {
             self::$_instances[$id] = new Tecnodesign_Form();
         }

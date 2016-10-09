@@ -554,7 +554,7 @@ class Tecnodesign_User
                 unset($cookie);
                 break;
             }
-            if(is_null($this->_cid)) {
+            if($setCookie && is_null($this->_cid)) {
                 $this->_cid = tdz::hash(microtime(true), null, 20);
                 self::$_cookies[$n][]=$this->_cid;
             }
@@ -670,7 +670,16 @@ class Tecnodesign_User
         if ($U) {
             $pass = (isset($this->_ns['properties']['password']))?($this->_ns['properties']['password']):('password');
             $pass = $U->$pass;
-            if(tdz::hash($key, $pass, static::$hashType)==$pass) {
+            if(method_exists($U, 'authenticate')) {
+                if($U->authenticate($key)) {
+                    $this->_me = $U;
+                    if(isset($this->_ns['properties'])) {
+                        $this->_map = $this->_ns['properties'];
+                    }
+                    return true;
+                }
+
+            } else if(tdz::hash($key, $pass, static::$hashType)==$pass) {
                 // user authenticated
                 $this->_me = $U;
                 if(isset($this->_ns['properties'])) {

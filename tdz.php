@@ -3340,7 +3340,9 @@ class tdz
                     return $tplf;
                 }
                 foreach(tdz::$tplDir as $d) {
-                    if(file_exists($tplf=$d.'/'.$tpl.'.php')) {
+                    if(strpos($tpl, '/')!==false && substr($tpl, 0, strlen($d))==$d && file_exists($tpl)) {
+                        return $tpl;
+                    } else if(file_exists($tplf=$d.'/'.$tpl.'.php')) {
                         return $tplf;
                     }
                 }

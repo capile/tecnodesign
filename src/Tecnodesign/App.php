@@ -421,12 +421,13 @@ class Tecnodesign_App
                 $layout = $this->_vars['tecnodesign']['controller-options']['layout'];
             }
         }
-        self::$_response['template']='error'.$error;
+        if(tdz::templateFile('error'.$error)) self::$_response['template']='error'.$error;
+        else self::$_response['template']='error';
         self::$_response['cache']=false;
         self::$_response['layout']=$layout;
         if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();
         if(!isset(self::$_response['variables'])) self::$_response['variables']=tdz::$variables['variables'];
-        //tdz::debug(__METHOD__, var_export(self::$_response));
+        self::$_response['variables']['error'] = $error;
         self::$_response['data']=$this->runTemplate(self::$_response['template'], self::$_response['variables'], self::$_response['cache']);
         $result=self::$_response['data'];
         if(self::$_response['layout']) {
@@ -445,12 +446,7 @@ class Tecnodesign_App
     {
         if($tpl && strpos($tpl, '<')!==false) return $tpl;
         $result = false;
-        $exec = array('variables'=>$variables);
-        if(!$tpl || !(
-            ((substr($tpl, 0, strlen(TDZ_APP_ROOT))==TDZ_APP_ROOT || substr($tpl, 0, strlen(TDZ_VAR))==TDZ_VAR) && (file_exists($exec['script']=$tpl.'.php') || file_exists($exec['script']=$tpl)))
-            || (isset($this->_vars['tecnodesign']['templates-dir']) && file_exists($exec['script']=$this->_vars['tecnodesign']['templates-dir'].'/'.$tpl.'.php'))
-            || file_exists($exec['script']=TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates/'.$tpl.'.php')
-        )) $exec['script']=false;
+        $exec = array('variables'=>$variables, 'script'=>tdz::templateFile($tpl));
         if($exec['script']) {
             $result=tdz::exec($exec);
         }

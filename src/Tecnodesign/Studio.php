@@ -262,9 +262,8 @@ class Tecnodesign_Studio
         if(count($pp)>0) {
             $lang = array_pop($pp);
             if(is_null($langs)) {
-                $app = Tecnodesign_Studio::$app->tecnodesign;
-                if(isset($app['languages'])) {
-                    $langs = $app['languages'];
+                if(isset(self::$app->tecnodesign['languages'])) {
+                    $langs = self::$app->tecnodesign['languages'];
                 }
                 unset($app);
                 if(!$langs) $langs=array();
@@ -517,14 +516,9 @@ class Tecnodesign_Studio
         return false;
     }
 
-    public static function error($code=500)
+    public static function template($url=null)
     {
-        if(isset(tdz::$variables['route']['layout'])  && tdz::$variables['route']['layout']) {
-            $layout = tdz::$variables['route']['layout'];
-        } else {
-            $layout = self::templateFile(tdzEntry::$layout, 'layout');
-        }
-        $E = new tdzEntry(array('link'=>'@error'.$code),false, false);
+        $E = new tdzEntry(array('link'=>$url),false, false);
         $C = $E->getRelatedContent();
         unset($E);
         $tpl = array();
@@ -536,7 +530,7 @@ class Tecnodesign_Studio
             }
             $slotelements = array('header'=>true,'footer'=>true,'nav'=>true);
             foreach($tpl as $slotname=>$slot) {
-                $tpl[$slotname] = "<div id=\"{$slotname}\">".tdz::get('before-'.$slotname).$slot.tdz::get($slotname).tdz::get('after-'.$slotname)."</div>";
+                $tpl[$slotname] = "<div id=\"{$slotname}\">".tdz::get('before-'.$slotname).'<div>'.$slot.'</div>'.tdz::get($slotname).tdz::get('after-'.$slotname)."</div>";
                 if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
                     $tpl[$slotname] = "<{$slotname}>{$tpl[$slotname]}</{$slotname}>";
                 }
@@ -544,6 +538,24 @@ class Tecnodesign_Studio
             $tpl['slots'] = array_keys($tpl);
             tdz::$variables+=$tpl;
         }
+        $d = TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/templates/';
+        if(is_null(tdz::$tplDir)) {
+            tdz::$tplDir = array(Tecnodesign_Studio::$app->tecnodesign['templates-dir'], $d);
+        } else  if(!in_array($d, tdz::$tplDir)) {
+            tdz::$tplDir[] = $d;
+        }
+        unset($d);
+        return $tpl;
+    }
+
+    public static function error($code=500)
+    {
+        if(isset(tdz::$variables['route']['layout'])  && tdz::$variables['route']['layout']) {
+            $layout = tdz::$variables['route']['layout'];
+        } else {
+            $layout = self::templateFile(tdzEntry::$layout, 'layout');
+        }
+        self::template('/error'.$code);
         return Tecnodesign_Studio::$app->runError($code, $layout);
     }
 

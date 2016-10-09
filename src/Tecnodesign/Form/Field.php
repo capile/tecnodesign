@@ -1379,6 +1379,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $this->renderText($arg);
     }
 
+    public function renderTel(&$arg)
+    {
+        $arg['type']='tel';
+        return $this->renderText($arg);
+    }
+
     public function renderRange(&$arg)
     {
         $arg['type']=self::$rangeInputType;

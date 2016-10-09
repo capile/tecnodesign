@@ -118,7 +118,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $csvFixedHeaderBorder = true,
         $headers=array(),
         $status,
-        $expires;
+        $expires,
+        $errorModule;
 
 
     protected $uid, $model, $action, $id, $search, $groupBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params;
@@ -335,7 +336,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
 
-            tdz::$variables['variables']['script'][700] = tdz::$assetsUrl.'/tecnodesign/js/interface.js';
+            tdz::$variables['variables']['script'][700] = tdz::$assetsUrl.'/studio/interface.js';
+            tdz::$variables['variables']['style'][700] = tdz::$assetsUrl.'/studio/interface.less';
             //Tecnodesign_App::response(array('script'=>array(700=>tdz::$assetsUrl.'/tecnodesign/js/interface.js')));
             $I = static::currentInterface($p);
 
@@ -918,6 +920,11 @@ class Tecnodesign_Interface implements ArrayAccess
 
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($msg, $code);
+        }
+        if(isset(static::$errorModule)) {
+            $cn = static::$errorModule;
+            static::$errorModule=null;
+            return $cn::error($code);
         }
         tdz::getApp()->runError($code);
     }
