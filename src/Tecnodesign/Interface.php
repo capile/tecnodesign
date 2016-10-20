@@ -340,6 +340,7 @@ class Tecnodesign_Interface implements ArrayAccess
             tdz::$variables['variables']['style'][700] = tdz::$assetsUrl.'/studio/interface.less';
             //Tecnodesign_App::response(array('script'=>array(700=>tdz::$assetsUrl.'/tecnodesign/js/interface.js')));
             $I = static::currentInterface($p);
+            if(!$I) return false;
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
 
@@ -349,7 +350,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 unset($f);
             }
             if(!$I) {
-                $cn = get_called_class();
+                                $cn = get_called_class();
                 $I = new $cn(static::$baseInterface);
                 $I->url = static::$base.'/'.$I->text['interface'];
                 if(!$I->auth()) {

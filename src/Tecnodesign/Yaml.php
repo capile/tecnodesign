@@ -88,6 +88,7 @@ class Tecnodesign_Yaml
             if(isset($C)) {
                 $a = $C::$fn($s);
             } else {
+                tdz::log("$fn ($s)");
                 $a = $fn($s);
             }
             Tecnodesign_Cache::set($ckey, $a, $timeout);

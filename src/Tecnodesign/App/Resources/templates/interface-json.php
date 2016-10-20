@@ -45,28 +45,6 @@ $r = array();
 // set parameters: envelope, pretty, fields, etc.
 if(isset($list) || (isset($preview) && ($preview instanceof Tecnodesign_Model))) {
     // list counter
-    /*
-    if(isset($searchCount)) {
-        if($searchCount<=0) {
-            echo sprintf($Interface::t('listNoSearchResults'), tdz::formatNumber($count,0), $searchTerms);
-        } else if($searchCount==1) {
-            echo sprintf($Interface::t('listSearchResult'), tdz::formatNumber($count,0), $searchTerms);
-        } else { 
-            echo sprintf($Interface::t('listSearchResults'), tdz::formatNumber($searchCount,0), tdz::formatNumber($count,0), $searchTerms);
-        }
-        $count = $searchCount;
-    } else if($count) {
-        echo sprintf($Interface::t('listResults'), tdz::formatNumber($count,0));
-    } else {
-        echo $Interface::t('listResult');
-    }
-    if($count>1) {
-        $end = $listOffset + $listLimit -1;
-        if($end>$count) $end = $count;
-        echo sprintf($Interface::t('listCounter'), tdz::formatNumber($listOffset+1,0), tdz::formatNumber($end+1,0));
-        unset($end);
-    }
-    */
     if(isset($preview)) {
         $options['scope'] = $preview::columns($options['scope']);
         $total = 1;

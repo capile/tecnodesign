@@ -323,7 +323,6 @@ class tdz
                 }
             }
         } else {
-            tdz::debug($db, func_get_args());
             $name = md5(implode(':',$db));
             if(isset(tdz::$_connection[$name])) {
                 //tdz::$_connection[$name] = null;
@@ -742,8 +741,18 @@ class tdz
             if(count($files)>0) {
                 $fname = md5(implode(array_keys($files)));
                 $url = self::$assetsUrl.'/'.$fname.'.'.$type;
-                if($output) $file=$output;
-                else $file = (substr($root, 0, strlen(TDZ_ROOT))==TDZ_ROOT)?(TDZ_VAR.'/cache/minify/'.basename($url)):($root.$url);
+                if($output) {
+                    if(self::$assetsUrl && substr($output, 0, strlen(self::$assetsUrl))==self::$assetsUrl) {
+                        $file = $root.$output;
+                        $url = $output;
+                    } else {
+                        $file=$output;
+                    }
+                } else if(substr($root, 0, strlen(TDZ_ROOT))==TDZ_ROOT) {
+                    $file = TDZ_VAR.'/cache/minify/'.basename($url);
+                } else {
+                    $file = $root.$url;
+                }
                 $time = max($files);
                 $build = (!file_exists($file) || filemtime($file) < $time);
                 $fs=array_keys($files);
@@ -764,7 +773,7 @@ class tdz
                         unset($tempnam);
                     }
                 }
-                if($output) {
+                if($output===true) {
                     return (file_exists($output) && filemtime($output) > $time);
                 }
                 if($build){
@@ -785,7 +794,7 @@ class tdz
         if(!$raw) {
             $s = preg_replace('/>\s+</', '><', trim($s));
         }
-        if($output) {
+        if($output===true) {
             return file_exists($output);
         }
         return $s;
@@ -3232,7 +3241,6 @@ class tdz
         while ($num>=1.0) {
             $r=$num%$b;
             $num = (($num - $r)/64);
-			//tdz::debug($num.': '.substr(tdz::$chars,$r,1), false);
             $ns = substr(tdz::$chars,$r,1).$ns;
         }
         return $ns;

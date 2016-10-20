@@ -911,6 +911,11 @@ function datalistClear()
 var _D={};
 function datalistRender(d)
 {
+    var r=this.getAttribute('data-datalist-renderer');
+    if(r && (r in Z)) {
+        _D = Z[r].call(this, d, datalistOption);
+        return _D;
+    }
     var o=this, c=o.parentNode.querySelector('ul.tdz-datalist'), n, p;
     if(!c) c=Z.element.call(o.parentNode,{e:'span',p:{className:'tdz-datalist-container'},c:[{e:'ul',p:{className:'tdz-datalist'},a:{'data-target':o.getAttribute('id')}}]}).children[0];
     else c.innerHTML=''; // remove child nodes
@@ -942,6 +947,7 @@ function datalistRender(d)
         p={e:'li',p:{className:'tdz-msg tdz-alert'},c:Z.l[Z.language].Nothing};
         Z.element.call(c,p);
     }
+    return _D;
 }
 
 function datalistOption()
