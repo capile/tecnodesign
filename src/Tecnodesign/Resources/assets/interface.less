@@ -1,27 +1,9 @@
 @import "fontawesome.less";
-@colorTab: #111;
-@colorTabText: #eee;
-@colorTabActive: #333;
-@colorTabActiveText: #fff;
-@colorHighlight: #fd9;
-@colorActive: #ff8000;
-@color: #eee;
-@colorText: #000;
-@colorBorder: #aaa;
-@colorSummary: #666;
-@colorSummaryText: #fff;
-@error: #900;
-
-html.intranet {
-  body { font-size:16px; line-height:1.25em;min-height:100vh;}
-  background:#fff;
- .tdz-i-box{
-    padding:1em;
-  }
-}
+@import "interface-vars.less";
 
 .tdz-i-box{
   color:@colorText;
+  width:100%;
 }
 
 .tdz-i{
@@ -45,9 +27,10 @@ html.intranet {
   font-size: 1em;
   height:2em;
   line-height:2em;
-  padding:0 -0.25em 0 0.5em;
-  margin:0 0.5em 0 0 !important;
+  padding:0 0.75em 0 0;
+  margin:0 @tabSpacing 0 0;
   color:@colorTabText;
+  border-radius: @borderRadius @borderRadius 0 0;
   &:visited,&:hover{color:@colorTabText;text-decoration:none}
   &:active,&:link{color:@colorTabText - #111;text-decoration:none}
   z-index:13;
@@ -63,19 +46,27 @@ html.intranet {
     content:' ';display:inline-block;width:2em;height:2em;line-height:2em;text-align:center;
     vertical-align:baseline;opacity:0.8;
   }
-  &:after{
-    content:' ';
-    z-index:11;
-    position:absolute;
-    left:100%;
-    top:0;
-    height:0;
-    width:0;
-    border-top: 2em solid transparent;
-    border-left: 2em solid @colorTab;
-  }
   &.tdz-i-title-active:after{
     border-left: 2em solid @colorTabActive;
+  }
+  .tdz-i--close {
+    background:transparent;
+    position:absolute;
+    top:0.2em;
+    left:0.2em;
+    width:1.6em;
+    height:1.6em;
+    text-align:center;
+    background:inherit;
+    opacity:0;
+    line-height:1.6em;
+    border-radius:0.8em;
+  }
+  &:hover, &:active {
+    .tdz-i--close {
+      background:inherit;
+      opacity:1;
+    }
   }
 }
 
@@ -108,7 +99,7 @@ div.tdz-i-switched{
 input.tdz-i-switch{
   display:none;
   &:checked ~  div.tdz-i-switched {
-    opacity:1;max-height:100%;overflow-y:visible;
+    opacity:1;max-height:100%;
   }
   & + label {
     .transition(max-width 1s ease-in-out);
@@ -289,6 +280,10 @@ input.tdz-i-switch{
     @border: ((@colorTabActive + #ddd) * 0.5);
     border:1px solid @border;
   }
+  input[type=checkbox],input[type=radio] {
+    width:auto;
+    border:none;
+  }
   input[type=search] {
     .border(0.5em);
   }
@@ -401,13 +396,24 @@ select, input {
   color: rgba(0,0,0,0.4);  
 }
 
+.tdz-i-msg {
+  color:@msg;
+  background:@msgBackground;
+  border:0.2em solid @msg;
+  .border(@borderRadius);
+  line-height:1em;
+  margin:-0.25em 0 0 0;
+  padding:0.25em 0.5em;
+}
+
 .tdz-i-error {
-    color:@error;
-    border:1px solid @error;
-    padding:0.25em;
-    line-height:1em;
-    .border(0.25em);
-    background: @error + #ccc;
+  color:@error;
+  background: @error + #ccc;
+  border:0.2em solid @error;
+  .border(@borderRadius);
+  line-height:1em;
+  margin:0;
+  padding:0.25em;
 }
 
 .tdz-i-msg.tdz-m-inactive{
@@ -603,8 +609,11 @@ select, input {
 .tdz-i-label-action{
   display:none;
 }
-.tdz-i-actions a, .tdz-i-header .tdz-i-title, .tdz-i-button {
+.tdz-i-actions a,.tdz-i-button,[class^="tdz-i--"], [class*=" tdz-i--"] {
     .fontAwesomeBase();
+    &:before {
+      min-width:1em;
+    }
     &.tdz-i--list:before          {content: "\f002";}
     &.tdz-i--report:before        {content: "\f0ed";}
     &.tdz-i--delete:before        {content: "\f014";}
@@ -618,6 +627,7 @@ select, input {
     &.tdz-i--refresh:before       {content: "\f021";}
     &.tdz-i--close:before         {content: "\f00d";}
 }
+
 .tdz-i-button {
   color:@colorTabActive;
   &:hover, &:active {
@@ -663,7 +673,8 @@ th > input[type=checkbox], td > input[type=checkbox]{
   position:relative;
   p {margin:0 0 0.5em 0;padding:0; }
   p:last-child {margin-bottom:0;}
-  .tdz-i-msg{display:inline-block;margin-top:5px;padding:5px 10px}
+  .tdz-i-msg{display:inline-block;}
+  &:before {float:left;width:1.5em;}
 }
 .tdz-i-label-key{
   text-transform:lowercase;
@@ -690,6 +701,9 @@ th > input[type=checkbox], td > input[type=checkbox]{
     }
     &:hover, &.on {
       background:@colorActive * 1.2;
+      a:hover,a:active {
+        color:@link;
+      }
     }
   }
   th {
@@ -705,6 +719,9 @@ th > input[type=checkbox], td > input[type=checkbox]{
   }
 }
 
+.tdz-i-off {
+  display:none;
+}
 
 
 

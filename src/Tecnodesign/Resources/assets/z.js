@@ -5,7 +5,8 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
   defaultModules={
     Subform:'div.subform[data-template]',
     Datalist:'*[data-datalist-api],*[data-datalist]',
-    Button:'button.cleanup'
+    Button:'button.cleanup',
+    Callback:'*[data-callback]'
   };
 
 // load authentication info
@@ -451,9 +452,18 @@ Z.delay = function (fn, ms, uid) {
     _delayTimers[uid] = setTimeout(fn, ms);
 };
 
-Z.toggleInput=function(q, c)
+Z.toggleInput=function()
 {
-    var f=document.querySelectorAll(q), i=f.length, chk=(Z.isNode(c))?(c.checked):(false);
+    var f;
+    if(this.parentNode) {
+        if(this.parentNode.nodeName.toLowerCase()=='th') {
+            f=Z.parentNode(this,'table').querySelectorAll('td > input[type="checkbox"]');
+        } else {
+            f=Z.parentNode(this,'div').querySelectorAll('input[name][type="checkbox"]');
+        }
+    }
+    if(!f) return;
+    var i=f.length, chk=(Z.isNode(this))?(this.checked):(false);
     while(i-- > 0) {
         if(f[i]==c) continue;
         Z.checkInput(f[i], chk, false);
@@ -607,6 +617,18 @@ Z.initButton=function(o)
 {
     if(!o || !Z.node(o)) o=this;
     Z.bind(o, 'click', button);
+}
+
+Z.initCallback=function(o)
+{
+    if(!o || !Z.node(o)) o=this;
+    var fn = o.getAttribute('data-callback');
+    if(!fn) return;
+    if(fn in Z) Z.bind(o, 'click', Z[fn]);
+    else if(fn in window) Z.bind(o, 'click', window[fn]);
+    else return;
+
+    o.removeAttribute('data-callback');
 }
 
 function button(e)
