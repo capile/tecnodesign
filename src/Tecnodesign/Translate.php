@@ -96,7 +96,7 @@ class Tecnodesign_Translate
             if(!isset($this->_table[$table])) {
                 $yml = TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml';
                 if(!file_exists($yml)) {
-                    tdz::save($yml, '--- automatic translation index, please update :)', true);
+                    tdz::save($yml, '--- automatic translation index, please update', true);
                 }
                 $this->_table[$table] = Tecnodesign_Yaml::load($yml);
                 if(!is_array($this->_table[$table])) $this->_table[$table] = array();
