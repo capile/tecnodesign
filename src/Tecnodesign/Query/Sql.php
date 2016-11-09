@@ -383,7 +383,11 @@ class Tecnodesign_Query_Sql
                         if(isset($rsc['events']['active-records']) && $rsc['events']['active-records']) {
                             if(is_array($rsc['events']['active-records'])) {
                                 foreach($rsc['events']['active-records'] as $r=>$v) {
-                                    $this->_from .= ' and '.$this->getAlias($r, $rsc).'='.tdz::sqlEscape($v);
+                                    if($v=='') {
+                                        $ara = $this->getAlias($r, $rsc);
+                                        $this->_from .= ' and ('.$ara.' is null or '.$ara.'=\'\')';
+                                        unset($ara);
+                                    } else $this->_from .= ' and '.$this->getAlias($r, $rsc).'='.tdz::sqlEscape($v);
                                 }
                             } else {
                                 if(strpos($rsc['events']['active-records'], '`')!==false || strpos($rsc['events']['active-records'], '[')!==false) {
@@ -474,7 +478,7 @@ class Tecnodesign_Query_Sql
 
         $op = '=';
         $not = false;
-        static $cops = array('>=', '<=', '<>', '>', '<');
+        static $cops = array('>=', '<=', '<>', '!', '!=', '>', '<');
         static $like = array('%', '$', '^', '*', '~');
         static $xors = array('and'=>'and', '&'=>'and', 'or'=>'or', '|'=>'or');
         foreach($w as $k=>$v) {

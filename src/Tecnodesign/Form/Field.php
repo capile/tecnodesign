@@ -973,14 +973,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     return $this->_choicesCollection->count();
                 }
                 if(!$this->_choicesCollection->getQueryKey()) {
-                    $cr=array();
+                    $this->choices=array();
                     if($this->_choicesCollection->count()) {
                         foreach($this->_choicesCollection->getItems() as $r) {
-                            $cr[$r->getPk()]=$r;
+                            $this->choices[$r->getPk()]=$r;
                             unset($r);
                         }
                     }
-                    $this->choices = $cr;
                 }
             }
         }
@@ -1944,15 +1943,15 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         $label = (string) $v;
                     }
                     if($group) {
-                        $ro[$value]=array('value'=>$value, 'label'=>$label, 'group'=>$group);
+                        $ro[]=array('value'=>$value, 'label'=>$label, 'group'=>$group);
                     } else {
-                        $ro[$value]=$label;
+                        $ro[]=array('value'=>$value, 'label'=>$label);
                     }
                 } else if(!is_string($v)) {
                     if(is_array($v)) {
                         $v = $v['label'];
                     }
-                    $ro[$k]=$v;
+                    $ro[]=array('value'=>$v, 'label'=>$k);
                 } else {
                     break;
                 }

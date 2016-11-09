@@ -266,7 +266,7 @@ input.tdz-i-switch{
 }
 
 .tdz-i-field {
-  margin:0 0 0.5em 0;padding:0;
+  margin:0 0 0.5em 0;padding:0;vertical-align:top;
   dt {
     display:inline-block;font-size:0.75em;color:@colorTabActive;
   }
@@ -280,13 +280,18 @@ input.tdz-i-switch{
     @border: ((@colorTabActive + #ddd) * 0.5);
     border:1px solid @border;
   }
+  input {
+    text-indent: 0.5em;
+  }
   input[type=checkbox],input[type=radio] {
-    width:auto;
+    width:auto !important;
     border:none;
+    text-indent:none;
   }
   input[type=search] {
     .border(0.5em);
   }
+
   .tdz-input-search {
     .fontAwesome();
     &:before {
@@ -315,7 +320,7 @@ input.tdz-i-switch{
     .border(0.25em);
     background: @error + #ccc;
   }
-  li {margin:0.25em 0;}
+  li {margin:0.25em 0;padding:0;}
 }
 
 .tdz-i-search {
@@ -338,10 +343,12 @@ input.tdz-i-switch{
   span.label {
     display:inline-block;
     width:25%;
+    vertical-align:top;
   }
   span.input {
     display:inline-block;
     width:75%;
+    vertical-align:top;
     label {
       display:inline-block;padding-right:1em;
     }
@@ -532,6 +539,67 @@ select, input {
   width:66.66%;
 }
 
+
+.ih1 dd {
+  max-height:1.5em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih2 dd {
+  max-height:3em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih3 dd {
+  max-height:4.5em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih4 dd {
+  max-height:6em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih5 dd {
+  max-height:7.5em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih6 dd {
+  max-height:9em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih7 dd {
+  max-height:10.5em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih8 dd {
+  max-height:12em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih9 dd {
+  max-height:13.5em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih10 dd {
+  max-height:15em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih15 dd {
+  max-height:22.5em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.ih20 dd {
+  max-height:30em;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
 
 /*  .fontAwesomeBase();
   &:before{
