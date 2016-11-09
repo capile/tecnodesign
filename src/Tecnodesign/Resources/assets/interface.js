@@ -1,14 +1,21 @@
 /*! Interface v1.0 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
-if(!('Z' in window)) {
-    if('tdz' in window) window.Z=window.tdz;
-    else window.Z = {};
-}
-(function(Z)
+(function()
 {
     var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _loading={}, _ids={}, _q=[], _last;
 /*!startup*/
     function startup(I)
     {
+        if(!('Z' in window)) {
+            if('tdz' in window) window.Z=window.tdz;
+            else {
+                return setTimeout(startup, 100);
+            }
+        }
+        if(('modules' in Z) && !('Interface' in Z.modules)) {
+            Z.modules.Interface=_sel;
+            Z.initInterface = startup;
+            Z.loadInterface = loadInterface;
+        }
         if(arguments.length==0) {
             if(!(I=Z.node(this))) {
                 return startup(document.querySelectorAll(_sel));
@@ -52,6 +59,9 @@ if(!('Z' in window)) {
 
         // bind other actions
         var S=I.querySelectorAll('*[data-action-schema]');
+
+        var iurl = I.getAttribute('data-url');
+        iurl = (!iurl)?(''):('&uri='+encodeURIComponent(iurl));
         i=S.length;
         while(i-- > 0) {
             var M = S[i].querySelectorAll('*[data-action-scope]'),j=M.length, N, k=S[i].getAttribute('data-action-schema'),u=S[i].getAttribute('data-action-url'), bt, bu;
@@ -59,15 +69,15 @@ if(!('Z' in window)) {
                 bu=M[j].getAttribute('data-action-scope');
                 M[j].removeAttribute('data-action-scope');
                 if(M[j].nodeName.toLowerCase()=='button') {
-                    M[j].setAttribute('data-url', u+'?scope='+bu+'&uri='+encodeURIComponent(I.getAttribute('data-url')));
-                    M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'tdz-i--'+k;
+                    M[j].setAttribute('data-url', u+'?scope='+bu+iurl);
+                    M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'tdz-i--close';
                     Z.bind(M[j], 'click', loadAction);
                     bt = M[j].form.parentNode.parentNode;
                 } else {
                     bt= M[j];
                 }
                 N = document.createElement('a');
-                N.setAttribute('href', u+'?scope='+bu+'&uri='+encodeURIComponent(I.getAttribute('data-url')));
+                N.setAttribute('href', u+'?scope='+bu+iurl);
                 N.className = 'tdz-i-button tdz-i--'+k;
                 Z.bind(N, 'click', loadAction);
                 //Z.bind(M[j], 'dblclick', loadAction);
@@ -682,12 +692,6 @@ if(!('Z' in window)) {
 
     }
 
-    if('modules' in Z) {
-        Z.modules.Interface=_sel;
-        Z.initInterface = startup;
-        Z.loadInterface = loadInterface;
-    } else {
-        startup(document.querySelectorAll(_sel));
-    }
+    startup();
 
-})(Z);
+})();

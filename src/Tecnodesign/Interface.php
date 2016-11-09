@@ -1970,7 +1970,7 @@ class Tecnodesign_Interface implements ArrayAccess
             } else {
                 $order = null;
             }
-            $found = $cn::find($this->search,0,$this->scope(null,true),true,$order,$this->groupBy);
+            $found = $cn::find($this->search,0,$this->scope(null,true,true),true,$order,$this->groupBy);
         }
         if(!$found) {
             $count = 0;
@@ -2048,10 +2048,10 @@ class Tecnodesign_Interface implements ArrayAccess
         } else {
             $a = 'review';
         }
-        return $cn::find($this->search,$max,$this->scope($a, true),$collection,$order,$this->groupBy);
+        return $cn::find($this->search,$max,$this->scope($a,true,true),$collection,$order,$this->groupBy);
     }
 
-    public function scope($a=null, $clean=false)
+    public function scope($a=null, $clean=false, $pk=false)
     {
         if(!is_null($a)) {
             if(is_array($a)) {
@@ -2068,9 +2068,20 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && is_array($this->scope)) {
             if(in_array('scope::'.$rs, $this->scope) || in_array('sub::'.$rs, $this->scope)) {
-                return array('scope::'.$rs);
+                $scope = array('scope::'.$rs);
             }
         }
+        if($pk && $this->groupBy) {
+            $cn = $this->model;
+            $pk = $cn::pk();
+            if(!is_array($pk)) $pk = array($pk);
+            if(!isset($scope)) $scope = $this->scope;
+            foreach($pk as $k) {
+                if(!in_array($k, $scope)) array_unshift($scope, $k);
+            }
+        }
+
+        if(isset($scope)) return $scope;
         /*
         if($clean) {
             $scope = $this->scope;
@@ -2216,6 +2227,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
                     if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className'])) 
                         $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
+                    else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($cn, $m)) $fd['choices']=$cn::$m();
 
                     $fo['fields'][$slug]=array(
                         'type'=>$type,

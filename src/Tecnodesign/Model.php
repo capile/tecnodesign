@@ -2085,7 +2085,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(is_numeric($label)) $label = tdz::t(ucwords(str_replace('_', ' ', $fid)), 'model-'.$model);
                 else if(substr($label,0,1)=='*') $label = tdz::t(substr($label,1), 'model-'.$model);
                 $s .= '<th class="c-'.$so.' f-'.$fid.(($so==$sf)?(' ui-order ui-order-'.$sd):('')).'">'
-                    . ((isset($first) && $checkbox==='checkbox')?('<input type="checkbox" onclick="tdz.toggleInput(\'#'.$tid.' input[type='.$checkbox.']\', this);" label="'.tdz::t('Select all', 'ui').'" data-label-alternative="'.tdz::t('Clear selection', 'ui').'" />'):(''))
+                    . ((isset($first) && $checkbox==='checkbox')?('<input type="checkbox" data-callback="toggleInput" label="'.tdz::t('Select all', 'ui').'" data-label-alternative="'.tdz::t('Clear selection', 'ui').'" />'):(''))
                     . $label
                     . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.'o='.$so.'&d=asc').'" class="icon asc"></a>'):(''))
                     . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.'o='.$so.'&d=desc').'" class="icon desc"></a>'):(''))

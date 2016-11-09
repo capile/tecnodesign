@@ -721,7 +721,9 @@ class tdz
                                     if(!$lc && class_exists('lessc')) {
                                         $lc = new lessc();
                                         $lc->setVariables(array('assets-url'=>'"'.self::$assetsUrl.'"'));
-                                        $lc->setImportDir(array(dirname($root.$less).'/'),$root);
+                                        $imp = array(dirname($root.$less).'/',$root);
+                                        if(is_dir($d=$root.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d); 
+                                        $lc->setImportDir($imp);
                                         $lc->registerFunction('dechex', function($a){
                                             return dechex($a[1]);
                                         });
