@@ -41,6 +41,7 @@ class Tecnodesign_User
         $usePhpSession=false,   // load/destroy user based on PHP session
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess='lastAccess', // property to use when setting last access, set to false to disable
+        $setCookie=true,        // percentage of timeout to set a new cookie
         $resetCookie=0.5;       // percentage of timeout to set a new cookie
 
     const FORM_USER = 'user';
@@ -522,6 +523,7 @@ class Tecnodesign_User
 
     public function setSessionCookie()
     {
+        if(!static::$setCookie) return true;
         static $cookiesSent = array();
         $n = $this->getSessionName();
         if(isset($this->_cookiesSent[$n.'/'.$this->_cid])) return true;

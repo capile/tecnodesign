@@ -20,6 +20,7 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
+        $webInterface=false,
         $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
@@ -393,7 +394,7 @@ class Tecnodesign_Studio
         $U = tdz::getUser();
         if($U) {
             $r = $U->asArray();
-            if($U->isAuthenticated() && ($U->isSuperAdmin() || (($ec= self::credential('studio')) && $U->hasCredential($ec, false)))) {
+            if(self::$webInterface && $U->isAuthenticated() && ($U->isSuperAdmin() || (($ec= self::credential('studio')) && $U->hasCredential($ec, false)))) {
                 $r['plugins']=array(
                     'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css'),
                 );

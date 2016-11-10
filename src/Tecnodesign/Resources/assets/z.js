@@ -1,5 +1,5 @@
 /*! Tecnodesign Z base v2.1 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
-if(!('Z' in window)) window.Z={uid:'/_me'};
+if(!('Z' in window)) window.Z={uid:'/_me',timeout:300,headers:{}};
 (function(Z) {
 var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, 
   defaultModules={
@@ -10,6 +10,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
   };
 
 // load authentication info
+var _reWeb=/^https?:\/\//;
 function initZ(d)
 {
     Z.language = Z.cookie('lang');
@@ -20,31 +21,57 @@ function initZ(d)
     }
     if(!('user' in Z)) {
         Z.user=null;
-        if(window.location.origin.search(/^https?:\/\//)>-1) {
+        d=Z.storage('Z-Auth');
+        if(d) {
+            if(('token' in d) && d.token) {
+                if(!('headers' in Z)) Z.headers = {};
+                Z.headers['Z-Token']=d.token;
+            }
+        } else if(Z.uid && (_reWeb.test(window.location.origin) || _reWeb.test(Z.uid))) {
             Z.ajax(Z.uid, null, initZ, null, 'json');
             return;
         }
     }
-    if(!d) return;
-    if(Object.prototype.toString.call(d)=='[object Array]') {
-        Z.user = false;
-        return;
-    }
-    var n, start=false;
-    if('plugins' in d) {
-        if(!('plugins' in Z)) Z.plugins = {};
-        for(n in d.plugins) {
-            if(n in Z.plugins) continue;
-            Z.plugins[n]=d.plugins[n];
-            Z.load.apply(Z, d.plugins[n]);
+    if(d) {
+        if(Object.prototype.toString.call(d)=='[object Array]') {
+            Z.user = false;
+        } else {
+            var n, start=false;
+            if('plugins' in d) {
+                if(!('plugins' in Z)) Z.plugins = {};
+                for(n in d.plugins) {
+                    if(n in Z.plugins) continue;
+                    Z.plugins[n]=d.plugins[n];
+                    Z.load.apply(Z, d.plugins[n]);
+                }
+                delete(d.plugins);
+            }
+            Z.user = d;
         }
-        delete(d.plugins);
-    }
-    Z.user = d;
+    } else if(Z.uid) return;
+    if(!('timeout' in Z)) Z.timeout = 300;
+    Z.storage('Z-Auth', d, Z.timeout);
     if(!('modules' in Z)) {
         Z.modules = defaultModules;
     }
     Z.ready(Z.init);
+}
+
+Z.storage=function(n, v, e)
+{
+    if(!('localStorage' in window)) return; // add new storage types
+    var r=window.localStorage.getItem(n);
+    var t=(new Date().getTime())/1000;
+    if(arguments.length>1) {
+        if(arguments.length<3) e=0;
+        else if(e<100000000) e+=t;
+        window.localStorage.setItem(n, parseInt(e)+','+JSON.stringify(v));
+    } else if(r && r.search(/^([0-9]+),.+/)>-1) {
+        var a=parseInt(r.substr(0,r.indexOf(',')));
+        if(a > 0 && a < t) r=null;
+        else r=JSON.parse(r.substr(r.indexOf(',')+1));
+    }
+    return r;
 }
 
 Z.init=function(o)
@@ -633,7 +660,6 @@ Z.initCallback=function(o)
 
 function button(e)
 {
-    console.log('clicked button!');
     if(this.className.search(/\bcleanup\b/)>-1) Z.clearForm(this.form);
 }
 
@@ -677,7 +703,6 @@ Z.initSubform=function(o)
             Z.deleteNode(L[i]);
         } else if(!L[i].querySelector('.tdz-buttons')) {
             var xx=Z.element.call(L[i], {e:'div',p:{className:'tdz-buttons'},c:btns});
-            console.log(btns, xx);
         }
     };
 
@@ -1059,6 +1084,7 @@ Z.log=function()
         i++;
     }
 }
+var _ResponseType={arraybuffer:true,blob:true,document:true,json:true,text:true};
 
 Z.ajax=function(url, data, success, error, dataType, context, headers)
 {
@@ -1080,6 +1106,9 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
 
     // make post!!!
     _ajax[url].r.onreadystatechange = ajaxProbe;
+    if(dataType in _ResponseType) {
+        XMLHttpRequest.responseType = (_ResponseType[dataType]===true)?(dataType):(_ResponseType[dataType]);
+    }
     //_ajax[url].r.onload = ajaxOnload;
     _ajax[url].r.open(m, url+qs, true);
     _ajax[url].r.setRequestHeader("X-Requested-With", "XMLHttpRequest");
@@ -1092,7 +1121,7 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
         if(!headers || !('Content-Type' in headers)) {
             _ajax[url].r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
         }
-        if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);
+        //if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);
         //_ajax[url].r.setRequestHeader('Connection', 'close');
         _ajax[url].r.send(data);
     } else {
@@ -1129,9 +1158,9 @@ function ajaxProbe(e)
             } else if('responseText' in _ajax[u].r) d=_ajax[u].r.responseText;
             else d=_ajax[u].r.response;
             if(_ajax[u].r.status==200) {
-                _ajax[u].success.apply(_ajax[u].context, [ d, _ajax[u].r.status, u ]);
+                _ajax[u].success.apply(_ajax[u].context, [ d, _ajax[u].r.status, u, _ajax[u].r ]);
             } else {
-                _ajax[u].error.apply(_ajax[u].context, [ d, _ajax[u].r.status, u ]);
+                _ajax[u].error.apply(_ajax[u].context, [ d, _ajax[u].r.status, u, _ajax[u].r ]);
             }
             delete(d);
             delete(_ajax[u].r);

@@ -2523,6 +2523,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(file_exists($f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml')) {
                 return $f;
             }
+            tdz::log(__METHOD__.' '.$f, func_get_args());
             unset($d, $f);
         }
         unset($s);
