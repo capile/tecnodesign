@@ -551,6 +551,7 @@ class Tecnodesign_Studio
 
     public static function error($code=500)
     {
+        if(!Tecnodesign_Studio::$app) Tecnodesign_Studio::$app = tdz::getApp();
         if(isset(tdz::$variables['route']['layout'])  && tdz::$variables['route']['layout']) {
             $layout = tdz::$variables['route']['layout'];
         } else {

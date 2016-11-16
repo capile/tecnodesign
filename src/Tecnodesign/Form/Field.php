@@ -422,7 +422,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $value=null;
             return $value;
         }
-        if($this->multiple && strpos($value, ',')!==false) {
+        if($this->multiple && (is_array($value) || strpos($value, ',')!==false)) {
             $join=false;
             if(!is_array($value)) {
                 $value = explode(',', $value);
@@ -616,11 +616,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $size = false;
             $hash = false;
             $thumb = false;
+            $ext  = false;
             if($this->accept) {
                 $max = (isset($this->accept['max']))?($this->accept['max']):($max);
                 $size = (isset($this->accept['size']))?($this->accept['size']):($size);
                 $type = (isset($this->accept['type']))?($this->accept['type']):($type);
                 $hash = (isset($this->accept['hash']))?($this->accept['hash']):($hash);
+                $ext = (isset($this->accept['extension']))?($this->accept['extension']):($ext);
                 $thumb = (isset($this->accept['thumbnail']))?($this->accept['thumbnail']):($thumb);
             }
             if(!$hash || !isset(self::$hashMethods[$hash])) {
@@ -679,7 +681,17 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     } else if ($type && !in_array($upload['type'], $type)) {
                         throw new Tecnodesign_Exception(tdz::t('This file format is not supported.', 'exception'));
                     }
+                    $file = $dest = $upload['tmp_name'];
                     $file = eval("return {$hfn};");
+                    if($ext && strpos($dest, '.')===false) {
+                        if(!($ext=array_search($upload['type'], tdz::$formats))) {
+                            if(preg_match('/\.([a-z0-9]){,5}$/i', $upload['name'], $m)) {
+                                $ext = strtolower($m[1]);
+                            }
+                        }
+                        if($ext) $file .= '.'.$ext;
+                    }
+
                     $dest = $uploadDir.'/'.$file;
                     $dir = dirname($dest);
                     if(!is_dir($dir)) {
@@ -1594,7 +1606,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $arg['type']=self::$datetimeInputType;
         $arg['data-type']='datetime';
         if(isset($arg['value']) && $arg['value'] && ($t = tdz::strtotime($arg['value']))) {
-            $arg['value'] = date('Y-m-d\TH:i:s', $t);
+            if(self::$datetimeInputType=='text') {
+                $arg['value'] = date(tdz::$dateFormat.' '.tdz::$timeFormat, $t);
+            } else {
+                $arg['value'] = date('Y-m-d\TH:i:s', $t);
+            }
         }
         if(Tecnodesign_Form::$enableStyles) {
             tdz::$variables['style'][Tecnodesign_Form::$enableStyles]=tdz::$assetsUrl.'/tecnodesign/css/datepicker.less';
@@ -1617,6 +1633,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function renderText(&$arg, $enableChoices=true)
     {
         $a = array('type'=>(isset($arg['type']))?($arg['type']):('text'), 'id'=>$arg['id'], 'name'=>$arg['name'], 'value'=>(string)$arg['value']);
+        if($this->size && !isset($this->attributes['maxlength'])) {
+            $this->attributes['maxlength']=$this->size;
+        }
         foreach($arg as $an=>$av) {
             if(substr($an, 0, 5)=='data-') $a[$an]=$av;
         }
@@ -1663,6 +1682,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $a = array('id'=>$arg['id'], 'name'=>$arg['name']);
         if($this->placeholder) {
             $a['placeholder'] = $this->placeholder;
+        }
+        if($this->size && !isset($this->attributes['maxlength'])) {
+            $this->attributes['maxlength']=$this->size;
         }
         $bv = array('required', 'readonly', 'disabled');
         foreach ($bv as $attr) {

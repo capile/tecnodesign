@@ -408,7 +408,8 @@ class tdz
      */
     public static function t($message, $table=null, $to=null, $from=null)
     {
-        return call_user_func(tdz::$translator, $message, $table, $to, $from);
+        list($cn, $m) = explode('::', tdz::$translator);
+        return $cn::$m($message, $table, $to, $from);
     }
     
     /**
@@ -1211,10 +1212,8 @@ class tdz
         ob_start();
         if (isset($a['script']) && substr($a['script'], -4) == '.php') {
             $script_name = str_replace('/../', '/', $a['script']);
-            //$_t=microtime(true);
             include $script_name;
             $tdzres.=ob_get_contents();
-            //tdz::log(__METHOD__.', '.__LINE__.': '.substr(microtime(true) - TDZ_TIME,0,5).' '.substr(microtime(true) - $_t,0,5).' end '.basename($script_name));
         };
 
         if (isset($a['pi'])) {

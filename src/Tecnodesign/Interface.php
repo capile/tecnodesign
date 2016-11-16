@@ -714,13 +714,23 @@ class Tecnodesign_Interface implements ArrayAccess
 
         if($n && is_null($I->id)) { // must be an id
             $n = (string) $n;
+
             if($n!=='') {
-                if(strpos($n, ',')) $n = preg_split('/\s*\,\s*/', $n, null, PREG_SPLIT_NO_EMPTY);
-                $I->addSearch(array($I->key=>$n));
+                if(is_array($I->key)) {
+                    $nc = explode(Tecnodesign_Model::$keySeparator, $n, count($I->key));
+                    $add = array();
+                    foreach($I->key as $k) {
+                        $add[$k] = array_shift($nc); 
+                    }
+                } else {
+                    if(strpos($n, ',')) $n = preg_split('/\s*\,\s*/', $n, null, PREG_SPLIT_NO_EMPTY);
+                    $add = array($I->key=>$n);
+                }
             } else {
-                $I->addSearch(array("`{$I->key}`!="=>$n));
+                $add = array("`{$I->key}`!="=>$n);
             }
-            $I->id = $n;
+            $I->addSearch($add);
+            $I->id = (is_array($n))?(implode(',',$n)):($n);
             $n = array_shift($p);
         }
 
@@ -1279,7 +1289,21 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function isOne()
     {
-        return ($this->key && isset($this->search[$this->key]));
+        if($this->key) {
+            if(!is_array($this->key)) {
+                return isset($this->search[$this->key]);
+            } else {
+                $set = true;
+                foreach ($this->key as $k) {
+                    if(!isset($this->search[$k])) {
+                        $set = false;
+                        break;
+                    }
+                }
+                return $set;
+            }
+        }
+        return false;
     }
 
     public function execute()
@@ -1953,7 +1977,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
                 $scope = $this->scope($rs);
                 unset($rs);
-            } else if(isset($this->options[$this->action])) {
+            } else if(isset($this->options['scope'][$this->action])) {
                 $scope = $this->scope($this->action);
             } else {
                 $scope = $this->scope('review');
@@ -2062,6 +2086,9 @@ class Tecnodesign_Interface implements ArrayAccess
         if(is_null($this->scope) || $a) {
             if(!$a) $a = $this->action;
             $cn = $this->model;
+            if(!is_array($a) && isset($this->options['scope'][$a]) && !isset($cn::$schema['scope'][$a])) {
+                $cn::$schema['scope'] += $this->options['scope'];
+            }
             $this->scope = (isset($cn::$schema['scope'][$a]))?($cn::$schema['scope'][$a]):($a);
             if(!is_array($this->scope)) $this->scope = $cn::columns($this->scope);
             unset($cn);
@@ -2516,7 +2543,6 @@ class Tecnodesign_Interface implements ArrayAccess
             if(file_exists($f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml')) {
                 return $f;
             }
-            tdz::log(__METHOD__.' '.$f, func_get_args());
             unset($d, $f);
         }
         unset($s);
@@ -2586,9 +2612,11 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if (method_exists($this, $m='set'.tdz::camelize($name))) {
             $this->$m($value);
-        } else if(property_exists($this, $name)) {
+        } else if(!property_exists($this, $name)) {
             throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
-        }
+        } else {
+            $this->$name = $value;
+        } 
         unset($m);
         return $this;
     }

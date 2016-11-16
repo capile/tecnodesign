@@ -42,10 +42,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         ),
     );
     public static $allowNewProperties = false;
-    public static $keepCollection = false, $microsecondsLength=3, $transaction=true;
+    public static $keepCollection = false, $microsecondsLength=3, $transaction=true, $keySeparator='-';
     protected static $found=array();
     protected static $relations=null, $relationDepth=1;
     protected static $_conn=null;
+    protected static $_typesChoices = array('select','checkbox','radio');
     protected $_new = false;
     protected $_delete = null;
     protected $_connected = false;
@@ -226,7 +227,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             foreach($scope as $fn) {
                 $result[]=$this->$fn;
             }
-            return implode('-', $result);
+            return implode(static::$keySeparator, $result);
         }
     }
     
@@ -361,7 +362,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $r = array_merge($r, static::columns($m[2], $type, $expand));
                     }
                 } else {
-                    $r[$k] = (isset($fd))?($fd):($fn);
+                    $r[$k] = (!$clean && isset($fd))?($fd):($fn);
                 }
                 unset($scope[$k], $fn, $k, $fd);
             }
@@ -977,8 +978,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         } else if($value instanceof Tecnodesign_Model) {
             $value = array($value);
-        } else {
+        } else if(is_object($value)) {
             $value = (array) $value;
+        } else if(is_string($value)) {
+            $value = explode(',',$value);
         }
         $rel = static::$schema['relations'][$relation];
         $local = (is_array($rel['local']))?($rel['local']):(array($rel['local']));
@@ -989,6 +992,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $map = array();
             if($ro instanceof Tecnodesign_Model) $ro = array($ro);
             foreach($ro as $i=>$R) {
+                if(is_string($R)) continue;
                 if(is_array($rpk)) {
                     foreach($rpk as $j=>$n) {
                         if(isset($pk)) $pk .= ','.$R[$n];
@@ -1003,6 +1007,19 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 unset($i, $R, $pk);
             }
             foreach($value as $i=>$v) {
+                if(is_string($v)) {
+                    if(!isset($rfn)) {
+                        foreach($cn::$schema['columns'] as $xfn=>$xfd) {
+                            if(!in_array($xfn, $foreign) && isset($cn::$schema['form'][$xfn]['type']) && in_array($cn::$schema['form'][$xfn]['type'], static::$_typesChoices)) {
+                                $rfn = $xfn;
+                                unset($xfn, $xfd);
+                                break;
+                            }
+                            unset($xfn, $xfd);
+                        }
+                    }
+                    $v = new $cn(array($rfn=>$v),null,false);
+                }
                 foreach($local as $lk=>$lv) {
                     if(isset($this->$lv) && !isset($v[$foreign[$lk]])) $v[$foreign[$lk]]=$this->$lv;
                 }
@@ -1032,7 +1049,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             $value = array_values($value);
             foreach($ro as $i=>$R) {
-                if($R->getPk()) {
+                if(is_object($R) && $R->getPk()) {
                     $R->delete(false);
                     $value[] = $R;
                 }
@@ -1232,7 +1249,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             $insertId=false;
             // @DEBUG
-            //tdz::log(get_called_class()."\n  ".$sql);
+            //tdz::log(get_called_class()."\n  ".$sql, var_Export($this, true));
             if($sql) {
                 $this->_lastQuery=$sql;
                 $result = $conn->exec($sql);
@@ -1369,6 +1386,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public static function fieldLabel($fn, $translate=true)
     {
         $cn = get_called_class();
+        if(is_array($fn)) {
+            $s = '';
+            foreach($fn as $n) $s .= (($s)?($cn::$keySeparator):('')).$cn::fieldLabel($n, $translate);
+            return $s;
+        }
         if(!isset($cn::$schema['form'][$fn]['label'])) {
             $label = trim(ucwords(strtr(tdz::uncamelize($fn), '-_', '  ')));
             if ($translate) {
@@ -1944,7 +1966,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $this->_collection;
     }
 
-    public function renderScope($scope=null, $xmlEscape=true, $box=null, $tpl=null, $sep=null)
+    public function renderScope($scope=null, $xmlEscape=true, $box=null, $tpl=null, $sep=null, $excludeEmpty=null)
     {
         $id = $scope;
 
@@ -2004,7 +2026,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(substr($label, 0, 2)=='a:') {
                     if($v && !$xmlEscape) $v = tdz::xmlEscape($v);
                     $a .= ' '.substr($label, 2).'="'.$v.'"';
-                } else if($v!==false) {
+                } else if($v!==false && !($excludeEmpty && !$v)) {
                     if(strpos($fn, ' ')) $fn = substr($fn, strrpos($fn, ' ')+1);
                     $s .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
                 }

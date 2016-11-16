@@ -192,14 +192,14 @@ class Tecnodesign_Mail
             $s=array();
             $added=array();
             foreach($m[1] as $i=>$file) {
-                if(file_exists($documentRoot.'/'.$file)) {
-                    $nf='cid:'.md5(realpath($documentRoot.'/'.$file));
+                if(file_exists($f=$documentRoot.'/'.$file)) {
+                    $nf='cid:'.md5(realpath($f));
                     //$s[]=$m[0][$i];
                     //$r[]=str_replace($file, $nf, $m[0][$i]);
                     $s[]=$file;
                     $r[]=$nf;
                     if(!isset($added[$nf])) {
-                        $this->addPart($documentRoot.'/'.$file, $nf);
+                        $this->addPart($f, $nf);
                     }
                 }
             }

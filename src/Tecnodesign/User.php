@@ -1054,7 +1054,7 @@ class Tecnodesign_User
             'buttons'=>$buttons,
             'fields'=>array(
                 static::FORM_USER=>(isset($o['email-username']) && $o['email-username'])
-                    ?(array('type'=>'email', 'required'=>true, 'label'=>tdz::t('Account', 'ui'), 'placeholder'=>tdz::t('E-mail', 'ui')))
+                    ?(array('type'=>'email', 'required'=>true, 'label'=>tdz::t('E-mail', 'ui'), 'placeholder'=>tdz::t('E-mail', 'ui')))
                     :(array('type'=>'text', 'required'=>true, 'label'=>tdz::t('Account', 'ui'), 'placeholder'=>tdz::t('Username', 'ui'))),
                 static::FORM_PASSWORD=>array('type'=>'password', 'required'=>true, 'label'=>tdz::t('Password', 'ui'), 'placeholder'=>tdz::t('Password', 'ui')),
                 'url'=>array('type'=>'hidden', 'value'=>$url),

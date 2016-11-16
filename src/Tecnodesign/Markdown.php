@@ -234,10 +234,16 @@ class Tecnodesign_Markdown extends ParsedownExtra
     {
         $Block['element']['text'] = implode("\n", $Block['element']['text']);
         $r = $Block['route'];
-        $r['arguments']=$Block['element']['text'];
-        if($s = tdz::getApp()->runRoute($r)) {
-            if($s===true) $s = Tecnodesign_App::response('template');
-            $Block['element']['text'] = $s;
+        if(isset($r['class']) && isset($r['method']) && isset($r['static']) && $r['static']) {
+            $c = $r['class'];
+            $m = $r['method'];
+            $Block['element']['text'] = $c::$m($Block['element']['text']);
+        } else {
+            $r['arguments']=$Block['element']['text'];
+            if($s = tdz::getApp()->runRoute($r)) {
+                if($s===true) $s = Tecnodesign_App::response('template');
+                $Block['element']['text'] = $s;
+            }
         }
         if(!isset($r['envelope']) || !$r['envelope']) {
             return array(

@@ -6,7 +6,8 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
     Subform:'div.subform[data-template]',
     Datalist:'*[data-datalist-api],*[data-datalist]',
     Button:'button.cleanup',
-    Callback:'*[data-callback]'
+    Callback:'*[data-callback]',
+    Datepicker:'input[data-type^=date],input[type^=date],.tdz-i-datepicker'
   };
 
 // load authentication info
@@ -19,15 +20,21 @@ function initZ(d)
         if(m) Z.language = m.getAttribute('content');
         else Z.language = 'en';
     }
+    var store=true;
     if(!('user' in Z)) {
         Z.user=null;
         d=Z.storage('Z-Auth');
-        if(d) {
+        if(d && String(d)) {
             if(('token' in d) && d.token) {
                 if(!('headers' in Z)) Z.headers = {};
                 Z.headers['Z-Token']=d.token;
             }
-        } else if(Z.uid && (_reWeb.test(window.location.origin) || _reWeb.test(Z.uid))) {
+            if(String(window.location).search('reload')<0) {
+                Z.uid=null;
+                store = false;
+           }
+        }
+        if(Z.uid && (_reWeb.test(window.location.origin) || _reWeb.test(Z.uid))) {
             Z.ajax(Z.uid, null, initZ, null, 'json');
             return;
         }
@@ -50,7 +57,10 @@ function initZ(d)
         }
     } else if(Z.uid) return;
     if(!('timeout' in Z)) Z.timeout = 300;
-    Z.storage('Z-Auth', d, Z.timeout);
+    if(store) Z.storage('Z-Auth', d, Z.timeout);
+
+    if(!('datepicker' in Z) && ('Pikaday' in window)) Z.datepicker = 'Pikaday';
+
     if(!('modules' in Z)) {
         Z.modules = defaultModules;
     }
@@ -293,6 +303,9 @@ Z.element=function(o,before,after) {
                 delete(n);
             }
         }
+    } else if(Z.isNode(o)) {
+        r=o;
+        o={};
     } else {
         if(o instanceof Array) o={c:o};
         r=document.createDocumentFragment();
@@ -628,8 +641,19 @@ Z.formData=function(f)
     var s='', n;
     if(d) {
         for(n in d) {
-            s += (s)?('&'):('');
-            s += (n+'='+encodeURIComponent(d[n]));
+            if(n.substr(-2)=='[]') {
+                var a = (typeof(d[n])=='string')?(d[n].split(',')):(d[n]),b=0;
+                while(b<a.length) {
+                    s += (s)?('&'):('');
+                    s += (n+'='+encodeURIComponent(a[b]));
+                    b++;
+                }
+                a=null;
+                b=null;
+            } else {
+                s += (s)?('&'):('');
+                s += (n+'='+encodeURIComponent(d[n]));
+            }
         }
     }
     return s;
@@ -640,6 +664,31 @@ Z.deleteNode=function(o)
     return o.parentNode.removeChild(o);
 }
 
+/*!picker*/
+var _Picker={}, _Pickerc=0;
+Z.initDatepicker=function()
+{
+    if(!('datepicker' in Z)) return;
+
+    var id=this.getAttribute('id');
+    if(!id) {
+        id='p'+(_Pickerc++);
+        this.id=id;
+    }
+
+    if(Z.datepicker=='Pikaday') {
+        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat };
+        if(!t) t=this.getAttribute('type');
+        if(t && t.search(/time/)>-1) {
+            cfg.use24Hour = true;
+            cfg.format+= ' '+Z.l[Z.language].timeFormat;
+        }
+    console.log(Z.language, Z.l[Z.language].dateFormat, cfg);
+        _Picker[id] = new Pikaday(cfg);
+    }
+}
+
+
 Z.initButton=function(o)
 {
     if(!o || !Z.node(o)) o=this;
@@ -649,10 +698,12 @@ Z.initButton=function(o)
 Z.initCallback=function(o)
 {
     if(!o || !Z.node(o)) o=this;
-    var fn = o.getAttribute('data-callback');
+    var fn = o.getAttribute('data-callback'), e=o.getAttribute('data-callback-event');
     if(!fn) return;
-    if(fn in Z) Z.bind(o, 'click', Z[fn]);
-    else if(fn in window) Z.bind(o, 'click', window[fn]);
+    if(!e) e='click';
+    else o.removeAttribute('data-callback-event');
+    if(fn in Z) Z.bind(o, e, Z[fn]);
+    else if(fn in window) Z.bind(o, e, window[fn]);
     else return;
 
     o.removeAttribute('data-callback');
@@ -1045,6 +1096,7 @@ function datalistOption()
     }
     datalistClear.call(o);
 }
+Z.datalistOption = datalistOption;
 
 
 
@@ -1062,6 +1114,28 @@ Z.l.en.add='Insert';
 Z.l.en.del='Remove';
 Z.l.en.Nothing='No options was selected for this query.';
 Z.l.en.Error='There was an error while processing this request. Please try again or contact support.';
+
+// for timepickers
+Z.l.en.previousMonth = 'Previous Month';
+Z.l.en.nextMonth     = 'Next Month';
+Z.l.en.months        = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+Z.l.en.weekdays      = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+Z.l.en.weekdaysShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+Z.l.en.midnight      = 'Midnight';
+Z.l.en.noon          = 'Noon';
+Z.l.en.dateFormat    ='YYYY-MM-DD';
+Z.l.en.timeFormat    ='HH:mm';
+
+
+Z.l.pt.previousMonth = 'Anterior';
+Z.l.pt.nextMonth     = 'Próximo';
+Z.l.pt.months        = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+Z.l.pt.weekdays      = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+Z.l.pt.weekdaysShort = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+Z.l.pt.midnight      = 'Meia-noite';
+Z.l.pt.noon          = 'Meio-dia';
+Z.l.pt.dateFormat    ='DD/MM/YYYY';
+Z.l.pt.timeFormat    ='HH:mm';
 
 Z.error=function()
 {
@@ -1113,8 +1187,12 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
     _ajax[url].r.open(m, url+qs, true);
     _ajax[url].r.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     if(headers) {
+        if(m=='post' && data && String(data)=='[object FormData]') {
+            headers['Content-Type']=false;
+        }
         for(var n in headers) {
-            _ajax[url].r.setRequestHeader(n, headers[n]);
+            if(headers[n])
+                _ajax[url].r.setRequestHeader(n, headers[n]);
         }
     }
     if(m=='post') {

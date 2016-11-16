@@ -327,6 +327,10 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             $result = "<div{$a}>{$result}</div>";
             return $result;
         }
+        if(is_array($r)) {
+            $r['before'] = "<div{$a}>";
+            $r['after'] = "</div>";
+        }
         return $r;
     }
 

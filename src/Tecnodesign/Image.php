@@ -189,7 +189,7 @@ class Tecnodesign_Image
             else $this->type='png';
         }
         if(isset($config['transparent'])) {
-            $this->transparent=(bool)$config['transparent'];
+            $this->transparent=$config['transparent'];
         }
         if(is_null($this->transparent)) {
             $this->transparent=($this->type=='png' || $this->type=='gif');
@@ -236,6 +236,9 @@ class Tecnodesign_Image
             // If this is a GIF or a PNG, we need to set up transparency
             imagealphablending($this->img, true);
             imagesavealpha($this->img, true);
+            if(!is_bool($this->transparent) && is_numeric($this->transparent)) {
+                imagecolortransparent($this->img, $this->transparent);
+            }
         }
 
         if(!is_null($this->backgroundColor)) {
