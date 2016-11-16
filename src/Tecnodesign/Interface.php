@@ -2355,10 +2355,6 @@ class Tecnodesign_Interface implements ArrayAccess
                     continue;
                 } else if($k=='w') continue;
 
-                if($F[$k]->multiple && !is_array($v)) {
-                    $v = explode(',', $v);
-                }
-
                 if(!isset($ff[$k]) && substr($k, -2, 1)=='-' && isset($ff[$k1=substr($k, 0, strrpos($k, '-'))])) {
                     $type = substr($ff[$k1], 0, 4);
                     $k0 = $k;
@@ -2368,6 +2364,17 @@ class Tecnodesign_Interface implements ArrayAccess
                     $k0 = $k;
                     $type = substr($ff[$k], 0, 4);
                 }
+
+                if($F[$k0]->multiple && !is_array($v)) {
+                    $v = explode(',', $v);
+                } else if($type=='date' && preg_match('/[\<\>=]+$/', $fns[$k])) {
+                    $ff[$k] = $type = 'choices';
+                    if(preg_match('/^[\-\+]/', $v) && ($dt=strtotime($v))) {
+                        $v = date('Y-m-d\TH:i:s', $dt);
+                        unset($dt);
+                    }
+                }
+
                 if($type=='bool') {
                     $c0=(in_array('-1', $v))?(true):(false);
                     $c1=(in_array('1', $v))?(true):(false);
@@ -2386,14 +2393,14 @@ class Tecnodesign_Interface implements ArrayAccess
                             else $this->search[$fns[$k]]='';
                         }
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                    . '<span class="'.static::$attrParamClass.'">'.$F[$k]->label.'</span>: '
+                                    . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
                                     . '<span class="'.static::$attrTermClass.'">'.(($c1)?(tdz::t('Yes', 'interface')):(tdz::t('No', 'interface'))).'</span>';
                     }
                 } else if($ff[$k]=='choices') {
                     if(!$v) continue;
                     $this->search[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                . '<span class="'.static::$attrParamClass.'">'.$F[$k]->label.'</span>: '
+                                . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
                                 . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k]).'</span>';
                 } else if($type=='date') {
                     $t0=$t1=false;
