@@ -583,7 +583,7 @@ class Tecnodesign_Interface implements ArrayAccess
         return static::checkAuth($this->getAuth($action));
     }
 
-    public static function authHeaders($U, $h='private')
+    public static function authHeaders($U=null, $h='private')
     {
         tdz::cacheControl($h, static::$expires);
         self::$headers[static::H_CACHE_CONTROL] = $h;
