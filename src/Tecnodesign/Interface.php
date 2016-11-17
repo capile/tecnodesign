@@ -605,6 +605,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
         if(isset($c['host']) && is_array($c['host'])) {
+            self::authHeaders();
             if(is_null($H)) {
                 $H = (isset($_SERVER['REMOTE_ADDR']))?($_SERVER['REMOTE_ADDR']):(false);
             }
