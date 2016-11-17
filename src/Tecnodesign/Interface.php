@@ -604,8 +604,10 @@ class Tecnodesign_Interface implements ArrayAccess
                 return false;
             }
         }
-        if(isset($c['host']) && is_array($c['host'])) {
+        if($c) {
             self::authHeaders();
+        }
+        if(isset($c['host']) && is_array($c['host'])) {
             if(is_null($H)) {
                 $H = (isset($_SERVER['REMOTE_ADDR']))?($_SERVER['REMOTE_ADDR']):(false);
             }
@@ -620,7 +622,6 @@ class Tecnodesign_Interface implements ArrayAccess
             if(!$c['credential']) {
                 return true;
             } else if($U->hasCredential($c['credential'], false)) {
-                self::authHeaders($U);
                 return true;
             }
         }
