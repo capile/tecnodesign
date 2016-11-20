@@ -1656,6 +1656,36 @@ class Tecnodesign_Interface implements ArrayAccess
         return $fo;
     }
 
+    public function renderDelete($o=null, $scope=null)
+    {
+        try {
+            if(($M = $this->model())) {
+                $M->delete(true);
+                $msg = static::t('deleteSuccess');
+                if(static::$format!='html') {
+                    $this->message($msg);
+                } else {
+                    $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.$msg.'</p></div>');
+                }
+                if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+                    $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link('preview', true)).'"></a>');
+                }
+
+                return $this->redirect($this->link(false, false));
+            }
+        } catch(Exception $e) {
+            tdz::log('[ERROR]'.__METHOD__.': '.$e);
+        }
+        $msg = static::t('deleteError');
+        if(static::$format!='html') {
+            $this->message($msg);
+            //static::error(404, $msg);
+        } else {
+            $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.$msg.'</p></div>');
+        }
+        return $this->redirect($this->link(false, false));
+    }
+
     protected function getForm($o, $scope=null)
     {
         if(!$o || !($o instanceof Tecnodesign_Model)) {
