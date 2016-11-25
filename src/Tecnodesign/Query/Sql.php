@@ -443,17 +443,15 @@ class Tecnodesign_Query_Sql
         $r='';
         $e = $this->schema('events');
         $add=array();
+        $ar = null;
         if(is_null($this->_where) && isset($e['active-records']) && $e['active-records']) {
             if(is_array($e['active-records'])) {
                 $add=$e['active-records'];
             } else {
                 if(strpos($e['active-records'], '`')!==false || strpos($e['active-records'], '[')!==false) {
-                    $r = $this->getAlias($e['active-records']);
+                    $ar = $this->getAlias($e['active-records']);
                 } else {
-                    $r = $e['active-records'];
-                }
-                if($r) {
-                    $r = "($r)";
+                    $ar = $e['active-records'];
                 }
             }
         }
@@ -569,6 +567,11 @@ class Tecnodesign_Query_Sql
             }
             unset($k, $fn, $v);
         }
+
+        if($ar) {
+            $r = ($r)?('('.trim($r).") and ({$ar})"):($ar);
+        }
+
         return trim($r);
     }
 
