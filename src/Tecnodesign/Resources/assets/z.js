@@ -1139,7 +1139,7 @@ Z.l.pt.timeFormat    ='HH:mm';
 
 Z.error=function()
 {
-    console.log('ERROR', arguments, this);
+    console.log('ERROR', arguments, arguments[0], arguments[1], this);
     //msg(Z.l[Z.language].Error, 'tdz-i-error');
     //Z.delay(msg, 5000, 'msg');
 }
@@ -1186,11 +1186,18 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
     //_ajax[url].r.onload = ajaxOnload;
     _ajax[url].r.open(m, url+qs, true);
     _ajax[url].r.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    var n;
+    if('headers' in Z) {
+        for(n in Z.headers) {
+            if(Z.headers[n])
+                _ajax[url].r.setRequestHeader(n, Z.headers[n]);
+        }
+    }
     if(headers) {
         if(m=='post' && data && String(data)=='[object FormData]') {
             headers['Content-Type']=false;
         }
-        for(var n in headers) {
+        for(n in headers) {
             if(headers[n])
                 _ajax[url].r.setRequestHeader(n, headers[n]);
         }
@@ -1241,8 +1248,10 @@ function ajaxProbe(e)
                 _ajax[u].error.apply(_ajax[u].context, [ d, _ajax[u].r.status, u, _ajax[u].r ]);
             }
             delete(d);
-            delete(_ajax[u].r);
-            delete(_ajax[u]);
+            if(u in _ajax) {
+                if('r' in _ajax[u]) delete(_ajax[u].r);
+                delete(_ajax[u]);
+            }
         }
     }
 }
