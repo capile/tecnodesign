@@ -120,8 +120,12 @@ Tecnodesign_App::response('title', $title);
 
             if(isset($preview)): 
                 ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php
-                    $next = ($Interface['action']=='update')?('preview'):('update');
-                    echo '<div data-action-schema="'.$next.'" data-action-url="'.$Interface->link($next).'" class="i--'.$interface.((isset($class))?(' '.$class):('')).'">';
+                    if($Interface['action']=='delete') {
+                        echo '<div class="i--'.$interface.((isset($class))?(' '.$class):('')).'">';
+                    } else {
+                        $next = ($Interface['action']=='update')?('preview'):('update');
+                        echo '<div data-action-schema="'.$next.'" data-action-url="'.$Interface->link($next).'" class="i--'.$interface.((isset($class))?(' '.$class):('')).'">';
+                    }
                     if(is_object($preview) && $preview instanceof Tecnodesign_Model) {
                         $box = $preview::$boxTemplate;
                         $preview::$boxTemplate = $Interface::$boxTemplate;

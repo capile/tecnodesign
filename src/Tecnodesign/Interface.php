@@ -583,7 +583,7 @@ class Tecnodesign_Interface implements ArrayAccess
         return static::checkAuth($this->getAuth($action));
     }
 
-    public static function authHeaders($U, $h='private')
+    public static function authHeaders($U=null, $h='private')
     {
         tdz::cacheControl($h, static::$expires);
         self::$headers[static::H_CACHE_CONTROL] = $h;
@@ -604,6 +604,9 @@ class Tecnodesign_Interface implements ArrayAccess
                 return false;
             }
         }
+        if($c) {
+            self::authHeaders();
+        }
         if(isset($c['host']) && is_array($c['host'])) {
             if(is_null($H)) {
                 $H = (isset($_SERVER['REMOTE_ADDR']))?($_SERVER['REMOTE_ADDR']):(false);
@@ -619,7 +622,6 @@ class Tecnodesign_Interface implements ArrayAccess
             if(!$c['credential']) {
                 return true;
             } else if($U->hasCredential($c['credential'], false)) {
-                self::authHeaders($U);
                 return true;
             }
         }
@@ -1652,6 +1654,36 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.static::t('updateError').'</p>'.$e->getMessage().'</div>';
         }
         return $fo;
+    }
+
+    public function renderDelete($o=null, $scope=null)
+    {
+        try {
+            if(($M = $this->model())) {
+                $M->delete(true);
+                $msg = static::t('deleteSuccess');
+                if(static::$format!='html') {
+                    $this->message($msg);
+                } else {
+                    $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.$msg.'</p></div>');
+                }
+                if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+                    $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link('preview', true)).'"></a>');
+                }
+
+                return $this->redirect($this->link(false, false));
+            }
+        } catch(Exception $e) {
+            tdz::log('[ERROR]'.__METHOD__.': '.$e);
+        }
+        $msg = static::t('deleteError');
+        if(static::$format!='html') {
+            $this->message($msg);
+            //static::error(404, $msg);
+        } else {
+            $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.$msg.'</p></div>');
+        }
+        return $this->redirect($this->link(false, false));
     }
 
     protected function getForm($o, $scope=null)
