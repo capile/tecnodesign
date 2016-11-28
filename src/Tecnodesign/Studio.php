@@ -95,7 +95,7 @@ class Tecnodesign_Studio
             if($sn!=self::$home) tdz::scriptName($sn);
             return self::_runInterface();
         } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
-            tdz::cacheControl('private', 60);
+            tdz::cacheControl('private', static::$cacheTimeout);
             tdz::output(json_encode(self::uid()), 'json');
         } else if(self::ignore($sn)) {
             self::error(404);

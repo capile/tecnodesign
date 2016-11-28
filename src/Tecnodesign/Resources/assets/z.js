@@ -1,5 +1,5 @@
 /*! Tecnodesign Z base v2.1 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
-if(!('Z' in window)) window.Z={uid:'/_me',timeout:300,headers:{}};
+if(!('Z' in window)) window.Z={uid:'/_me',timeout:0,headers:{}};
 (function(Z) {
 var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, 
   defaultModules={
@@ -56,8 +56,8 @@ function initZ(d)
             Z.user = d;
         }
     } else if(Z.uid) return;
-    if(!('timeout' in Z)) Z.timeout = 300;
-    if(store) Z.storage('Z-Auth', d, Z.timeout);
+    if(!('timeout' in Z)) Z.timeout = 0;
+    if(store && Z.timeout) Z.storage('Z-Auth', d, Z.timeout);
 
     if(!('datepicker' in Z) && ('Pikaday' in window)) Z.datepicker = 'Pikaday';
 
