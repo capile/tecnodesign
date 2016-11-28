@@ -371,7 +371,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if($clean) {
             foreach($scope as $i=>$fn) {
-                if(is_array($fn) || (substr($fn, 0, 2)=='--' && substr($fn, -2)=='--')) {
+                if(is_array($fn) && isset($fn['bind'])) {
+                    $scope[$i]=$fn['bind'];
+                } else if(is_array($fn) || (substr($fn, 0, 2)=='--' && substr($fn, -2)=='--')) {
                     unset($scope[$i]);
                 }
             }
@@ -1415,6 +1417,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!is_array($c)) $c=array($c);
             $q['select'] = array_merge($c, static::columns($scope, null, 3, true));
             unset($c);
+            $q['test-scope']=$scope;
+            $q['test']=static::columns($scope, null, 3, true);
         } else  {
             $q['select'] = static::columns($scope, null, 3, true);
         }
