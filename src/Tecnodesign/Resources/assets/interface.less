@@ -21,6 +21,13 @@
   }
 }
 
+
+.tdz-i-header {
+  background: -moz-linear-gradient(top, transparent 0, transparent 2em, @colorTab 2em,@colorTab 100%);
+  background: -webkit-linear-gradient(top, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
+  background: linear-gradient(to bottom, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
+}
+
 .tdz-i-title{
   position:relative;
   background:@colorTab;
@@ -250,10 +257,12 @@ input.tdz-i-switch{
 .tdz-i-container .ui-buttons {
   margin:0;
   padding:0 0 0.5em 0;
-  button {
+  button, a.button {
+    height:auto;
     font-size:1em;
     line-height:1.5em;
     margin:0 0.75em 0 0;
+    padding:0.25em 1em;
     background:(@colorTab *0.5) + #d0d0d0;
     color:@colorTab;
     border:1px solid @colorTab;
@@ -512,6 +521,9 @@ select, input {
 .i-clear {
   clear:both;
   margin-right:1px;
+}
+.i-block {
+  display:block !important;
 }
 
 

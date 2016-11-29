@@ -2098,7 +2098,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $blank = ($this->placeholder)?($this->placeholder):(self::$labels['blank']);
             $options[] = '<option class="placeholder" value="">'.$blank.'</option>';
         }
-        $values = preg_split('/\s*\,\s*/', $this->value, null, PREG_SPLIT_NO_EMPTY);
+        $values = (!is_array($this->value))?(preg_split('/\s*\,\s*/', $this->value, null, PREG_SPLIT_NO_EMPTY)):($this->value);
         foreach ($this->getChoices() as $k=>$v) {
             $value = $k;
             $label = false;
