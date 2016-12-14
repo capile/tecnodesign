@@ -514,10 +514,24 @@ select, input {
   margin-right:1px;
 }
 
+.i-hidden {
+  display:none !important;
+}
 
 .i-vlabel {
   .input label {display:block;}
 }
+
+.i-check-label input[data-check-label] {
+  position:absolute;
+  transparency:hidden;
+  z-index:-1;
+}
+
+.i-check-label label.off {
+  opacity:0.5;
+}
+
 /* 50% column fields */
 
 .ih1 dd,.ih2 dd,.ih3 dd,.ih4 dd,.ih5 dd,.ih6 dd,.ih7 dd,.ih8 dd,.ih9 dd,.ih10 dd,.ih15 dd,.ih20 dd, 
@@ -540,6 +554,25 @@ select, input {
 .ih20 dd, .ih20 .input { max-height:@lh * 20 + @lh; textarea { height:@lh * 20; } }
 
 @media only screen and (min-width: @mobileBreakPoint) {
+
+
+  .i-cols .input {
+    display:  -webkit-box;
+    display:     -moz-box;
+    display:  -ms-flexbox;
+    display: -webkit-flex;
+    display:         flex;
+
+    label, & > .label {
+      -webkit-box-flex: 1 100%;
+         -moz-box-flex: 1 100%;
+          -webkit-flex: 1 100%;
+              -ms-flex: 1 100%;
+                  flex: 1 100%;
+
+    }
+  }
+
   .i1s2, .i1s4, .i2s4, .i3s4, .i1s3, .i2s3 {
     display:inline-block;
     vertical-align:top;

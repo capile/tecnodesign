@@ -7,6 +7,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
     Datalist:'*[data-datalist-api],*[data-datalist]',
     Button:'button.cleanup',
     Callback:'*[data-callback]',
+    CheckLabel:'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
     Datepicker:'input[data-type^=date],input[type^=date],.tdz-i-datepicker'
   };
 
@@ -664,11 +665,37 @@ Z.deleteNode=function(o)
     return o.parentNode.removeChild(o);
 }
 
+/*!checkLabel*/
+Z.initCheckLabel=function()
+{
+    var s=false;
+    if(!this.getAttribute('data-check-label')) {
+        this.setAttribute('data-check-label',1);
+        Z.bind(this, 'click', Z.initCheckLabel);
+        s=true;
+    }
+    var cn = (this.checked)?('on'):('off'), l = Z.parentNode(this, 'label');
+    if(l) {
+        if(l.className!=cn) l.className = cn;
+        if(!s && this.getAttribute('type')=='radio') {
+            cn = (cn=='on')?('off'):('on');
+            var L = l.parentNode.querySelectorAll('label'), i=L.length;
+            while(i--) {
+                if(l!=L[i]) {
+                    if(L[i].className!=cn)L[i].className=cn;
+                }
+            }
+        }
+    }
+
+}
+
 /*!picker*/
 var _Picker={}, _Pickerc=0;
 Z.initDatepicker=function()
 {
-    if(!('datepicker' in Z)) return;
+    if(!('datepicker' in Z) || this.getAttribute('data-datepicker')) return;
+    this.setAttribute('data-datepicker', Z.datepicker);
 
     var id=this.getAttribute('id');
     if(!id) {
@@ -683,7 +710,6 @@ Z.initDatepicker=function()
             cfg.use24Hour = true;
             cfg.format+= ' '+Z.l[Z.language].timeFormat;
         }
-    console.log(Z.language, Z.l[Z.language].dateFormat, cfg);
         _Picker[id] = new Pikaday(cfg);
     }
 }
@@ -702,11 +728,16 @@ Z.initCallback=function(o)
     if(!fn) return;
     if(!e) e='click';
     else o.removeAttribute('data-callback-event');
+
     if(fn in Z) Z.bind(o, e, Z[fn]);
     else if(fn in window) Z.bind(o, e, window[fn]);
     else return;
 
     o.removeAttribute('data-callback');
+
+    if(o.nodeName.toLowerCase()=='input' && o.checked) {
+        Z.fire(o, e);
+    }
 }
 
 function button(e)
