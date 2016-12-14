@@ -30,6 +30,7 @@ class Tecnodesign_Interface implements ArrayAccess
     const H_LAST_MODIFIED='last-modified';
     const H_CACHE_CONTROL='cache-control';
     const H_MESSAGE='message';
+    const P_REAL_BASE=false;
 
     public static
         $envelope           = true,
@@ -379,7 +380,9 @@ class Tecnodesign_Interface implements ArrayAccess
             Tecnodesign_App::end($s);
             //exit($s);
         }
-        $s = '<div class="tdz-i-box" base-url="'.tdz::scriptName().'">'.$s.'</div>';
+
+        $base = ($I::$base && $I::P_REAL_BASE)?($I::$base):(tdz::scriptName());
+        $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
 
         return $s;
     }

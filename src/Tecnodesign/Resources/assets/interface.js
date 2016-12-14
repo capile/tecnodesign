@@ -50,7 +50,7 @@
         while(i-- > 0) if(!l[i].getAttribute('target')) Z.bind(l[i], 'click', loadInterface);
 
         // bind forms
-        l=I.querySelectorAll('form[action^="'+_base+'"]');
+        l=I.querySelectorAll('form[action^="'+_base+'"],.tdz-i-preview form');
         i=l.length;
         while(i-- > 0) Z.bind(l[i], 'submit', loadInterface);
 

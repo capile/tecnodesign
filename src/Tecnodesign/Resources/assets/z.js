@@ -704,9 +704,10 @@ Z.initDatepicker=function()
     }
 
     if(Z.datepicker=='Pikaday') {
-        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat };
+        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false };
         if(!t) t=this.getAttribute('type');
         if(t && t.search(/time/)>-1) {
+            cfg.showTime = true;
             cfg.use24Hour = true;
             cfg.format+= ' '+Z.l[Z.language].timeFormat;
         }
