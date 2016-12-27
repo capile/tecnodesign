@@ -3425,7 +3425,7 @@ class tdz
 
     public static function rawValue($v)
     {
-        if(is_numeric($v)) {
+        if(is_numeric($v) && preg_match('/^[0-9\.]+$/', $v)) {
             return ((string)((int)$v)===$v)?((int)$v):((double)$v);
         }
         return $v;
@@ -3436,7 +3436,7 @@ class tdz
         if(is_string($v)) {
             if($v=='true') $v=true;
             else if($v=='false') $v=false;
-            else if(is_numeric($v)) {
+            else if(is_numeric($v) && preg_match('/^[0-9\.]+$/', $v)) {
                 $v = ((string)((int)$v)===$v)?((int)$v):($v+0.0);
             }
         } else if(is_array($v)) {
