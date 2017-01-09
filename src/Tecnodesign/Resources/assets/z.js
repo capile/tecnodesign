@@ -1,6 +1,7 @@
 /*! Tecnodesign Z base v2.1 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
 if(!('Z' in window)) window.Z={uid:'/_me',timeout:0,headers:{}};
 (function(Z) {
+"use strict";
 var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, 
   defaultModules={
     Subform:'div.subform[data-template]',
@@ -515,6 +516,7 @@ function setReady(fn)
 {
     _isReady = (('readyState' in document) && document.readyState=='complete');
     if(_isReady) {
+        if(!('time') in Z) Z.time = new Date().getTime();
         return fn();
     }
     // Mozilla, Opera, Webkit 

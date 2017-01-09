@@ -75,6 +75,12 @@ class Tecnodesign_Form implements ArrayAccess
                     $before .= $fd;
                     continue;
                 }
+                if(isset($fd['credential'])) {
+                    if(!$this->checkCredential($fd['credential'])) {
+                        continue;
+                    }
+                    unset($fd['credential']);
+                }
                 $fd['prefix'] = $this->prefix;
                 $fd['id'] = $fn;
                 $last = $fn;
@@ -102,6 +108,56 @@ class Tecnodesign_Form implements ArrayAccess
                 $this->attributes[$an]=$av;
             }
         }
+    }
+
+    /**
+     * Credentials for specific fields
+     *
+     * Just add the property 'credential' with the array of valid credentials.
+     * Optionally, assign the credential as the key and one or more keywords:
+     * insert, update, delete as the value (as string). For example:
+     *
+     * 'private-field'=>array(
+     *    'credential'=> array( 'admin', 'user'=>'update,delete', )
+     *    ... other field properties ...
+     *  )
+     */
+    public function checkCredential($c)
+    {
+        $U = tdz::getUser();
+        if(is_bool($c) || is_int($c)) {
+            if(!$c) return true;
+            else return $U->isAuthenticated();
+        } else if(!$U->isAuthenticated()) {
+            return false;
+        } else if(!is_array($c)) {
+            return $U->hasCredential($c);
+        } else if(!$c) {
+            return false;
+        }
+
+        $mode = null;
+
+        $auth = false; // must have at least one
+        foreach($c as $i=>$o) {
+            if(is_string($i) && $i) {
+                if(!$U->hasCredential($i)) continue;
+                if(!$mode) {
+                    $M = $this->getModel();
+                    if($M->isNew()) $mode = 'insert';
+                    else if($M->isDeleted()) $mode = 'delete';
+                    else $mode = 'update';
+                    unset($M);
+                }
+                if(strpos($o, $mode)===false) {
+                    if($mode!='insert' || strpos($o, 'new')===false) continue;
+                }
+            } else if(!$U->hasCredential($o)) {
+                continue;
+            }
+            return true;
+        }
+        return $auth;
     }
 
     public function register($id=null)

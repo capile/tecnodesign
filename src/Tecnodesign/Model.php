@@ -41,7 +41,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         'events'=>array(
         ),
     );
-    public static $allowNewProperties = false;
+    public static $allowNewProperties = false, $prepareWhere;
     public static $keepCollection = false, $microsecondsLength=3, $transaction=true, $keySeparator='-';
     protected static $found=array();
     protected static $relations=null, $relationDepth=1;
@@ -356,6 +356,22 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         unset($scope[$k], $fn, $k, $fd);
                         continue;
                     }
+                }
+                if(strpos($fn, ' ')) {
+                    $fn0 = $fn;
+                    $fn = substr($fn, strrpos($fn, ' ')+1);
+                    if(isset(static::$schema['columns'][$fn])) {
+                        if(!isset($fd)) $fd = array();
+                        $fd += static::$schema['columns'][$fn];
+                    }
+                    if(isset(static::$schema['form'][$fn])) {
+                        if(!isset($fd)) $fd = array();
+                        $fd += static::$schema['form'][$fn];
+                    }
+
+                    if(isset($fd)) $fd['bind'] = $fn0; 
+                    $fn = $fn0;
+
                 }
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)$/i', $fn, $m)) {
                     if($m[1]=='scope') {
