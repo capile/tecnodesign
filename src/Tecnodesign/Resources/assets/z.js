@@ -8,6 +8,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
     Button:'button.cleanup',
     Callback:'*[data-callback]',
     CheckLabel:'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
+    Filters:'input[data-filters],select[data-filters]',
     Datepicker:'input[data-type^=date],input[type^=date],.tdz-i-datepicker'
   };
 
@@ -873,6 +874,61 @@ function subformDel(e)
     }
     //Z.subform(o);
     return false;
+}
+
+Z.removeChildren=function(o)
+{
+    var i=o.children.length;
+    while(i--) {
+        Z.deleteNode(o.children[i]);
+    }
+}
+
+/*!filters*/
+Z.initFilters=function()
+{
+    var t=this;
+    if(this.className.search(/\btdz-a-filters\b/)>-1) return;
+
+    this.className += ' tdz-a-filters';
+    Z.bind(this, 'input', formFilters);
+    formFilters.call(this);
+}
+
+var _FF={};
+function formFilters(e)
+{
+    var a=this.getAttribute('data-filters');
+    if(!a) return;
+
+    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), tn, tp='', L, l, T, s, v=Z.val(this), tv;
+    if(nn.indexOf('[')>-1) {
+        nn=nn.replace(/.*\[([^\[]+)\]$/, '$1');
+        tp = this.id.substr(0, this.id.length - nn.length);
+    }
+    while(i--) {
+        tn = tp+t[i];
+        // check for selects
+        if(T=this.form.querySelector('select#'+tn)) {
+            if(!(tn in _FF)) {
+                _FF[tn]=T.querySelectorAll('option');
+            }
+            tv = Z.val(T);
+            Z.removeChildren(T);
+            L=_FF[tn];
+            for(l=0;l<L.length;l++) {
+                if(L[l].value=='' || ((s=L[l].getAttribute('data-'+nn)) && s==v)) {
+                    L[l].selected = (L[l].value==tv); //@TODO: enable multiple select
+                    T.appendChild(L[l]);
+                }
+
+            }
+        }
+        //@TODO: search, checkbox and radio
+
+
+
+    }
 }
 
 /*!datalist*/
