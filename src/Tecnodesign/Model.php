@@ -44,7 +44,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public static $allowNewProperties = false, $prepareWhere;
     public static $keepCollection = false, $microsecondsLength=3, $transaction=true, $keySeparator='-';
     protected static $found=array();
-    protected static $relations=null, $relationDepth=1;
+    protected static $relations=null, $relationDepth=3;
     protected static $_conn=null;
     protected static $_typesChoices = array('select','checkbox','radio');
     protected $_new = false;

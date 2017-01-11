@@ -17,6 +17,7 @@
             Z.initInterface = startup;
             Z.loadInterface = loadInterface;
         }
+        _init = true;
         if(arguments.length==0) {
             if(!(I=Z.node(this))) {
                 return startup(document.querySelectorAll(_sel));
