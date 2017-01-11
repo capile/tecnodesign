@@ -416,7 +416,11 @@ class Tecnodesign_Query_Sql
         if(!$found) {
             if (isset($sc['relations'][$fn])) {
                 $found = true;
-                $fn = $ta.'.'.$sc['relations'][$fn]['local'];
+                if(is_array($sc['relations'][$fn]['local'])) {
+                    $fn = $ta.'.'.array_pop($sc['relations'][$fn]['local']);
+                } else {
+                    $fn = $ta.'.'.$sc['relations'][$fn]['local'];
+                }
             } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
@@ -529,6 +533,10 @@ class Tecnodesign_Query_Sql
                 }
                 $fn = $this->getAlias($k);
                 if($fn) {
+                    $cn = $this->_schema;
+                    if($cn && $cn::$prepareWhere && method_exists($cn, $m='prepareWhere'.tdz::camelize(substr($fn, 2),true))) {
+                        $v = $cn::$m($v);
+                    }
                     $r .= ($r)?(" {$cxor}"):('');
                     if(is_array($v) && count($v)==1) {
                         $v = array_shift($v);

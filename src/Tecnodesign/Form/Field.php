@@ -40,7 +40,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $label=false, $choices=false, $choicesFilter, $tooltip=false, $renderer=false, $error=false, $filters=false, $dataprop, $class='',
         $template=false, $rules=false, $_className, $multiple=false, $required=false, $html_labels=false, $messages=null,
         $disabled=false, $readonly=false, $size=false, $min_size=false, $value, $range=false, $decimal=0, $accept=false, $toAdd=null,
-        $insert=true, $update=true, $before=false, $fieldset=false, $after=false, $next, $default;
+        $insert=true, $update=true, $before=false, $fieldset=false, $after=false, $next, $default, $query;
     public static $labels = array('blank'=>'—'), $maxOptions=500;
 
     public function __construct($def=array(), $form=false)

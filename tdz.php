@@ -3250,7 +3250,7 @@ class tdz
     {
         $ns='';
         $re='/^['.str_replace(array('.','-'),array('\.','\-'), tdz::$chars).']+$/';
-        if(!preg_match($re, $s) || strlen($s)>10)return false;
+        if(!preg_match($re, $s))return false;
         $i=0;
         $num=0;
         while ($s!='') {
