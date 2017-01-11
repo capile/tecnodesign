@@ -782,12 +782,25 @@ Z.initSubform=function(o)
     if(!b) b = Z.element({e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]}, o.parentNode);
 
     // items
-    var L=o.querySelectorAll('.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max');
+    var L=o.querySelectorAll('.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max'), cb;
     // buttons: add, add(contextual), remove(contextual)
     while(i-- > 0) {
         if(fmax && i > fmax) {
             Z.deleteNode(L[i]);
-        } else if(!L[i].querySelector('.tdz-buttons')) {
+        } else if(!(cb=L[i].querySelector('.tdz-buttons')) || cb.parentNode!=L[i]) {
+            if(cb) {
+                // might be sub-subforms, check if there's the button
+                var cL=L[i].querySelectorAll('.tdz-buttons'), ci=cL.length;
+                cb=null;
+                while(ci--) {
+                    if(cL[ci].parentNode==L[i]) {
+                        cb=cL[ci];
+                        break;
+                    }
+                }
+                if(cb) continue;
+            }
+
             var xx=Z.element.call(L[i], {e:'div',p:{className:'tdz-buttons'},c:btns});
         }
     };
