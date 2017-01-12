@@ -30,6 +30,10 @@ if(!isset($r)) $r=array(
 $r['{columns}'] = count($scope);
 
 $m = (isset($meta) && is_array($meta))?($meta):(array());
+
+$format = 'xlsx';
+$Interface::format($format);
+
 if(!isset($m['filename'])) $m['filename']=$interface;
 $fname = $m['filename'];
 $filename = TDZ_VAR.'/cache/interface-report/'.date('YmdHis', floor(TDZ_TIME)).substr(fmod(TDZ_TIME,1), 1, 5).'-'.$fname;

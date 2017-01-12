@@ -284,6 +284,8 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public static function format($format=null)
     {
+        if($format && in_array($format, static::$formats)) static::$format = $format;
+        \tdz::log(__METHOD__, $format, static::$format);
         return static::$format;
     }
     public static function action()
@@ -351,7 +353,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 unset($f);
             }
             if(!$I) {
-                                $cn = get_called_class();
+                $cn = get_called_class();
                 $I = new $cn(static::$baseInterface);
                 $I->url = static::$base.'/'.$I->text['interface'];
                 if(!$I->auth()) {
