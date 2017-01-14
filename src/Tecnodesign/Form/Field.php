@@ -1902,6 +1902,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $filtered = true;
             $w=array();
             foreach($scope as $fn) {
+                if(is_array($fn) && isset($fn['bind'])) $fn=$fn['bind'];
                 if(strpos($fn, ' ')) $fn = preg_replace('/\s+(as\s+)?[a-z0-9\_]+$/i', '', $fn);
                 if(preg_match('/\[([^\]]+)\]/', $fn, $m)) $fn = $m[1];
                 $w["|{$fn}%="]=$s;
