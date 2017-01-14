@@ -284,6 +284,8 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public static function format($format=null)
     {
+        if($format && in_array($format, static::$formats)) static::$format = $format;
+        \tdz::log(__METHOD__, $format, static::$format);
         return static::$format;
     }
     public static function action()
@@ -351,7 +353,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 unset($f);
             }
             if(!$I) {
-                                $cn = get_called_class();
+                $cn = get_called_class();
                 $I = new $cn(static::$baseInterface);
                 $I->url = static::$base.'/'.$I->text['interface'];
                 if(!$I->auth()) {
@@ -1345,7 +1347,21 @@ class Tecnodesign_Interface implements ArrayAccess
 
         if($uid=Tecnodesign_App::request('get', '_uid')) {
             if(!$this->search) $this->search=array();
-            $this->search[$cn::pk()] = explode(',', $uid);
+            $pk = $cn::pk();
+            $rq = explode(',', $uid);
+            if(is_array($pk) && count($pk)>1) {
+                foreach($rq as $i=>$o) {
+                    if(!isset($pk[$i])) {
+                        $pk[$i]=$pk[$i-1];
+                    }
+                    $this->search[$pk[$i]] = $o;
+                    unset($rq[$i], $i, $o);
+                }
+            } else if(is_array($pk)) {
+                $this->search[array_shift($pk)] = $rq;
+            } else {
+                $this->search[$pk] = $rq;
+            }
         }
 
         $m='render'.ucfirst($this->action);

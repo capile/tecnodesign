@@ -3252,7 +3252,7 @@ class tdz
     {
         $ns='';
         $re='/^['.str_replace(array('.','-'),array('\.','\-'), tdz::$chars).']+$/';
-        if(!preg_match($re, $s) || strlen($s)>10)return false;
+        if(!preg_match($re, $s))return false;
         $i=0;
         $num=0;
         while ($s!='') {
@@ -3427,7 +3427,7 @@ class tdz
 
     public static function rawValue($v)
     {
-        if(is_numeric($v)) {
+        if(is_numeric($v) && preg_match('/^[0-9\.]+$/', $v)) {
             return ((string)((int)$v)===$v)?((int)$v):((double)$v);
         }
         return $v;
@@ -3438,7 +3438,7 @@ class tdz
         if(is_string($v)) {
             if($v=='true') $v=true;
             else if($v=='false') $v=false;
-            else if(is_numeric($v)) {
+            else if(is_numeric($v) && preg_match('/^[0-9\.]+$/', $v)) {
                 $v = ((string)((int)$v)===$v)?((int)$v):($v+0.0);
             }
         } else if(is_array($v)) {

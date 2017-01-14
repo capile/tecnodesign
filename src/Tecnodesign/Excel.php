@@ -508,7 +508,7 @@ class Tecnodesign_Excel
             }
         }
         if(isset($style['white-space']) || isset($wrap)) {
-            if(!isset($wrap)) $wrap = $style['white-space']=='nowrap' || $style['white-space']=='pre';
+            if(isset($style['white-space'])) $wrap = ($style['white-space']=='nowrap' || $style['white-space']=='pre');
             $s['alignment']['wrap'] = $wrap;
         }
 

@@ -37,10 +37,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * be used to check the validity of the added information.
      */
     protected $prefix=false, $id=false, $type='text', $form, $bind, $attributes=array(), $placeholder=false, $scope=false,
-        $label=false, $choices=false, $choicesFilter, $tooltip=false, $renderer=false, $error=false, $filters=false, $class='',
+        $label=false, $choices=false, $choicesFilter, $tooltip=false, $renderer=false, $error=false, $filters=false, $dataprop, $class='',
         $template=false, $rules=false, $_className, $multiple=false, $required=false, $html_labels=false, $messages=null,
         $disabled=false, $readonly=false, $size=false, $min_size=false, $value, $range=false, $decimal=0, $accept=false, $toAdd=null,
-        $insert=true, $update=true, $before=false, $fieldset=false, $after=false, $next, $default;
+        $insert=true, $update=true, $before=false, $fieldset=false, $after=false, $next, $default, $query;
     public static $labels = array('blank'=>'—'), $maxOptions=500;
 
     public function __construct($def=array(), $form=false)
@@ -755,7 +755,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if (method_exists($this, 'check'.$m)) {
             $rules[$this->type]='This is not a valid value.';
         }
-        if($this->required) {
+        if($this->required && $m!='None') {
             $rules['required']='Is mandatory and should not be blank.';
         }
         if($this->bind) {
@@ -1265,7 +1265,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $class = '';
         if($jsinput) {
-            $jsinput = ' data-template="'.tdz::xmlEscape($jsinput).'" data-prefix="'.$prefix.'"';
+            //$jsinput = ' data-template="'.tdz::xmlEscape($jsinput).'" data-prefix="'.$prefix.'"';
+            $jsinput = ' data-template="'.htmlspecialchars($jsinput, ENT_QUOTES, 'UTF-8', true).'" data-prefix="'.$prefix.'"';
             if($this->multiple) {
                 $class .= ' multiple';
             }
@@ -1818,7 +1819,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(is_object($v) && $v instanceof Tecnodesign_Model) {
                 $value = $v->pk;
                 $label = (string)$v;
-                $group = $v->group;
+                $group = (isset($v->_group))?($v->_group):($v->group);
             } else if (is_array($v) || is_object($v)) {
                 $firstv=false;
                 foreach ($v as $vk=>$vv) {
@@ -1901,6 +1902,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $filtered = true;
             $w=array();
             foreach($scope as $fn) {
+                if(is_array($fn) && isset($fn['bind'])) $fn=$fn['bind'];
                 if(strpos($fn, ' ')) $fn = preg_replace('/\s+(as\s+)?[a-z0-9\_]+$/i', '', $fn);
                 if(preg_match('/\[([^\]]+)\]/', $fn, $m)) $fn = $m[1];
                 $w["|{$fn}%="]=$s;
@@ -2099,6 +2101,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $options[] = '<option class="placeholder" value="">'.$blank.'</option>';
         }
         $values = (!is_array($this->value))?(preg_split('/\s*\,\s*/', $this->value, null, PREG_SPLIT_NO_EMPTY)):($this->value);
+
+        $dprop = null;
+        if($this->dataprop) {
+            $dprop = (!is_array($dprop))?(array($this->dataprop)):($this->dataprop);
+        }
+
         foreach ($this->getChoices() as $k=>$v) {
             $value = $k;
             $label = false;
@@ -2123,13 +2131,19 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 if(!$label && $firstv) {
                     $label = $firstv;
                 }
+                if($dprop) {
+                    foreach($dprop as $dn) if(isset($v[$dn])) $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
+                }
             } else if(is_object($v) && $v instanceof Tecnodesign_Model) {
                 $value = $v->pk;
                 $label = $v->label;
                 if(!$label) {
                     $label = (string)$v;
                 }
-                $group = $v->group;
+                $group = (isset($v->_group))?($v->_group):($v->group);
+                if($dprop) {
+                    foreach($dprop as $dn) $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
+                }
             } else {
                 $label = (string) $v;
             }

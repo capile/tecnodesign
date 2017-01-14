@@ -1,6 +1,7 @@
 /*! Interface v1.0 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
+    "use strict";
     var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _loading={}, _ids={}, _q=[], _last;
 /*!startup*/
     function startup(I)
@@ -16,6 +17,7 @@
             Z.initInterface = startup;
             Z.loadInterface = loadInterface;
         }
+        _init = true;
         if(arguments.length==0) {
             if(!(I=Z.node(this))) {
                 return startup(document.querySelectorAll(_sel));
