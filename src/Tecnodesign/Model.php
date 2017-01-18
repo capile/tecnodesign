@@ -911,6 +911,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     
     public function getRelation($relation, $fn=null, $scope=null, $asCollection=true)
     {
+        static $insert=0;
         $cn = get_called_class();
         $schema = $cn::$schema;
         if(is_null($fn) && ($p=strpos($relation, '.'))) {
@@ -928,7 +929,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         $limit = (int)($rel['type']=='one');
         $local = $rel['local'];
-        if(is_array($local)) {
+        if($this->isNew()) {
+            $rk = 'insert'.($insert++);
+        } else if(is_array($local)) {
             $rk = $this->getPk();
             foreach($local as $l) {
                 $rk .= '/'.$this->$l;
