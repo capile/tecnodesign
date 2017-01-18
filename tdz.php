@@ -1168,9 +1168,11 @@ class tdz
                         }
                     }
                 }
+                /*
                 if(isset($gplus[$k])) {
                     $gs .= "\n<meta itemprop=\"{$gplus[$k]}\" content=\"{$m}\" />";
                 }
+                */
                 /*
                 if(isset($twitter[$k]) && !isset($tw[$k])) {
                     $tw[$k] = "\n<meta itemprop=\"twitter:{$twitter[$k]}\" content=\"{$m}\" />";
@@ -3498,8 +3500,10 @@ class tdz
                 }
             }
             unset($run);
+            if(tdz::$log) tdz::log($s." ({$mem}M {$limit}s)");
+        } else {
+            if(tdz::$log) tdz::log($s." ({$mem}M)");
         }
-        if(tdz::$log) tdz::log($s." ({$mem}M {$limit}s)");
     }
 
 }

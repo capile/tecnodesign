@@ -685,6 +685,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             while(strrpos($u, '/')!==false) {
                 $u = substr($u, 0, strrpos($u, '/'));
                 $pages = array_merge($pages, glob($root.$u.'/_tpl_.*'));
+                if(Tecnodesign_Studio::$templateRoot) {
+                    $pages = array_merge($pages, glob(Tecnodesign_Studio::$templateRoot.$u.'/_tpl_.*'));
+                }
             }
         }
         unset($f, $u);
