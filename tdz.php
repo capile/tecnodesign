@@ -1550,9 +1550,9 @@ class tdz
             if($exit) exit();
             else return false;
         }
-        $expires = 3600 * 10;
+        $expires = (tdz::env()=='dev')?(false):(3600);
         if (isset($_GET['t']))
-            $expires = 86400;
+            $expires = (int)$_GET['t'];
         $lastmod = filemtime($file);
         if ($format != '')
             @header('Content-Type: ' . $format);

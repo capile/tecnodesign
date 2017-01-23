@@ -1433,8 +1433,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!is_array($c)) $c=array($c);
             $q['select'] = array_merge($c, static::columns($scope, null, 3, true));
             unset($c);
-            $q['test-scope']=$scope;
-            $q['test']=static::columns($scope, null, 3, true);
         } else  {
             $q['select'] = static::columns($scope, null, 3, true);
         }
@@ -1465,6 +1463,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else if(!($c=$Q->count())) {
             return false;
         } else if(!$collection) {
+            if(!$limit) return $Q->fetch(0, $c);
             return $Q->fetch(0, $limit);
         } else {
             return new Tecnodesign_Collection(null, get_called_class(), $Q, null);

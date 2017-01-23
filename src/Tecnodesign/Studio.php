@@ -20,7 +20,7 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
-        $webInterface=false,
+        $webInterface=true,
         $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
@@ -649,7 +649,10 @@ class Tecnodesign_Studio
     public static function credential($s)
     {
         if(is_null(self::$credentials)) {
-            if(self::$cacheTimeout) self::$credentials = Tecnodesign_Cache::get('studio/credentials', self::$cacheTimeout);
+            if(isset(self::$app->studio['credential'])) {
+                self::$credentials = self::$app->studio['credential'];
+            }
+            if(!self::$credentials && self::$cacheTimeout) self::$credentials = Tecnodesign_Cache::get('studio/credentials', self::$cacheTimeout);
             if(!self::$credentials || !is_array(self::$credentials)) {
                 self::$credentials=array();
                 if(self::$connection) {
