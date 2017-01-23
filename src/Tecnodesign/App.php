@@ -360,22 +360,22 @@ class Tecnodesign_App
         if($exec && $next) {
             $t=microtime(true);
             Tecnodesign_App::$afterRun[$t]=$exec;
-            $nrun = Tecnodesign_Cache::get('nextRun', 0, true);
+            $nrun = Tecnodesign_Cache::get('nextRun', 0, null, true);
             if(!$nrun || !is_array($nrun)) {
                 $nrun =array();
             }
             $nrun[$t] = $exec;
-            Tecnodesign_Cache::set('nextRun', $nrun, 0, true);
+            Tecnodesign_Cache::set('nextRun', $nrun, 0, null, true);
         } else if($exec) {
             Tecnodesign_App::$afterRun[]=$exec;
         } else {
             $run = Tecnodesign_App::$afterRun;
-            $nrun = Tecnodesign_Cache::get('nextRun', 0, true);
+            $nrun = Tecnodesign_Cache::get('nextRun', 0, null, true);
             if($nrun) {
                 if(is_array($nrun)) {
                     $run = array_merge($run, $nrun);
                 }
-                Tecnodesign_Cache::delete('nextRun', true);
+                Tecnodesign_Cache::delete('nextRun', null, true);
             }
             Tecnodesign_App::$afterRun=array();
             foreach($run as $exec) {
