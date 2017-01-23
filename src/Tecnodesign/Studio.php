@@ -527,6 +527,7 @@ class Tecnodesign_Studio
         if($C) {
             foreach($C as $i=>$o) {
                 if(!isset($tpl[$o->slot]))$tpl[$o->slot]='';
+                $r = $o->render();
                 $tpl[$o->slot] .= $o->render();
                 unset($C[$i], $o, $i);
             }

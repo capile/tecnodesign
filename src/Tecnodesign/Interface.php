@@ -285,7 +285,6 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function format($format=null)
     {
         if($format && in_array($format, static::$formats)) static::$format = $format;
-        \tdz::log(__METHOD__, $format, static::$format);
         return static::$format;
     }
     public static function action()

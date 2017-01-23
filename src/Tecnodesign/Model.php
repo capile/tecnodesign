@@ -188,47 +188,44 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $schema;
     }
 
-    public static function pk($schema=null)
+    public static function pk($schema=null, $array=null)
     {
         $update=false;
         if(!$schema) {
             $schema = static::$schema;
-            $update = true;
+            $update = !$array;
         }
-        if(isset($schema['scope']['uid'])) {
+        if(!$array && isset($schema['scope']['uid'])) {
             return $schema['scope']['uid'];
         }
-        $pks=array();
+        $pk=array();
         foreach($schema['columns'] as $fn=>$fd) {
             if (isset($fd['increment']) && $fd['increment']=='auto') {
-                $pks = $fn;
+                $pk[] = $fn;
             } else if(isset($fd['primary']) && $fd['primary']) {
-                if(!is_array($pks)) $pks=array($pks);
-                $pks[]=$fn;
+                $pk[]=$fn;
+            } else {
+                break;
             }
         }
-        if($update) static::$schema['scope']['uid']=$pks;
-        return $pks;
+        if($array) return $pk;
+        else if(count($pk)==1) $pk = $pk[0];
+
+        if($update) static::$schema['scope']['uid']=$pk;
+        return $pk;
     }
     
-    public function getPk()
+    public function getPk($array=null)
     {
-        $cn = get_class($this);
-        $scope = $cn::pk();
-        if(!is_array($scope) || count($scope)==1) {
-            if(is_array($scope)) {
-                $scope = array_shift($scope);
-            }
-            if($p=strrpos($scope, ' ')) $scope = substr($scope, $p+1);
-            unset($p);
-            return $this->$scope;
-        } else {
-            $result = array();
-            foreach($scope as $fn) {
-                $result[]=$this->$fn;
-            }
-            return implode(static::$keySeparator, $result);
+        $pk = static::pk(static::$schema, true);
+        $r = array();
+        $b = ($array && is_string($array))?($array.'.'):('');
+        foreach($pk as $fn) {
+            if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
+            $r[$b.$fn]=$this->$fn;
         }
+        if($array) return $r;
+        return implode(static::$keySeparator, $r);
     }
     
     public static function formFields($scope=false, $allowText=false)
@@ -239,7 +236,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(isset(static::$schema['relations'])) {
                 foreach(static::$schema['relations'] as $rn=>$rel) {
                     if($rel['type']=='one') {
-                        $fk[$rel['local']]=$rn;
+                        if(is_array($rel['local'])) {
+                            $fk[array_pop($rel['local'])] = $rn;
+                        } else {
+                            $fk[$rel['local']]=$rn;
+                        }
                     }
                 }
             }
@@ -1007,21 +1008,39 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $rel = static::$schema['relations'][$relation];
         $local = (is_array($rel['local']))?($rel['local']):(array($rel['local']));
         $foreign = (is_array($rel['foreign']))?($rel['foreign']):(array($rel['foreign']));
+        $lorel = array();
+        foreach($local as $i=>$o) {
+            $lorel[$o]=$foreign[$i];
+            unset($i);
+        }
         $cn = (isset($rel['className']))?($rel['className']):($relation);
-        $rpk = $cn::pk();
+        $rpk = $cn::pk($cn::$schema, true);
+
+
         if($rel['type']=='many') {
+            if(count($rpk)>$lorel) $rfn = $rpk[count($rpk)-1];
+            else {
+                foreach($cn::$schema['columns'] as $xfn=>$xfd) {
+                    if(!in_array($xfn, $foreign) && isset($cn::$schema['form'][$xfn]['type']) && in_array($cn::$schema['form'][$xfn]['type'], static::$_typesChoices)) {
+                        $rfn = $xfn;
+                        unset($xfn, $xfd);
+                        break;
+                    }
+                    unset($xfn, $xfd);
+                }
+            }
             $map = array();
             if($ro instanceof Tecnodesign_Model) $ro = array($ro);
             foreach($ro as $i=>$R) {
                 if(is_string($R)) continue;
-                if(is_array($rpk)) {
+                if($R instanceof Tecnodesign_Model) {
+                    $pk = implode(',',$R->getPk(true));
+                } else {
+                    $pk = null;
                     foreach($rpk as $j=>$n) {
-                        if(isset($pk)) $pk .= ','.$R[$n];
-                        else $pk = $R[$n];
+                        $pk .= (is_null($pk))?($R[$n]):(','.$R[$n]);
                         unset($j, $n);
                     }
-                } else if(isset($R[$rpk])) {
-                    $pk = $R[$rpk];
                 }
                 if(!isset($pk) || !$pk) $pk = implode(',',$R->asArray());
                 $map[$pk] = $i;
@@ -1029,44 +1048,27 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             foreach($value as $i=>$v) {
                 if(is_string($v)) {
-                    if(!isset($rfn)) {
-                        foreach($cn::$schema['columns'] as $xfn=>$xfd) {
-                            if(!in_array($xfn, $foreign) && isset($cn::$schema['form'][$xfn]['type']) && in_array($cn::$schema['form'][$xfn]['type'], static::$_typesChoices)) {
-                                $rfn = $xfn;
-                                unset($xfn, $xfd);
-                                break;
-                            }
-                            unset($xfn, $xfd);
-                        }
+                    $v = new $cn(array($rfn => $v ),null,false);
+                } else if(is_array($v)) {
+                    $v = new $cn($v,null,false);
+                }
+                foreach($lorel as $ln=>$rn) {
+                    if(isset($this->$ln) && !isset($v[$rn])) {
+                        $v[$rn] = $this->$ln;
                     }
-                    $v = new $cn(array($rfn=>$v),null,false);
                 }
-                foreach($local as $lk=>$lv) {
-                    if(isset($this->$lv) && !isset($v[$foreign[$lk]])) $v[$foreign[$lk]]=$this->$lv;
-                }
-                if(is_array($rpk)) {
-                    foreach($rpk as $j=>$n) {
-                        $w = (isset($v[$n]))?($v[$n]):('');
-                        if(isset($pk)) $pk .= ','.$w;
-                        else $pk = $w;
-                        unset($j, $n, $w);
-                    }
-                    if(preg_match('/^,+$/', $pk)) $pk='';
-                } else if(isset($v[$rpk])) {
-                    $pk = $v[$rpk];
-                } else {
-                    $pk = null;
-                }
+                $pk = implode(',',$v->getPk(true));
                 if($pk && isset($map[$pk])) {
                     $value[$i] = $ro[$map[$pk]];
                     unset($ro[$map[$pk]], $map[$pk]);
-                    foreach($v as $k=>$kv) {
+                    foreach($v->asArray() as $k=>$kv) {
                         $value[$i][$k]=$kv;
                     }
-                } else if(is_array($v)) {
-                    $value[$i] = new $cn($v, true, false);
+                } else {
+                    $v->isNew(true);
+                    $value[$i] = $v;
                 }
-                unset($pk);
+                unset($pk, $v);
             }
             $value = array_values($value);
             foreach($ro as $i=>$R) {

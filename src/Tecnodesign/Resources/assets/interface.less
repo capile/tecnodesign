@@ -21,6 +21,52 @@
   }
 }
 
+.tdz-blur{
+  opacity: 0.5;
+  .fontAwesomeBase();
+}
+.tdz-blur:before{
+  position:absolute;
+  left:50%;
+  top:300px;
+  margin-left:-225px;
+  margin-top:-150px;
+  width:300px;
+  height:300px;
+  padding-top:4px;
+  z-index:100;
+  content: "\f013";
+  .spin();
+  font-size:300px;
+  text-align:center;
+  line-height:300px;
+  color:@colorTab;
+  opacity:0.4;
+}
+.tdz-blur:after{
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    display: inline-block;
+    text-decoration: inherit;
+  position:absolute;
+  left:50%;
+  top:500px;
+  margin-left:-75px;
+  margin-top:-150px;
+  width:300px;
+  height:300px;
+  padding-top:4px;
+  z-index:101;
+  content: "\f013";
+  .revspin();
+  font-size:300px;
+  text-align:center;
+  line-height:300px;
+  color:@colorTab;
+  opacity:0.4;
+}
+
 
 .tdz-i-header {
   background: -moz-linear-gradient(top, transparent 0, transparent 2em, @colorTab 2em,@colorTab 100%);
@@ -784,6 +830,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
   }
   td:first-child {
     text-indent:-1.25em;padding-left:1.615em;
+    & > * {text-indent:0;}
   }
 }
 
@@ -853,6 +900,11 @@ th > input[type=checkbox], td > input[type=checkbox]{
   .animation(spin 3s infinite linear);
 }
 
+.revspin()
+{
+  .animation(revspin 3s infinite linear);
+}
+
 @-webkit-keyframes spin {
   0% {
     -webkit-transform: rotate(0deg);
@@ -872,6 +924,28 @@ th > input[type=checkbox], td > input[type=checkbox]{
   100% {
     -webkit-transform: rotate(359deg);
             transform: rotate(359deg);
+  }
+}
+
+@-webkit-keyframes revspin {
+  0% {
+    -webkit-transform: rotate(0deg);
+            transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(-359deg);
+            transform: rotate(-359deg);
+  }
+}
+
+@keyframes revspin {
+  0% {
+    -webkit-transform: rotate(0deg);
+            transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(-359deg);
+            transform: rotate(-359deg);
   }
 }
 
