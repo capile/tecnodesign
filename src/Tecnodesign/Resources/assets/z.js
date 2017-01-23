@@ -1,4 +1,4 @@
-/*! Tecnodesign Z base v2.1 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z base v2.1 | (c) 2017 Capile Tecnodesign <ti@tecnodz.com> */
 if(!('Z' in window)) window.Z={uid:'/_me',timeout:0,headers:{}};
 (function(Z) {
 "use strict";
@@ -627,6 +627,11 @@ Z.val=function(o, val, fire)
     return v;
 }
 
+Z.isVisible=function(o)
+{
+    return o.offsetWidth > 0 && o.offsetHeight > 0;
+}
+
 Z.formData=function(f)
 {
     var d;
@@ -904,8 +909,6 @@ Z.initFilters=function()
 {
     var t=this;
     if(this.className.search(/\btdz-a-filters\b/)>-1) return;
-
-    this.className += ' tdz-a-filters';
     Z.bind(this, 'input', formFilters);
     formFilters.call(this);
 }
@@ -916,7 +919,11 @@ function formFilters(e)
     var a=this.getAttribute('data-filters');
     if(!a) return;
 
-    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), tn, tp='', L, l, T, s, v=Z.val(this), tv;
+    var reset=(this.className.search(/\btdz-a-filters\b/)<0);
+    if(reset) this.className += ' tdz-a-filters';
+
+    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), 
+      tn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P;
     if(nn.indexOf('[')>-1) {
         nn=nn.replace(/.*\[([^\[]+)\]$/, '$1');
         tp = this.id.substr(0, this.id.length - nn.length);
@@ -925,18 +932,49 @@ function formFilters(e)
         tn = tp+t[i];
         // check for selects
         if(T=this.form.querySelector('select#'+tn)) {
+            L = T.querySelectorAll('option');
             if(!(tn in _FF)) {
-                _FF[tn]=T.querySelectorAll('option');
-            }
-            tv = Z.val(T);
-            Z.removeChildren(T);
-            L=_FF[tn];
-            for(l=0;l<L.length;l++) {
-                if(L[l].value=='' || ((s=L[l].getAttribute('data-'+nn)) && s==v)) {
-                    L[l].selected = (L[l].value==tv); //@TODO: enable multiple select
-                    T.appendChild(L[l]);
+                _FF[tn]={o:[], v:{}, f:{}};
+                for(l=0;l<L.length;l++) {
+                    if(L[l].selected) _FF[tn].v[L[l].value]=true;
+                    A=L[l].attributes;
+                    n=A.length;
+                    P={};
+                    while(n--) {
+                        if(A[n].name!='selected') {
+                            P[A[n].name]=A[n].value;
+                        }
+                    }
+                    P.label = L[l].label;//innerHTML;//Z.text(L[l]);
+                    _FF[tn].o.push(P);
                 }
+            } else {
+                _FF[tn].v = {};
+                for(l=0;l<L.length;l++) {
+                    if(L[l].selected) _FF[tn].v[L[l].value]=true;
+                }
+            }
 
+            if(reset || !(nn in _FF[tn].f) || v!=_FF[tn].f[nn]) {
+                _FF[tn].f[nn] = v;
+                O = [];
+                L=_FF[tn].o;
+                for(l=0;l<L.length;l++) {
+                    sel = (L[l].value in _FF[tn].v);
+                    tv=true;
+                    if(L[l].value) {
+                        for(fn in _FF[tn].f) {
+                            // make do for multiple source filters
+                            if(!('data-'+fn in L[l]) || L[l]['data-'+fn]!=_FF[tn].f[fn]) {
+                                tv=false;
+                                break;
+                            }
+                        }
+                    }
+                    if(tv) O.push({e:'option',a:L[l],p:{'selected':sel},c:L[l].label});
+                }
+                Z.removeChildren(T);
+                Z.element.call(T,O);
             }
         }
         //@TODO: search, checkbox and radio

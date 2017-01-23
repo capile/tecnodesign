@@ -1792,7 +1792,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $options[] = '<option class="placeholder" value="">'.$blank.'</option>';
         }
          */
-        $i=0;
         /**
          *  Modificação executada dia 30/10 pois o getOriginal sempre
          *  mantinha o valor original do model ao invés de setar o novo 
@@ -1803,13 +1802,23 @@ class Tecnodesign_Form_Field implements ArrayAccess
         } else {
             $ovalue = $this->value;
         }*/        
-        $ovalue = $arg['value'];        
-        
+        $ovalue = $arg['value'];
+
         if(!is_array($ovalue)) {
             $ovalue = preg_split('/\s*\,\s*/', $ovalue);
+        } else {
+            $opk = null;
+            foreach($ovalue as $i=>$o) {
+                if(is_object($o) && ($o instanceof Tecnodesign_Model)) {
+                    $v = $o->getPk(true);
+                    $ovalue[$i] = array_pop($v);
+                    unset($i, $o, $v);
+                } else break;
+            }
         }
         $opt = $this->getChoices();
         if(count($opt)==1 && !implode('', $opt)) $opt=array();
+        $i=0;
         foreach ($opt as $k=>$v) {
             $value = $k;
             $label = false;
@@ -2104,7 +2113,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
         $dprop = null;
         if($this->dataprop) {
-            $dprop = (!is_array($dprop))?(array($this->dataprop)):($this->dataprop);
+            $dprop = (!is_array($this->dataprop))?(explode(',', $this->dataprop)):($this->dataprop);
         }
 
         foreach ($this->getChoices() as $k=>$v) {
@@ -2131,18 +2140,26 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 if(!$label && $firstv) {
                     $label = $firstv;
                 }
+                /*
                 if($dprop) {
                     foreach($dprop as $dn) if(isset($v[$dn])) $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
                 }
+                */
             } else if(is_object($v) && $v instanceof Tecnodesign_Model) {
-                $value = $v->pk;
                 $label = $v->label;
                 if(!$label) {
                     $label = (string)$v;
                 }
                 $group = (isset($v->_group))?($v->_group):($v->group);
                 if($dprop) {
-                    foreach($dprop as $dn) $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
+                    $value = $v->getPk(true);
+                    foreach($dprop as $dn) {
+                        if(isset($value[$dn])) unset($value[$dn]);
+                        $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
+                    }
+                    $value = implode(',', $value);
+                } else {
+                    $value = $v->pk;
                 }
             } else {
                 $label = (string) $v;
@@ -2151,7 +2168,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $attrs .= ' selected="selected"';
             }
             $dl = '<option value="' . tdz::xmlEscape($value) . '"' . $attrs
-                . '>' . tdz::xmlEscape($label) . '</option>';
+                . '>' . tdz::xmlEscape(strip_tags($label)) . '</option>';
             if ($group) {
                 $options[$group][]=$dl;
             } else {

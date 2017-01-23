@@ -241,6 +241,10 @@ class Tecnodesign_Image
             }
         }
 
+        if(isset($config['sharpen'])) {
+            $this->sharpen=$config['sharpen'];
+        }
+
         if(!is_null($this->backgroundColor)) {
             // Fill the background with the specified color for matting purposes
             $color=$this->backgroundColor;
@@ -343,9 +347,6 @@ class Tecnodesign_Image
             }
             imagettftext($this->img, $this->fontSize, 0, $tx, $y , $this->color , $fontfile, $config['text']);
         }
-
-
-
 
         if(isset($config['add']) && is_array($config['add'])) {
             foreach($config['add'] as $cfg) {

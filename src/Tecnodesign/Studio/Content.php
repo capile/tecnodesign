@@ -396,10 +396,13 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             $code['pi']=trim($code['pi']);
             if(substr($code['pi'], 0,5)=='<'.'?php') $code['pi'] = trim(substr($code['pi'], 5));
         }
+        return tdz::exec($code);
+        /*
         if(Tecnodesign_Studio::$cacheTimeout===false) {
             return tdz::exec($code);
         }
         return array('export'=>'tdz::exec('.var_export($code,true).')');
+        */
     }
 
     public static function renderWidget($code=null, $e=null)
