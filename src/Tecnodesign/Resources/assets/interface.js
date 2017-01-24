@@ -186,8 +186,15 @@
         reHash();
     }
 
+    var _Ht, _Hd=300;
     function hashChange(e)
     {
+        if(arguments.length>0) {
+            if(_Ht) clearTimeout(_Ht);
+            _Ht = setTimeout(hashChange, _Ht);
+            return;
+        }
+
         if(!_reHash || !_checkHash) return;
         if(!_base) {
             setTimeout(hashChange, 500);
@@ -203,6 +210,7 @@
             h=_H[i];
             if(h.substr(0,1)=='?') h=_base+h;
             else if(h.substr(0,1)!='/') h = _base+'/'+h;
+            h=h.replace(/\?.*$/, '');
             if(!last) last = h;
             U[h]=i;
         }
@@ -236,6 +244,7 @@
             loadInterface(h);
         }
         // checks if active interface is correct
+
         if(_H.length>1) {
             if(!document.querySelector('.tdz-i-box .tdz-i-title.tdz-i-title-active[data-url="'+last+'"]')) {
                 _reHash = false;
@@ -243,6 +252,7 @@
                 _reHash = true;
             }
         }
+
         _checkHash = true;
     }
     var _H=[], _noH=false, _reHash=true, _checkHash=true;
@@ -294,7 +304,9 @@
         }
 
         var s=(_H.length==0)?(''):('!'+_H.join(','));
-        if(window.location.hash!=s) window.location.hash=s;
+        if(window.location.hash.replace(/^\#/, '')!=s) {
+            window.location.hash=s;
+        }
     }
 
     function reHash()
@@ -363,7 +375,9 @@
                 if(!I) return true;
             } else return true;
             if(this.className.search(/\btdz-i--close\b/)>-1) {
-                if(u=this.getAttribute('href')) activeInterface(u);
+                if(u=this.getAttribute('href')) {
+                    activeInterface(u);
+                }
                 unloadInterface(I);
                 return false;
             }
@@ -490,21 +504,6 @@
             startup(t);
             Z.focus(t);
             delete(t);
-            /*
-            this.innerHTML = '';
-            var i=0;
-            while(i<I.children.length) {
-                this.appendChild(I.children[i]);
-                i++;
-            }
-            //startup???
-            //console.log('loadAction complete');
-            startup(this);
-            //Z.init(Z.parentNode(this, '.tdz-i[data-url]'));
-            Z.focus(this);
-            //startup(Z.parentNode(this, '.tdz-i[data-url]'));
-            */
-            //Z.trace('loadAction: ajax response end');
         }
 
         return false;
@@ -526,14 +525,12 @@
             }
         }
         if(I) u=I.getAttribute('data-url');
-        //console.log('activeInterface: '+u);
         if(u) H = document.querySelector('.tdz-i-title[data-url="'+u+'"]');
         if(I==H) I = document.querySelector('.tdz-i[data-url="'+u+'"]');
         if(!I && !u) {
             // get u from hash?
             return false;
         } else if(!I) {
-            //console.log('-- should load interface?');
             loadInterface(u);
             return false;
         }
