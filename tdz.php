@@ -2962,7 +2962,33 @@ class tdz
         }
         return $o;
     }
-    
+
+
+    public static function checkIp($ip=null, $cidrs=null)
+    {
+        $ipu = explode('.', $ip);
+        foreach ($ipu as &$v)
+            $v = str_pad(decbin($v), 8, '0', STR_PAD_LEFT);
+        
+        $ipu = join('', $ipu);
+        $res = false;
+        if($cidrs) {
+            if(!is_array($cidrs)) $cidrs = array($cidrs);
+            foreach ($cidrs as $cidr) {
+                if(strpos($cidr, '/')===false) {
+                    $cidr .= '/32';
+                }
+                $parts = explode('/', $cidr);
+                $ipc = explode('.', $parts[0]);
+                foreach ($ipc as &$v) $v = str_pad(decbin($v), 8, '0', STR_PAD_LEFT);
+                $ipc = substr(join('', $ipc), 0, $parts[1]);
+                $ipux = substr($ipu, 0, $parts[1]);
+                $res = ($ipc === $ipux);
+                if ($res) break;
+            }
+        }
+        return $res;
+    }    
 
     /**
      * Validate an email address.
