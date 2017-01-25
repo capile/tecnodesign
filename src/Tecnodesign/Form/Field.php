@@ -530,7 +530,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $v += $bnull;
             if(isset($R[$i])) {
                 $O = $R[$i];
-                $v += $O->asArray();
+                if(is_array($O)) {
+                    $v += $O;
+                    $O = new $cn($O, false, false);
+                } else {
+                    $v += $O->asArray();
+                }
                 unset($R[$i]);
             } else {
                 $v += $add;

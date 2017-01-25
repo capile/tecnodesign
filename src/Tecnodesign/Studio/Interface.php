@@ -37,24 +37,24 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                                 'update'    => array('position'=>40, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderUpdate'),
                                 'delete'    => array('position'=>50, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderDelete'),
                             ),
-        */
         $additionalActions  = array(
                                 'publish'=> array('position'=>31, 'action' => 'executePublish',  'identified'=>true, 'batch'=>true, 'renderer'=>'renderPublish'),
                             ),
+        */
         $actionAlias        = array(
                                 's'=>'search',
                                 'v'=>'preview',
                                 'n'=>'new',
                                 'u'=>'update',
-                                'x'=>'publish',
+                                //'x'=>'publish',
                                 'd'=>'delete',
             ),
         $models             = array(
-                                'e'=>'Entry',
+                                //'e'=>'Entry',
                                 'c'=>'Content',
-                                'p'=>'Permission',
-                                'w'=>'User',
-                                'g'=>'Group',
+                                //'p'=>'Permission',
+                                //'w'=>'User',
+                                //'g'=>'Group',
             ),
         $urls               = array();
 

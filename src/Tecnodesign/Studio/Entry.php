@@ -83,7 +83,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         'before-insert' => array ( 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
       ),
       'form' => array (
         'type' => array ( 'bind' => 'type', 'type' => 'select', 'choices' => 'Tecnodesign_Studio::config(\'entry_types\')', 'fieldset' => '*Properties', 'class' => 'studio-left', ),
@@ -601,6 +601,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(file_exists($mf=$p.'/.meta')) {
                 $m = Tecnodesign_Yaml::load($mf);
                 if(is_array($m)) {
+                    foreach($meta as $mn=>$mv) if(!$mv) unset($meta[$mn]); // ignore blanks
                     $meta += $m;
                 }
                 unset($m);
@@ -608,6 +609,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(file_exists($mf=$p.'.meta')) {
                 $m = Tecnodesign_Yaml::load($mf);
                 if(is_array($m)) {
+                    foreach($meta as $mn=>$mv) if(!$mv) unset($meta[$mn]); // ignore blanks
                     $meta += $m;
                 }
                 unset($m);
