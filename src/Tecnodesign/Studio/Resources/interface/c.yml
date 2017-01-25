@@ -2,3 +2,57 @@
 all:
   model: tdzContent
   priority: 11
+  actions:
+    report: false
+    publish: false
+  options:
+    scope:
+      review:
+        Content: id
+        Article: entry
+        Content Type: content_type
+      search:
+        - id
+        - entry
+      preview:
+        - "--Page--"
+        - "scope::e"
+        - "--Article--"
+        - "scope::p"
+        - "--Content--"
+        - "scope::c"
+      e:
+        'Entry URL':
+          label: '*Entry URL'
+          bind: entry
+          type: text
+        'Metadata':
+          label: '*Metadata'
+          bind: MetaAttributes
+          type: form
+          scope: content
+      p:
+        'Location':
+          label: '*Location'
+          bind: slot
+          type: select
+          class: i1s2
+          choices: choicesSlot
+        'Order':
+          label: '*Order'
+          bind: position
+          type: number
+          class: i1s2
+        'Attributes':
+          label: '*Attributes'
+          bind: ContentAttributes
+          type: form
+          scope: content
+      c:
+        'Content Type':
+          label: '*Content Type'
+          bind: content_type
+        'Content':
+          label: '*Content'
+          bind: content
+          class: ih10

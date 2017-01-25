@@ -199,21 +199,22 @@ class Tecnodesign_Studio
         if(!$U || !$U->isAuthenticated()) return false;
         // current properties
         $C = array(
-            'new'=>($U->isSuperAdmin() || ($c=self::credentials('new')) && $U->hasCredential($c, false)),
-            'newTemplate'=>($U->isSuperAdmin() || ($c=self::credentials('newTemplate')) && $U->hasCredential($c, false)),
-            'edit'=>($U->isSuperAdmin() || ($c=self::credentials('edit')) && $U->hasCredential($c, false)),
-            'editTemplate'=>($U->isSuperAdmin() || ($c=self::credentials('editTemplate')) && $U->hasCredential($c, false)),
-            'publish'=>($U->isSuperAdmin() || ($c=self::credentials('publish')) && $U->hasCredential($c, false)),
-            'delete'=>($U->isSuperAdmin() || ($c=self::credentials('delete')) && $U->hasCredential($c, false)),
+            'new'=>($U->isSuperAdmin() || ($c=self::credential('new')) && $U->hasCredential($c, false)),
+            'newTemplate'=>($U->isSuperAdmin() || ($c=self::credential('newTemplate')) && $U->hasCredential($c, false)),
+            'edit'=>($U->isSuperAdmin() || ($c=self::credential('edit')) && $U->hasCredential($c, false)),
+            'editTemplate'=>($U->isSuperAdmin() || ($c=self::credential('editTemplate')) && $U->hasCredential($c, false)),
+            'publish'=>($U->isSuperAdmin() || ($c=self::credential('publish')) && $U->hasCredential($c, false)),
+            'delete'=>($U->isSuperAdmin() || ($c=self::credential('delete')) && $U->hasCredential($c, false)),
         );
         //     *   editContentTypePhp: Developer
 
         if($C['edit'] && ($d = Tecnodesign_App::request('post', 'c'))) {
             foreach($d as $i=>$id) {
+                $p = 'edit';
                 $o = tdzContent::find($id,1,array('content_type'));
                 if($o && $o->pageFile && substr(basename($o->pageFile), 0, 6)=='_tpl_.' && !$C['editTemplate']) $o=null;
                 if($o && !isset($C[$p='editContentType'.ucfirst($o->content_type)])) {
-                    $C[$p] = ($U->isSuperAdmin() || ($c=self::credentials($p)) && $U->hasCredential($c, false));
+                    $C[$p] = ($U->isSuperAdmin() || ($c=self::credential($p)) && $U->hasCredential($c, false));
                     unset($c);
                 }
                 if(!$C[$p]) $o = null;
@@ -252,6 +253,7 @@ class Tecnodesign_Studio
     public static function content($page, $checkLang=true, $checkTemplates=true)
     {
         static $langs;
+        if(!file_exists($page)) return;
         $slotname = tdzEntry::$slot;
         $pos = '00000';
         $pn = basename($page);
@@ -304,7 +306,7 @@ class Tecnodesign_Studio
                 $c = (!is_array($meta['credential']))?(array($meta['credential'])):($meta['credential']);
                 if(!is_array(Tecnodesign_Studio::$private)) Tecnodesign_Studio::$private = $c;
                 else Tecnodesign_Studio::$private = array_merge($c, Tecnodesign_Studio::$private);
-                unset($meta['credential'], $U);
+                unset($U);
             }
         }
         $id = substr($page, strlen(TDZ_VAR)+1);
@@ -313,12 +315,19 @@ class Tecnodesign_Studio
             'slot'=>$slotname,
             'content'=>$p,
             'content_type'=>$ext,
-            'position'=>$id,
+            //'position'=>$id,
             'modified'=>filemtime($page),
             //'_position'=>$pos,
         ));
         $C->pageFile = $id;
-        if(isset($meta['attributes']) && is_array($meta['attributes'])) $C->attributes = $meta['attributes'];
+        if(isset($meta['attributes']) && is_array($meta['attributes'])) {
+            $C->attributes = $meta['attributes'];
+            unset($meta['attributes']);
+        }
+        if(isset($meta) && $meta) {
+            $C->_meta = $meta;
+            if(isset($meta['credential'])) unset($meta['cdredential']);
+        }
         if(!is_null($pos)) $C->_position = $slotname.$pos;
         if(isset($meta)) {
             Tecnodesign_Studio::addResponse($meta);
@@ -762,7 +771,7 @@ class Tecnodesign_Studio
         if(isset(self::$t[$table][$s])) {
             return self::$t[$table][$s];
         } else if($alt) {
-            tdz::log('[Translate] no record for '.$s.' in '.$table.'.'.substr(tdz::$lang, 0, 2));
+            //tdz::log('[Translate] no record for '.$s.' in '.$table.'.'.substr(tdz::$lang, 0, 2));
             return $alt;
         } else {
             //tdz::log('[Translate] no record or alternative for '.$table.'.'.substr(tdz::$lang, 0, 2).'.yml: '.$s.': "'.$s.'"');

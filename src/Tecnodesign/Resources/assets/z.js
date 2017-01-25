@@ -315,7 +315,11 @@ Z.element=function(o,before,after) {
     }
     if(o.c) {
         if(typeof(o.c)=='string') {
-            r.appendChild(document.createTextNode(o.c));
+            if(('x' in o) && o.x) {
+                r.innerHTML = o.c;
+            } else {
+                r.appendChild(document.createTextNode(o.c));
+            }
         } else {
             var t=o.c.length,i=0;
             while(i < t) {

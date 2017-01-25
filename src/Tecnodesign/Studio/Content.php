@@ -42,7 +42,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
       'className' => 'tdzContent',
       'columns' => array (
         'id' => array ( 'type' => 'string', 'increment' => 'auto', 'null' => false, 'primary' => true, ),
-        'entry' => array ( 'type' => 'int', 'null' => true, ),
+        'entry' => array ( 'type' => 'string', 'null' => true, ),
         'slot' => array ( 'type' => 'string', 'size' => '50', 'null' => true, ),
         'content_type' => array ( 'type' => 'string', 'size' => '100', 'null' => true, ),
         'content' => array ( 'type' => 'string', 'size' => '', 'null' => true, ),
@@ -54,12 +54,13 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         'expired' => array ( 'type' => 'datetime', 'null' => true, ),
       ),
       'relations' => array (
-        'ContentDisplay' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'Tecnodesign_Studio_ContentDisplay', ),
-        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'Tecnodesign_Studio_Entry', ),
+        'ContentDisplay' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'tdzContentDisplay', ),
+        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'tdzEntry', ),
+        'ContentAttributes' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'tdzAttributes', ),
+        'MetaAttributes' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'tdzAttributes', ),
       ),
       'scope' => array (
         'string'=>array('id', 'slot', 'Entry.link _url'),
-        'preview' =>array('content_type', 'content'),
       ),
       'order' => array (
         'slot' => 'asc',
@@ -88,7 +89,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         'after-delete' => array ( 'versionable' => array ( 'version', ), ),
       ),
     );
-    protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry;
+    protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry, $ContentAttributes, $MetaAttributes;
     //--tdz-schema-end--
     protected static $content_types=null;
     protected $show_at, $hide_at, $modified;
@@ -106,9 +107,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
                 $s = '(#'.$this->id.')';
             }
         }
-        if($this->slot) {
-            $s .= '#'.$this->slot;
-        }
+
         return $s;
     }
 
@@ -116,6 +115,32 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
     {
         return static::$contentType;
     }
+
+    public function previewContentType()
+    {
+        if(isset(static::$contentType[$this->content_type])) {
+            return static::$contentType[$this->content_type];
+        }
+        return $this->content_type;
+    }
+
+    public static function choicesSlot()
+    {
+        $r = array();
+        foreach(tdzEntry::$slots as $n=>$c) {
+            $r[$n] = Tecnodesign_Studio::t($n, ucfirst($n));
+        }
+        return $r;
+    }
+
+    public function previewSlot()
+    {
+        if($this->slot) {
+            return Tecnodesign_Studio::t($this->slot, ucfirst($this->slot));
+        }
+
+    } 
+
 
     public static function find($q=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
@@ -126,6 +151,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             else return array($C);
         }
         if(!Tecnodesign_Studio::$connection) {
+            return false;
             Tecnodesign_Studio::$connection = static::$schema['database'];
             Tecnodesign_Studio::indexDb();
         }
@@ -180,6 +206,84 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             $r = array($r);
         }
         return $r;
+    }
+
+    public function getEntry()
+    {
+        if(!$this->entry && $this->pageFile) {
+            if(!isset($this->_entry)) {
+                $this->_entry = null;
+                if(substr($this->pageFile, 0, strlen(tdzEntry::$pageDir))==tdzEntry::$pageDir) {
+                    $this->_entry = substr($this->pageFile, strlen(tdzEntry::$pageDir));
+                    if(preg_match('/(\.[^\.]+)*\.(md|html|media)$/', $this->_entry, $m)) {
+                        $this->_entry = substr($this->_entry, 0, strlen($this->_entry) - strlen($m[0]));
+                    }
+                }
+            }
+            return $this->_entry;
+        }
+        return $this->entry;
+    }
+
+    public function getContentAttributes()
+    {
+        if(!isset($this->ContentAttributes)) {
+            $this->ContentAttributes = array();
+            if(isset($this->attributes)) {
+                foreach($this->attributes as $k=>$v) {
+                    $this->ContentAttributes[] = array('name'=>$k, 'value'=>$v);
+                }
+            }
+        }
+        return $this->ContentAttributes;
+    }
+
+    public function getMetaAttributes()
+    {
+        if(!isset($this->MetaAttributes)) {
+            $this->MetaAttributes = array();
+            if(isset($this->_meta)) {
+                foreach($this->_meta as $k=>$v) {
+                    $this->MetaAttributes[] = array('name'=>$k, 'value'=>(is_array($v))?(implode(',', $v)):($v));
+                }
+            }
+        }
+        return $this->MetaAttributes;
+    }
+
+    public function getPosition()
+    {
+        if(isset($this->_position)) {
+            return preg_replace('/[^0-9]+/', '', $this->_position);
+        }
+        return $this->position;
+    }
+
+    public function previewMetaAttributes()
+    {
+        return self::attributes($this->getMetaAttributes());
+    }
+
+    public function previewContentAttributes()
+    {
+        return self::attributes($this->getContentAttributes());
+    }
+
+    public static function attributes($A=array())
+    {
+        if($A) {
+            $r=array();
+            foreach($A as $n=>$v) {
+                if(is_string($n)) {
+                    $r[] = '<li><strong>'.tdz::xmlEscape($n).'</strong>: '.tdz::xmlEscape($v).'</li>';
+                } else {
+                    $r[] = '<li><strong>'.tdz::xmlEscape($v['name']).'</strong>: '.tdz::xmlEscape($v['value']).'</li>';
+                }
+            }
+            if($r) {
+                return '<ul>'.implode('', $r).'</ul>';
+            }
+        }
     }
 
     /*
@@ -248,22 +352,59 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
 
     public function save($beginTransaction=null, $relations=null, $conn=false)
     {
-        if($this->pageFile && ($f=tdzEntry::file($this->pageFile))) {
-            $p = file_get_contents($f, false, null, 0, 40960);
-            if($p && ($m=tdzEntry::meta($p))) {
-                $c = "<!--{$m}-->{$this->content}";
-            } else {
-                $c = $this->content;
+        if(!Tecnodesign_Studio::$connection) {
+            if($this->isNew() || ($this->pageFile && ($f=tdzEntry::file($this->pageFile)))) {
+
+                $m = array();
+                if(isset($this->MetaAttributes)) {
+                    foreach($this->MetaAttributes as $i=>$o) {
+                        if(!$o->isDeleted())
+                            $m[$o->name] = $o->value;
+                        unset($o, $i);
+                    }
+                } else if($this->_meta) {
+                    $m += $this->_meta;
+                }
+                if(isset($this->ContentAttributes)) {
+                    $m['attributes'] = array();
+                    foreach($this->ContentAttributes as $i=>$o) {
+                        if(!$o->isDeleted())
+                            $m['attributes'][$o->name] = $o->value;
+                        unset($o, $i);
+                    }
+                } else if($this->attributes) {
+                    $m['attributes'] = $this->attributes;
+                }
+
+                if($m) {
+                    $c = "<!--\n".Tecnodesign_Yaml::dump($m)."\n-->\n{$this->content}";
+                } else {
+                    $c = $this->content;
+                }
+
+
+                // check if it is a different file
+                $slotpos = '.'.$this->slot.(($this->position)?('.'.substr('0000'.$this->position, -4)):(''));
+                if($slotpos=='.body.0000' || $slotpos=='.body') $slotpos = '';
+                $page = tdzEntry::$pageDir.$this->getEntry().$slotpos.'.'.$this->content_type;
+                $rename = ($this->pageFile && $page != $this->pageFile);
+
+                if(!tdz::save(tdzEntry::file($page, false), $c)) {
+                    throw new Exception("Could not save [{$this->pageFile}]");
+                    return false;
+                }
+                if($rename) {
+                    unlink($f);
+                }
+                // git add && git commit && git push
+                // force reindex
+                return true;
+            } else if(!$this->id && !is_numeric($this->id) && $this->isNew()) {
+                $this->id=null;
             }
-            if(!tdz::save($f, $c)) {
-                throw new Exception("Could not save [{$this->pageFile}]");
-                return false;
-            }
-            // will this be removed if we index?
-            // force reindex
-            return true;
-        } else if(!$this->id && !is_numeric($this->id) && $this->isNew()) {
-            $this->id=null;
+            \tdz::log(__METHOD__, var_Export($this, true));
+            throw new Tecnodesign_Exception('We could not find the source content to update.', 1);
+
         }
         return parent::save($beginTransaction, $relations, $conn);
     }

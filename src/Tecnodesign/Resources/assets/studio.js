@@ -7,9 +7,8 @@ if(!('studio' in Z.plugins)) {
     Z.plugins.studio=[];
     Z.home = '/_/studio';
 }
-if(!('modules' in Z)) Z.modules = {};
-Z.modules.Callback = '*[data-callback]';
 
+if(!('modules' in Z)) Z.modules = {};
 var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'Tdz-Action':'Interface'};
 
 // load authentication info
@@ -36,6 +35,19 @@ function startup()
 
     var ui = [
           {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':Z.home}},
+          {e:'div',p:{className:'studio-logo tdz-i-button tdz-i--studio'}},
+          {e:'div',p:{className:'studio-menu'},c:[
+            {e:'div',p:{className:'studio-box s-right tdz-i-actions'},c:[
+              {e:'a',p:{className:'tdz-i--search'}},
+              {e:'a',p:{className:'tdz-i--new'   }},
+              {e:'a',p:{className:'tdz-i--update'}},
+              {e:'a',p:{className:'tdz-i--delete'}}
+            ]},
+          ]}
+        ];
+    /*
+    var ui = [
+          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':Z.home}},
           {e:'div',p:{className:'studio-logo'},t:{click:trigger},c:[
               {e:'span',p:{className:'studio-i-new'}},
               {e:'span',p:{className:'studio-i-square'}},
@@ -52,6 +64,7 @@ function startup()
             ]},
           ]}
         ];
+        */
     _Z = document.getElementById('studio');
     if(!_Z) {
         _Z = Z.element.call(document.body, {e:'div',p:{id:'studio',className:'studio-interface'},c:ui});
@@ -65,6 +78,7 @@ function startup()
         Z.element.call(_Z, ui);
         trigger(null, true);
     }
+    Z.bind(_Z, 'click', trigger);
 
     /*
     while(i-->0) {
@@ -80,12 +94,11 @@ function startup()
 
 function doubleClick(e)
 {
-    console.log('doubleClick', this);
     e.preventDefault();
     e.stopPropagation();
     var id=this.getAttribute('data-studio-c');
     if(id) {
-        getInterface(Z.home+'/c/u/'+id);
+        getInterface(Z.home+'/c/v/'+id);
         return false;
     }
     id=this.getAttribute('data-studio-s');
@@ -95,9 +108,9 @@ function doubleClick(e)
     }
 }
 
+/*!getinterface*/
 function getInterface(u)
 {
-    console.log('getInterface: '+u);
     if(!_V) _V = document.getElementById('studio-viewport');
     var t=_V.querySelector('.tdz-i[data-url="'+u+'"]');
     var b=_V.querySelector('.tdz-i-header');
@@ -123,10 +136,6 @@ function getInterface(u)
 
 }
 
-function loadInterface(d)
-{
-    console.log('loadInterface', d, this);
-}
 function errorInterface(d)
 {
     console.log('errorInterface', d, this);
@@ -165,9 +174,13 @@ function getProperties(id)
     Z.ajax(Z.home+'/p', JSON.stringify(d), setProperties, null, 'json', _Z, {'Tdz-Action':'Studio','Content-Type':'application/json'});
 }
 
+var _prop={};
 function setProperties(d)
 {
     if(!d) return;
+    _prop = d;
+    return;
+    /*
     var n, t, id, E, c, p, P={'new':null,'update':null,'delete':null};
     if(!_L) _L=document.getElementById('studio-list');
     for(n in d) {
@@ -182,15 +195,9 @@ function setProperties(d)
                 }
                 Z.element.call(E, c);
             }
-            //t=n.replace(/\/.*/, '');
-            //id = n.substr(n.indexOf('/')+1);
-            //E=document.querySelector('div[data-studio-'+t+'="'+id+'"]');
-            //if(E) {
-            //    _P[n]=d[n];
-            //    Z.bind(E, 'click', triggerFloatingMenu);
-            //}
         }
     }
+    */
 }
 
 function triggerFloatingMenu(e)
@@ -200,6 +207,11 @@ function triggerFloatingMenu(e)
 
 function trigger(e, active)
 {
+    if(e && ('target' in e)) {
+        if(e.target.className.search(/\b(studio-(logo|interface))\b/)<0) {
+            return false;
+        }
+    }
     if(arguments.length>1) toggle.call(_Z, e, active);
     else toggle.call(_Z, e);
     var on=(_Z.className.search(/\bs-active\b/)>-1);
@@ -210,15 +222,29 @@ function trigger(e, active)
 
 function toggle(e, active)
 {
-    var on=(this.className.search(/\bs-active\b/)>-1);
+    var on,h=document.querySelector('html');
     if(arguments.length>1) {
-        if(active===true && !on) this.className=String(this.className+' s-active').trim();
-        else if(active===false && on) this.className=this.className.replace(/\s*\bs-active\b/, '').trim();
         on=active;
     } else {
-        if(!on) this.className=String(this.className+' s-active').trim();
-        else this.className=this.className.replace(/\s*\bs-active\b/, '').trim();
+        on=!(this.className.search(/\bs-active\b/)>-1);        
     }
+    console.log('toggle: '+on, on);
+    if(on) {
+        if(this.className.search(/\bs-active\b/)<0) {
+            this.className=String(this.className+' s-active').trim();
+        }
+        if(h.className.search(/\bstudio-lock\b/)<0) {
+            h.className=String(h.className+' studio-lock').trim();
+        }
+    } else {
+        if(this.className.search(/\bs-active\b/)>-1) {
+            this.className=this.className.replace(/\s*\bs-active\b/, '').trim();
+        }
+        if(h.className.search(/\bstudio-lock\b/)>-1) {
+            h.className=h.className.replace(/\s*\bstudio-lock\b/, '').trim();
+        }
+    }
+    h=null;
 }
 
 
