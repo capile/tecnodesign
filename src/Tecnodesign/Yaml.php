@@ -44,11 +44,11 @@ class Tecnodesign_Yaml
             if(function_exists('yaml_parse')) self::$parser='php-yaml';
             else self::$parser = 'Spyc';
         }
-        /*
+        
         if(self::$parser=='Spyc' && !class_exists('Spyc')) {
             Tecnodesign_App_Install::dep('Spyc');
         }
-        */
+        
         return self::$parser;
     }
 
@@ -131,7 +131,7 @@ class Tecnodesign_Yaml
             ini_set('yaml.output_width', $wordwrap);
             return yaml_emit($a, YAML_UTF8_ENCODING, YAML_LN_BREAK);
         } else {
-            return \Spyc::YAMLDump($a, $indent, $wordwrap);
+            return Spyc::YAMLDump($a, $indent, $wordwrap);
         }
     }
 

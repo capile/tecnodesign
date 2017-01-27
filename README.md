@@ -28,3 +28,27 @@ git submodule add git@github.com:tecnodz/tdz.git app/lib/vendor/tecnodesign
 cd app
 php lib/vendor/tecnodesign/tdz.php install [project]
 ```
+
+## Database
+
+To install only module database connection into your [apps-dir]:
+
+```bash
+php lib/vendor/tecnodesign/tdz.php install:database [project]
+```
+
+## E-studio
+
+To install E-studio CMS modules:
+
+```bash
+php lib/vendor/tecnodesign/tdz.php install:studio [project]
+```
+
+## Dependencies
+
+To Dependencies execute:
+
+```bash
+php lib/vendor/tecnodesign/tdz.php install:deps [project]
+```
