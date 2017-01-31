@@ -68,6 +68,8 @@ Tecnodesign_App::response('title', $title);
                     ?></div><?php 
                 endif;
 
+                if(isset($searchForm)) echo '<span class="i-check-label tdz-i-switch">';
+
 
                 if(isset($list)) {
                     // list counter
@@ -97,7 +99,7 @@ Tecnodesign_App::response('title', $title);
 
                     if(isset($searchForm))
                         echo '<input type="checkbox" id="tdz-i-s-'.$id.'" class="tdz-i-switch tdz-i-search" />',
-                             '<label for="tdz-i-s-'.$id.'">'.$Interface::$labelFilter.'</label>',
+                             '<label for="tdz-i-s-'.$id.'">'.$Interface::$labelFilter.'</label></span>',
                              '<div class="tdz-i-search tdz-i-switched">'.$searchForm.'</div>';
                 }
 

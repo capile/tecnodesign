@@ -15,7 +15,7 @@
   z-index:16;
   &.tdz-i-active{
     border-top:3px solid @colorTabActive;
-    min-height:50%;
+    min-height:50vh;
     height:auto;
     opacity:1;
   }
@@ -148,6 +148,17 @@ div.tdz-i-switched{
   transition-property: all;
   transition-duration: .5s;
   transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+
+.tdz-i-switch.on ~ div.tdz-i-switched {
+  opacity:1;max-height:100%;
+}
+
+.tdz-i-summary .i-check-label.off {
+  cursor:zoon-in;
+}
+.tdz-i-summary .i-check-label.on {
+  cursor:zoon-out;
 }
 
 input.tdz-i-switch{
@@ -689,15 +700,15 @@ select, input {
   > a{
     display:inline-block;
     text-align:center;
-    width: 2em;
+    width: 30px;
     background:none !important;
     opacity:0.4;
     margin:1px 0 0 0;
     &:hover,&:active{background:none !important;opacity:1}
     &:before{
       text-align:center;
-      height:1.5em;width:1em;margin-right:0.3em;line-height:1.5em;
-      font-size:1.3333em;
+      height:30px;width:15px;margin-right:5px;line-height:30px;
+      font-size:20px;
       font-weight:normal;
     }
   }
@@ -740,7 +751,6 @@ select, input {
     &.tdz-i--fornecedores:before  {content: "\f0d1";}
     &.tdz-i--refresh:before       {content: "\f021";}
     &.tdz-i--close:before         {content: "\f00d";}
-    &.tdz-i--studio:before        {content: "\f0eb";}
 }
 
 .tdz-i-button {

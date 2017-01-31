@@ -776,7 +776,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($A) && is_object($A) && $A instanceof Tecnodesign_Interface) {
                 return static::currentInterface($p, $A);
             }
-            if(!isset($a)) {
+            if(!isset($a) && !$I->action) {
                 tdz::log('no action!!!');
                 return static::error(404, static::t('errorNotFound'));
             }
@@ -1781,7 +1781,7 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($i, $fn, $label);
         }
         $fo = $o->getForm($d);
-        $fo->id = $this->text['interface'];
+        $fo->id = $this->text['interface'].'--'.(($o->isNew())?('n'):(implode('-',$o->getPk(true))));
         $fo->attributes['class']='tdz-auto';
         if(isset($ss)) {
             $fo->buttons['button']=array(
