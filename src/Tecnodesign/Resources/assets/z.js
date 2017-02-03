@@ -449,7 +449,7 @@ Z.focus=function(o)
 Z.text=function(o, s)
 {
     if(!o) return;
-    var n=(arguments.length>0)?(o.querySelector(s)):(o);
+    var n=(arguments.length>1)?(o.querySelector(s)):(o);
     return n.textContent || n.innerText;
 }
 
