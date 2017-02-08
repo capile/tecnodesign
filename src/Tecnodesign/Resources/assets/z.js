@@ -470,6 +470,7 @@ Z.fire=function(c, ev)
     }
 }
 
+/*!checkInput*/
 Z.checkInput=function(e, c, r)
 {
     if(arguments.length==1 || c===null) c=e.checked;
@@ -482,7 +483,8 @@ Z.checkInput=function(e, c, r)
     var i=3, p=e.parentNode;
     while(p && i-- > 0) {
         if(p.nodeName.toLowerCase()=='tr' || p.className.search(/\binput\b/)>-1) {
-            var on=(p.className.search(/\bon\b/)>-1);
+            var on=(p
+                .className.search(/\bon\b/)>-1);
             if(c && !on) p.className += (p.className)?(' on'):('on');
             else if(!c && on) p.className = p.className.replace(/\bon\b\s*/, '').trim();
             break;
@@ -678,7 +680,7 @@ Z.deleteNode=function(o)
 }
 
 /*!checkLabel*/
-Z.initCheckLabel=function()
+Z.initCheckLabel=function(e)
 {
     var s=false, l, c=this;
     if(c.nodeName.toLowerCase()!='input') {
@@ -690,8 +692,13 @@ Z.initCheckLabel=function()
         } else {
             c.removeAttribute('checked');
         }
+        if(arguments.length>0) {
+            Z.stopEvent(e);
+        }
     } else {
-        l = c.parentNode;
+        if(!(l=Z.parentNode(c, 'label'))) {
+            l = c.parentNode;
+        }
     }
     if(!c.getAttribute('data-check-label')) {
         c.setAttribute('data-check-label',1);
@@ -710,12 +717,16 @@ Z.initCheckLabel=function()
             c.setAttribute('data-switch', 'off');
         }
         if(l.className!=cn) l.className = cn;
-        if(!s && this.getAttribute('type')=='radio') {
+        if(!s && c.getAttribute('type')=='radio') {
             cn = (c.checked)?('off'):('on');
             var L = l.parentNode.querySelectorAll('input'), i=L.length;
+            var P;
             while(i--) {
                 if(L[i]!=c) {
-                    cn=L[i].parentNode.className;
+                    if(!(P=Z.parentNode(L[i], 'label'))) {
+                        P = L[i].parentNode;
+                    }
+                    cn=P.className;
                     if(!c.checked) {
                         if(cn.search(/\bon\b/)<0) cn += ' on';
                         if(cn.search(/\boff\b/)>-1) cn = cn.replace(/\s*\boff\b/g, '');
@@ -723,7 +734,8 @@ Z.initCheckLabel=function()
                         if(cn.search(/\boff\b/)<0) cn += ' off';
                         if(cn.search(/\bon\b/)>-1) cn = cn.replace(/\s*\bon\b/g, '');
                     }
-                    if(L[i].parentNode.className!=cn) L[i].parentNode.className = cn;
+                    if(P.className!=cn) P.className = cn;
+                    P=null;
                 }
             }
         }
@@ -731,18 +743,13 @@ Z.initCheckLabel=function()
 
 }
 
-/*!picker*/
-var _Picker={}, _Pickerc=0;
+var _Picker={}, _Pickerc=0, _PickerT=0;
 Z.initDatepicker=function()
 {
     if(!('datepicker' in Z) || this.getAttribute('data-datepicker')) return;
-    this.setAttribute('data-datepicker', Z.datepicker);
 
-    var id=this.getAttribute('id');
-    if(!id) {
-        id='p'+(_Pickerc++);
-        this.id=id;
-    }
+    var id='p'+(_Pickerc++);
+    this.setAttribute('data-datepicker', id);
 
     if(Z.datepicker=='Pikaday') {
         var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false };
@@ -754,6 +761,21 @@ Z.initDatepicker=function()
         }
         _Picker[id] = new Pikaday(cfg);
     }
+    if(_PickerT) clearTimeout(_PickerT);
+    _PickerT = setTimeout(cleanupDatepicker, 500);
+}
+
+function cleanupDatepicker()
+{
+    if(_PickerT) clearTimeout(_PickerT);
+    _PickerT=0;
+    for(var n in _Picker) {
+        if(!document.querySelector('*[data-datepicker="'+n+'"]')) {
+            _Picker[n].destroy();
+            delete(_Picker[n]);
+        }
+        n=null;
+    }
 }
 
 
@@ -763,6 +785,7 @@ Z.initButton=function(o)
     Z.bind(o, 'click', button);
 }
 
+/*!initcallback*/
 Z.initCallback=function(o)
 {
     if(!o || !Z.node(o)) o=this;
@@ -1013,6 +1036,57 @@ function formFilters(e)
                 if(T.getAttribute('data-filters')) {
                     Z.fire(T, 'change');
                 }
+            }
+        } else if(T=this.form.querySelector('#f__'+tn)) {
+            L = T.querySelectorAll('input[type="radio"],input[type="checkbox"]');
+            if(!(fk in _FF)) {
+                _FF[fk]={c:{}, v:{}, f:{}};
+            }
+            for(l=0;l<L.length;l++) {
+                if(L[l].checked) _FF[fk].v[L[l].value]=true;
+                _FF[fk].c[L[l].id]=L[l].value;
+            }
+
+            if(reset || !(nn in _FF[fk].f) || v!=_FF[fk].f[nn]) {
+                _FF[fk].f[nn] = v;
+                O = [];
+                L=_FF[fk].c;
+                var n, E, a, Pn;
+                for(n in L) {
+                    sel = (L[l] in _FF[fk].v);
+                    tv=true;
+                    if(L[l]) {
+                        E = T.querySelector('input#'+n);
+                        for(fn in _FF[fk].f) {
+                            // make do for multiple source filters
+                            if(!(a=E.getAttribute('data-'+fn)) || a!=_FF[fk].f[fn]) {
+                                tv=false;
+                                break;
+                            }
+                        }
+                    }
+                    if(!(Pn=Z.parentNode('label'))) {
+                        Pn = E.parentNode;
+                    }
+                    if(tv) {
+                        if(Pn.className.search(/\bi-hidden\b/)>-1) {
+                            Pn.className = Pn.className.replace(/\s*\bi-hidden\b/g, '');
+                        }
+                        E.checked = sel;
+                        E.setAttribute('checked', 'checked');
+                    } else {
+                        if(Pn.className.search(/\bi-hidden\b/)<0) {
+                            Pn.className += ' i-hidden';
+                        }
+                        E.checked = false;
+                        E.removeAttribute('checked');
+                    }
+                }
+                /*
+                if(E.getAttribute('data-filters')) {
+                    Z.fire(E, 'change');
+                }
+                */
             }
         }
         //@TODO: search, checkbox and radio

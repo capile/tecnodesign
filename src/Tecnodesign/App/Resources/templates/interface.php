@@ -25,6 +25,7 @@ Tecnodesign_App::response('title', $title);
     }
     foreach($urls as $iurl=>$t): 
         ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' tdz-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><?php echo $t['title']; ?></a><?php
+        unset(Tecnodesign_Interface::$urls[$iurl]);
     endforeach;
 
 ?></div><?php
@@ -142,4 +143,11 @@ Tecnodesign_App::response('title', $title);
                 ?></div><?php
             endif;
 
-?></div></div></div>
+
+            // .tdz-i-actions
+            ?></div><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
+                echo $buttons; 
+            ?></div></div><?php 
+
+
+?></div></div>

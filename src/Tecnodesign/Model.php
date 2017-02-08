@@ -838,6 +838,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if(!isset($cn::$schema['relations'][$rn])) return false;
         $ro = $cn::$schema['relations'][$rn];
+        $rk = array();
+        if(!$r) {
+            if(is_array($ro['local'])) {
+                foreach ($ro['local'] as $i => $n) {
+                    $rk[$n]=$ro['foreign'][$i];
+                    unset($i, $n);
+                }
+            } else {
+                $rk[$ro['local']]=$ro['foreign'];
+            }
+        }
         $rcn = (isset($ro['className']))?($ro['className']):($rn);
         if($f) {
 
@@ -876,7 +887,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $fc = (array) $f;
             foreach($fc as $k=>$v) {
                 unset($f[$k], $fc[$k]);
-                $f[self::_rn($k, $rrn, $rp)]=$v;
+                if(isset($rk[$k])) {
+                    $f[$rk[$k]]=$v;
+                } else {
+                    $f[self::_rn($k, $rrn, $rp)]=$v;
+                }
                 unset($k, $v);
             }
 
@@ -908,6 +923,39 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         }
         return $rrn.'.'.$k;
+    }
+
+    public function getRelationQuery($relation, $part=null)
+    {
+        $r = array();
+        $rev = '';
+
+        //enable multiple, dotted queries
+        if($p=strpos($relation, '.')) {
+            //@TODO: get final classname for the query object
+            $rev = implode('.', array_reverse(explode('.', substr($relation, $p+1)))).'.';
+            $relation = substr($relation, 0, $p);
+            unset($p);
+        }
+
+        if (!isset(static::$schema['relations'][$relation])) {
+            throw new Tecnodesign_Exception(array(tdz::t('Relation "%s" is not available at %s.','exception'), $relation, $cn));
+        }
+        $rel = static::$schema['relations'][$relation];
+        $rcn = (isset($rel['className']))?($rel['className']):($relation);
+
+        $r['where'] = (isset($rel['params']))?($rel['params']):(array());
+        if(is_array($rel['local'])) {
+            foreach($rel['local'] as $i=>$fn) {
+                $r['where'][$rev.$rel['foreign'][$i]]=$this->$fn;
+            }
+        } else {
+            $r['where'][$rev.$rel['foreign']]=$this->{$rel['local']};
+        }
+        if($part=='where') return $r['where'];
+
+        //@TODO: build whole query object
+        return $r;
     }
     
     public function getRelation($relation, $fn=null, $scope=null, $asCollection=true)
@@ -944,17 +992,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $cn::$relations = array();
         }
         if(!isset($cn::$relations[$relation][$rk])) {
-            $search=array();
-            if(isset($rel['params'])) {
-                $search = $rel['params'];
-            }
-            if(is_array($local)) {
-                foreach($local as $i=>$l) {
-                    $search[$rel['foreign'][$i]]=$this->$l;
-                }
-            } else {
-                $search[$rel['foreign']]=$this->$local;
-            }
+            $search = $this->getRelationQuery($relation, 'where');
             $cn::$relations[$relation][$rk] = $rcn::find($search, $limit, $scope, $asCollection);
             if($cn::$relations[$relation][$rk]===false && $limit==0){
                 $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
@@ -2046,6 +2084,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                     $v = $this->renderField($fn, $fd, $xmlEscape);
                     if(isset($fd['class'])) $class = $fd['class'];
+                    if(isset($fd['type']) && $fd['type']=='interface') {
+                        $s .= $v;
+                        continue;
+                    }
                 }
                 if(substr($label, 0, 2)=='a:') {
                     if($v && !$xmlEscape) $v = tdz::xmlEscape($v);
@@ -2244,6 +2286,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($xmlEscape) $xmlEscape = false;
         } else if(method_exists($this, $m)) {
             $v = $this->$m();
+        } else if(isset($fd['type']) && $fd['type']=='interface' && isset($fd['interface']) && isset($fd['bind']) && isset(static::$schema['relations'][$fd['bind']])) {
+            $icn = Tecnodesign_Interface::$className;
+            $I = new $icn($fd['interface']);
+            $I->setSearch($this->getRelationQuery($fd['bind'], 'where'));
+            if(isset($fd['action'])) $a = $fd['action'];
+            else if(static::$schema['relations'][$fd['bind']]['type']=='one') $a = 'preview';
+            else $a = 'list';
+            $I->setAction($a); 
+            $I->setUrl(tdz::scriptName(true).'/'.$fd['interface']);
+            $v = $I->preview();
+            $xmlEscape = false;
         } else {
             $v = $this[$fn];
             $getRef = true;

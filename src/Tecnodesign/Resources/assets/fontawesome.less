@@ -18,11 +18,11 @@
   font-style: normal;
 }
 .fontAwesome(@icon: "") {
-  .fontAwesomeBase();
-  content: @icon;
+  .fontAwesomeBase(@icon);
 }
-.fontAwesomeBase() {
+.fontAwesomeBase(@icon: "") {
   &:before {
+    content: @icon;
     font-family: FontAwesome;
     font-weight: normal;
     font-style: normal;
