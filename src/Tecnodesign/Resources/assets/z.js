@@ -638,7 +638,7 @@ Z.isVisible=function(o)
     return o.offsetWidth > 0 && o.offsetHeight > 0;
 }
 
-Z.formData=function(f)
+Z.formData=function(f, returnObject)
 {
     var d;
     if(('id' in f) && (f.id in _f)) {
@@ -653,6 +653,7 @@ Z.formData=function(f)
             }
         }
     }
+    if(arguments.length>1 && returnObject) return d;
     var s='', n;
     if(d) {
         for(n in d) {

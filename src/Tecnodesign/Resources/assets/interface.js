@@ -348,18 +348,30 @@
     }
 
 /*!unloadinterface*/
-    function unloadInterface(I, rehash)
+    function unloadInterface(I, rehash, rI)
     {
-        var u=I.getAttribute('data-url'), b=Z.parentNode(I, '.tdz-i-box'), T=b.querySelector('.tdz-i-header .tdz-i-title[data-url="'+u+'"]');
-        T.parentNode.removeChild(T);
-        delete(T);
+        var u=I.getAttribute('data-url'),
+            b=Z.parentNode(I, '.tdz-i-box');
+        if(!b) b=document;
+        var T=b.querySelector('.tdz-i-header .tdz-i-title[data-url="'+u+'"]');
+        if(T) {
+            T.parentNode.removeChild(T);
+            delete(T);
+        }
         var B = I.previousSibling;
-        I.parentNode.removeChild(I);
-        delete(I);
+        if(arguments.length>2) {
+            I.parentNode.replaceChild(I, rI);
+            B = rI;
+        } else {
+            B = I.previousSibling;
+            I.parentNode.removeChild(I);
+            delete(I);
+        }
         if(!(I=b.querySelector('.tdz-i-active[data-url]'))) {
             if(!B) B=b.querySelector('.tdz-i[data-url]');
             activeInterface(B);
         }
+        b=null;
         delete(B);
         delete(b);
         delete(I);
@@ -582,11 +594,13 @@
     {
         //Z.trace('setInterface');
         if(c) {
-            var f = document.createElement('div');
+            var f = document.createElement('div'), P=(Z.node(this) && this.parentNode)?(this.parentNode):(null);
+
             f.innerHTML = c;
 
             var r = f.querySelectorAll('a[data-action]'), i=r.length, ra;
             while(i-- > 0) {
+                console.log('action: ', r[i]);
                 ra = r[i].getAttribute('data-action');
                 if(ra && (ra in _A)) {
                     _A[ra].call(this, r[i]);
@@ -611,7 +625,7 @@
             }
             var I = f.querySelector('.tdz-i');
             if(!I) {
-                if(Z.node(this)) {
+                if(P) {
                     Z.focus(Z.parentNode(this, '.tdz-i-body'));
                 } else {
                     Z.focus(document.querySelector('.tdz-i-body.tdz-blur'));
@@ -624,16 +638,12 @@
                 delete(_loading[u]);
             }
 
-            if(Z.node(this)) {
+            if(P) {
+                if(this.parentNode) P.replaceChild(I, this);
+                else P.appendChild(I);
                 if(this.getAttribute('data-url')!=u) {
-                    var R;
-/*!este?*/
-                    while(R=this.parentNode.querySelector('.tdz-i[data-url="'+u+'"]')) {
-                        R.parentNode.removeChild(R);
-                    }
+                    _A.unload(this);
                 }
-/*! ou este?*/
-                this.parentNode.replaceChild(I, this);
             }
             startup(I);
             Z.focus(Z.parentNode(I, '.tdz-i-body'));
@@ -645,7 +655,7 @@
     var _A = {
         unload:function(o) {
             var 
-              ru = o.getAttribute('data-url'),
+              ru = (typeof(o)=='string')?(o):(o.getAttribute('data-url')),
               rn = document.querySelector('.tdz-i-box .tdz-i-header .tdz-i-title[data-url="'+ru+'"]');
             if(rn) rn.parentNode.removeChild(rn);
             rn = document.querySelector('.tdz-i-box .tdz-i-body .tdz-i[data-url="'+ru+'"]');
@@ -681,6 +691,7 @@
         }
     }
 
+    Z.tasks = _A;
     function msg(s, c)
     {
         var M=document.querySelector('.tdz-i.tdz-i-active .tdz-i-msg');

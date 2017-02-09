@@ -214,7 +214,12 @@ input.tdz-i-switch{
   padding:0.25em 0;
   background: @colorSummary;
   color:@colorSummaryText - #111;
-  li{display:inline;list-style:none;margin:0;padding:0}
+  li{
+    display:inline;list-style:none;margin:0;padding:0;
+    &:before {
+      display:none;
+    }
+  }
   a{padding:0.25em}
   a:link, a:visited{color:@colorSummaryText - #222;text-decoration:none;}
   a:hover, a:active{color:@colorHighlight;text-decoration:none;background:@colorSummary - #333;}
