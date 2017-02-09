@@ -768,7 +768,7 @@ class tdz
                         mkdir($dir, 0777, true);
                     }
                     $tempnam = tempnam(dirname($file), '._');
-                    $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --type '.$type.' -o '.$tempnam;
+                    $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --nomunge --type '.$type.' -o '.$tempnam;
                     exec($cmd, $output, $ret);
                     if(file_exists($tempnam)) {
                         $build = false;

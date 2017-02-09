@@ -347,7 +347,6 @@
         }
     }
 
-/*!unloadinterface*/
     function unloadInterface(I, rehash, rI)
     {
         var u=I.getAttribute('data-url'),
@@ -589,7 +588,7 @@
         updateInterface(I);
         return false;
     }
-/*!setinterface*/
+
     function setInterface(c)
     {
         //Z.trace('setInterface');
@@ -600,7 +599,6 @@
 
             var r = f.querySelectorAll('a[data-action]'), i=r.length, ra;
             while(i-- > 0) {
-                console.log('action: ', r[i]);
                 ra = r[i].getAttribute('data-action');
                 if(ra && (ra in _A)) {
                     _A[ra].call(this, r[i]);
@@ -691,7 +689,6 @@
         }
     }
 
-    Z.tasks = _A;
     function msg(s, c)
     {
         var M=document.querySelector('.tdz-i.tdz-i-active .tdz-i-msg');

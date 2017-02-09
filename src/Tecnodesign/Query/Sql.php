@@ -136,8 +136,14 @@ class Tecnodesign_Query_Sql
         }
         if($count) {
             $s = ' count(1)';
-            if($count && $this->_from && strpos($this->_from, ' left outer join ')) {
-                $s = ' count(distinct '.static::concat($this->scope('uid'),'a.').')';
+            $cc = '';
+            if($this->_groupBy) {
+                $cc = trim($this->_groupBy);
+            } else if($this->_from && strpos($this->_from, ' left outer join ')) {
+                $cc = static::concat($this->scope('uid'),'a.');
+            }
+            if($cc) {
+                $s = ' count(distinct '.$cc.')';
             }
         } else {
             $s = ($this->_select)?($this->_distinct.$this->_select):(' a.*');
