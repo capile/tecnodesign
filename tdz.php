@@ -979,11 +979,11 @@ class tdz
                 || preg_match($ssearch2, substr($useragent, 0, 4)));
     }
 
-    public static function sqlEscape($str, $enclose=true)
+    public static function sql($str, $enclose=true)
     {
         if(is_array($str)) {
             foreach($str as $k=>$v){
-                $str[$k]=tdz::sqlEscape($v, $enclose);
+                $str[$k]=tdz::sql($v, $enclose);
             }
             return $str;
         }
@@ -993,6 +993,7 @@ class tdz
         $str = ($enclose) ? ("'{$str}'") : ($str);
         return $str;
     }
+    public static function sqlEscape($str, $enclose=true) {return tdz::sql($str, $enclose);}
 
     /**
      * XML Escaping
@@ -1004,17 +1005,18 @@ class tdz
      * 
      * @return string escaped string
      */
-    public static function xmlEscape($s, $q=true)
+    public static function xml($s, $q=true)
     {
         if (is_array($s)) {
             foreach ($s as $k => $v) {
-                $s[$k] = tdz::xmlEscape($v);
+                $s[$k] = tdz::xml($v, $q);
             }
             return $s;
         }
         $qs = ($q) ? (ENT_QUOTES) : (ENT_NOQUOTES);
         return htmlspecialchars(html_entity_decode($s, $qs, 'UTF-8'), $qs, 'UTF-8', false);
     }
+    public static function xmlEscape($s, $q=true) {return tdz::xml($s, $q);}
 
     public static function browser($s=null)
     {
@@ -1508,27 +1510,7 @@ class tdz
         if(!is_null($expires)) {
             $expires = (int)$expires;
             $cc = preg_replace('/\,.*/', '', $cacheControl);
-            /*
-            if (!isset($_COOKIE['ecache']) || $cc!=$_COOKIE['ecache']) {
-                if (isset($_COOKIE['ecache'])) {
-                    if (function_exists('header_remove')) {
-                        $headers = headers_list();
-                        $cookies = array();
-                        foreach($headers as $h) {
-                            if(substr($h, 0, 11)=='Set-Cookie:' && substr($h, 0, 19)!='Set-Cookie: ecache=') {
-                                $cookies[]=$h;
-                            }
-                        }
-                        header_remove('Set-Cookie');
-                        foreach($cookies as $h) {
-                            header($h);
-                        }
-                    }
-                }
-                $_COOKIE['ecache'] = $cc;
-                @setcookie('ecache', $cc, 0, tdz::scriptName());
-            }
-            */
+
             if (function_exists('header_remove')) {
                 header_remove('Cache-Control');
                 header_remove('Pragma');
@@ -1676,130 +1658,6 @@ class tdz
         return $img->render();
     }
 
-    public static function renderForm(&$f, $values=array(), $options=array(), $secret=null)
-    {
-        if (!is_object($f)) {
-            $fo = $f;
-            //sfWidgetFormSchema::setDefaultFormFormatterName('div');
-            $f = new sfForm($values, $options, $secret);
-            $f->blocks = $fo;
-            tdz::form($f);
-        }
-        if (!isset($f->blocks))
-            return $f->render();
-        sfWidgetFormSchema::setDefaultFormFormatterName('list');
-        $html = '';
-        if (!is_array($f->use_fields))
-            $f->use_fields = array();
-        $t = sfContext::getInstance()->getI18N();
-        if (isset(tdz::$filters[$f->getName()])) {
-            tdz::$values = $f->getTaintedValues();
-            if (count(tdz::$values) > 0) {
-                $up = false;
-                foreach (tdz::$filters[$f->getName()] as $fn => $v) {
-                    if (isset(tdz::$values[$fn])) {
-                        $up = true;
-                        tdz::$values[$fn] = tdz::$v(false, tdz::$values[$fn]);
-                    }
-                }
-                $files = (isset($_FILES[$f->getName()])) ? ($_FILES[$f->getName()]) : (array());
-                $filesv = array();
-                foreach ($files as $k => $v)
-                    foreach ($v as $vk => $vv)
-                        $filesv[$vk][$k] = $vv;
-                $f->bind(tdz::$values, $filesv);
-            }
-        }
-        foreach ($f->blocks as $bn => $bf) {
-            $html .= ( substr($bn, 0, 1) != '_') ? ('<fieldset><legend>' . $t->__($bn) . '</legend><ul class="' . $bn . '">') : ('<fieldset><ul class="' . $bn . '">');
-            foreach ($bf as $fn => $fd) {
-                if (!is_array($fd)) {
-                    if (is_string($fd)) {
-                        $html .= $fd;
-                        $fd = true;
-                    }
-                    $cn = (is_object($fd)) ? (get_class($fd)) : ('Hidden');
-                    if (!isset($f[$fn])
-                        )continue;
-                    if (is_bool($fd)) {
-                        if (isset($f[$fn][0]))
-                            foreach ($f[$fn] as $ef)
-                                $html .= $ef->render();
-                        else
-                            $html .= $f[$fn]->renderError() . $f[$fn]->render();
-                    }
-                    else if (substr($cn, -6) == 'Hidden')
-                        $html .= $f[$fn]->renderError() . $f[$fn]->render();
-                    else
-                        $html .= $f[$fn]->renderRow();
-                    if (!in_array($fn, $f->use_fields))
-                        $f->use_fields[] = $fn;
-                }
-            }
-            $html .= '</ul></fieldset>';
-        }
-        $ws = $f->getWidgetSchema();
-        foreach ($ws->getFields() as $fn => $fd) {
-            if (!in_array($fn, $f->use_fields))
-                $html .= $f[$fn];
-        }
-
-        return $html;
-    }
-
-    public static function form(&$f)
-    {
-        if (!isset($f->blocks))
-            return false;
-        $ws = $f->getWidgetSchema();
-        $vs = $f->getValidatorSchema();
-
-        tdz::$values = $f->getTaintedValues();
-        if (!isset($f->use_fields) || !is_array($f->use_fields))
-            $f->use_fields = array();
-        $labels = array();
-        foreach ($f->blocks as $bn => $b) {
-            foreach ($b as $fn => $fd) {
-                if (is_string($fd))
-                    continue;
-                if (isset($fd['label'])
-                    )$labels[$fn] = $fd['label'];
-                $f->use_fields[] = $fn;
-                $fd['name'] = $fn;
-                $ff = tdz::formField($f, $fd);
-                if ($ff) {
-                    $f->blocks[$bn][$fn] = $ff;
-                    if (!is_bool($ff)) { // embedded forms return as true
-                        unset($ws[$fn]);
-                        $ws[$fn] = $ff;
-                        $vs[$fn] = tdz::fieldValidator($f, $fd);
-                    }
-                }
-            }
-        }
-        foreach ($ws->getFields() as $fn => $fd) {
-            if (substr($fn, 0, 1) == '_'
-                )continue;
-            if (!in_array($fn, $f->use_fields))
-                unset($f[$fn], $ws[$fn]);
-        }
-        /*
-          $csrf=$f->getCSRFFieldName();
-          if(!isset($ws[$csrf]) && isset($ws['_csrf_token']))
-          {
-          $ws[$csrf]=$ws['_csrf_token'];
-          $f->setDefault($csrf,$f->getCSRFToken());
-          unset($ws['_csrf_token']);
-          }
-         */
-        $ws->setLabels($labels);
-        $f->setWidgetSchema($ws);
-        $f->setValidatorSchema($vs);
-        //tdz::debug(tdz::$values);
-        //$f->bind(tdz::$values);
-        tdz::$values = false;
-    }
-
     public static function validUrl($str='')
     {
         $str = trim($str);
@@ -1820,239 +1678,6 @@ class tdz
         return $str;
     }
 
-    public static function fieldValidatorUrl($validator, $str, $arguments=array())
-    {
-        if (substr($str, 0, 4) == 'www.'
-            )$str = "http://{$str}";
-        $ui = parse_url($str);
-        return $str; //tdz::validUrl($str);
-    }
-
-    public static function fieldValidatorDatetime($validator, $d, $arguments=array())
-    {
-        $s = $d;
-        if (is_array($d)) {
-            if (implode('', $d) == '')
-                return null;
-            $s = (isset($d['year']) && preg_match('/^[1-2][0-9]{3}$/', $d['year'])) ? ($d['year'] . '-') : (date('Y-'));
-            $s.= ( isset($d['month']) && is_numeric($d['month']) && $d['month'] > 0 && $d['month'] < 13) ? (str_pad($d['month'], 2, '0', STR_PAD_LEFT) . '-') : (date('m-'));
-            $s.= ( isset($d['day']) && is_numeric($d['day']) && $d['day'] > 0 && $d['day'] <= 31) ? (str_pad($d['day'], 2, '0', STR_PAD_LEFT)) : (date('d'));
-            if (isset($d['hour'])) {
-                $s.= ( isset($d['hour']) && is_numeric($d['hour']) && $d['hour'] >= 0 && $d['hour'] <= 24) ? (' ' . str_pad($d['hour'], 2, '0', STR_PAD_LEFT)) : (date(' H'));
-                $s.= ( isset($d['minute']) && is_numeric($d['minute']) && $d['minute'] >= 0 && $d['minute'] <= 59) ? (':' . str_pad($d['minute'], 2, '0', STR_PAD_LEFT)) : (date(':i'));
-                $s.= ( isset($d['second']) && is_numeric($d['second']) && $d['second'] >= 0 && $d['second'] <= 59) ? (':' . str_pad($d['second'], 2, '0', STR_PAD_LEFT)) : ('');
-            }
-        }
-        return $s;
-    }
-
-    public static function fieldValidatorCallback($validator, $str, $arguments=array())
-    {
-        $f = $arguments['form'];
-        $fd = $arguments['field'];
-        $fn = $fd['name'];
-        $m = 'fieldValidator' . ucfirst($fn);
-        if (method_exists($f, $m)) {
-            $str = $f->$m($validator, $str, $arguments);
-        }
-        return $str;
-    }
-
-    public static function fieldValidator(&$f, $fd)
-    {
-        $fn = $fd['name'];
-        $fv = array();
-        $o = array();
-        $m = array();
-        $m['required'] = 'This value is required. ' . $fd['name'];
-        $m['invalid'] = 'This value is not valid. ' . $fd['name'];
-        $o['required'] = (isset($fd['required']) && $fd['required']);
-        $o['trim'] = (isset($fd['trim']) && $fd['trim']);
-        if (isset($fd['min_length'])
-            )$o['min_length'] = $fd['min_length'];
-        if (isset($fd['max_length'])
-            )$o['max_length'] = $fd['max_length'];
-        if (isset($fd['multiple'])
-            )$o['multiple'] = $fd['multiple'];
-
-        $format = (isset($fd['format'])) ? ($fd['format']) : ('');
-
-        if ($format == 'url') {
-            $a = array('form' => $f, 'field' => $fd);
-            $fvu = array();
-            if (!isset($fd['foreign']) || $fd['foreign'])
-                $fvu[] = new sfValidatorUrl();
-            if (!isset($fd['local']) || $fd['local']) {
-                tdz::$filters[$f->getName()][$fn] = 'fieldValidatorUrl';
-                $fvu[] = new sfValidatorCallback(array('callback' => 'tdz::fieldValidatorUrl', 'arguments' => $a));
-            }
-            if (count($fvu) > 1)
-                $fv[] = new sfValidatorOr($fvu);
-            else if (count($fvu) > 0)
-                $fv[] = $fvu[0];
-            //if(tdz::$values && isset(tdz::$values[$fn]))
-            //  tdz::$values[$fn]=tdz::fieldValidatorUrl(false,$f->getDefault($fn), $a);
-        }
-        /*
-          $m='fieldValidator'.ucfirst($fn);
-          if(method_exists($f,$m))
-          {
-          $a=array('form'=>$f,'field'=>$fd);
-          $fv[]=new sfValidatorCallback(array('callback'=>'tdz::fieldValidatorCallback','arguments'=>$a));
-          }
-         */
-
-        if ($fd['type'] == 'choice') {
-            if (isset($fd['model']) && !isset($fd['method'])) {
-                $cn = 'sfValidatorDoctrineChoice';
-                $o['model'] = $fd['model'];
-            } else {
-                $cn = 'sfValidatorChoice';
-                if (isset($fd['choices']))
-                    $o['choices'] = array_keys($fd['choices']);
-                else if (isset($fd['method']) && isset($fd['model'])) {
-                    $method = $fd['method'];
-                    $model = $fd['model'];
-                    $fn = "return {$model}::{$method}();";
-                    $choices = eval($fn);
-                    $o['choices'] = array();
-                    if (is_object($choices))
-                        foreach ($choices as $co)
-                            $o['choices'][$co->getId()] = (string) $co;
-                    else
-                        $o['choices'] = $choices;
-                    $o['choices'] = array_keys($o['choices']);
-                }
-                if (isset($fd['options']['multiple'])
-                    )$o['multiple'] = $fd['options']['multiple'];
-            }
-            if (count($fv) == 0)
-                $fv[] = new $cn($o, $m);
-        }
-        else if ($fd['type'] == 'datetime') {
-            $a = array('form' => $f, 'field' => $fd);
-            tdz::$filters[$f->getName()][$fn] = 'fieldValidatorDatetime';
-            $fv[] = new sfValidatorCallback(array('callback' => 'tdz::fieldValidatorDatetime', 'arguments' => $a));
-        } else if ($fd['type'] == 'upload') {
-            $a = array('form' => $f, 'field' => $fd);
-            if (isset($fd['path'])
-                )$o['path'] = $fd['path'];
-            if (isset($fd['mime_types'])
-                )$o['mime_types'] = $fd['mime_types'];
-            $fv[] = new sfValidatorFile($o, $m);
-        }
-        else {
-            $fv[] = new sfValidatorString($o, $m);
-        }
-        if (count($fv) > 1)
-            return new sfValidatorAnd($fv);
-        else
-            return $fv[0];
-    }
-
-    public static function formField(&$f, $fd)
-    {
-        $ff = false;
-        $fn = $fd['name'];
-        $o = (isset($fd['options'])) ? ($fd['options']) : (array());
-        if (isset($fd['default']))
-            $o['default'] = $fd['default'];
-        $a = (isset($fd['attributes'])) ? ($fd['attributes']) : (array('class' => ''));
-        if (!isset($a['class'])
-            )$a['class'] = '';
-        if (isset($fd['class'])
-            )$a['class'] = trim($a['class'] . ' ' . $fd['class']);
-        if (isset($fd['required']) && $fd['required'])
-            $a['class'] .= ' required';
-        if ($fd['type'] == 'hidden') {
-            $a['class'] = trim('hidden ' . $a['class']);
-            $ff = new sfWidgetFormInputHidden($o, $a);
-        } else if ($fd['type'] == 'password') {
-            $a['class'] = trim('text password ' . $a['class']);
-            $ff = new sfWidgetFormInputPassword($o, $a);
-        } else if ($fd['type'] == 'html') {
-            $a['class'] = trim('textarea html ' . $a['class']);
-            $ff = new sfWidgetFormTextarea($o, $a);
-        } else if ($fd['type'] == 'textarea') {
-            $a['class'] = trim('textarea ' . $a['class']);
-            $ff = new sfWidgetFormTextarea($o, $a);
-        } else if ($fd['type'] == 'datetime') {
-            $a['class'] = trim('datetime ' . $a['class']);
-            if (!isset($o['culture'])
-                )$o['culture'] = sfConfig::get('app_e-studio_default_language');
-            $ff = new sfWidgetFormI18nDateTime($o, $a);
-        }
-        else if ($fd['type'] == 'upload') {
-            $a['class'] = trim('upload ' . $a['class']);
-            $o['edit_mode'] = (!$f->isNew());
-            $o['with_delete'] = false;
-            if (isset($fd['description']))
-                $info = '<div class="upload-info">' . $fd['description'] . '</div>';
-            $o['template'] = '<div class="upload"><div class="upload-name">%file%<div class="upload-input">%input%</div>' . $info . '</div><br style="clear:both" /></div>';
-            $a['cols'] = '1000';
-            $ff = new sfWidgetFormInputFileEditable($o, $a);
-        }
-        else if ($fd['type'] == 'choice') {
-            if (isset($fd['model']) && !isset($fd['method'])) {
-                $o['model'] = $fd['model'];
-                $cn = 'sfWidgetFormDoctrineChoice';
-            } else {
-                $cn = 'sfWidgetFormChoice';
-                if (isset($fd['choices']))
-                    $o['choices'] = $fd['choices'];
-                else if (isset($fd['method']) && isset($fd['model'])) {
-                    $method = $fd['method'];
-                    $model = $fd['model'];
-                    $fn = "return {$model}::{$method}();";
-                    $choices = eval($fn);
-                    $o['choices'] = array();
-                    if (is_object($choices))
-                        foreach ($choices as $co)
-                            $o['choices'][$co->getId()] = (string) $co;
-                    else
-                        $o['choices'] = $choices;
-                }
-            }
-            if (!isset($o['expanded']))
-                $o['expanded'] = ((isset($fd['multiple']) && $fd['multiple']) || (isset($fd['expanded']) && $fd['expanded']));
-            if ($o['expanded'])
-                $a['class'] = trim('check ' . $a['class']);
-            else {
-                $a['class'] = trim('select ' . $a['class']);
-                if ((!isset($fd['required']) || !$fd['required']) && !isset($o['choices'][''])) {
-                    $o['choices'] = array_merge(array('' => '&#151;'), $o['choices']);
-                }
-            }
-            $ff = new $cn($o, $a);
-        } else if ($fd['type'] == 'embedded') {
-            if (isset($fd['form'])) {
-                $f->embedForm($fn, $fd['form']);
-                $ff = true;
-            } else if (isset($fd['method']) && method_exists($f, $fd['method']))
-                $ff = $f->$fd['method']($o, $a, $fd);
-            else if (isset($fd['embed'])) {
-                if (is_array($fd['embed'])) {
-                    foreach ($fd['embed'] as $fn)
-                        $f->use_fields[] = $fn;
-                }
-                else
-                    $f->use_fields[] = $fd['embed'];
-            }
-            else if (false && isset($fd['relation'])) {
-                $f->embedRelation($fd['relation']);
-                $ff = true;
-            }
-        } else if ($fd['type'] == 'text') {
-            $a['class'] = trim('text ' . $a['class']);
-            $ff = new sfWidgetFormInput($o, $a);
-        }
-
-        if (isset($fd['default'])) {
-            $f->setDefault($fn, $fd['default']);
-        }
-        return $ff;
-    }
-    
     public static function uploadDir($d=null)
     {
         if(!is_null($d) && $d) {
@@ -2192,7 +1817,7 @@ class tdz
      *
      * @return string slug
      */
-    public static function textToSlug($str, $accept='')
+    public static function slug($str, $accept='')
     {
         $str = strtr($str, tdz::$slugReplacements);
         if($accept) {
@@ -2206,11 +1831,7 @@ class tdz
         $str = preg_replace('/^-|-$/', '', $str);
         return $str;
     }
-    
-    public static function slug($str, $accept='')
-    {
-        return tdz::textToSlug($str, $accept);
-    }
+    public static function textToSlug($str, $accept=''){return tdz::slug($str, $accept);}
     
     public static function timeToNumber($t)
     {
@@ -2232,7 +1853,8 @@ class tdz
      *
      * @return string formatted string
      */
-    public static function formatBytes($bytes, $precision=2)
+    public static function formatBytes($bytes, $precision=2) {return tdz::bytes($bytes, $precision);}
+    public static function bytes($bytes, $precision=2)
     {
         $units = array('B', 'Kb', 'Mb', 'Gb', 'Tb');
 
@@ -2245,12 +1867,14 @@ class tdz
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
     
-    public static function formatNumber($number, $decimals=2)
+    public static function formatNumber($number, $decimals=2) {return tdz::number($number, $decimals);}
+    public static function number($number, $decimals=2)
     {
         return number_format($number, $decimals, self::$decimalSeparator, self::$thousandSeparator);
     }
 
-    public static function formatTable($arr, $arg=array())
+    public static function formatTable($arr, $arg=array()) {return tdz::table($arr, $arg);}
+    public static function table($arr, $arg=array())
     {
         $class = (isset($arg['class'])) ? (" class=\"{$arg['class']}\"") : ('');
         $s = '<table cellpadding="0" cellspacing="0" border="0"' . $class . '><tbody>';
@@ -2307,13 +1931,6 @@ class tdz
             $r = strip_tags(html_entity_decode($s));
         }
         return $r;
-        /*
-        if(!class_exists('HTML_To_Markdown')) require_once TDZ_ROOT.'/src/HTML_To_Markdown/HTML_To_Markdown.php';
-        //$o = new HTML_To_Markdown(strip_tags($s, '<h1><h2><h3><h4><h5><p></p><br><a><b><i><strong><em><table><tr><td><th><tbody><thead><blockquote>'));
-        $r = $o->output();
-        unset($o);
-        return $r;
-        */
     }
 
     public static function safeHtml($s)
@@ -2321,34 +1938,6 @@ class tdz
         return preg_replace('#<(/?[a-z][a-z0-9\:\-]*)(\s|[a-z0-9\-\_]+\=("[^"]*"|\'[^\']*\')|[^>]*)*(/?)>#i', '<$1$2>', strip_tags($s, '<p><ul><li><ol><table><th><td><br><br/><div><strong><em><details><summary>'));
     }
     
-    /**
-     * Download files
-     *
-     * @param object $response sfResponse
-     * @param array  $params   download parameters
-     *
-     * @return string formatted string
-     */
-    public static function downloadFile($response, $params)
-    {
-        session_cache_limiter('none');
-        sfConfig::set('sf_web_debug', false);
-        ob_clean();
-        $response->clearHttpHeaders();
-        $response->setHttpHeader('Pragma: public', true);
-        if (isset($params['force-download']) && $params['force-download'] == true) {
-            $response->setContentType('application/force-download');
-        } else {
-            $response->setContentType($params['mimetype']);
-        }
-        $response->setHttpHeader('Content-Description', 'File Transfer');
-        $response->sendHttpHeaders();
-
-        $response->setContent(readfile($params['file']));
-
-        exit();
-    }
-
     public static function buildUrl($url, $parts=array())
     {
         if (!is_array($url)) {
@@ -2422,159 +2011,6 @@ class tdz
             $s = '<a href="' . htmlentities($url) . '">' . htmlentities($url) . '</a>';
         }
         return $s;
-    }
-
-    public static function getMultiple($str, $table, $display='', $pk='id', $order='', $tpl='')
-    {
-        $values = preg_split("/([\s\]]*\,[\[\s]*)|[\[\]]/", $str, -1, PREG_SPLIT_NO_EMPTY);
-
-        $keys = array();
-        foreach ($values as $value) {
-            if ($value != '' && $value != '-1') {
-                $keys[] = $value;
-            }
-        }
-
-        $s = '';
-        if (count($keys) > 0) {
-            if ($order == '') {
-                $order = $display;
-            }
-            
-            if ($order == '') {
-                $order = $pk;
-            }
-            
-            $items = Doctrine::getTable($table)->createQuery('c')->whereIn('c.' . $pk, $keys)->orderBy('c.' . $order . ' asc')->fetchArray();
-            $cs = array();
-            foreach ($items as $cn) {
-                if ($display) {
-                    $cs[] = $cn[$display];
-                } else {
-                    $cs[] = array_pop($cn);
-                }
-            }
-            if (count($cs) > 0) {
-                if ($tpl == 'list') {
-                    $s = '<ul><li>' . implode('</li><li>', $cs) . '</li></ul>';
-                } else {
-                    $s = implode(', ', $cs);
-                }
-            }
-        }
-        return $s;
-    }
-
-    public static function formWidget($fc, $form=false)
-    {
-        $type = (isset($fc['type'])) ? (array_flip(preg_split('/\s+/', $fc['type'], false, PREG_SPLIT_NO_EMPTY))) : (array());
-        // field not yet created
-        $w = $fc;
-        $a = array();
-        if (isset($w['type'])
-            )$a['class'] = $w['type'];
-        unset($w['type']);
-        if (isset($type['multiple'])
-            )$w['multiple'] = (bool) $type['multiple'];
-        if (isset($fc['query']) && !isset($type['text'])) {
-            if (isset($w['model'])) {
-                $model = $w['model'];
-                unset($w['model']);
-            }
-            unset($w['query']);
-            $w['choices'] = array();
-            $wd = false;
-            if (!isset($connection))
-                $connection = Doctrine::getConnectionByTableName($model);
-            $tbl = $connection->prepare($fc['query']);
-            $tbl->execute();
-            $data = $tbl->fetchAll();
-            foreach ($data as $k => $v) {
-                if (isset($v['id']))
-                    $w['choices'][$v['id']] = $v[1];
-                else
-                    $w['choices'][$v[0]] = $v[1];
-            }
-            //$config[$fn][$fc]['choices']=$w['choices'];
-            $wd = new sfWidgetFormChoice($w, $a);
-        }
-        else if (isset($fc['model']) && isset($fc['method'])) {
-            $model = $w['model'];
-            unset($w['model']);
-
-            $method = $w['method'];
-            unset($w['method']);
-            $fn = "{$model}::{$method}";
-            $w['choices'] = $fn();
-            if (is_object($w['choices'])) {
-                $c = array();
-                foreach ($w['choices'] as $option)
-                    $c[$option->getId()] = (string) $option;
-
-                $w['choices'] = $c;
-            }
-            $wd = new sfWidgetFormChoice($w, $a);
-        } else if (isset($fc['model']) && !isset($type['text']))
-            $wd = new sfWidgetFormDoctrineChoice($w, $a);
-        else if (isset($fc['choices']) && !isset($type['text']))
-            $wd = new sfWidgetFormChoice($w, $a);
-        else if (isset($type['bool']) && isset($w['multiple']) && $w['multiple'])
-            $wd = new sfWidgetFormChoice(array_merge($w, array('choices' => array(1 => 'Yes', 0 => 'No'), 'expanded' => true, 'multiple' => true)), $a);
-        else if (isset($type['bool']))
-            $wd = new sfWidgetFormSelectRadio(array_merge(array('choices' => array(1 => 'Yes', 0 => 'No')), $w), $a);
-        else if (false && isset($type['html']))
-            $wd = new sfWidgetFormTextareaTinyMCE($w, $a);
-        else if (isset($type['textarea']))
-            $wd = new sfWidgetFormTextarea($w, $a);
-        else
-            $wd = new sfWidgetFormInputText($w, $a);
-
-        return $wd;
-    }
-
-    public static function formValidator($fc, $form=false)
-    {
-        $string = true;
-        $validators = array();
-        $type = (isset($fc['type'])) ? (array_flip(preg_split('/\s+/', $fc['type'], false, PREG_SPLIT_NO_EMPTY))) : (array());
-        if (isset($type['double-list']))
-            return false;
-        $w = $fc;
-        $a = array();
-        if (isset($w['type'])
-            )$a['class'] = $w['type'];
-        unset($w['type']);
-        if (isset($type['email']))
-            $validators[] = new sfValidatorEmail();
-        else if (isset($fc['model']) && !isset($type['text'])) {
-            $string = false;
-            $validators[] = new sfValidatorDoctrineChoice(array('model' => $fc['model'], 'multiple' => isset($type['multiple']), 'min' => (isset($type['multiple']) && isset($type['required'])), 'required' => isset($type['required'])));
-        }
-        if (isset($type['richdate']) || isset($type['date']) || isset($type['datetime'])) {
-            if (isset($type['datetime']))
-                $validators[] = new sfValidatorDateTime(array('required' => isset($type['required'])));
-            else
-                $validators[] = new sfValidatorDate(array('required' => isset($type['required'])));
-        }
-        elseif (isset($fc['model']) && isset($type['text']) && isset($type['multiple'])) {
-            $options = array();
-            if (isset($fc['order_by'])) {
-                $options['order_by'] = preg_split('/\s+/', $fc['order_by']);
-                $options['order_by'] += array('', 'asc');
-            }
-            $string = false;
-            $validators[] = new sfValidatorCallback(array('required' => isset($type['required']), 'callback' => array('BaseForm', 'validateMultipleChoice')));
-        }
-        if ($string)
-            $validators[] = new sfValidatorString(array('required' => isset($type['required']), 'trim' => true));
-
-        $validator = false;
-        if (count($validators) > 1)
-            $validator = new sfValidatorAnd($validators);
-        else if (count($validators) > 0)
-            $validator = $validators[0];
-
-        return $validator;
     }
 
     /**

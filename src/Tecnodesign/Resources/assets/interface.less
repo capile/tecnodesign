@@ -158,11 +158,16 @@ div.tdz-i-switched{
   opacity:1;max-height:100%;
 }
 
-.tdz-i-summary .i-check-label.off {
-  cursor:zoon-in;
-}
-.tdz-i-summary .i-check-label.on {
-  cursor:zoon-out;
+.tdz-i-summary .i-check-label {
+  padding-left:1.5em;
+  margin-left:-1.5em;
+  &.off {
+    cursor:s-resize;
+  }
+  &.on {
+    cursor:n-resize;
+  }
+
 }
 
 input.tdz-i-switch{
@@ -644,8 +649,11 @@ select, input {
   z-index:-1;
 }
 
-.i-check-label label.off {
+.i-check-label label {
   opacity:0.5;
+  &.on {
+    opacity:1;
+  }
 }
 
 /* 50% column fields */
