@@ -123,6 +123,12 @@ class Tecnodesign_Query_Sql
         return $this;
     }
 
+    public static function concat($a, $p='a.', $sep='-')
+    {
+        if(is_array($a)) return 'concat('.$p.implode(','.tdz::sqlEscape($sep).','.$p, $a).')';
+        else return $p.$a;
+    }
+
     public function buildQuery($count=false)
     {
         if(is_null($this->_where)) {
@@ -130,11 +136,14 @@ class Tecnodesign_Query_Sql
         }
         if($count) {
             $s = ' count(1)';
-            if($count && $this->_from && strpos($this->_from, ' left outer join ')) {
-                $pk = $this->scope('uid');
-                if(is_array($pk)) $pk = array_shift($pk);
-                $s = ' count(distinct a.'.$pk.')';
-                unset($pk);
+            $cc = '';
+            if($this->_groupBy) {
+                $cc = trim($this->_groupBy);
+            } else if($this->_from && strpos($this->_from, ' left outer join ')) {
+                $cc = static::concat($this->scope('uid'),'a.');
+            }
+            if($cc) {
+                $s = ' count(distinct '.$cc.')';
             }
         } else {
             $s = ($this->_select)?($this->_distinct.$this->_select):(' a.*');

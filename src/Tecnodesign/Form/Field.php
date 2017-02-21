@@ -760,24 +760,26 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if (method_exists($this, 'check'.$m)) {
             $rules[$this->type]='This is not a valid value.';
         }
-        if($this->required && $m!='None') {
-            $rules['required']='Is mandatory and should not be blank.';
-        }
-        if($this->bind) {
-            $rules['model']='This is not a valid value.';
-        } else if ($this->form && $this->getModel() && method_exists($this->getModel(), ($m='validate'.tdz::camelize($this->id, true)))) {
-            $rules['model:'.$m]='This is not a valid value.';
-        }
-        if($this->choices) {
-            $rules['choices']='This is not a valid choice.';
-        }
-        if($this->min_size && $this->size) {
-            $rules['size']=array("Should have between %s and %s characters.", $this->min_size, $this->size);
-        } else {
-            if($this->size) {
-                $rules['size']=array("Should be smaller than %s characters.", $this->size);
-            } else if($this->min_size) {
-                $rules['size']=array("Should be greater than %s characters.", $this->min_size);
+        if($m!='None') {
+            if($this->required) {
+                $rules['required']='Is mandatory and should not be blank.';
+            }
+            if($this->bind) {
+                $rules['model']='This is not a valid value.';
+            } else if ($this->form && $this->getModel() && method_exists($this->getModel(), ($m='validate'.tdz::camelize($this->id, true)))) {
+                $rules['model:'.$m]='This is not a valid value.';
+            }
+            if($this->choices) {
+                $rules['choices']='This is not a valid choice.';
+            }
+            if($this->min_size && $this->size) {
+                $rules['size']=array("Should have between %s and %s characters.", $this->min_size, $this->size);
+            } else {
+                if($this->size) {
+                    $rules['size']=array("Should be smaller than %s characters.", $this->size);
+                } else if($this->min_size) {
+                    $rules['size']=array("Should be greater than %s characters.", $this->min_size);
+                }
             }
         }
         $rules = $this->rules + $rules;

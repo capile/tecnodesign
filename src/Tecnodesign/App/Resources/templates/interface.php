@@ -25,6 +25,7 @@ Tecnodesign_App::response('title', $title);
     }
     foreach($urls as $iurl=>$t): 
         ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' tdz-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><?php echo $t['title']; ?></a><?php
+        unset(Tecnodesign_Interface::$urls[$iurl]);
     endforeach;
 
 ?></div><?php
@@ -68,6 +69,8 @@ Tecnodesign_App::response('title', $title);
                     ?></div><?php 
                 endif;
 
+                if(isset($searchForm)) echo '<span class="i-check-label tdz-i-switch">';
+
 
                 if(isset($list)) {
                     // list counter
@@ -97,7 +100,7 @@ Tecnodesign_App::response('title', $title);
 
                     if(isset($searchForm))
                         echo '<input type="checkbox" id="tdz-i-s-'.$id.'" class="tdz-i-switch tdz-i-search" />',
-                             '<label for="tdz-i-s-'.$id.'">'.$Interface::$labelFilter.'</label>',
+                             '<label for="tdz-i-s-'.$id.'">'.$Interface::$labelFilter.'</label></span>',
                              '<div class="tdz-i-search tdz-i-switched">'.$searchForm.'</div>';
                 }
 
@@ -140,4 +143,11 @@ Tecnodesign_App::response('title', $title);
                 ?></div><?php
             endif;
 
-?></div></div></div>
+
+            // .tdz-i-actions
+            ?></div><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
+                echo $buttons; 
+            ?></div></div><?php 
+
+
+?></div></div>

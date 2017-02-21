@@ -482,7 +482,8 @@ Z.checkInput=function(e, c, r)
     var i=3, p=e.parentNode;
     while(p && i-- > 0) {
         if(p.nodeName.toLowerCase()=='tr' || p.className.search(/\binput\b/)>-1) {
-            var on=(p.className.search(/\bon\b/)>-1);
+            var on=(p
+                .className.search(/\bon\b/)>-1);
             if(c && !on) p.className += (p.className)?(' on'):('on');
             else if(!c && on) p.className = p.className.replace(/\bon\b\s*/, '').trim();
             break;
@@ -512,7 +513,7 @@ Z.toggleInput=function()
     if(!f) return;
     var i=f.length, chk=(Z.isNode(this))?(this.checked):(false);
     while(i-- > 0) {
-        if(f[i]==c) continue;
+        if(f[i]==this) continue;
         Z.checkInput(f[i], chk, false);
     }
 }
@@ -636,9 +637,12 @@ Z.isVisible=function(o)
     return o.offsetWidth > 0 && o.offsetHeight > 0;
 }
 
-Z.formData=function(f)
+Z.formData=function(f, includeEmpty, returnObject)
 {
     var d;
+    if(arguments.length<3) returnObject=false;
+    if(arguments.length<2) includeEmpty=true;
+
     if(('id' in f) && (f.id in _f)) {
         d=_f[f.id];
     } else {
@@ -647,10 +651,11 @@ Z.formData=function(f)
         for(i=0;i<f.elements.length;i++) {
             if('name' in f.elements[i] && f.elements[i].name) {
                 v = Z.val(f.elements[i]);
-                if(v!==null) d[f.elements[i].name] = v;
+                if(v!==null && (v || includeEmpty)) d[f.elements[i].name] = v;
             }
         }
     }
+    if(returnObject) return d;
     var s='', n;
     if(d) {
         for(n in d) {
@@ -677,43 +682,67 @@ Z.deleteNode=function(o)
     return o.parentNode.removeChild(o);
 }
 
-/*!checkLabel*/
-Z.initCheckLabel=function()
+Z.initCheckLabel=function(e)
 {
-    var s=false;
     if(!this.getAttribute('data-check-label')) {
         this.setAttribute('data-check-label',1);
-        Z.bind(this, 'click', Z.initCheckLabel);
-        s=true;
+        var l=Z.parentNode(this, 'label');
+        if(!l) l=this.parentNode; 
+        Z.bind(l, 'click', checkLabel);
+        checkLabel(true);
     }
-    var cn = (this.checked)?('on'):('off'), l = Z.parentNode(this, 'label');
-    if(l) {
-        if(l.className!=cn) l.className = cn;
-        if(!s && this.getAttribute('type')=='radio') {
-            cn = (cn=='on')?('off'):('on');
-            var L = l.parentNode.querySelectorAll('label'), i=L.length;
-            while(i--) {
-                if(l!=L[i]) {
-                    if(L[i].className!=cn)L[i].className=cn;
+}
+
+var _Tl,_L={};
+function checkLabel(e)
+{
+    if(_Tl) clearTimeout(_Tl);
+    if(arguments.length>0) {
+        if(Z.node(this)) {
+            var nn=this.nodeName.toLowerCase(),E;
+            if(nn!='input' && nn!='label' && (E=this.querySelector('input[type="radio"],input[type="checkbox"]'))) {
+                if(E.checked) {
+                    E.checked = false;
+                    E.removeAttribute('checked');
+                } else {
+                    E.checked = true;
+                    E.setAttribute('checked', 'checked');
                 }
             }
         }
+        _Tl=setTimeout(checkLabel, 50);
+        return;
     }
+    var L=document.querySelectorAll(Z.modules.CheckLabel), i=L.length, P, cn;
+    while(i--) {
+        P=Z.parentNode(L[i], 'label');
+        if(!P) P=L[i].parentNode;
+        cn=P.className;
 
+        if(L[i].checked) {
+            if(!L[i].getAttribute('checked')) L[i].setAttribute('checked','checked');
+            if(cn.search(/\bon\b/)<0) cn += ' on';
+            if(cn.search(/\boff\b/)>-1) cn = cn.replace(/\s*\boff\b/g, '');
+            L[i].setAttribute('data-switch', 'on');
+        } else {
+            if(L[i].getAttribute('checked')) L[i].removeAttribute('checked');
+            if(cn.search(/\boff\b/)<0) cn += ' off';
+            if(cn.search(/\bon\b/)>-1) cn = cn.replace(/\s*\bon\b/g, '');
+            L[i].setAttribute('data-switch', 'off');
+        }
+        cn=cn.trim();
+        if(P.className!=cn) P.className=cn;
+        P=null;
+    }
 }
 
-/*!picker*/
-var _Picker={}, _Pickerc=0;
+var _Picker={}, _Pickerc=0, _PickerT=0;
 Z.initDatepicker=function()
 {
     if(!('datepicker' in Z) || this.getAttribute('data-datepicker')) return;
-    this.setAttribute('data-datepicker', Z.datepicker);
 
-    var id=this.getAttribute('id');
-    if(!id) {
-        id='p'+(_Pickerc++);
-        this.id=id;
-    }
+    var id='p'+(_Pickerc++);
+    this.setAttribute('data-datepicker', id);
 
     if(Z.datepicker=='Pikaday') {
         var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false };
@@ -724,6 +753,21 @@ Z.initDatepicker=function()
             cfg.format+= ' '+Z.l[Z.language].timeFormat;
         }
         _Picker[id] = new Pikaday(cfg);
+    }
+    if(_PickerT) clearTimeout(_PickerT);
+    _PickerT = setTimeout(cleanupDatepicker, 500);
+}
+
+function cleanupDatepicker()
+{
+    if(_PickerT) clearTimeout(_PickerT);
+    _PickerT=0;
+    for(var n in _Picker) {
+        if(!document.querySelector('*[data-datepicker="'+n+'"]')) {
+            _Picker[n].destroy();
+            delete(_Picker[n]);
+        }
+        n=null;
     }
 }
 
@@ -908,12 +952,12 @@ Z.removeChildren=function(o)
     }
 }
 
-/*!filters*/
 Z.initFilters=function()
 {
     var t=this;
     if(this.className.search(/\btdz-a-filters\b/)>-1) return;
-    Z.bind(this, 'input', formFilters);
+    //Z.bind(this, 'input', formFilters);
+    Z.bind(this, 'change', formFilters);
     formFilters.call(this);
 }
 
@@ -927,20 +971,21 @@ function formFilters(e)
     if(reset) this.className += ' tdz-a-filters';
 
     var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), 
-      tn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P;
+      tn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk;
     if(nn.indexOf('[')>-1) {
         nn=nn.replace(/.*\[([^\[]+)\]$/, '$1');
         tp = this.id.substr(0, this.id.length - nn.length);
     }
     while(i--) {
         tn = tp+t[i];
+        fk = fid+tn;
         // check for selects
         if(T=this.form.querySelector('select#'+tn)) {
             L = T.querySelectorAll('option');
-            if(!(tn in _FF)) {
-                _FF[tn]={o:[], v:{}, f:{}};
+            if(!(fk in _FF)) {
+                _FF[fk]={o:[], v:{}, f:{}};
                 for(l=0;l<L.length;l++) {
-                    if(L[l].selected) _FF[tn].v[L[l].value]=true;
+                    if(L[l].selected) _FF[fk].v[L[l].value]=true;
                     A=L[l].attributes;
                     n=A.length;
                     P={};
@@ -950,26 +995,26 @@ function formFilters(e)
                         }
                     }
                     P.label = L[l].label;//innerHTML;//Z.text(L[l]);
-                    _FF[tn].o.push(P);
+                    _FF[fk].o.push(P);
                 }
             } else {
-                _FF[tn].v = {};
+                _FF[fk].v = {};
                 for(l=0;l<L.length;l++) {
-                    if(L[l].selected) _FF[tn].v[L[l].value]=true;
+                    if(L[l].selected) _FF[fk].v[L[l].value]=true;
                 }
             }
 
-            if(reset || !(nn in _FF[tn].f) || v!=_FF[tn].f[nn]) {
-                _FF[tn].f[nn] = v;
+            if(reset || !(nn in _FF[fk].f) || v!=_FF[fk].f[nn]) {
+                _FF[fk].f[nn] = v;
                 O = [];
-                L=_FF[tn].o;
+                L=_FF[fk].o;
                 for(l=0;l<L.length;l++) {
-                    sel = (L[l].value in _FF[tn].v);
+                    sel = (L[l].value in _FF[fk].v);
                     tv=true;
                     if(L[l].value) {
-                        for(fn in _FF[tn].f) {
+                        for(fn in _FF[fk].f) {
                             // make do for multiple source filters
-                            if(!('data-'+fn in L[l]) || L[l]['data-'+fn]!=_FF[tn].f[fn]) {
+                            if(!('data-'+fn in L[l]) || L[l]['data-'+fn]!=_FF[fk].f[fn]) {
                                 tv=false;
                                 break;
                             }
@@ -979,6 +1024,60 @@ function formFilters(e)
                 }
                 Z.removeChildren(T);
                 Z.element.call(T,O);
+                if(T.getAttribute('data-filters')) {
+                    Z.fire(T, 'change');
+                }
+            }
+        } else if(T=this.form.querySelector('#f__'+tn)) {
+            L = T.querySelectorAll('input[type="radio"],input[type="checkbox"]');
+            if(!(fk in _FF)) {
+                _FF[fk]={c:{}, v:{}, f:{}};
+            }
+            for(l=0;l<L.length;l++) {
+                if(L[l].checked) _FF[fk].v[L[l].value]=true;
+                _FF[fk].c[L[l].id]=L[l].value;
+            }
+
+            if(reset || !(nn in _FF[fk].f) || v!=_FF[fk].f[nn]) {
+                _FF[fk].f[nn] = v;
+                O = [];
+                L=_FF[fk].c;
+                var n, E, a, Pn;
+                for(n in L) {
+                    sel = (L[l] in _FF[fk].v);
+                    tv=true;
+                    if(L[l]) {
+                        E = T.querySelector('input#'+n);
+                        for(fn in _FF[fk].f) {
+                            // make do for multiple source filters
+                            if(!(a=E.getAttribute('data-'+fn)) || a!=_FF[fk].f[fn]) {
+                                tv=false;
+                                break;
+                            }
+                        }
+                    }
+                    if(!(Pn=Z.parentNode('label'))) {
+                        Pn = E.parentNode;
+                    }
+                    if(tv) {
+                        if(Pn.className.search(/\bi-hidden\b/)>-1) {
+                            Pn.className = Pn.className.replace(/\s*\bi-hidden\b/g, '');
+                        }
+                        E.checked = sel;
+                        E.setAttribute('checked', 'checked');
+                    } else {
+                        if(Pn.className.search(/\bi-hidden\b/)<0) {
+                            Pn.className += ' i-hidden';
+                        }
+                        E.checked = false;
+                        E.removeAttribute('checked');
+                    }
+                }
+                /*
+                if(E.getAttribute('data-filters')) {
+                    Z.fire(E, 'change');
+                }
+                */
             }
         }
         //@TODO: search, checkbox and radio
@@ -988,7 +1087,6 @@ function formFilters(e)
     }
 }
 
-/*!datalist*/
 Z.initDatalist=function(o)
 {
     var t=Z.node(this, o);
@@ -1048,7 +1146,7 @@ function datalistKeypress(e)
         datalistOption.apply(s);
     }
 }
-/*!end keypress*/
+
 var _dq=null;
 function datalistQueryTimeout()
 {
@@ -1438,7 +1536,6 @@ window.Element && function(ElementPrototype) {
     }
 }(Element.prototype);
 
-/*! matchesSelector */
 var matchesSelector = function(node, selector) {
     if(!('parentNode' in node) || !node.parentNode) return false;
     return Array.prototype.indexOf.call(node.parentNode.querySelectorAll(selector)) != -1
