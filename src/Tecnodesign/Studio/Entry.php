@@ -630,6 +630,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             'updated'=>$t,
         ));
         if($meta) {
+            if(isset($meta['link']) && $meta['link']!=$url && $meta['link']!=tdz::requestUri()) tdz::redirect($meta['link']);
             if(isset($meta['languages'])) Tecnodesign_Studio::$languages = $meta['languages'];
             Tecnodesign_Studio::addResponse($meta);
             foreach($meta as $fn=>$v) {
