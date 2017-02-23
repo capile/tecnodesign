@@ -2123,19 +2123,39 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $i = (isset($o['position']))?($o['position']):(0);
         $start = (isset($o['start']))?($o['start']):($i);
         $max = (isset($o['hits']))?($o['hits']):(20);
-        $qs = Tecnodesign_Ui::$qs;
-        $qsb = ($qs)?(substr($qs,1)):('');
-        if($qsb) {
-            $qsb = preg_replace('#&?(o|d|p)=[^&]*#', '', $qsb);
-            if(substr($qsb, 0, 1)=='&') $qsb = substr($qsb,1);
-        }
-        $qsb=($qsb)?('?'.$qsb.'&'):('?');
-        if(!(($sf=Tecnodesign_App::request('get', 'o')) && is_numeric($sf) && $sf<count($labels))) {
-            $sf = (isset($schema['order']))?(array_keys($schema['order'])):(array(''));
-            $sf=$sf[0];
-        }
-        if(!(($sd=Tecnodesign_App::request('get', 'd')) && ($sd=='asc' || $sd=='desc'))) {
-            $sd=(isset($schema['order'][$sf]))?($schema['order'][$sf]):('asc');
+
+        if(isset(tdz::$variables['Interface']) && is_object(tdz::$variables['Interface'])) {
+            $I = tdz::$variables['Interface'];
+            $sf = Tecnodesign_App::request('get', $I::REQ_ORDER);
+            if(strpos($sf, ',')) $sf = substr($sf, 0, strpos($sf, ','));
+            if(substr($sf, 0, 1)=='!') {
+                $sd = 'desc';
+                $sf = substr($sf,1);
+            } else {
+                $sd = 'asc';
+            }
+            $qs = Tecnodesign_App::request('query-string');
+            if($qs && ($qs=preg_replace('/&?(ajax|'.$I::REQ_ORDER.')(=[^&]+)?/', '', $qs))) {
+                $qs = preg_replace('/^[?&]+|&$/', '', $qs);
+                $qsb = ($qs)?('?'.$qs.'&'):('?');
+            } else {
+                $qsb = '?';
+            }
+        } else {
+            $qs = Tecnodesign_Ui::$qs;
+            $qsb = ($qs)?(substr($qs,1)):('');
+            if($qsb) {
+                $qsb = preg_replace('#&?(o|d|p)=[^&]*#', '', $qsb);
+                if(substr($qsb, 0, 1)=='&') $qsb = substr($qsb,1);
+            }
+            $qsb=($qsb)?('?'.$qsb.'&'):('?');
+            if(!(($sf=Tecnodesign_App::request('get', 'o')) && is_numeric($sf) && $sf<count($labels))) {
+                $sf = (isset($schema['order']))?(array_keys($schema['order'])):(array(''));
+                $sf=$sf[0];
+            }
+            if(!(($sd=Tecnodesign_App::request('get', 'd')) && ($sd=='asc' || $sd=='desc'))) {
+                $sd=(isset($schema['order'][$sf]))?($schema['order'][$sf]):('asc');
+            }
         }
 
         if(!is_null($this->_collection)) {
@@ -2172,11 +2192,21 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $fid = (preg_match('/\s+_?([\_a-z0-9]+)$/i', $fn, $m))?($m[1]):(str_replace(array('`', '[', ']'), '', $fn));
                 if(is_numeric($label)) $label = tdz::t(ucwords(str_replace('_', ' ', $fid)), 'model-'.$model);
                 else if(substr($label,0,1)=='*') $label = tdz::t(substr($label,1), 'model-'.$model);
-                $s .= '<th class="c-'.$so.' f-'.$fid.(($so==$sf)?(' ui-order ui-order-'.$sd):('')).'">'
+
+                if(isset($I)) {
+                    $sc = $label;
+                    $soa = $I::REQ_ORDER.'='.$sc;
+                    $sod = $I::REQ_ORDER.'=!'.$sc;
+                } else {
+                    $sc = $so;
+                    $soa = 'o='.$so.'&d=asc';
+                    $sod = 'o='.$so.'&d=desc';
+                }
+                $s .= '<th class="c-'.$so.' f-'.$fid.(($sc==$sf)?(' ui-order ui-order-'.$sd):('')).'">'
                     . ((isset($first) && $checkbox==='checkbox')?('<input type="checkbox" data-callback="toggleInput" label="'.tdz::t('Select all', 'ui').'" data-label-alternative="'.tdz::t('Clear selection', 'ui').'" />'):(''))
                     . $label
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.'o='.$so.'&d=asc').'" class="icon asc"></a>'):(''))
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.'o='.$so.'&d=desc').'" class="icon desc"></a>'):(''))
+                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.$soa).'" class="tdz-i--up icon asc"></a>'):(''))
+                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.$sod).'" class="tdz-i--down icon desc"></a>'):(''))
                     . '</th>';
                 $so++;
                 unset($label, $fn, $sort, $first);
@@ -2265,7 +2295,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         
         return $s;
     }
-    
+     
     public function renderField($fn, $fd=null, $xmlEscape=false)
     {
         $cn=get_class($this);

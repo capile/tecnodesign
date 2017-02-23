@@ -569,12 +569,7 @@ class tdz
                     if(isset($_SERVER['REDIRECT_STATUS']) && $_SERVER['REDIRECT_STATUS']=='200' && isset($_SERVER['REDIRECT_URL'])) {
                         tdz::$real_script_name = $_SERVER['REDIRECT_URL'];
                     } else if (isset($_SERVER['REQUEST_URI'])) {
-                        $qspos = strpos($_SERVER['REQUEST_URI'], '?');
-                        if($qspos!==false) {
-                            tdz::$real_script_name = substr($_SERVER['REQUEST_URI'], 0, $qspos);
-                        } else {
-                            tdz::$real_script_name = $_SERVER['REQUEST_URI'];
-                        }
+                        tdz::$real_script_name = $_SERVER['REQUEST_URI'];
                     } else {
                         tdz::$real_script_name = '';
                     }
@@ -582,9 +577,19 @@ class tdz
                     if(!isset($a[1]) || $a[1]) {
                         tdz::$real_script_name = preg_replace('#\.(php|html?)(/.*)?$#i', '$2', tdz::$real_script_name);
                     }
+                    $qspos = strpos(tdz::$real_script_name, '?');
+                    if($qspos!==false) {
+                        tdz::$real_script_name = substr(tdz::$real_script_name, 0, $qspos);
+                    }
+                    unset($qspos);
                 }
                 return tdz::$real_script_name;
             } else if(is_string($a[0]) && substr($a[0], 0, 1) == '/') {
+                $qspos = strpos($a[0], '?');
+                if($qspos!==false) {
+                    $a[0] = substr($a[0], 0, $qspos);
+                }
+                unset($qspos);
                 tdz::$script_name = $a[0];
                 if(isset($a[2]) && $a[2]===true) 
                     tdz::$real_script_name = $a[0];
@@ -594,6 +599,7 @@ class tdz
         }
         return tdz::$script_name;
     }
+
 
     /**
      * CSS Parser: for applying css rules everywhere!

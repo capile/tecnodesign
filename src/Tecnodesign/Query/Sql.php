@@ -246,7 +246,7 @@ class Tecnodesign_Query_Sql
     {
         if(is_array($o)) {
             foreach($o as $i=>$s) {
-                if(!is_int($i)) {
+                if(!is_int($i) || $s=='asc' || $s=='desc') {
                     $this->addOrderBy($i, $s);
                 } else {
                     $this->addOrderBy($s);
@@ -254,7 +254,7 @@ class Tecnodesign_Query_Sql
                 unset($s);
             }
         } else if($o) {
-            $fn = $this->getAlias($o);
+            $fn = (!is_int($o))?($this->getAlias($o)):($o);
             if($fn && strpos($fn, $this->_orderBy)===false) {
                 if($sort!='asc' && $sort!='desc')$sort='';
                 $this->_orderBy .= ($this->_orderBy)?(", {$fn} {$sort}"):(" {$fn} {$sort}");

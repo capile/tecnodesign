@@ -796,6 +796,8 @@ select, input {
     &.tdz-i--fornecedores:before  {content: "\f0d1";}
     &.tdz-i--refresh:before       {content: "\f021";}
     &.tdz-i--close:before         {content: "\f00d";}
+    &.tdz-i--up:before            {content: "\f106";}
+    &.tdz-i--down:before          {content: "\f107";}
 }
 
 .tdz-i-button {
@@ -912,6 +914,23 @@ th > input[type=checkbox], td > input[type=checkbox]{
     background:@colorTab;
     color:@colorTabText;
     font-weight:normal;
+    position:relative;
+    &:before {
+      content:'    ';
+      float:right;
+      display:inline-block;
+    }
+    a {
+      color:@colorTabText;
+      position:absolute;
+      right:0;
+      top:0;
+      &.asc {
+        right:1em;
+      }
+      &:hover, &:active {color:@colorHighlight !important; }
+    }
+    &.ui-order-asc a.asc, &.ui-order-desc a.desc {color:@colorHighlight !important;}
   }
   td, th {
     vertical-align:top;text-align:left;padding:0.325em;border:none;

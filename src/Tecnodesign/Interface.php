@@ -1461,6 +1461,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function render($p=array())
     {
+        tdz::$variables['Interface'] = $this;
         static::$currentAction = $this->action;
         if($this->run) {
             $o = $this->run;
@@ -2130,7 +2131,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(($order=Tecnodesign_App::request('get', static::REQ_ORDER)) && preg_match('/^(\!)?(.+)$/', $order, $m) && isset($scope[$m[2]])) {
                 $fn = $scope[$m[2]];
                 if(is_array($fn)) $fn=$fn['bind'];
-                if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' '));
+                if(strpos($fn, ' ')!==false) $fn = preg_replace('/(\s+as)?\s+[^\s]+$/', '', $fn);
                 $order=array($fn=>($m[1])?('desc'):('asc'));
                 unset($m, $fn);
             } else if(isset($this->options['order'])) {
