@@ -2138,6 +2138,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($qs && ($qs=preg_replace('/&?(ajax|'.$I::REQ_ORDER.')(=[^&]+)?/', '', $qs))) {
                 $qs = preg_replace('/^[?&]+|&$/', '', $qs);
                 $qsb = ($qs)?('?'.$qs.'&'):('?');
+                $qs = ($qs)?('?'.$qs):('');
             } else {
                 $qsb = '?';
             }
