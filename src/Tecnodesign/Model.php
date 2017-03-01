@@ -806,19 +806,34 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $result = array();
         if (!is_null($scope) && (is_array($scope) || isset($schema['scope'][$scope]))) {
             if(!is_array($scope)) $scope = $schema['scope'][$scope];
+        } else if(isset($schema['columns'])) {
+            $scope = $schema['columns'];
+        }
+        if($scope && is_array($scope)) {
             foreach($scope as $fn=>$fv) {
+                if(is_array($fv)) {
+                    $fv = (isset($fv['bind']))?($fv['bind']):($fn);
+                }
                 if(strpos($fv, ' ')) {
                     $fv = trim(substr($fv, strrpos($fv, ' ')+1));
                 }
                 if(!is_null($this->$fv)) {
-                    $result[($keyFormat)?(sprintf($keyFormat, $fn)):($fn)] = ($valueFormat)?(sprintf($valueFormat, $this->$fv)):($this->$fv);
-                }
-                unset($fn, $fv);
-            }
-        } else if(isset($schema['columns'])) {
-            foreach ($schema['columns'] as $fn=>$fv) {
-                if (!is_null($this->$fn)) {
-                    $result[($keyFormat)?(sprintf($keyFormat, $fn)):($fn)] = ($valueFormat)?(sprintf($valueFormat, $this->$fn)):($this->$fn);
+                    if($valueFormat===true) {
+                        $v = $this->renderField($fv);
+                    } else if($valueFormat) {
+                        $v = sprintf($valueFormat, $this->$fv);
+                    } else {
+                        $v = $this->$fv;
+                    }
+                    if($keyFormat===true) {
+                        $k = $this->fieldLabel($fn);
+                    } else if($keyFormat) {
+                        $k = sprintf($keyFormat, $fn);
+                    } else {
+                        $k = $fn;
+                    }
+                    $result[$k] = $v;
+                    unset($k, $v);
                 }
                 unset($fn, $fv);
             }
