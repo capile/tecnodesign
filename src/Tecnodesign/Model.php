@@ -2260,7 +2260,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else if(strpos($fn, '.')!==false || isset($cn::$schema['relations'][$fn])) {
                 $value = (string) $this->getRelation($fn);
             } else {
-                $value = $this->$fn;
+                $value = $this->__get($fn);
             }
             $fd=false;
             if(!$display && isset($schema['columns'][$fn])) {
