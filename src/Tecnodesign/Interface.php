@@ -2426,7 +2426,7 @@ class Tecnodesign_Interface implements ArrayAccess
                             $post[$slug] = (tdz::raw($post[$slug]))?('1'):('-1');
                         }
                     }
-                } else if($noq) {
+                } else if($noq || (isset($fd['filter']) && $fd['filter'])) {
                     $ff[$slug]='choices';
                     $fo['fields'][$slug]=array(
                         'type'=>'text',
