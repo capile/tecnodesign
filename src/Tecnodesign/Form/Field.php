@@ -1150,7 +1150,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     
     public function renderForm(&$arg)
     {
-        $input = '';
+        $input = '<input type="hidden" id="'.tdz::xml($arg['id']).'" name="'.tdz::xml($arg['name']).'" />';
         $jsinput = '';
         $prefix ='';
         $bind = $this->bind;

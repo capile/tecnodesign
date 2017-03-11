@@ -14,7 +14,7 @@ class Tecnodesign_Query_Sql
 {
     public static $microseconds=6;
     protected static $options, $conn=array();
-    protected $_schema, $_scope, $_select, $_distinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction;
+    protected $_schema, $_scope, $_select, $_distinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction, $_last;
 
     public function __construct($s=null)
     {
@@ -125,7 +125,7 @@ class Tecnodesign_Query_Sql
 
     public static function concat($a, $p='a.', $sep='-')
     {
-        if(is_array($a)) return 'concat('.$p.implode(','.tdz::sqlEscape($sep).','.$p, $a).')';
+        if(is_array($a)) return 'concat('.$p.implode(','.tdz::sql($sep).','.$p, $a).')';
         else return $p.$a;
     }
 
@@ -159,7 +159,11 @@ class Tecnodesign_Query_Sql
             . ((!$count && $this->_offset)?(' offset '.$this->_offset):(''))
         ;
         return $q;
+    }
 
+    public function lastQuery()
+    {
+        return $this->_last;
     }
 
     public function fetch($o=null, $l=null)
@@ -347,7 +351,7 @@ class Tecnodesign_Query_Sql
         if (isset($sc['columns'][$fn])) {
             $found = true;
             if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
-                $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sqlEscape($fn);
+                $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sql($fn);
             } else {
                 $fn = $ta.'.'.$fn;
             }
@@ -396,7 +400,7 @@ class Tecnodesign_Query_Sql
                                         $ara = $this->getAlias($r, $rsc);
                                         $this->_from .= ' and ('.$ara.' is null or '.$ara.'=\'\')';
                                         unset($ara);
-                                    } else $this->_from .= ' and '.$this->getAlias($r, $rsc).'='.tdz::sqlEscape($v);
+                                    } else $this->_from .= ' and '.$this->getAlias($r, $rsc).'='.tdz::sql($v);
                                 }
                             } else {
                                 if(strpos($rsc['events']['active-records'], '`')!==false || strpos($rsc['events']['active-records'], '[')!==false) {
@@ -433,7 +437,7 @@ class Tecnodesign_Query_Sql
             } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
-                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sqlEscape($fn);
+                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sql($fn);
                 } else {
                     $fn = $ta.'.'.$fn;
                 }
@@ -594,6 +598,7 @@ class Tecnodesign_Query_Sql
 
     public function run($q)
     {
+        $this->_last = $q;
         return self::runStatic($this->schema('database'), $q);
     }
 
@@ -633,14 +638,6 @@ class Tecnodesign_Query_Sql
         return $this->query($q, \PDO::FETCH_COLUMN, $i);
     }
 
-    /*
-    public function lastInsertId($fn=null)
-    {
-        $id = self::connect($this->schema('database'))->lastInsertId($fn);
-        return $id;
-    }
-    */
-
 
     public static function escape($str, $enclose=true)
     {
@@ -679,114 +676,232 @@ class Tecnodesign_Query_Sql
         return self::escape($v);
     }
 
-
-    public function transaction($id=null)
+    /**
+     * Enables transactions for this connector
+     * returns the transaction $id
+     */
+    public function transaction($id=null, $conn=null)
     {
-        // check if there's a current transaction
-        // replace current transaction?
-        // multiple transactions?
-        $conn = self::connect($this->schema('database'));
-        $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 0);
-        $this->_transaction = $conn->beginTransaction();
-        unset($conn);
-        return $this->_transaction;
+        if(is_null($this->_transaction)) $this->_transaction = array();
+        if(!$id) {
+            $id = uniqid('tdzt');
+        }
+        if(!isset($this->_transaction[$id])) {
+            if(!$conn) {
+                $conn = self::connect($this->schema('database'));
+            }
+            $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 0);
+            $conn->beginTransaction();
+            $this->_transaction[$id] = $conn;
+        }
+        return $id;
     }
     
-    public function commit($id=null)
+    /**
+     * C0mmits transactions opened by ::transaction
+     * returns true if successful
+     */
+    public function commit($id=null, $conn=null)
     {
-        if(!$this->_transaction) return false;
-        $conn = self::connect($this->schema('database'));
-        if($conn->inTransaction() && $conn->commit()===false){//  && !$conn->getAttribute(PDO::ATTR_AUTOCOMMIT)
-            return false;
-        } else {
-            $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
-        }
-        $this->_transaction = null;
-        unset($conn);
-        return true;
-    }
-
-    public function rollback($id=null)
-    {
-        if(!$trans) return false;
-        $conn = self::connect($this->schema('database'));
-        $conn->rollBack();
-        $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
-        unset($conn);
-        $this->_transaction = null;
-        return true;
-    }
-
-    public function insert($o)
-    {
-        $schema = $o::$schema;
-        $fs = $schema->getScope($o->getScope());
-        $vs = array();
-        foreach($fs as $f) {
-            if(!isset($schema->columns[$f])) continue;
-            $vs[$f] = self::sql($o->$f, $schema->columns[$f]);
-            unset($f);
-        }
-        $tn = $schema->table;
-        if($vs) {
-            $this->run("insert into {$tn} (".implode(', ', array_keys($vs)).') values ('.implode(', ', $vs).')');
-            $pks = $schema->getScope('primary');
-            if($pks) {
-                $insertId = self::connect($this->schema('database'))->lastInsertId();
-                foreach($pks as $fn) {
-                    if(is_null($o->$fn)) {
-                        $o->$fn = $insertId;
-                    }
-                    unset($fn);
-                }
-            }
-            unset($pks);
-            $o->isNew(false);
-        }
-        unset($fs, $schema);
-        return !$o->isNew();
-    }
-
-    public function update($o)
-    {
-        $schema = \Birds\Schema::load(get_class($o));
-        $fs = $schema->getScope($o->getScope());
-        $q = $pk = '';
-        foreach($fs as $f) {
-            if(!isset($schema->columns[$f])) continue;
-            if(isset($schema->columns[$f]['primary'])) {
-                $pk .= (($pk)?(' and '):(''))
-                    . $f . '=' . self::sql($o->$f, $schema->columns[$f]);
+        if(!$this->_transaction) {
+            if($id && $conn) {
+                $this->_transaction = array( $id => $conn );
             } else {
-                $q .= (($q)?(', '):(''))
-                    . $f . '=' . self::sql($o->$f, $schema->columns[$f]);
+                return;
             }
-            unset($f);
         }
-        $tn = $schema->table;
-        unset($fs, $schema);
-        if($q && $pk) {
-            return $this->run("update {$tn} set {$q} where {$pk}");
+        if(!$id) {
+            $id = array_shift(array_keys($this->_transaction));
         }
-        return false;
+        if(isset($this->_transaction[$id])) {
+            if(!$conn) $conn = $this->_transaction[$id];
+            unset($this->_transaction[$id]);
+            if($conn && $conn->inTransaction()) {
+                $r = $conn->commit();
+                $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
+                return $r;
+            } else {
+                return false;
+            }
+        }
     }
-    public function delete()
+
+    /**
+     * Rollback transactions opened by ::transaction
+     * returns true if successful
+     */
+    public function rollback($id=null, $conn=null)
     {
-        $schema = \Birds\Schema::load(get_class($o));
-        $fs = $schema->getScope('primary');
-        $pk = '';
-        foreach($fs as $f) {
-            if(!isset($schema->columns[$f])) continue;
-            $pk .= (($pk)?(' and '):(''))
-                . $f . '=' . self::sql($o->$f, $schema->columns[$f]);
-            unset($f);
+        if(!$this->_transaction) {
+            if($id && $conn) {
+                $this->_transaction = array( $id => $conn );
+            } else {
+                return;
+            }
         }
-        $tn = $schema->table;
-        unset($fs, $schema);
+        if(!$id) {
+            $id = array_shift(array_keys($this->_transaction));
+        }
+        if(isset($this->_transaction[$id])) {
+            if(!$conn) $conn = $this->_transaction[$id];
+            unset($this->_transaction[$id]);
+            if($conn && $conn->inTransaction()) {
+                $r = $conn->rollback();
+                $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
+                return $r;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Returns the last inserted ID from a insert call
+     * returns true if successful
+     */
+    public function lastInsertId($M=null, $conn=null)
+    {
+        if(!$conn) {
+            $conn = self::connect($this->schema('database'));
+        }
+        $pk = $M::pk();
+        $fn = (is_array($pk))?(null):($pk);
+        return $conn->lastInsertId($fn);
+    }
+
+    public function insert($M, $conn=null)
+    {
+        $odata = $M->asArray('save');
+        $data = array();
+
+        $fs = $M::$schema['columns'];
+        if(!$fs) $fs = array_flip(array_keys($odata));
+        foreach($fs as $fn=>$fv) {
+            if(!is_array($fv)) $fv=array('null'=>true);
+            if(isset($fv['increment']) && $fv['increment']=='auto' && !isset($odata[$fn])) {
+                continue;
+            }
+            if(!isset($odata[$fn]) && isset($fv['default']) &&  $M->getOriginal($fn, false)===false) {
+                $odata[$fn] = $fv['default'];
+            }
+            if (!isset($odata[$fn]) && $fv['null']===false) {
+                throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $cn::fieldLabel($fn)));
+            } else if(array_key_exists($fn, $odata)) {
+                $data[$fn] = self::sql($odata[$fn], $fv);
+            } else if($M->getOriginal($fn, false)!==false && is_null($M->$fn)) {
+                $data[$fn] = 'null';
+            }
+            unset($fs[$fn], $fn, $fv);
+        }
+
+        $tn = $M::$schema['tableName'];
+        if($data) {
+            if(!$conn) {
+                $conn = self::connect($this->schema('database'));
+            }
+            $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
+            $r = $conn->exec($this->_last);
+            if($r===false && $conn->errorCode()!=='00000') {
+                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            }
+
+            if($id = $this->lastInsertId($M, $conn)) {
+                $pk = $M::pk();
+                if(is_array($id)) {
+                    if(!is_array($pk)) $pk = array($pk);
+                    foreach($pk as $f) {
+                        if(isset($id[$f])) {
+                            $M->$f = $id[$f];
+                        }
+                        unset($f);
+                    }
+                } else {
+                    if(is_array($pk)) $pk = array_shift($pk);
+                    $M[$pk] = $id;
+                }
+                $M->isNew(false);
+                $r = $id;
+            }
+            return $r;
+        }
+    }
+
+    public function update($M, $conn=null)
+    {
+        $odata = $M->asArray('save');
+        $data = array();
+
+        $fs = $M::$schema['columns'];
+        if(!$fs) $fs = array_flip(array_keys($odata));
+        $sql = '';
+        foreach($fs as $fn=>$fv) {
+            $original=$M->getOriginal($fn);
+            if(isset($fv['primary']) && $fv['primary']) {
+                $pks[$fn] = tdz::sql($original);
+            }
+            if(!is_array($fv)) $fv=array('null'=>true);
+
+            if (!isset($odata[$fn]) && $original===false) {
+                continue;
+            } else if(array_key_exists($fn, $odata)) {
+                $v  = $odata[$fn];
+                $fv = self::sql($v, $fv);
+            } else if($original!==false && $M->$fn===false) {
+                $v  = null;
+                $fv = 'null';
+            } else {
+                continue;
+            }
+
+            if($original===false) $original=null;
+
+            if((string)$original!==(string)$v) {
+                $sql .= (($sql!='')?(', '):(''))
+                      . "{$fn}={$fv}";
+                //$M->setOriginal($fn, $v);
+            }
+            unset($fs[$fn], $fn, $fv, $v);
+        }
+        if($sql) {
+            $tn = $M::$schema['tableName'];
+            $wsql = '';
+            foreach($pks as $fn=>$fv) {
+                $wsql .= (($wsql!='')?(' and '):(''))
+                       . "{$fn}={$fv}";
+            }
+            if(!$conn) {
+                $conn = self::connect($this->schema('database'));
+            }
+            $this->_last = "update {$tn} set {$sql} where {$wsql}";
+            $r = $conn->exec($this->_last);
+            if($r===false && $conn->errorCode()!=='00000') {
+                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            }
+            return $r;
+        }
+    }
+
+    public function delete($M, $conn=null)
+    {
+        $pk = $M->getPk(true);
         if($pk) {
-            return $this->run("delete from {$tn} where {$pk}");
+            $tn = $M::$schema['tableName'];
+            $wsql = '';
+            foreach($pk as $fn=>$v) {
+                $fv = self::sql($v, (isset($M::$schema['columns'][$fn]))?($M::$schema['columns'][$fn]):(null));
+                $wsql .= (($wsql!='')?(' and '):(''))
+                       . "{$fn}={$fv}";
+            }
+            if(!$conn) {
+                $conn = self::connect($this->schema('database'));
+            }
+            $this->_last = "delete from {$tn} where {$wsql}";
+            $r = $conn->exec($this->_last);
+            if($r===false && $conn->errorCode()!=='00000') {
+                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            }
+            return $r;
         }
-        return false;
     }
 
     /**
