@@ -34,7 +34,7 @@ class Tecnodesign_Query_Api
         $postFormat='json',
         $curlOptions=array(
             CURLOPT_HEADER=>1,
-            CURLOPT_VERBOSE        => true,
+            CURLOPT_VERBOSE        => false,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_FAILONERROR    => true,
             CURLOPT_SSL_VERIFYPEER => false,
@@ -45,7 +45,7 @@ class Tecnodesign_Query_Api
             CURLOPT_CONNECTTIMEOUT => 120,          // timeout on connect
             CURLOPT_TIMEOUT        => 120,          // timeout on response
             CURLOPT_MAXREDIRS      => 2,           // stop after 10 redirects
-            //CURLOPT_POST           => false,
+            CURLOPT_POST           => false,
             CURLOPT_HTTPHEADER     => array('Accept: application/json'),
         ),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
