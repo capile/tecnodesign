@@ -786,7 +786,7 @@ class Tecnodesign_Query_Sql
                 $odata[$fn] = $fv['default'];
             }
             if (!isset($odata[$fn]) && $fv['null']===false) {
-                throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $cn::fieldLabel($fn)));
+                throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $M::fieldLabel($fn)));
             } else if(array_key_exists($fn, $odata)) {
                 $data[$fn] = self::sql($odata[$fn], $fv);
             } else if($M->getOriginal($fn, false)!==false && is_null($M->$fn)) {
