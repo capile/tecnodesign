@@ -1144,6 +1144,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $value;
     }
 
+    public static function queryHandler()
+    {
+        return Tecnodesign_Query::handler(get_called_class());
+    }
+
     public static function connect($conn=null, $Q=null)
     {
         if(!$conn) {

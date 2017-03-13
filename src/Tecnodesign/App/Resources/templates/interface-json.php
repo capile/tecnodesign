@@ -107,6 +107,24 @@ if(isset($list) && is_array($list)) {
     if(!$list && $r) $r = array_shift($r);
 }
 
+if(isset($error) && $error) {
+    $R = array('error'=>$error);
+    if(isset($errorMessage)) {
+        $R['message'] = $errorMessage;
+    }
+    $R += $r;
+    $Interface::error(422, $R);
+} else if(isset($success)) {
+    $R = array('message'=>$success);
+    if(isset($status)) {
+        $code = $status;
+        $R += $r;
+        $Interface::error($code, $R);
+    }
+    $R += $r;
+    $r = $R;
+}
+
 $m = 'to'.ucfirst($Interface::format());
 echo $Interface::$m($r);
 

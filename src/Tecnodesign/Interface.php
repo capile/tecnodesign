@@ -53,6 +53,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $errorConflictFormat= 'The format requested as the filename extension conflicts with the header information.',
         $errorForbidden     = 'You don\'t have the credentials required to access this interface.',
         $errorNotFound      = 'Not found or permanently disabled.',
+        $errorNoInput       = 'No input was provided.',
         $labelFilter        = 'Filter',
         $labelActions       = 'Actions',
         $breadcrumbs        = true,
@@ -147,6 +148,7 @@ class Tecnodesign_Interface implements ArrayAccess
             405 => 'Method Not Allowed',
             409 => 'Conflict',
             412 => 'Precondition Failed',
+            422 => 'Unprocessable Entity',
             500 => 'Internal Server Error',
         );
 
@@ -958,7 +960,15 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($f);
         }
         static::status($code);
-        if($msg) static::$headers[static::H_MESSAGE] = $msg;
+        if($msg) {
+            if(is_array($msg)) {
+                if(isset($msg['error'])) static::$headers[static::H_MESSAGE] = $msg['error'];
+                else if(isset($msg['message'])) static::$headers[static::H_MESSAGE] = $msg['message'];
+                else static::$headers[static::H_MESSAGE] = implode(' ', $msg);
+            } else {
+                static::$headers[static::H_MESSAGE] = (string)$msg;
+            }
+        }
 
         if(static::$format!='html') {
             if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
@@ -969,7 +979,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($p);
             $cn = self::$className;
-            if(method_exists($cn, $m='to'.ucfirst(static::$format))) $msg = static::$m(array());
+            if(method_exists($cn, $m='to'.ucfirst(static::$format))) $msg = static::$m((is_array($msg))?($msg):(array()));
 
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($msg, $code);
@@ -1658,9 +1668,9 @@ class Tecnodesign_Interface implements ArrayAccess
         $fo = $this->getForm($o, $scope);
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
-            if($post=Tecnodesign_App::request('post')) {
-                if(!$fo->validate($post)) {
-                    throw new Tecnodesign_Exception($fo->getError());
+            if(($post=Tecnodesign_App::request('post')) || static::$format!='html') {
+                if(!$fo->validate($post) || !$post) {
+                    throw new Tecnodesign_Exception((!$post)?(static::t('errorNoInput')):($fo->getError()));
                 }
                 $oldurl = $this->link();
                 $o->save();
@@ -1689,7 +1699,9 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($post);
         } catch(Exception $e) {
             tdz::log(__METHOD__.' [ERROR]: '.$e);
-            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.static::t('newError').'</p>'.$e->getMessage().'</div>';
+            $this->text['error'] = static::t('newError');
+            $this->text['errorMessage'] = $e->getMessage();
+            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
         }
         return $fo;
     }
@@ -1702,21 +1714,23 @@ class Tecnodesign_Interface implements ArrayAccess
         $fo = $this->getForm($o, $scope);
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
-            if($post=Tecnodesign_App::request('post')) {
-                if(!$fo->validate($post)) {
-                    throw new Tecnodesign_Exception($fo->getError());
+            if(($post=Tecnodesign_App::request('post')) || static::$format!='html') {
+                if(!$fo->validate($post) || !$post) {
+                    throw new Tecnodesign_Exception((!$post)?(static::t('errorNoInput')):($fo->getError()));
                 }
                 $oldurl = $this->link();
                 $pk = implode('-', $o->getPk(true));
                 $o->save();
                 $newpk = implode('-', $o->getPk(true));
                 // success message
+                $this->text['success'] = static::t('updateSuccess');
                 if(isset($_GET['uri']) && !preg_match('#[\<\>\:\(\)]#', $_GET['uri'])) {
-                    $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.static::t('updateSuccess').'</p></div>');
+                    $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>');
                     $this->redirect($_GET['uri'], $oldurl);
                 }
 
-                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.static::t('updateSuccess').'</p></div>';
+                $this->text['success'] = static::t('updateSuccess');
+                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
 
                 $next = null;
                 if(isset($this->options['next'])) {
@@ -1743,7 +1757,9 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($post);
         } catch(Exception $e) {
             tdz::log(__METHOD__.' [ERROR]: '.$e);
-            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.static::t('updateError').'</p>'.$e->getMessage().'</div>';
+            $this->text['error'] = static::t('updateError');
+            $this->text['errorMessage'] = $e->getMessage();
+            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
         }
         return $fo;
     }
@@ -1784,7 +1800,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $msg = static::t('deleteError');
         if(static::$format!='html') {
             $this->message($msg);
-            //static::error(404, $msg);
+            static::error(422, array('error'=>$msg));
         } else {
             $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.$msg.'</p></div>');
         }
@@ -1868,7 +1884,7 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($i, $fn, $label);
         }
         $fo = $o->getForm($d);
-        $fo->id = $this->text['interface'].'--'.(($o->isNew())?('n'):(implode('-',$o->getPk(true))));
+        $fo->id = $this->text['interface'].'--'.(($o->isNew())?('n'):(@implode('-',$o->getPk(true))));
         $fo->attributes['class']='tdz-auto';
         if(isset($ss)) {
             $fo->buttons['button']=array(
@@ -2271,12 +2287,20 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         $r = 0;
         if($cn=$this->getModel()) {
-            $pk = $cn::pk();
-            if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';
-            else $pk = 'distinct `'.$pk.'`';
-            $R = $cn::find($this->search,1,array('count('.$pk.') _count'),true,false,true);
-            if($R) $r = (int) $R->_count;
-            unset($R);
+            $Q = $cn::queryHandler();
+            if($Q::TYPE=='sql') {
+                $pk = $cn::pk();
+                if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';
+                else $pk = 'distinct `'.$pk.'`';
+                $R = $cn::find($this->search,1,array('count('.$pk.') _count'),true,false,true);
+                if($R) $r = (int) $R->_count;
+                unset($R);
+            } else {
+                $pk = $cn::pk(null, true);
+                $R = $cn::find($this->search,0,$pk,true,false,true);
+                if($R) $r = $R->count();
+                unset($R);
+            }
         }
         return $r;
     }

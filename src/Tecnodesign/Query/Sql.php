@@ -12,6 +12,7 @@
  */
 class Tecnodesign_Query_Sql
 {
+    const TYPE='sql';
     public static $microseconds=6;
     protected static $options, $conn=array();
     protected $_schema, $_scope, $_select, $_distinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction, $_last;

@@ -12,7 +12,9 @@
  */
 class Tecnodesign_Query_Api
 {
-    public static $microseconds=6, 
+    const TYPE='api';
+    public static 
+        $microseconds=6, 
         $envelope,
         $search='q',
         $fieldnames='fieldnames',
@@ -20,23 +22,38 @@ class Tecnodesign_Query_Api
         $offset='offset',
         $sort='sort',
         $scope='scope',
+        $insertPath='/new',
+        $insertQuery,
+        $insertMethod='POST',
+        $updatePath='/update/%s',
+        $updateQuery,
+        $updateMethod='POST',
+        $deletePath='/delete/%s',
+        $deleteQuery,
+        $deleteMethod='POST',
+        $postFormat='json',
         $curlOptions=array(
             CURLOPT_HEADER=>1,
+            CURLOPT_VERBOSE        => true,
             CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_FAILONERROR    => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_USERAGENT      => 'API browser',
             CURLOPT_AUTOREFERER    => true,         // set referer on redirect
             CURLOPT_CONNECTTIMEOUT => 120,          // timeout on connect
             CURLOPT_TIMEOUT        => 120,          // timeout on response
             CURLOPT_MAXREDIRS      => 2,           // stop after 10 redirects
-            CURLOPT_POST           => false,
-            CURLOPT_HTTPHEADER     => array('Accept'=>'application/json'),
+            //CURLOPT_POST           => false,
+            CURLOPT_HTTPHEADER     => array('Accept: application/json'),
         ),
-        $successPattern='/ 200 +OK/',
+        $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
+        $errorPattern='/HTTP\/[0-9\.]+ +[45][0-9]{2} /i',
         $headerCount='X-Total-Count',
         $headerModified='Last-Modified';
     protected static $options, $conn=array();
-    protected $_schema, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $headers, $response;
+    protected $_schema, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $headers, $response;
 
     public function __construct($s=null)
     {
@@ -76,34 +93,23 @@ class Tecnodesign_Query_Api
     }
 
     // move this to curl requests?
+    public static function disconnect($n='')
+    {
+        if(isset(self::$C[$n])) {
+            curl_close(self::$C[$n]);
+            unset(self::$C[$n]);
+        }
+    }
+
+    protected static $C=array();
     public static function connect($n='', $exception=true, $tries=3)
     {
-        static $C=array();
-
-        if(!isset($C[$n])) {
-            $C[$n] = curl_init();
-            // cookie-based authentication
-            /*
-            curl_setopt($C[$n], CURLOPT_URL, self::$auth);
-            curl_setopt_array($C[$n], array(
-                CURLOPT_URL=>self::$auth,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => self::$authParams,
-            )+self::$ccurlOptions);
-            $req = curl_exec($C[$n]);
-            if(preg_match_all('/Set-Cookie: ([^;]+)/', $req, $m)) {
-                $cookies = implode('; ', $m[1]);
-                curl_setopt($C[$n], CURLOPT_COOKIE, $cookies);
-            } else {
-                self::log('Couldn\'t authenticate '.$id."\n".self::$auth."\n\n".$req);
-                continue;
-            }
-            unset($r);
-            */
+        if(!isset(self::$C[$n])) {
+            self::$C[$n] = curl_init();
             $O = static::$curlOptions;
-            curl_setopt_array($C[$n], $O);
+            curl_setopt_array(self::$C[$n], $O);
         }
-        return $C[$n];
+        return self::$C[$n];
     }
 
     public function schema($prop=null)
@@ -374,101 +380,7 @@ class Tecnodesign_Query_Api
             return $r;
         }
         return array();
-
-        //if(!is_array($w)) {
-        //    // must get from primary key or first column
-        //    $pk = $this->schema()->getScope('primary');
-        //    if(!$pk) return '';
-        //    else if(count($pk)==1) $w = array( $pk[0] => $w );
-        //    else {
-        //        $v = preg_split('/\s*[\,\;]\s*/', $w, count($pk));
-        //        unset($w);
-        //        $w=array();
-        //        foreach($v as $i=>$k) {
-        //            $w[$pk[$i]] = $k;
-        //            unset($i, $k);
-        //        }
-        //        unset($v);
-        //    }
-        //}
-        //$r='';
-        //$op = '=';
-        //$xor = 'and';
-        //$not = false;
-        //static $cops = array('>=', '<=', '<>', '>', '<');
-        //static $like = array('%', '$', '^', '*', '~');
-        //static $xors = array('and'=>'and', '&'=>'and', 'or'=>'or', '|'=>'or');
-        //foreach($w as $k=>$v) {
-        //    if(is_int($k)) {
-        //        if(is_array($v)) {
-        //            if($v = $this->getWhere($v)) {
-        //                $r .= ($r)?(" {$xor} ({$v})"):("({$v})");
-        //            }
-        //        } else {
-        //            if(substr($v, 0, 1)=='!') {
-        //                $not = true;
-        //                $v = substr($v, 1);
-        //            }
-        //            if(in_array($v, $cops)) {
-        //                $op = $v;
-        //            } else if(in_array($v[0], $like)) {
-        //                $op = $v[0];
-        //            } else if(isset($xors[$v])) {
-        //                $xor = $xors[$v];
-        //            }
-        //        }
-        //    } else {
-        //        $cop = $op;
-        //        $cxor = $xor;
-        //        $cnot = $not;
-        //        if(preg_match('/(\~|\<\>|[\<\>\^\$\*\!\%]?\=?|[\>\<])$/', $k, $m) && $m[1]) {
-        //            // operators: <=  >= < > ^= $=
-        //            $cop = (!in_array($m[1], $cops))?(substr($m[1], 0, 1)):($m[1]);
-        //            $k = trim(substr($k, 0, strlen($k) - strlen($m[0])));
-        //            unset($m);
-        //        }
-        //        $fn = $this->getAlias($k);
-        //        if($fn) {
-        //            $r .= ($r)?(" {$cxor}"):('');
-        //            if(is_array($v) && count($v)==1) {
-        //                $v = array_shift($v);
-        //            }
-        //            if($cop=='~') {
-        //                // between
-        //            } else if (is_array($v) && ($cop=='=' || $cop=='<>')) {
-        //                foreach ($v as $vk=>$vs) {
-        //                    $v[$vk] = self::escape($vs);
-        //                    if($vs==''){
-        //                        $v['']='null';
-        //                    }
-        //                    unset($vk, $vs);
-        //                }
-        //                $r .= " {$fn}".(($cnot || $cop=='<>')?(' not'):('')).' in('.implode(',',$v).')';
-        //            } else if(is_array($v)) {
-        //                $nv = array();
-        //                if($cop!='=') $nv[] = $cop;
-        //                if($cnot) $nv[] = '!';
-        //                if($cxor!='and') $nv[] = $cxor;
-        //                foreach($v as $vk=>$vs) {
-        //                    $nv[] = array($k=>$vs);
-        //                }
-        //                $v = $this->getWhere($v);
-        //                if($v) $r .= "({$v})";
-        //            }
-        //            else if(!$v && $cop=='=') $r .= (($cnot)?(' not'):(' '))."({$fn}=".self::escape($v)." or {$fn} is null)";
-        //            else if(!$v && $cop=='<>') $r .= " ({$fn}<>".self::escape($v)." and {$fn} is not null)";
-        //            else if($cop=='^') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '".self::escape($v, false)."%'";
-        //            else if($cop=='$') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".self::escape($v, false)."'";
-        //            else if($cop=='*') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".self::escape($v, false)."%'";
-        //            else if($cop=='%') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v))."%'";
-        //            else $r .= ($not)?(" not({$fn}{$cop}".self::escape($v).')'):(" {$fn}{$cop}".self::escape($v));
-        //        }
-        //        unset($cop, $cxor, $cnot);
-        //    }
-        //    unset($k, $fn, $v);
-        //}
-        //return trim($r);
-    }
+   }
 
     public function addOrderBy($o)
     {
@@ -530,137 +442,55 @@ class Tecnodesign_Query_Api
     private function getAlias($f)
     {
         return $f;
-        //$ofn = $fn=$f;
-        //if(preg_match_all('#`([^`]+)`#', $fn, $m)) {
-        //    $r = $s = array();
-        //    foreach($m[1] as $i=>$nfn) {
-        //        $s[]=$m[0][$i];
-        //        $r[]=$this->getAlias($nfn);
-        //        unset($i, $nfn);
-        //    }
-        //    return str_replace($s, $r, $fn);
-        //} else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
-        //    return str_replace($m[0], $this->$a(trim($m[2])), $fn);
-        //}
-//
-        //if(strpos($fn, '[')!==false && preg_match('/\[([^\]]+)\]/', $fn, $m)) {
-        //    $fn = $m[1];
-        //    $fnt = $m[0];
-        //    $ofn = $fn;
-        //    unset($m);
-        //}
-        //$ta='a';
-        //$found=false;
-        //$sc = $this->schema();
-        //if (isset($sc['columns'][$fn])) {
-        //    $found = true;
-        //    $fn = $ta.'.'.$fn;
-        //} else if(!$found) {
-        //    $rnf = '';
-        //    $cn = get_called_class();
-        //    while(strpos($ofn, '.')) {
-        //        @list($rn, $fn) = explode('.', $ofn,2);
-        //        $ofn=$fn;
-        //        $rnf .= ($rnf)?('.'.$rn):($rn);
-        //        if(isset($sc->relations[$rn])) {
-        //            $rcn = (isset($sc->relations[$rn]['class']))?($sc->relations[$rn]['class']):($rn);
-        //            $rsc = $rcn::$schema;
-        //            if(!isset($this->_alias[$rnf])) {
-        //                $an = chr(97+count($this->_alias));
-        //                $this->_alias[$rnf]=$an;
-        //                if($sc->relations[$rn]['type']!='one') {
-        //                    $this->_distinct = ' distinct';
-        //                }
-        //                $jtn = (isset($rsc->view))?('('.$rsc->view.')'):($rsc->table);
-        //                if(!is_array($sc->relations[$rn]['foreign'])) {
-        //                    $this->_from .= " left outer join {$jtn} as {$an} on {$an}.{$sc->relations[$rn]['foreign']}={$ta}.{$sc->relations[$rn]['local']}";
-        //                } else {
-        //                    $this->_from .= " left outer join {$jtn} as {$an} on";
-        //                    foreach($sc->relations[$rn]['foreign'] as $rk=>$rv) {
-        //                        $this->_from .= (($rk>0)?(' and'):(''))." {$an}.{$rv}={$ta}.{$sc->relations[$rn]['local'][$rk]}";
-        //                    }
-        //                }
-        //                if(isset($sc->relations[$rn]['on'])) {
-        //                    if(!is_array($sc->relations[$rn]['on'])) $sc->relations[$rn]['on']=array($sc->relations[$rn]['on']); 
-        //                    foreach($sc->relations[$rn]['on'] as $rfn) {
-        //                        list($rfn,$fnc)=explode(' ', $rfn, 2);
-        //                        if(substr($rfn,0,strlen($rn))==$rn) $join .=  "and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
-        //                        else $join .= ' and '.$this->getAlias($rfn).' '.$fnc;
-        //                        unset($rfn, $fnc);
-        //                    }
-        //                }
-        //            } else {
-        //                $an = $this->_alias[$rnf];
-        //            }
-        //            unset($sc, $rn);
-        //            $sc = $rsc;
-        //            unset($rsc);
-        //            $ta=$an;
-        //            $fn = $an.'.'.$fn;
-        //            $found = true;
-        //        } else {
-        //            $found = false;
-        //            break;
-        //        }
-        //    }
-        //}
-        //if(!$found) {
-        //    if (isset($sc->relations[$fn])) {
-        //        $found = true;
-        //        $fn = $ta.'.'.$sc->relations[$fn]['local'];
-        //    } else if (isset($sc->columns[$fn]) || property_exists($cn, $fn)) {
-        //        $found = true;
-        //        $fn = $ta.'.'.$fn;
-        //    } else {
-        //        tdz::log("Cannot find by [{$fn}] at [{$sc->table}]");
-        //        throw new Exception("Cannot find by [{$fn}] at [{$sc->table}]");
-        //    }
-        //}
-        //unset($found, $sc, $ta);
-        //if(isset($fnt) && $fnt) {
-        //    $fn = str_replace($fnt, $fn, $f);
-        //    unset($fnt, $f);
-        //}
-        //return $fn;
     }
 
     public static function runStatic($n, $q)
     {
     }
 
-    public function run($q)
+    public function run($q, $conn=null)
     {
-        $C = self::connect($this->schema('database'));
-        /*
-        if(substr($url, 0, 1)=='!') {
-            $url = substr($url, 1);
-            $O[CURLOPT_POST]=true;
-            list($url, $O[CURLOPT_POSTFIELDS]) = explode('?', $url, 2);
-        }
-        //$O[CURLOPT_URL]=$url;
-        */
-        curl_setopt($C, CURLOPT_URL, $q);
+        if(!$conn) $conn = self::connect($this->schema('database'));
+        curl_setopt($conn, CURLOPT_URL, $q);
         if(isset($this->_options['certificate']) && $this->_options['certificate']) {
             if(strpos($this->_options['certificate'], ':')>1) {
                 list($cert, $cpass) = explode(':', $this->_options['certificate'], 2);
-                curl_setopt($C, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$cert);
-                curl_setopt($C, CURLOPT_SSLCERTPASSWD,$cpass);
+                curl_setopt($conn, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$cert);
+                curl_setopt($conn, CURLOPT_SSLCERTPASSWD,$cpass);
             } else {
-                curl_setopt($C, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$this->_options['certificate']);
+                curl_setopt($conn, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$this->_options['certificate']);
             }
         }
-        $r = curl_exec($C);
-        if(!preg_match(static::$successPattern, $r)) {
+        $this->_last = $q;
+        $r = curl_exec($conn);
+        $msg = '';
+        if(!$r) {
+            $msg = curl_error($conn);
+
+        } else {
+            if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
+                list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
+                $this->response = json_decode($body, true);
+                unset($body);
+            } else {
+                $this->headers = null;
+                $this->response = json_decode($body, true);
+            }
+        }
+
+        if($msg || preg_match(static::$errorPattern, $r)) {
+            if(isset($this->response['error'])) {
+                $msg = '<div class="tdz-i-msg tdz-i-error">'.$this->response['error'].'</div>';
+                if(isset($this->response['message'])) {
+                    $msg .= $this->response['message'];
+                }
+            }
+            $cn = get_class($this);
+            throw new Tecnodesign_Exception($msg);
+        } else if(!preg_match(static::$successPattern, $r)) {
             $this->headers = $r;
             $this->response = false;
-            //tdz::log("[ERROR] API:\n", curl_error($C), "\n{$r}");
-        } else if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
-            list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
-            $this->response = json_decode($body, true);
-            unset($body);
-        } else {
-            $this->headers = null;
-            $this->response = json_decode($body, true);
+            //tdz::log("[ERROR] API:\n", curl_error($conn), "\n{$r}");
         }
         unset($r);
         return $this;
@@ -732,7 +562,7 @@ class Tecnodesign_Query_Api
         return self::escape($v);
     }
 
-
+    /*
     public function transaction($id=null)
     {
     }
@@ -744,16 +574,90 @@ class Tecnodesign_Query_Api
     public function rollback($id=null)
     {
     }
+    */
 
-    public function insert($o)
+    public function runAction($action, $data=null, $method=null, $conn=null)
     {
+        $url = $this->_url;
+        $aqs = $qs = '';
+        if(strpos($url, '?')!==false) {
+            list($url, $qs) = explode('?', $url, 2);
+        }
+        if(strpos($action, '?')!==false) {
+            list($action, $aqs) = explode('?', $action, 2);
+        }
+        if($action) $url .= $action;
+        if($aqs) $qs .= ($qs)?('&'.$aqs):($aqs);
+        if($qs) $url .= '?'.$qs;
+
+        if($data && is_object($data)) {
+            $data = $data->asArray('save');
+        }
+        if(!$conn) $conn = self::connect($this->schema('database'));
+
+        $H = static::$curlOptions[CURLOPT_HTTPHEADER];
+        if(!is_array($H)) $H = array();
+        if(!is_string($data)) {
+            if(static::$postFormat && static::$postFormat=='json') {
+                $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+                $H[] = 'Content-Type: application/json';
+            } else {
+                $data = http_build_query($data);
+            }
+        }
+
+        if($data) {
+            curl_setopt($conn, CURLOPT_POST, true);
+            curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
+        }
+        if($method) {
+            curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $method);
+        }
+        $R = $this->run($url, $conn);
+        return $R;
     }
 
-    public function update($o)
+    public function insert($M, $conn=null)
     {
+        $action = static::$insertPath;
+        if(static::$insertQuery) $action .= '?'.sprintf(static::$insertQuery, $pk);
+        try {
+            return $this->runAction($action, $M->asArray('save'), static::$insertMethod);
+        } catch(Exception $e) {
+            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+        }
     }
-    public function delete()
+
+    public function update($M, $conn=null)
     {
+        $pk = $M->pk;
+        if(is_array($pk)) $pk = array_shift($pk);
+        $action = (static::$updatePath)?(sprintf(static::$updatePath, $pk)):('');
+        if(static::$updateQuery) $action .= '?'.sprintf(static::$updateQuery, $pk);
+        try {
+            return $this->runAction($action, $M->asArray('save'), static::$updateMethod);
+        } catch(Exception $e) {
+            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+        }
+    }
+
+    public function delete($M, $conn=null)
+    {
+        $pk = $M->pk;
+        if(is_array($pk)) $pk = array_shift($pk);
+        $action = (static::$deletePath)?(sprintf(static::$deletePath, $pk)):('');
+        if(static::$deleteQuery) $action .= '?'.sprintf(static::$deleteQuery, $pk);
+        try {
+            return $this->runAction($action, $M->getPk(null, true), static::$deleteMethod);
+        } catch(Exception $e) {
+            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+        }
+    }
+
+    public function lastQuery()
+    {
+        return $this->_last;
     }
 
     /**

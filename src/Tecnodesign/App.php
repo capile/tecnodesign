@@ -391,6 +391,7 @@ class Tecnodesign_App
             200 => 'OK',
             201 => 'Created',
             202 => 'Accepted',
+            204 => 'No Content',
             301 => 'Moved Permanently',
             302 => 'Found',
             304 => 'Not Modified',
@@ -401,6 +402,7 @@ class Tecnodesign_App
             405 => 'Method Not Allowed',
             409 => 'Conflict',
             412 => 'Precondition Failed',
+            422 => 'Unprocessable Entity',
             500 => 'Internal Server Error',
         );
         if(!isset($status[$code])) $code = 500;
