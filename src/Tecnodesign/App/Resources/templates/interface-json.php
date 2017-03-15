@@ -39,6 +39,7 @@ if(isset($summary)) {
     Tecnodesign_App::response('summary', $summary);
 }
 */
+$nonull = (in_array($Interface::format(), array('json', 'xml')));
 
 $r = array();
 
@@ -87,6 +88,8 @@ if(isset($list) && is_array($list)) {
                     $vc = (isset($M[$c]))?($v->{$M[$c]}()):($v[$c]);
                     if($vc!=='' && $vc!==false && $vc!==null) {
                         $e[$k] = tdz::raw($vc);
+                    } else if(!$nonull) {
+                        $e[$k] = null;
                     }
                     unset($k, $c, $vc);
                 }

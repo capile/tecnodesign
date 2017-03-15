@@ -2572,7 +2572,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->search[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k], $fo['fields'][$k]).'</span>';
+                                . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
                 } else if($type=='date') {
                     $t0=$t1=false;
                     if(isset($d[$k.'-0']) && $d[$k.'-0']) {
