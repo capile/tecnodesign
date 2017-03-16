@@ -10,6 +10,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
     Callback:'*[data-callback]',
     CheckLabel:'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
     Filters:'input[data-filters],select[data-filters]',
+    Uploader:'input[data-uploader]',
     Datepicker:'input[data-type^=date],input[type^=date],.tdz-i-datepicker'
   };
 
@@ -1342,8 +1343,23 @@ function datalistOption()
 Z.datalistOption = datalistOption;
 
 
+Z.initUploader=function(o)
+{
+    var f=Z.node(this, o);
+    if(f.getAttribute('type')!='file' || f.getAttribute('data-status')) return;
+    f.setAttribute('data-status','ready');
 
+    //Z.bind(f, 'input', preUpload);
+    //Z.bind(f, 'change', preUpload);
+}
 
+function preUpload(e)
+{
+    Z.stopEvent(e);
+    if(this.getAttribute('data-status')!='ready') return;
+    this.setAttribute('data-status','uploading');
+    console.log('please upload', e, this.files);
+}
 
 
 // Tecnodesign_Translate

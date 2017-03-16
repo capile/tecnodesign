@@ -610,6 +610,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public function checkFile($value=false, $message='')
     {
+        // check ajax uploader
+
         if(is_array($value)){
             if(isset($value['name'])) {
                 $value = array($value);
@@ -1332,6 +1334,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             //$arg['name'].='[]';
         }
         $s='';
+        if($this->accept && is_array($this->accept) && isset($this->accept['uploader'])) {
+            $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(\tdz::requestUri()):($this->accept['uploader']);
+        }
         if(strpos($arg['class'], 'app-file-preview')!==false) {
             if($arg['value']) {
                 $s .= '<span class="text">'.$this->filePreview($arg['id']).'</span>';
