@@ -98,7 +98,7 @@ class tdz
             'ra' => 'audio/x-pn-realaudio',
             'ram' => 'audio/x-pn-realaudio',
             'ogg' => 'audio/x-pn-realaudio',
-            'wav' => 'video/x-msvideo',
+            'wav' => 'audio/x-wav',
             'wmv' => 'video/x-msvideo',
             'avi' => 'video/x-msvideo',
             'asf' => 'video/x-msvideo',
@@ -1705,7 +1705,7 @@ class tdz
             $nf = array($nf);
             foreach($_FILES as $fn=>$fd) {
                 foreach($fd as $up=>$f) {
-                    $nf[][$fn] = tdz::setLastKey($f, $up);
+                    $nf[][$fn] = tdz::setLastKey($f, $up, (isset($nf[0][$fn]) && $nf[0][$fn])?($nf[0][$fn]):(null));
                 }
             }
             $nf = call_user_func_array('tdz::mergeRecursive', $nf);
@@ -1713,13 +1713,17 @@ class tdz
         return $nf;
     }
 
-    protected static function setLastKey($a, $name) {
+    protected static function setLastKey($a, $name, $post=null) {
         if(is_array($a)) {
             foreach($a as $k=>$v) {
                 $a[$k]=tdz::setLastKey($v, $name);
+                if($post && is_array($post) && isset($post[$k])) {
+                    $a[$k]['_'] = $post[$k];
+                }
             }
         } else {
             $a = array($name=>$a);
+            if($post) $a[$name]['_'] = $post;
         }
         return $a;
     }
