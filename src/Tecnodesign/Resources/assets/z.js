@@ -1425,7 +1425,7 @@ function uploadFile(file, U)
         if(retries--) {
 
         }
-        workers++;
+        //workers++;
     }
 
     reader.onload = function(e) {
