@@ -1524,7 +1524,6 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function headers()
     {
         foreach(static::$headers as $k=>$v) {
-            if(is_array($v)) \tdz::log(__METHOD__.' '.$k, var_export(static::$headers, true));
             if($k==static::H_LAST_MODIFIED) header('Last-Modified: '.$v);
             else if(strtolower($k)=='location') header('Location: '.$v);
             else if(preg_match('/^([A-Z][a-z0-9]+\-)+([A-Z][a-z0-9]+)$/', $k)) header($k.': '.$v);

@@ -652,13 +652,7 @@ class tdz
     public static function minify($s, $root=false, $compress=true, $before=true, $raw=false, $output=false)
     {
         if(!$root) {
-            if(isset(tdz::$variables['document-root']) && tdz::$variables['document-root']) {
-                $root = tdz::$variables['document-root'];
-            } else if(($app=tdz::getApp()) && isset($app->tecnodesign['document-root']) && $app->tecnodesign['document-root']) {
-                $root = tdz::$variables['document-root'] = $app->tecnodesign['document-root'];
-            } else {
-                $root = TDZ_DOCUMENT_ROOT;
-            }
+            $root = TDZ_DOCUMENT_ROOT;
         }
         // search for static files to compress
         $types = array(

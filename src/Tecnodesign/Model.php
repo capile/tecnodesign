@@ -2,30 +2,16 @@
 /**
  * Tecnodesign Model
  *
- * Basic and simple ORM based on PDO methods only
+ * Full database abstraction ORM.
  *
- * PHP version 5.3
- *
- * @category  Model
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Model.php 1305 2014-02-12 12:51:36Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Model
- *
- * Basic and simple ORM based on PDO methods only
+ * PHP version 5.4
  *
  * @category  Model
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
+ * @copyright 2017 Tecnodesign
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @link      https://tecnodz.com
  */
 class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 {
@@ -187,6 +173,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $schema;
     }
 
+    /**
+     * Retrieves the columns used for the primary key in this model
+     * Unless $array evals to true or there are multiple PKs this will return the
+     * result as a string (array otherwise)
+     */
     public static function pk($schema=null, $array=null)
     {
         $update=false;
@@ -214,6 +205,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $pk;
     }
     
+    /**
+     * Retrieves values listed for the primary key in this object
+     * Unless $array evals to true this will return the PK(s) as 
+     * a string (associative array otherwise)
+     */
     public function getPk($array=null)
     {
         $pk = static::pk(static::$schema, true);
