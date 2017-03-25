@@ -290,7 +290,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function checkScope($a=array())
     {
-        if(!$a) return;
+        if(!$a || !is_array($a)) return;
         foreach($a as $sn=>$scope) {
             foreach($scope as $fn=>$fd) {
                 if(is_array($fd) && isset($fd['interface']) && isset($fd['bind'])) {
@@ -1710,11 +1710,16 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if(!$o) $o = $this->model();
         if(!$scope) {
-            if(isset($o::$schema['scope']['update'])) $scope = 'update';
-            else $scope = 'preview';
+            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
+                $scope = $rs;
+                unset($rs);
+            } else if(isset($this->options['scope'][$this->action])) {
+                $scope = $this->action;
+            } else {
+                $scope = 'preview';
+            }
         }
         $scope = $this->scope($scope);
-
         $fo = $this->getForm($o, $scope);
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
@@ -2571,7 +2576,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->search[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k], $fo['fields'][$k]).'</span>';
+                                . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
                 } else if($type=='date') {
                     $t0=$t1=false;
                     if(isset($d[$k.'-0']) && $d[$k.'-0']) {

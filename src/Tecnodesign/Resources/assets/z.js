@@ -10,6 +10,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
     Callback:'*[data-callback]',
     CheckLabel:'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
     Filters:'input[data-filters],select[data-filters]',
+    Uploader:'input[data-uploader]',
     Datepicker:'input[data-type^=date],input[type^=date],.tdz-i-datepicker'
   };
 
@@ -333,7 +334,7 @@ Z.element=function(o,before,after) {
     }
 
     if(before) return before.parentNode.insertBefore(r,before);
-    else if(after) after.parentNode.insertBefore(r,after.nextSibling);
+    else if(after) return after.parentNode.insertBefore(r,after.nextSibling);
     else if(this.appendChild) return this.appendChild(r);
     else return r;
 }
@@ -1342,9 +1343,126 @@ function datalistOption()
 Z.datalistOption = datalistOption;
 
 
+Z.initUploader=function(o)
+{
+    var f=Z.node(this, o);
+    if(f.getAttribute('type')!='file' || f.getAttribute('data-status') || !('FileReader' in window)) return;
+    f.setAttribute('data-status','ready');
 
+    //Z.bind(f, 'input', preUpload);
+    Z.bind(f, 'change', preUpload);
+}
 
+function preUpload(e)
+{
+    Z.stopEvent(e);
+    if(this.getAttribute('data-status')!='ready') return;
+    this.setAttribute('data-status','uploading');
+    var i=this.files.length, U={target:this,size:0,loaded:0,url:this.form.action,id:'upl'+((new Date()).getTime())};
+    U.progress = this.parentNode.querySelector('.tdz-i-progress');
+    if(!U.progress) U.progress = Z.element({e:'div',p:{className:'tdz-i-progress'},c:[{e:'div',p:{className:'tdz-i-progress-bar'}}]}, null, this);
+    while(i--) {
+        uploadFile(this.files[i], U);
+    }
+}
 
+function clearFileInput(el) {
+  try {
+    el.value = null;
+    return el;
+  } catch(ex) { }
+  if (el.value) {
+    return el.parentNode.replaceChild(el.cloneNode(true), el);
+  }
+}
+
+function uploadFile(file, U)
+{
+    var loaded = 0;
+    var step = 1024*1024;
+    var total = file.size;
+    var i=0;
+    var ajax = [];
+    var H = { 'Tdz-Action': 'Upload', 'Content-Type': 'application/json' };
+    var workers = 3;
+    var retries = 10;
+    U.size += total;
+    //var progress = document.getElementById(file.name).nextSibling.nextSibling;
+
+    var reader = new FileReader();
+
+    var uploadProgress = function(d)
+    {
+        var w=(U.loaded*100/U.size);
+
+        U.progress.querySelector('.tdz-i-progress-bar').setAttribute('style','width:'+w+'%');
+
+        var el = this;
+        if('id' in d) {
+            el.previousSibling.value = d.value;
+            var b=el.parentNode.querySelector('span.text');
+            var t={e:'a',p:{className:'tdz-i-upload'},t:{click:removeUpload},c:d.file};
+            if(!b) b=Z.element({e:'span',p:{className:'text'},c:t});
+            else {
+                Z.removeChildren(b, ':not(.tdz-i-upload)');
+                Z.element.call(b, t);
+            }
+            el.setAttribute('data-status', 'ready');
+            el = clearFileInput(el);
+            var v=d.value;
+        }
+
+        if(ajax.length > 0) {
+            Z.ajax.apply(el, ajax.shift());
+        } else {
+            workers++;
+        }
+    }
+
+    var uploadError = function(d)
+    {
+        console.log('upload error!', this, d);
+        if(retries--) {
+
+        }
+        //workers++;
+    }
+
+    reader.onload = function(e) {
+        var d = { _upload: { id: U.target.id, uid: U.id, file: file.name, start: loaded, end: loaded+step, total: total, data: e.target.result, index: i++ }  };
+        loaded += step;
+        //progress.value = (loaded/total) * 100;
+        if(loaded <= total) {
+            U.loaded += step;
+            blob = file.slice(loaded,loaded+step);
+            reader.readAsDataURL(blob);
+        } else {
+            U.loaded += total - (loaded - step);
+            d._upload.end = loaded = total;
+            d._upload.last = true;
+        }
+        var data = JSON.stringify(d), u = U.url;
+        if(u.indexOf('?')>-1) u+='&_index='+d._upload.index;
+        else u+='?_index='+d._upload.index;
+        d = null;
+        if(workers) {
+            Z.ajax(u, data, uploadProgress, uploadError, 'json', U.target, H);
+            workers--;
+        } else {
+            ajax.push([u, data, uploadProgress, uploadError, 'json', U.target, H]);
+        }
+    };
+    var blob = file.slice(loaded,step);
+    reader.readAsDataURL(blob); 
+}
+
+function removeUpload(e)
+{
+    var el = this.parentNode.parentNode.querySelector('input[type="hidden"]');
+    el.value='';// remove only this upload
+    el=null;
+    this.parentNode.removeChild(this);
+}
 
 // Tecnodesign_Translate
 // pt_BR
