@@ -1,4 +1,4 @@
-/*! Interface v1.0 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Interface v1.0 | (c) 2017 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
     "use strict";
@@ -249,7 +249,7 @@
             loadInterface(h);
         }
         // checks if active interface is correct
-
+        /*
         if(_H.length>1) {
             if(!document.querySelector('.tdz-i-box .tdz-i-title.tdz-i-title-active[data-url="'+last+'"]')) {
                 _reHash = false;
@@ -257,6 +257,7 @@
                 _reHash = true;
             }
         }
+        */
 
         _checkHash = true;
     }

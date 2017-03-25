@@ -1227,6 +1227,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!$this->runEvent('before-'.$m, $conn)) {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not '.$m.' record at %s.', 'exception'), $cn::label()));
             }
+            if ($this->_delete) {
+                $m = 'delete';
+            } else if ($this->_new) {
+                $m = 'insert';
+            } else {
+                $m = 'update';
+            }
 
             $r = null;
             if(method_exists($this->_query, $m)) {
