@@ -165,6 +165,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 unset($M, $name, $schema, $rel, $fd);
                 return $return;
             }
+        } else if(isset($M::$schema['form'][$name]['bind']) && $M::$schema['form'][$name]['bind']!=$name) {
+            return $this->setBind($M::$schema['form'][$name]['bind'], $return);
         } else if(substr($name, 0, 1)=='_' || property_exists($M, $name) || (($cm=tdz::camelize($name, true)) && method_exists($M, 'get'.$cm) && method_exists($M, 'set'.$cm))) {
             $this->bind = $name;
             unset($M, $name, $schema);
