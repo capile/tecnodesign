@@ -106,12 +106,14 @@ class Tecnodesign_Calendar implements ArrayAccess
                 } else if(isset($e['end'])) {
                     $end = strtotime($e['end']);
                 }
+
+                $time = (date('His', $start)>0 || date('His', $end)>0);
                 if(isset($e['uid'])) {
                     $uid = $e['uid'];
                 }
                 $s[]='BEGIN:VEVENT';
-                $s[]='DTSTART:'.gmdate('Ymd\THis',$start) . 'Z';
-                $s[]='DTEND:'.gmdate('Ymd\THis',$end) . 'Z';
+                $s[]=($time)?('DTSTART:'.gmdate('Ymd\THis',$start).'Z'):('DTSTART;VALUE=DATE:'.date('Ymd',$start));
+                $s[]=($time)?('DTEND:'.gmdate('Ymd\THis',$end).'Z'):('DTEND;VALUE=DATE:'.date('Ymd',$end));
                 $s[]='DTSTAMP:' . gmdate('Ymd\THis') . 'Z';
                 $s[]='UID:'.$uid;
 
