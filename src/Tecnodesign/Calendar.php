@@ -221,7 +221,7 @@ class Tecnodesign_Calendar implements ArrayAccess
             }
         }
         $s[]='END:VCALENDAR';
-        $nl="\n";
+        $nl="\r\n";
         $limit=75;
         foreach($s as $k=>$v) {
             if(strlen($v)>$limit) {
