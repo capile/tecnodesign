@@ -37,9 +37,20 @@ class Tecnodesign_Calendar implements ArrayAccess
     private $_events=array();
     private $_start=null;
     private $_end=null;
-    public $week_days=array('sun'=>'Dom','mon'=>'Seg','tue'=>'Ter','wed'=>'Qua','thu'=>'Qui','fri'=>'Sex','sat'=>'Sáb');
-    public $months=array('Jan'=>'Janeiro','Feb'=>'Fevereiro','Mar'=>'Março','Apr'=>'Abril','May'=>'Maio','Jun'=>'Junho','Jul'=>'Julho', 'Aug'=>'Agosto', 'Sep'=>'Setembro', 'Oct'=>'Outubro', 'Nov'=>'Novembro', 'Dec'=>'Dezembro');
-    public $continued = ' (continuação)';
+    public static $week_days=array('sun'=>'Sunday','mon'=>'Monday','tue'=>'Tuesday','wed'=>'Wednesday','thu'=>'Thursday','fri'=>'Friday','sat'=>'Saturday'),
+        $months=array('Jan'=>'January','Feb'=>'February','Mar'=>'March','Apr'=>'April','May'=>'May','Jun'=>'June','Jul'=>'July', 'Aug'=>'August', 'Sep'=>'September', 'Oct'=>'October', 'Nov'=>'November', 'Dec'=>'December'),
+        $envelope           = true,
+        $elCalendar         = 'div',
+        $elMonth            = 'h3',
+        $elWeek             = 'div',
+        $elDay              = 'div',
+        $attrCalendarClass  = 'tdz-calendar',
+        $attrMonthClass     = 'tdz-c-month',
+        $attrHeaderClass    = 'tdz-c-header',
+        $attrWeekClass      = 'tdz-c-week',
+        $attrDayClass       = 'tdz-c-day',
+        $attrDayActiveClass = 'tdz-c-active',
+        $continued = ' (continued)';
 
 
     public function __construct($vars)
@@ -327,7 +338,7 @@ class Tecnodesign_Calendar implements ArrayAccess
     }
     
     
-    public function getEventsByWeek()
+    public function getEventsByWeek($startWeek=null, $endWeek=null)
     {
         if(is_null($this->_weeks)) {
             $this->_weeks=array();
@@ -368,6 +379,16 @@ class Tecnodesign_Calendar implements ArrayAccess
                 }
             }
         }
+        if(!is_null($startWeek) || !is_null($endWeek)) {
+            $r = array();
+            foreach($this->_weeks as $i=>$o) {
+                if($startWeek && $i<$startWeek) continue;
+                else if($endWeek && $i > $endWeek) continue;
+                $r[$i]=$o;
+            }
+            return $r;
+        }
+
         return $this->_weeks;
     }
     
@@ -379,17 +400,25 @@ class Tecnodesign_Calendar implements ArrayAccess
      * 
      * @return string selected month in HTML
      */
-    public function renderMonth($month=0)
+    public function renderMonth($month=0, $envelope = null)
     {
+        $before = $after = null;
+        if(is_null($envelope)) $envelope = static::$envelope;
+
+        if($envelope) {
+            $before = '<'.self::$elCalendar.' class="'.self::$attrCalendarClass.'">';
+            $after = '</'.self::$elCalendar.'>';
+        }
+
         $start = $this->getStart();
         if (is_int($month) && $month < 10000) {
             $startm=mktime(0,0,0,date('n',$start)+$month, 1, date('Y', $start));
         } else if(is_array($month)) {
         	$s = '';
         	foreach($month as $m) {
-        		$s .= $this->renderMonth($m);
+                $s .= $this->renderMonth($m, false);
         	}
-        	return $s;
+        	return $before.$s.$after;
         } else {
             $month = Tecnodesign_Calendar::parseDate($month);
             $startm=mktime(0,0,0,date('n',$month), 1, date('Y', $month));
@@ -397,21 +426,23 @@ class Tecnodesign_Calendar implements ArrayAccess
         $starto=date('w',$startm);
         $start=mktime(0,0,0,date('m',$startm),1-$starto,date('Y',$startm));
         $end=mktime(0, 0, 0, date('n',$startm)+1, 0,   date('Y', $startm));
+        $end0=$end;
         $end=mktime(0, 0, 0, date('n',$end)+1, 6-date('w',$end), date('Y', $end));
         $format = (isset($this->_vars['format']))?($this->_vars['format']):('extended');
-        
-        $mn = $this->months[date('M', $startm)].'/'.date('Y',$startm);
-        $s="\n<div class=\"calendar tdz-calendar\">\n <div class=\"month\"><h3>{$mn}</h3>\n  <div class=\"calendar-header week\">";
-        foreach($this->week_days as $wk=>$wn) {
-            $s .= "\n   ".'<div class="day '.$wk.'">'.$wn.'</div>';
+        $ew = $this->getEventsByWeek((date('m',$start)=='01')?(date('Y00',$start)):(date('YW',$start)), date('YW',$end));
+        $mn = static::$months[date('M', $startm)];
+        $s = '<div class="'.static::$attrMonthClass.(($ew)?(' has-event'):('')).' ">'
+           .   '<'.static::$elMonth.'>'.$mn.'</'.static::$elMonth.'>'
+           .   '<'.static::$elWeek.' class="tdz-c-header '.static::$attrWeekClass.'">';
+        foreach(static::$week_days as $wk=>$wn) {
+            $s .= '<'.static::$elDay.' class="'.static::$attrDayClass.' '.$wk.'">'.$wn.'</'.static::$elDay.'>';
         }
+        $s .= '</'.static::$elWeek.'>';
 
-        $ew = $this->getEventsByWeek();
         $ed = $this->_days;
-        $s .= "\n  </div>";
         $day=$start;
         $cm=date('m',$startm);
-        $wds=array_keys($this->week_days);
+        $wds=array_keys(static::$week_days);
         $wi=0;
         while($day<=$end)
         {
@@ -422,33 +453,36 @@ class Tecnodesign_Calendar implements ArrayAccess
                 $wi++;
                 $w = date('YW', $day+(6*86400));
                 $class = ($format!='compact' && isset($ew[$w]))?(' lines'.count($ew[$w])):('');
-                $s .= ($wi%2)?("\n  <div class=\"week odd{$class}\">"):("\n  <div class=\"week even{$class}\">");
+                $s .= '<'.static::$elWeek.' class="'.static::$attrWeekClass.$class.'">';
             }
-            $class=($m==$cm)?('active'):('');
+            $class=($m==$cm)?(' '.static::$attrDayActiveClass):('');
+            $s .= '<'.static::$elDay.' class="'.static::$attrDayClass.' '.$wds[$wd].$class.'">';
             if($format=='compact') {
-                $s .= "\n    <div class=\"day {$wds[$wd]} {$class}\">";
                 $ds = date('Ymd', $day);
                 $aclass='';
                 if(($m==$cm) && isset($ed[$ds])) {
                     $ae = array_keys($ed[$ds]);
                     $href=false;
+                    $atitle = '';
                     foreach($ed[$ds] as $e) {
+                        $atitle .= (($atitle)?(', '):('')).$e['summary'];
                         if(isset($e['url'])){
                             $aclass.=' '.$e['class'];
                         }
-                        if(isset($e['url'])){
+                        if(!$href && isset($e['url'])){
                             $href = $e['url'];
                             break;
                         }
                     }
                     $aclass=($aclass)?(' class="'.trim($aclass).'"'):('');
-                    $s .= '<a href="'.$href.'" data-events="'.implode(',', $ae).'"'.$aclass.'>'.$d.'</a>';
+                    $s .= '<a href="'.\tdz::xml($href).'" title="'.\tdz::xml($atitle).'" data-events="'.implode(',', $ae).'"'.$aclass.'>'.$d.'</a>';
+                    unset($atitle, $ae);
                 } else {
                     $s .= $d;
                 }
-                $s .= '</div>';
+                $s .= '</'.static::$elDay.'>';
             } else {
-                $s .= "\n    <div class=\"day {$wds[$wd]} {$class}\">{$d}</div>";
+                $s .= $d.'</'.static::$elDay.'>';
             }
             if($wd==6) {
                 $w = date('YW', $day);
@@ -484,16 +518,16 @@ class Tecnodesign_Calendar implements ArrayAccess
                             $as .= ' '.$ak.'="'.tdz::xmlEscape($av).'"';
                         }
                         //  class=\"{$class} {$wds[$ewd]} duration{$ee}\"
-                        $s .= "\n    <a{$as}><span class=\"summary\">{$e['summary']}</span></a>";
+                        $s .= "<a{$as}><span class=\"summary\">{$e['summary']}</span></a>";
                     }
                 }
-                $s .= "\n  </div>";
+                $s .= '</'.static::$elWeek.'>';
             }
             $day=mktime(0,0,0,date('n',$day),date('j',$day)+1,date('Y',$day));
         }
-        $s .= "\n <div class=\"end\"></div></div>\n</div>";
+        $s .= '</div>';
 
-        return $s;
+        return $before.$s.$after;
     }
     
     /**
@@ -517,8 +551,8 @@ class Tecnodesign_Calendar implements ArrayAccess
         $end=mktime(0, 0, 0, date('n',$startm)+1, 0,   date('Y', $startm));
         $end=mktime(0, 0, 0, date('n',$end)+1, 6-date('w',$end), date('Y', $end));
 
-        $month = $this->months[date('M', $startm)];
-        $smonth = substr($this->months[date('M', $startm)],0,3);
+        $month = static::$months[date('M', $startm)];
+        $smonth = substr(static::$months[date('M', $startm)],0,3);
         $year = date('Y',$startm);
         
         $setup+=array(
@@ -543,7 +577,7 @@ class Tecnodesign_Calendar implements ArrayAccess
        
         //Dias da semana
         $s .= '<tr class="weekdays">';
-        foreach($this->week_days as $wk=>$wn) {
+        foreach(static::$week_days as $wk=>$wn) {
             $s .= '<th>'.strtoupper($wn).'</th>';
         }
         $s .= '</tr>';
@@ -551,7 +585,7 @@ class Tecnodesign_Calendar implements ArrayAccess
         $ew = $this->getEventsByWeek();
         $day=$start;
         $cm=date('m',$startm);
-        $wds=array_keys($this->week_days);
+        $wds=array_keys(static::$week_days);
         $wi=0;
         while($day<=$end)
         {
@@ -565,7 +599,7 @@ class Tecnodesign_Calendar implements ArrayAccess
                // $s .= ($wi%2)?("\n  <div class=\"week odd{$class}\">"):("\n  <div class=\"week even{$class}\">");
                  $s .= ($wi%2)?('<tr class="odd">'):('<tr class="even">');
             }
-            $class=($m==$cm)?('active'):('');
+            $class=($m==$cm)?(static::$attrDayActiveClass):('');
             //$s .= "<td class=\"day {$wds[$wd]} {$class}\">{$d}</div>";
             //$s .= "<td class=\"day {$wds[$wd]} {$class}\"{$tdw}{$trh}>{$d}</td>";
             $s .= "<td class=\"day {$wds[$wd]} {$class}\"{$tdw}[[height]]>{$d}</td>";
