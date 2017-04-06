@@ -81,9 +81,11 @@ class Tecnodesign_Calendar implements ArrayAccess
         }
         $s[]='X-WR-TIMEZONE:'.$timezone;
         if (isset($this->_vars['name'])) {
+            //$s[]='NAME:' . $this->_vars['name'];
             $s[]='X-WR-CALNAME:' . $this->_vars['name'];
         }
         if (isset($this->_vars['description'])) {
+            //$s[]='DESCRIPTION:' . $this->_vars['description'];
             $s[]='X-WR-CALDESC:' . $this->_vars['description'];
         }
         if (isset($this->_vars['url'])) {
