@@ -220,7 +220,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     
     public static function id($name)
     {
-        return str_replace('-', '_', tdz::textToSlug($name, '§,'));
+        return str_replace('-', '_', tdz::slug($name, '§,'));
     }
 
     public function getId()
@@ -248,7 +248,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($useAttributes && isset($this->attributes['name'])) {
             $id = $this->attributes['name'];
         } else {
-            $id = tdz::textToSlug($this->id);
+            $id = $this->id;//tdz::slug($this->id);
         }
         if ($this->prefix) {
             $name = $this->prefix.'['.$id.']';
@@ -1975,7 +1975,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $dl = '';
         foreach ($options as $k=>$v) {
             if (is_array($v)) {
-                $dl .= '<div class="'.tdz::textToSlug($k).'" label="'.tdz::xmlEscape($k).'"><span class="label">'.tdz::xmlEscape($k).'</span>'.implode('', $v).'</div>';
+                $dl .= '<div class="'.tdz::slug($k).'" label="'.tdz::xml($k).'"><span class="label">'.tdz::xml($k).'</span>'.implode('', $v).'</div>';
             } else {
                 $dl .= $v;
             }
@@ -2030,13 +2030,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $o = $this->getChoices($w);
         if(!$filtered) {
-            $term = tdz::textToSlug($s);
+            $term = tdz::slug($s);
             foreach($o as $k=>$v) {
                 $value = $v;
                 if(is_array($v)) {
                     $value = $v['label'];
                 }
-                $slug = tdz::textToSlug((string)$value);
+                $slug = tdz::slug((string)$value);
                 if(strpos($slug, $term)===false) {
                     unset($o[$k]);
                 }

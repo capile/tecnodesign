@@ -1570,6 +1570,8 @@ class tdz
             } else {
                 @header("Content-Disposition: $contentDisposition;filename=\"$fname\"");
             }
+        } else if($fname) {
+            @header("Content-Disposition: filename=\"$fname\"");
         }
         if ($gzip) {
             $gzf=TDZ_VAR . '/cache/download/' . md5_file($file);

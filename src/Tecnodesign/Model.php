@@ -27,8 +27,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         'events'=>array(
         ),
     );
-    public static $allowNewProperties = false, $prepareWhere;
-    public static $keepCollection = false, $transaction=true, $keySeparator='-';
+    public static 
+        $allowNewProperties = false,
+        $prepareWhere,
+        $keepCollection = false,
+        $transaction=true,
+        $formAsLabels,
+        $keySeparator='-';
     protected static $found=array();
     protected static $relations=null, $relationDepth=3;
     protected static $_conn=null;
@@ -272,20 +277,24 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         unset($col);
                     }
                 }
+                if(isset($fd['id'])) $fid = $fd['id'];
+                else if(static::$formAsLabels && !is_int($label)) $fid = $label;
+                else $fid = $fn;
+
                 if(isset(static::$schema['form'][$fn])) {
                     $fd+=static::$schema['form'][$fn];
                     if (!is_int($label)) {
                         $fd['label']=$label;
                     }
-                    $sfo[$fn]=$fd;
+                    $sfo[$fid]=$fd;
                 } else if($fd && isset($fd['type'])) {
-                    $id = (isset($fd['id']))?($fd['id']):($label);
-                    $sfo[$id] = $fd;
-                    unset($id);
+                    //$id = (isset($fd['id']))?($fd['id']):($label);
+                    $sfo[$fid] = $fd;
+                    //unset($id);
                 } else if($allowText) {
                     $sfo[] = $fn;
                 }
-                unset($label, $fn, $fd);
+                unset($label, $fn, $fd, $fid);
             }
             $fo = $sfo;
         }
@@ -1524,7 +1533,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $this->_collection;
     }
 
-    public function renderScope($scope=null, $xmlEscape=true, $box=null, $tpl=null, $sep=null, $excludeEmpty=null)
+    public function renderScope($scope=null, $xmlEscape=true, $box=null, $tpl=null, $sep=null, $excludeEmpty=null, $showOriginal=null)
     {
         $id = $scope;
 
@@ -1579,6 +1588,18 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $fd=static::column($fn,true,true);
                     }
                     $v = $this->renderField($fn, $fd, $xmlEscape);
+                    if($showOriginal && isset($this::$schema['columns'][$fn])) {
+                        $v0 = (isset($this->_original[$fn]))?($this->_original[$fn]):(null);
+                        $v1 = (isset($this->$fn))?($this->$fn):(null);
+                        if($v0!=$v1) {
+                            \tdz::log('diff: '.$fn, $v0, $v1);
+                            $this->$fn = $v0;
+                            $v = '<span class="tdz-m-original">'.$this->renderField($fn, $fd, $xmlEscape).'</span>'
+                               . '<span class="tdz-m-value">'.$v.'</span>'
+                               ;
+                            $this->$fn = $v1;
+                        }
+                    }
                     if(isset($fd['class'])) $class = $fd['class'];
                     if(isset($fd['type']) && $fd['type']=='interface') {
                         $s .= $v;

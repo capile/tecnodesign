@@ -919,6 +919,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 return false;
             }
             if(!$this->auth($a)) {
+                static::error(403, static::t('errorForbidden'));
                 return false;
             }
 
@@ -1527,7 +1528,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if($k==static::H_LAST_MODIFIED) header('Last-Modified: '.$v);
             else if(strtolower($k)=='location') header('Location: '.$v);
             else if(preg_match('/^([A-Z][a-z0-9]+\-)+([A-Z][a-z0-9]+)$/', $k)) header($k.': '.$v);
-            else if($k) header('X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k)))).': '.$v);
+            else if($k) header('X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k)))).': '.((is_array($v))?(implode(';',$v)):($v)));
         }
         if(static::$status) {
             Tecnodesign_App::status(static::$status, static::$statusCodes[static::$status]);
