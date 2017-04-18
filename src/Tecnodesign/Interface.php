@@ -2146,7 +2146,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if(!isset($found)) {
             $cn = $this->getModel();
             if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
-                $scope = $this->scope($rs);
+                $scope = $this->scope($rs, false, false, true);
                 unset($rs);
             } else if(isset($this->options['scope'][$this->action])) {
                 $scope = $this->scope($this->action);
@@ -2246,7 +2246,7 @@ class Tecnodesign_Interface implements ArrayAccess
         return $cn::find($this->search,$max,$this->scope($a,true,true),$collection,$order,$this->groupBy);
     }
 
-    public function scope($a=null, $clean=false, $pk=false)
+    public function scope($a=null, $clean=false, $pk=false, $expand=null)
     {
         if(!is_null($a)) {
             if(is_array($a)) {
@@ -2263,7 +2263,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->scope = (isset($cn::$schema['scope'][$a]))?($cn::$schema['scope'][$a]):($a);
             if(!is_array($this->scope)) $this->scope = $cn::columns($this->scope);
         }
-        if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && is_array($this->scope)) {
+        if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && substr($rs, 0, 1)!='_' && is_array($this->scope)) {
             if(in_array('scope::'.$rs, $this->scope) || in_array('sub::'.$rs, $this->scope)) {
                 $scope = array('scope::'.$rs);
             }
@@ -2276,8 +2276,32 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(!in_array($k, $scope)) array_unshift($scope, $k);
             }
         }
-
         if(isset($scope)) return $scope;
+
+        if($expand && is_array($this->scope)) {
+            $r = array();
+            foreach($this->scope as $k=>$v) {
+                if(is_string($v) && substr($v, 0, 7)=='scope::') {
+                    $v = substr($v, 7);
+                    if(strpos($v, ':')) {
+                        $c = preg_split('/[\s\,\:]+/', substr($v, strpos($v, ':')+1), null, PREG_SPLIT_NO_EMPTY);
+                        $v = substr($v, 0, strpos($v, ':'));
+                        if(!isset($U)) {
+                            $U = tdz::getUser();
+                        }
+                        if($c && !$U->hasCredential($c, false)) continue;
+                    }
+                    if(isset($this->options['scope'][$v])) {
+                        $r += $this->options['scope'][$v];
+                    }
+                    continue;
+                }
+                $r[$k] = $v;
+                unset($k, $v);
+            }
+            $this->scope = $r;
+            return $r;
+        }
         /*
         if($clean) {
             $scope = $this->scope;

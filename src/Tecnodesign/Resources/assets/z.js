@@ -963,6 +963,27 @@ Z.initFilters=function()
 }
 
 var _FF={};
+
+function enableField(on)
+{
+    if(arguments.length==0) on=true;
+    var cn = this.className,an='readonly';
+    if(on) {
+        if(cn.search(/\btdz-f-disable\b/)>-1) cn=cn.replace(/\s*\btdz-f-disable\b/g, '');
+        if(cn.search(/\btdz-f-enable\b/)<0) cn+=' tdz-f-enable';
+        var L=this.querySelectorAll('input['+an+'],select['+an+'],textarea['+an+']'), i=L.length;
+        while(i--) L[i].removeAttribute(an);
+    } else {
+        if(cn.search(/\btdz-f-enable\b/)>-1) cn=cn.replace(/\s*\btdz-f-enable\b/g, '');
+        if(cn.search(/\btdz-f-disable\b/)<0) cn+=' tdz-f-disable';
+        var L=this.querySelectorAll('input:not(['+an+']),select:not(['+an+']),textarea:not(['+an+'])'), i=L.length;
+        while(i--) L[i].setAttribute(an, an);
+    }
+    cn=cn.trim();
+    if(cn!=this.className) this.className = cn;
+}
+
+
 function formFilters(e)
 {
     var a=this.getAttribute('data-filters');
@@ -971,7 +992,7 @@ function formFilters(e)
     var reset=(this.className.search(/\btdz-a-filters\b/)<0);
     if(reset) this.className += ' tdz-a-filters';
 
-    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), 
+    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'), 
       tn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk;
     if(nn.indexOf('[')>-1) {
         nn=nn.replace(/.*\[([^\[]+)\]$/, '$1');
@@ -980,8 +1001,14 @@ function formFilters(e)
     while(i--) {
         tn = tp+t[i];
         fk = fid+tn;
-        // check for selects
-        if(T=this.form.querySelector('select#'+tn)) {
+        if(fa) {
+            if(T=this.form.querySelector('#f__'+tn.replace(/-/g, '_'))) {
+                var fn;
+                if(fa=='enable' || fa=='disable') {
+                    enableField.call(T, (fa=='enable')?(v):(!v));
+                }
+            }
+        } else if(T=this.form.querySelector('select#'+tn)) {
             L = T.querySelectorAll('option');
             if(!(fk in _FF)) {
                 _FF[fk]={o:[], v:{}, f:{}};
@@ -1029,7 +1056,7 @@ function formFilters(e)
                     Z.fire(T, 'change');
                 }
             }
-        } else if(T=this.form.querySelector('#f__'+tn)) {
+        } else if(T=this.form.querySelector('#f__'+tn.replace(/-/g, '_'))) {
             L = T.querySelectorAll('input[type="radio"],input[type="checkbox"]');
             if(!(fk in _FF)) {
                 _FF[fk]={c:{}, v:{}, f:{}};

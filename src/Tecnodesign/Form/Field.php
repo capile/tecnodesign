@@ -4,33 +4,19 @@
  *
  * This package implements applications to build HTML forms
  *
- * PHP version 5.2
+ * PHP version 5.4
  *
  * @category  Form
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
+ * @copyright 2017 Tecnodesign
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Field.php 1298 2013-12-12 02:33:05Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Form Field building, validation and output methods
- *
- * This package implements applications to build HTML forms
- *
- * @category  Form
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @link      https://tecnodz.com/
  */
 class Tecnodesign_Form_Field implements ArrayAccess
 {
     public static $hashMethods=array('datetime'=>'date("Ymd/His_").tdz::slug($name,"._")', 'time'=>'microtime(true)', 'md5'=>'md5_file($dest)', 'sha1'=>'sha1_file($dest)', 'none'=>'$name'),
-        $dateInputType='date', $datetimeInputType='datetime-local', $emailInputType='email', $numberInputType='number', $rangeInputType='range', $urlInputType='url', $searchInputType='search';
+        $dateInputType='date', $datetimeInputType='datetime-local', $emailInputType='email', $numberInputType='number', $rangeInputType='range', $urlInputType='url', $searchInputType='search', $phoneInputType='phone';
     
     /**
      * Common attributes to each form field. If there's a set$Varname, then it'll 
@@ -167,7 +153,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         } else if(isset($M::$schema['form'][$name]['bind']) && $M::$schema['form'][$name]['bind']!=$name) {
             return $this->setBind($M::$schema['form'][$name]['bind'], $return);
-        } else if(substr($name, 0, 1)=='_' || property_exists($M, $name) || (($cm=tdz::camelize($name, true)) && method_exists($M, 'get'.$cm) && method_exists($M, 'set'.$cm))) {
+        } else if(substr($name, 0, 1)=='_' || property_exists($M, $name) || $M::$allowNewProperties || (($cm=tdz::camelize($name, true)) && method_exists($M, 'get'.$cm) && method_exists($M, 'set'.$cm))) {
             $this->bind = $name;
             unset($M, $name, $schema);
             return array();
@@ -265,7 +251,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         if(is_null($this->value) && $this->bind) {
             try {
-                $this->value = $this->getModel()->{$this->bind};
+                $M = $this->getModel();
+                if(method_exists($M, $m='get'.\tdz::camelize($this->bind, true))) {
+                    $this->value = $M->$m();
+                } else {
+                    $this->value = $M->{$this->bind};
+                }
                 if($this->value instanceof Tecnodesign_Collection) {
                     $this->value = ($this->value->count()>0)?($this->value->getItems()):(array());
                 }
@@ -1707,6 +1698,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         $arg['type']='color';
         
+        return $this->renderText($arg);
+    }
+
+    public function renderPhone(&$arg)
+    {
+        $arg['type']=self::$phoneInputType;
+        $arg['data-type']='phone';
         return $this->renderText($arg);
     }
 

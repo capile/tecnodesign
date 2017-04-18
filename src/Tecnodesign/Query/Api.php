@@ -36,7 +36,7 @@ class Tecnodesign_Query_Api
             CURLOPT_HEADER=>1,
             CURLOPT_VERBOSE        => false,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_FAILONERROR    => true,
+            CURLOPT_FAILONERROR    => false,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_RETURNTRANSFER => true,
@@ -470,6 +470,9 @@ class Tecnodesign_Query_Api
         } else {
             if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
                 list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
+                while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
+                    list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $body, 2);
+                }
                 $this->response = json_decode($body, true);
                 unset($body);
             } else {
@@ -625,7 +628,11 @@ class Tecnodesign_Query_Api
         try {
             return $this->runAction($action, $M->asArray('save'), static::$insertMethod);
         } catch(Exception $e) {
-            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            $msg = $e->getMessage();
+            if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
+                $msg = array(tdz::t('Could not save %s.', 'exception'), $M::label());
+            }
+            throw new Tecnodesign_Exception($msg);
         }
     }
 
@@ -638,7 +645,11 @@ class Tecnodesign_Query_Api
         try {
             return $this->runAction($action, $M->asArray('save'), static::$updateMethod);
         } catch(Exception $e) {
-            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            $msg = $e->getMessage();
+            if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
+                $msg = array(tdz::t('Could not save %s.', 'exception'), $M::label());
+            }
+            throw new Tecnodesign_Exception($msg);
         }
     }
 
@@ -651,7 +662,11 @@ class Tecnodesign_Query_Api
         try {
             return $this->runAction($action, $M->getPk(null, true), static::$deleteMethod);
         } catch(Exception $e) {
-            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            $msg = $e->getMessage();
+            if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
+                $msg = array(tdz::t('Could not save %s.', 'exception'), $M::label());
+            }
+            throw new Tecnodesign_Exception($msg);
         }
     }
 

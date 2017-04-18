@@ -292,7 +292,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     //$id = (isset($fd['id']))?($fd['id']):($label);
                     $sfo[$fid] = $fd;
                     //unset($id);
+                } else if(static::$allowNewProperties && substr($fn, 0, 2)!='--') {
+                    $sfo[$fid] = array('type'=>'text','bind'=>$fn, 'label'=>$label);
                 } else if($allowText) {
+                    if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
+                        $class = $label;
+                        $label = substr($fn, 2, strlen($fn)-4);
+                        $fn = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $label, $class, ''), static::$headingTemplate);
+                        unset($class);
+                    } 
                     $sfo[] = $fn;
                 }
                 unset($label, $fn, $fd, $fid);
@@ -379,7 +387,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $fn = $fn0;
 
                 }
-                if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)$/i', $fn, $m)) {
+                if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
+                    if(isset($m[3])) {
+                        if(!(tdz::getUser()->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY),false))) {
+                            continue;
+                        }
+                    }
                     if($m[1]=='scope') {
                         $r = array_merge($r, static::columns($m[2], $type, $expand));
                     }
@@ -1304,13 +1317,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         } catch(Exception $e) {
             $msg = $e->getMessage();
-            tdz::log(__METHOD__."($cn): ".$e);
+
+            if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
+                $msg = array(tdz::t('Could not save %s.', 'exception')."\n".tdz::t('Issues are', 'exception').":\n".$msg, $cn::label());
+            }
+
             if($sql=$this->lastQuery()) tdz::log($sql);
             if (isset($trans) && $trans) {
                 $cn::rollbackTransaction($trans, $conn, $this->_query);
                 self::$transaction=$defaultTransaction;
             }
-            throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception')."\n".tdz::t('Issues are', 'exception').":\n".$msg, $cn::label()));
+            throw new Tecnodesign_Exception($msg);
         }
         if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem");
         return true;
@@ -1561,7 +1578,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else {
                 $class='';
                 if(is_integer($label)) $label = static::fieldLabel($fn, false);
-                if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)$/i', $fn, $m)) {
+                if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
+                    if(isset($m[3])) {
+                        if(!(tdz::getUser()->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY), false))) {
+                            continue;
+                        }
+                    }
                     if($m[1]=='scope') {
                         $s .= $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep);
                     } else if($m[1]=='sub') {
@@ -2011,7 +2033,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $value = $this->$m($value);
         }
         if ($schema['type']=='string') {
-            $value = @(string) $value;
+            $value = (is_array($value))?(implode(',',$value)):(@(string) $value);
             if (isset($schema['size']) && $schema['size'] && strlen($value) > $schema['size']) {
                 $value = mb_strimwidth($value, 0, (int)$schema['size'], '', 'UTF-8');
             }
