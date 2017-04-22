@@ -404,7 +404,7 @@ class Tecnodesign_Studio
         $U = tdz::getUser();
         if($U) {
             $r = $U->asArray();
-            if(self::$webInterface && $U->isAuthenticated() && ($U->isSuperAdmin() || (($ec= self::credential('studio')) && $U->hasCredential($ec, false)))) {
+            if(self::$webInterface && (($U->isAuthenticated() && ($U->isSuperAdmin()) || (($ec= self::credential('studio')) && $U->hasCredential($ec, false))))) {
                 $r['plugins']=array(
                     'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css'),
                 );

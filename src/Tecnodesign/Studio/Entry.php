@@ -394,6 +394,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         if(is_null($c)) {
             $c = Tecnodesign_Studio::credential('previewPublished');
         }
+
         if($c && !(($U=tdz::getUser()) && $U->hasCredential($c, false))) {
             Tecnodesign_Studio::error(403);
             return false;
@@ -451,6 +452,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(!is_array($this->credential)) return $this->credential;
             else if(isset($this->credential[$role])) return $this->credential[$role];
             else if(isset($this->credential['default'])) return $this->credential['default']; 
+            else if(isset($this->credential['auth'])) return $this->credential['auth']; 
         }
         if($this->id && Tecnodesign_Studio::$connection) {
             $P = tdzPermission::find(array('entry'=>$this->id,'role'=>'previewPublished'),1,array('credentials'));
@@ -551,7 +553,10 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         if(in_array('_tpl_', $pp)) return; // templates cannot be pages
         $ext = strtolower(array_pop($pp));
         //if(is_array(tdzContent::$disableExtensions) && in_array($ext, tdzContent::$disableExtensions)) return;
-        $isPage = isset(tdzContent::$contentType[$ext]);
+
+        if($ext=='html' && stripos(fgets(fopen($page, 'r')), 'doctype')) $isPage=false;
+        else $isPage = isset(tdzContent::$contentType[$ext]);
+
         if($isPage) {
             if($pn==$base) return; // cannot access content directly
             else if($base.'.'.$ext!=$pn && $base.'.'.tdz::$lang.'.'.$ext!=$pn) return; // cannot have slots/position
@@ -677,12 +682,16 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $root = TDZ_VAR.'/'.static::$pageDir;//tdzEntry::file(static::$pageDir, false);
         if(substr($u, -1)=='/') $u.=static::$indexFile;
         else if(is_dir($root.$u)) $u .= '/'.static::$indexFile; // redirect?
+        else if(preg_match('/\.('.implode('|',array_keys(tdzContent::$contentType)).')$/', $u, $m)) {
+            $u = substr($u, 0, strlen($u)-strlen($m[0]));
+        }
 
         static $pat;
         if(is_null($pat)) {
             $pat = '{,.*}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
         }
         $pages = glob($root.$u.$pat, GLOB_BRACE);
+
         //$pages = glob($f.'.*');
         if($checkTemplate) {
             while(strrpos($u, '/')!==false) {
@@ -720,6 +729,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 unset($sort);
             }
         }
+
         unset($pages);
         return $r;
     }
