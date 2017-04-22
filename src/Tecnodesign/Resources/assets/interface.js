@@ -79,8 +79,8 @@
         while(i-- > 0) {
             var M = S[i].querySelectorAll('*[data-action-scope]'),j=M.length, N, k=S[i].getAttribute('data-action-schema'),u=S[i].getAttribute('data-action-url'), bt, bu;
             while(j-- > 0) {
-                if(M[j].querySelector('.tdz-i')) continue;
                 bu=M[j].getAttribute('data-action-scope');
+                if(M[j].querySelector('.tdz-i') || !bu || bu.substr(0, 1)=='_') continue;
                 M[j].removeAttribute('data-action-scope');
                 if(M[j].nodeName.toLowerCase()=='button') {
                     M[j].setAttribute('data-url', u+'?scope='+bu+iurl);

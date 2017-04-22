@@ -612,7 +612,6 @@ class Tecnodesign_Query_Sql
         }
         $stmt = self::connect($n)->query($q);
         if(!$stmt) {
-            //\tdz::debug($n, var_Export(self::connect($n), true), self::connect($n)->errorInfo());
             throw new \Exception('Statement failed! '.$q);
         }
         return $stmt;
@@ -838,7 +837,7 @@ class Tecnodesign_Query_Sql
         foreach($fs as $fn=>$fv) {
             $original=$M->getOriginal($fn);
             if(isset($fv['primary']) && $fv['primary']) {
-                $pks[$fn] = tdz::sql($original);
+                $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
             }
             if(!is_array($fv)) $fv=array('null'=>true);
 

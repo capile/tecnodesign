@@ -555,7 +555,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             try {
                 foreach($eo as $i=>$fn) {
                     $result=true;
-                    if(method_exists($this, $fn)) {
+                    if(is_array($fn) && isset($fn[0]) && count($fn)>1 && is_object($fn[0]) && method_exists($fn[0], $fn[1])) {
+                        $O = array_shift($fn);
+                        $m = array_shift($fn);
+                        if($fn) {
+                            $result = call_user_func_array(array($O, $m), $fn);
+                        } else {
+                            $result = $O->$m();
+                        }
+                    } else if(method_exists($this, $fn)) {
                         $result = $this->$fn($e, $conn);
                     } else if(is_callable($fn)) {
                         $result=false;
@@ -1611,11 +1619,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $fd=static::column($fn,true,true);
                     }
                     $v = $this->renderField($fn, $fd, $xmlEscape);
-                    if($showOriginal && isset($this::$schema['columns'][$fn])) {
+                    if($showOriginal && isset($this::$schema['columns'][$fn]) && array_key_exists($fn, $this->_original)) {
                         $v0 = (isset($this->_original[$fn]))?($this->_original[$fn]):(null);
                         $v1 = (isset($this->$fn))?($this->$fn):(null);
                         if($v0!=$v1) {
-                            \tdz::log('diff: '.$fn, $v0, $v1);
                             $this->$fn = $v0;
                             $v = '<span class="tdz-m-original">'.$this->renderField($fn, $fd, $xmlEscape).'</span>'
                                . '<span class="tdz-m-value">'.$v.'</span>'
