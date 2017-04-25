@@ -382,7 +382,7 @@ class Tecnodesign_User
             $this->_message = array();
         }
         if($msg) {
-            $this->_message[microtime(true)]=$msg;
+            $this->_message[(string)microtime(true)]=$msg;
             $this->storeMessage($storage);
         }
         return $this;
@@ -393,23 +393,24 @@ class Tecnodesign_User
      */
     public function getMessage($storage=null, $delete=false, $cookie=null)
     {
-        if(is_null($this->_message)) {
-            $cid = (is_null($this->_cid))?($this->getSessionId()):($this->_cid);
-            $ckey = "user/message-{$cid}";
-            if(is_null($storage)) {
-                $storage = (isset($ns['storage']))?($ns['storage']):($this->_useMem);
-            }
-            $this->_message = Tecnodesign_Cache::get($ckey, 0, $storage);
-            if(!$this->_message) $this->_message=array();
-            unset($cid, $ckey);
+        $cid = (is_null($this->_cid))?($this->getSessionId()):($this->_cid);
+        $ckey = "user/message-{$cid}";
+        if(is_null($storage)) {
+            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_useMem);
         }
+        $msg = Tecnodesign_Cache::get($ckey, 0, $storage, true);
+        if(!$this->_message) $this->_message=array();
+        if($msg) {
+            $this->_message += $msg;
+        }
+        //unset($cid, $ckey, $msg);
         $msg = '';
         $msgs = $this->_message;
-        if(is_object($this->_me)) {
+        if($this->_me && is_object($this->_me)) {
             if(method_exists($this->_me, 'getMessages')) {
                 $um = $this->_me->getMessages();
                 if($um && !is_array($um)) {
-                    $msgs[time()]=$um;
+                    $msgs[''.microtime(true)]=$um;
                 } else if($um) {
                     $msgs += $um;
                 }
@@ -466,7 +467,7 @@ class Tecnodesign_User
         }
         $message = null;
         $store   = false;
-        $message = Tecnodesign_Cache::get($ckey, 0, $storage);
+        $message = Tecnodesign_Cache::get($ckey, 0, $storage, true);
         if(is_null($this->_message)) {
             $store = true;//$message;
         } else {
@@ -495,10 +496,10 @@ class Tecnodesign_User
         $ret = true;
         if ($store) {
             if(is_null($this->_message)) {
-                $ret = Tecnodesign_Cache::delete($ckey, $storage);
+                $ret = Tecnodesign_Cache::delete($ckey, $storage, true);
             } else {
                 $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
-                $ret = Tecnodesign_Cache::set($ckey, $this->_message, $timeout, $storage);
+                $ret = Tecnodesign_Cache::set($ckey, $this->_message, $timeout, $storage, true);
             }
             if($setcookie) $this->setSessionCookie();
         }
@@ -539,7 +540,6 @@ class Tecnodesign_User
         if($p=strpos($domain, ':')) $domain = substr($domain, 0, $p);
         $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         if($timeout > 0 && $timeout<31536000) $timeout += time();
-        //if(tdz::env()=='dev') tdz::log(__METHOD__." {$n}={$this->_cid} {$timeout} {$domain}");
         setcookie($n, $this->_cid, $timeout, '/', $domain, false, true);
         $cookiesSent[$n.'/'.$this->_cid]=true;
         unset($n, $domain, $timeout);
@@ -612,11 +612,15 @@ class Tecnodesign_User
             Tecnodesign_Cache::delete($ckey, $storage);
             Tecnodesign_Cache::delete("user/attr-".$this->_cid);
             $this->_cid = tdz::hash(microtime(true), null, 20);
-            self::$_cookies[$n][]=$this->_cid;
+            $this->_me = null;
+            //$n = $this->getSessionId();
+            //self::$_cookies[$n][]=$this->_cid;
             $this->setSessionCookie();
         }
-        if(is_null($msg)) $msg=tdz::t('User disconnected.', 'user');
-        $this->setMessage($msg, $storage);
+        if(is_null($msg)) {
+            $msg=tdz::t('User disconnected.', 'user');
+            $this->setMessage($msg, $storage);
+        }
         return true;
     }
     

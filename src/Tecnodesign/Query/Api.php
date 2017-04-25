@@ -481,12 +481,23 @@ class Tecnodesign_Query_Api
             }
         }
 
-        if($msg || preg_match(static::$errorPattern, $r)) {
+        if($msg || preg_match(static::$errorPattern, $this->headers)) {
             if(isset($this->response['error'])) {
-                $msg = '<div class="tdz-i-msg tdz-i-error">'.$this->response['error'].'</div>';
+                $msg = '<div class="tdz-i-msg tdz-i-error">'
+                     . ((is_array($this->response['error']))?('<p>'.implode('</p><p>', $this->response['error']).'</p>'):($this->response['error']))
+                     . '</div>';
                 if(isset($this->response['message'])) {
                     $msg .= $this->response['message'];
                 }
+            } else if(!$msg && ($p=strpos($this->headers, "\nX-Message: "))) {
+                $p += 12;
+                $end = strpos($this->headers, "\n", $p);
+                if(!$end) $msg=substr($this->headers, $p);
+                else $msg=substr($this->headers, $p, $end - $p);
+                $msg = '<div class="tdz-i-msg tdz-i-error">'
+                     . $msg
+                     . '</div>'
+                     ;
             }
             $cn = get_class($this);
             throw new Tecnodesign_Exception($msg);
@@ -673,6 +684,11 @@ class Tecnodesign_Query_Api
     public function lastQuery()
     {
         return $this->_last;
+    }
+
+    public function response()
+    {
+        return $this->response;
     }
 
     /**
