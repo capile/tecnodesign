@@ -108,6 +108,8 @@ if(isset($list) && is_array($list)) {
     }
 
     if(!$list && $r) $r = array_shift($r);
+} else if(isset($response)) {
+    $r = $response;
 }
 
 if(isset($error) && $error) {

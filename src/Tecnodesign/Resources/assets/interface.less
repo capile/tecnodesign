@@ -512,7 +512,11 @@ textarea {
   max-width:100%;
 }
 
-form .input a.tdz-i-upload {
+.app-file-preview .tdz-f-file ~ input {
+  display:none;
+}
+
+form .tdz-i-field a.tdz-i-upload {
   position:relative;
   z-index:1;
   background:@colorTab;
@@ -520,10 +524,19 @@ form .input a.tdz-i-upload {
   display:inline-block;
   .border(0.25em);
   margin: 0 0.25em 0.25em 0;
-  padding: 0 0.5em;
+  padding: 0.25em 0.5em;
   cursor:pointer;
   &:hover {
     background: @colorTabActive;
+  }
+  &:after {
+    color:@colorTabText;
+    content: ' \f00d';
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    display: inline-block;
+    text-decoration: inherit;
   }
 }
 

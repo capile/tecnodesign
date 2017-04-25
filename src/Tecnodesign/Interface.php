@@ -1519,6 +1519,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $vars['url'] = $this->link();//tdz::scriptName(true);
         $vars['response'] = $data;
         $vars['options'] = $this->options;
+
         return tdz::exec(array('script'=>$f, 'variables'=>$vars));
     }
 
@@ -1528,7 +1529,11 @@ class Tecnodesign_Interface implements ArrayAccess
             if($k==static::H_LAST_MODIFIED) header('Last-Modified: '.$v);
             else if(strtolower($k)=='location') header('Location: '.$v);
             else if(preg_match('/^([A-Z][a-z0-9]+\-)+([A-Z][a-z0-9]+)$/', $k)) header($k.': '.$v);
-            else if($k) header('X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k)))).': '.((is_array($v))?(implode(';',$v)):($v)));
+            else if($k) {
+                $k = 'X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k))));
+                $v = preg_replace('/[\n\r\t]+/', '', strip_tags((is_array($v))?(implode(';',$v)):($v)));
+                header($k.': '.$v);
+            }
         }
         if(static::$status) {
             Tecnodesign_App::status(static::$status, static::$statusCodes[static::$status]);
@@ -1724,6 +1729,9 @@ class Tecnodesign_Interface implements ArrayAccess
         $fo = $this->getForm($o, $scope);
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
+            // prevent these actions from being marked as updates
+            $dontpost = (isset($_SERVER['HTTP_TDZ_ACTION']) && in_array($_SERVER['HTTP_TDZ_ACTION'], array('Upload','choices')));
+
             if(($post=Tecnodesign_App::request('post')) || static::$format!='html') {
                 if(!$fo->validate($post) || !$post) {
                     throw new Tecnodesign_Exception((!$post)?(static::t('errorNoInput')):($fo->getError()));

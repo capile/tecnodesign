@@ -1525,7 +1525,8 @@ class tdz
     {
         if (connection_status() != 0 || !$file)
             return(false);
-        $extension = strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1', basename($file)));
+        if(!$fname) $fname = basename($file);
+        $extension = strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1',$fname));
         tdz::unflush();
 
         if(!file_exists($file)) {
@@ -1566,9 +1567,9 @@ class tdz
                 $contentDisposition = 'inline';
             if (strstr($_SERVER['HTTP_USER_AGENT'], "MSIE")) {
                 $fname = preg_replace('/\./', '%2e', $fname, substr_count($fname, '.') - 1);
-                @header("Content-Disposition: $contentDisposition;filename=\"$fname\"");
+                @header("Content-Disposition: $contentDisposition; filename=\"$fname\"");
             } else {
-                @header("Content-Disposition: $contentDisposition;filename=\"$fname\"");
+                @header("Content-Disposition: $contentDisposition; filename=\"$fname\"");
             }
         } else if($fname) {
             @header("Content-Disposition: filename=\"$fname\"");
@@ -1823,7 +1824,7 @@ class tdz
      *
      * @return string slug
      */
-    public static function slug($str, $accept='')
+    public static function slug($str, $accept='', $anycase=null)
     {
         $str = strtr($str, tdz::$slugReplacements);
         if($accept) {
@@ -1831,8 +1832,8 @@ class tdz
         } else {
             $accept = '_';
         }
-        $str = strtolower(trim($str));
-        $str = preg_replace('/[^a-z0-9-'.$accept.']+/', '-', $str);
+        $str = ($anycase)?(trim($str)):(strtolower(trim($str)));
+        $str = preg_replace('/[^a-z0-9-'.$accept.']+/'.(($anycase)?('i'):('')), '-', $str);
         $str = preg_replace('/-+/', '-', $str);
         $str = preg_replace('/^-|-$/', '', $str);
         return $str;

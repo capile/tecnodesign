@@ -2035,8 +2035,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public function validate($schema, $value, $name=null)
     {
         $ovalue = $value;
-        if (!is_null($name) && method_exists($this, 'validate'.ucfirst($name))) {
-            $m = 'validate'.ucfirst($name);
+        if (!is_null($name) && method_exists($this, $m='validate'.\tdz::camelize($name, true))) {
             $value = $this->$m($value);
         }
         if ($schema['type']=='string') {

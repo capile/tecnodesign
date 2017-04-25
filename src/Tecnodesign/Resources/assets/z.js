@@ -651,6 +651,7 @@ Z.formData=function(f, includeEmpty, returnObject)
         d={};
         for(i=0;i<f.elements.length;i++) {
             if('name' in f.elements[i] && f.elements[i].name) {
+                if(f.elements[i].nodeName.toLowerCase()=='input' && f.elements[i].type=='file') continue;
                 v = Z.val(f.elements[i]);
                 if(v!==null && (v || includeEmpty)) d[f.elements[i].name] = v;
             }
@@ -1434,6 +1435,7 @@ function uploadFile(file, U)
                 Z.removeChildren(b, ':not(.tdz-i-upload)');
                 Z.element.call(b, t);
             }
+            b.className += ' tdz-f-file';
             el.setAttribute('data-status', 'ready');
             el = clearFileInput(el);
             var v=d.value;
@@ -1458,6 +1460,17 @@ function uploadFile(file, U)
     reader.onload = function(e) {
         var d = { _upload: { id: U.target.id, uid: U.id, file: file.name, start: loaded, end: loaded+step, total: total, data: e.target.result, index: i++ }  };
         loaded += step;
+        if(U.target.name.indexOf('[')) {
+            var n=U.target.name, t=d, p=n.indexOf('['), m;
+            while(p>-1) {
+                m=n.substr(0,p+1).replace(/[\[\]]+/, '');
+                n=n.substr(p+1);
+                p=n.indexOf('[');
+                if(p>-1) t[m]={};
+                else t[m]=0;
+                t=t[m];
+            }
+        }
         //progress.value = (loaded/total) * 100;
         if(loaded <= total) {
             U.loaded += step;
@@ -1488,6 +1501,7 @@ function removeUpload(e)
     var el = this.parentNode.parentNode.querySelector('input[type="hidden"]');
     el.value='';// remove only this upload
     el=null;
+    this.parentNode.className = this.parentNode.className.replace(/\s*\btdz-f-file\b/g, '');
     this.parentNode.removeChild(this);
 }
 

@@ -60,7 +60,7 @@
         // bind links to Interface actions
         l=I.querySelectorAll('a[href^="'+base+'"],.tdz-i-a');
         i=l.length;
-        while(i-- > 0) if(!l[i].getAttribute('target')) Z.bind(l[i], 'click', loadInterface);
+        while(i-- > 0) if(!l[i].getAttribute('target') && !l[i].getAttribute('download')) Z.bind(l[i], 'click', loadInterface);
 
         // bind forms
         l=I.querySelectorAll('form[action^="'+base+'"],.tdz-i-preview form');

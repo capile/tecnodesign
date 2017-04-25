@@ -206,7 +206,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     
     public static function id($name)
     {
-        return str_replace('-', '_', tdz::slug($name, '§,'));
+        return str_replace('-', '_', tdz::slug($name, '§,', true));
     }
 
     public function getId()
@@ -536,6 +536,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             try {
                 $F = $O->getForm($sid, true);
+                $F->prefix = $this->getName().'['.$i.']';
                 if(is_array($new)) {
                     foreach($new as $fn) $F[$fn]->disabled=true;
                 } else if($new) {
@@ -604,7 +605,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function checkFile($value=false, $message='')
     {
         // check ajax uploader
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->id) {
+        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
             // check id
             $fname = 'upload-'.tdz::slug($upload['uid']);
             $U=tdz::getUser();
@@ -700,10 +701,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
                 $new = array();
                 foreach($value as $i=>$upload) {
-                    if(isset($upload[0]) && count($upload)==1) {
-                        $upload = $upload[0];
+                    if(is_array($upload) && count($upload)==1) {
+                        $upload = array_shift($upload);
                     }
 
+                    if(!is_array($upload) && substr($upload, 0, 5)=='ajax:') {
+                        $upload = array('_'=>$upload);
+                    }
                     if(isset($upload['_']) && substr($upload['_'], 0, 5)=='ajax:') {
                         $uid = substr($upload['_'], 5, strpos($upload['_'], '|') -5);
 
@@ -1401,9 +1405,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(\tdz::requestUri()):($this->accept['uploader']);
         }
         if(strpos($arg['class'], 'app-file-preview')!==false) {
-            $s .= '<span class="text">'
-                . (($arg['value'])?($this->filePreview($arg['id'])):(''))
-                . '</span>';
+            if($arg['value']) {
+                $s .= '<span class="text tdz-f-file">'.$this->filePreview($arg['id']).'</span>';
+            } else {
+                $s .= '<span class="text"></span>';
+            }
         }
         if(strpos($arg['class'], 'app-image-preview')!==false) {
             $s .= '<span class="text">'
@@ -1414,8 +1420,23 @@ class Tecnodesign_Form_Field implements ArrayAccess
         unset($arg['template']);
         $a = $arg;
         $a['value']='';
+        if(isset($a['required'])) unset($a['required']);
         $s .= $h.$this->renderText($a);
         return $s;
+    }
+
+    public static function uploadedFile($s, $array=false)
+    {
+        $uploadDir = tdz::uploadDir();
+        $fpart = explode('|', $s);
+        $fname = array_pop($fpart);
+        if(count($fpart)>=1 && file_exists($f=$uploadDir.'/'.$fpart[0])) {
+            if($array) return array('name'=>$fname, 'file'=>$f);
+            return $f;
+        } else if(file_exists($f=$uploadDir.'/'.$fname)) {
+            if($array) return array('name'=>$fname, 'file'=>$f);
+            return $f;
+        }
     }
     
     public function filePreview($prefix='', $img = false)
@@ -1436,20 +1457,20 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         tdz::download($uploadDir.'/'.$fpart[0], null, $fname, 0, true);
                     }
                     if ($img) {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" /></a>';
+                        $s .= '<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" /></a>';
                     } else {
                         $s .= '<a href="'.tdz::xmlEscape($link).'">'.tdz::xmlEscape($fname).'</a>';
                     }
-                } elseif (file_exists($uploadDir.'/'.$fname)) { //Compatibilidade com dados de framework anteriores
+                } elseif (file_exists($f=$uploadDir.'/'.$fname) || ($this->bind && method_exists($M=$this->getModel(), $m='get'.tdz::camelize($this->bind, true).'File') && file_exists($f=$M->$m()))) { //Compatibilidade com dados de framework anteriores
                     $hash = $prefix.md5($fname);
                     $link = $url.$hash.'='.urlencode($fname);
                     if(isset($_GET[$hash]) && $_GET[$hash]==$fname) {
-                        tdz::download($uploadDir.'/'.$fname);
+                        tdz::download($f, null, $fname, 0, true);
                     }
                     if ($img) {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" /></a>';
+                        $s .= '<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" /></a>';
                     } else {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'">'.tdz::xmlEscape($fname).'</a>';
+                        $s .= '<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'">'.tdz::xmlEscape($fname).'</a>';
                     }
                 } else {
                     $s .= '<span>'.tdz::xmlEscape($fname).'</span>';
