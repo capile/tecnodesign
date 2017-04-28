@@ -63,8 +63,6 @@ function initZ(d)
     if(!('timeout' in Z)) Z.timeout = 0;
     if(store && Z.timeout) Z.storage('Z-Auth', d, Z.timeout);
 
-    if(!('datepicker' in Z) && ('Pikaday' in window)) Z.datepicker = 'Pikaday';
-
     if(!('modules' in Z)) {
         Z.modules = defaultModules;
     }
@@ -741,6 +739,7 @@ function checkLabel(e)
 var _Picker={}, _Pickerc=0, _PickerT=0;
 Z.initDatepicker=function()
 {
+    if(!('datepicker' in Z) && ('Pikaday' in window)) Z.datepicker = 'Pikaday';
     if(!('datepicker' in Z) || this.getAttribute('data-datepicker')) return;
 
     var id='p'+(_Pickerc++);
