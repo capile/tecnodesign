@@ -33,7 +33,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $keepCollection = false,
         $transaction=true,
         $formAsLabels,
-        $keySeparator='-';
+        $keySeparator='-',
+        $queryAllowedChars='@.-_';
     protected static $found=array();
     protected static $relations=null, $relationDepth=3;
     protected static $_conn=null;
