@@ -1411,8 +1411,8 @@ function uploadFile(file, U)
     var i=0;
     var ajax = [];
     var H = { 'Tdz-Action': 'Upload', 'Content-Type': 'application/json' };
-    var workers = 3;
-    var retries = 10;
+    var workers = 2;
+    var retries = 3;
     U.size += total;
     //var progress = document.getElementById(file.name).nextSibling.nextSibling;
 
@@ -1420,6 +1420,13 @@ function uploadFile(file, U)
 
     var uploadProgress = function(d)
     {
+        if('size' in d) {
+            U.loaded += d.size;
+            if(U.loaded > U.size) {
+                U.loaded = U.size;
+            }
+            workers++;
+        }
         var w=(U.loaded*100/U.size);
 
         U.progress.querySelector('.tdz-i-progress-bar').setAttribute('style','width:'+w+'%');
@@ -1440,10 +1447,11 @@ function uploadFile(file, U)
             var v=d.value;
         }
 
-        if(ajax.length > 0) {
-            Z.ajax.apply(el, ajax.shift());
-        } else {
-            workers++;
+        if(workers--) {
+            if(ajax.length > 0) {
+                Z.ajax.apply(el, ajax.shift());
+            }
+
         }
     }
 
@@ -1472,11 +1480,9 @@ function uploadFile(file, U)
         }
         //progress.value = (loaded/total) * 100;
         if(loaded <= total) {
-            U.loaded += step;
             blob = file.slice(loaded,loaded+step);
             reader.readAsDataURL(blob);
         } else {
-            U.loaded += total - (loaded - step);
             d._upload.end = loaded = total;
             d._upload.last = true;
         }
@@ -1636,23 +1642,23 @@ function ajaxProbe(e)
             response:_ajax[u].r.response}));
         */
         if(_ajax[u].r.readyState==4) {
-            var d;
-            if(_ajax[u].type=='xml' && _ajax[u].r.responseXML) d=_ajax[u].r.responseXML;
-            else if(_ajax[u].type=='json') {
-                if(_ajax[u].r.responseText) d=JSON.parse(_ajax[u].r.responseText);
+            var d, R=_ajax[u];
+            delete(_ajax[u]);
+
+            if(R.type=='xml' && R.r.responseXML) d=R.r.responseXML;
+            else if(R.type=='json') {
+                if(R.r.responseText) d=JSON.parse(R.r.responseText);
                 else d=null;
-            } else if('responseText' in _ajax[u].r) d=_ajax[u].r.responseText;
-            else d=_ajax[u].r.response;
-            if(_ajax[u].r.status==200) {
-                _ajax[u].success.apply(_ajax[u].context, [ d, _ajax[u].r.status, u, _ajax[u].r ]);
+            } else if('responseText' in R.r) d=R.r.responseText;
+            else d=R.r.response;
+            if(R.r.status==200) {
+                R.success.apply(R.context, [ d, R.r.status, u, R.r ]);
             } else {
-                _ajax[u].error.apply(_ajax[u].context, [ d, _ajax[u].r.status, u, _ajax[u].r ]);
+                R.error.apply(R.context, [ d, R.r.status, u, R.r ]);
             }
             delete(d);
-            if(u in _ajax) {
-                if('r' in _ajax[u]) delete(_ajax[u].r);
-                delete(_ajax[u]);
-            }
+            if('r' in R) delete(R.r);
+            delete(R);
         }
     }
 }
