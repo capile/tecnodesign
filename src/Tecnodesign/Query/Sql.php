@@ -582,7 +582,7 @@ class Tecnodesign_Query_Sql
                     else if($cop=='^') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '".self::escape($v, false)."%'";
                     else if($cop=='$') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".self::escape($v, false)."'";
                     else if($cop=='*') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".self::escape($v, false)."%'";
-                    else if($cop=='%') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v))."%'";
+                    else if($cop=='%') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v, $cn::$queryAllowedChars, true))."%'";
                     else $r .= ($not)?(" not({$fn}{$cop}".self::escape($v).')'):(" {$fn}{$cop}".self::escape($v));
                 }
                 unset($cop, $cnot);

@@ -33,7 +33,7 @@ class Tecnodesign_Form implements ArrayAccess
     public $buttons=array('submit'=>'*Send'), $attributes=array();
     private static $_instances=null;
     public static $enableStyles=false;
-    private $uid;
+    private $_uid;
 
 
     public function __construct($def)
@@ -87,7 +87,7 @@ class Tecnodesign_Form implements ArrayAccess
                 if(isset($before)) {
                     if(!isset($fd['before'])) $fd['before'] = '';
                     
-                    $fd['before'] = $before;
+                    $fd['before'] = $before.$fd['before'];
                     unset($before);
                 }
                 $this->fields[$fn]=new Tecnodesign_Form_Field($fd, $this);
@@ -166,10 +166,10 @@ class Tecnodesign_Form implements ArrayAccess
             self::$_instances=new arrayObject();
         }
         if(!is_null($id)) {
-            $this->uid = $id;
-            self::$_instances[$this->uid]=$this;
+            $this->_uid = $id;
+            self::$_instances[$this->_uid]=$this;
         }
-        return $this->uid;
+        return $this->_uid;
     }
 
     public static function instance($id)
@@ -383,11 +383,11 @@ class Tecnodesign_Form implements ArrayAccess
             if(self::$models && in_array($o, self::$models)) {
                 $id = array_search($o, self::$models);
             } else if($o->isNew()) {
-                $id = get_class($o).'#new-'.$this->uid;
+                $id = get_class($o).'#new-'.$this->_uid;
             } else {
                 $id = get_class($o).'#'.$o->getPk();
                 if(isset(self::$models[$id])) {
-                    $id .= '-'.$this->uid;
+                    $id .= '-'.$this->_uid;
                 }
             }
             $this->model = $id;

@@ -33,7 +33,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $keepCollection = false,
         $transaction=true,
         $formAsLabels,
-        $keySeparator='-';
+        $keySeparator='-',
+        $queryAllowedChars='@.-_';
     protected static $found=array();
     protected static $relations=null, $relationDepth=3;
     protected static $_conn=null;
@@ -260,6 +261,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!is_array($scope)) $scope = static::columns($scope);
             $sfo = array();
             foreach($scope as $label=>$fn) {
+                if(is_string($fn) && strpos($fn, '<')!==false) {
+                    $sfo[] = $fn;
+                    continue;
+                }
                 $fd = array();
                 if(is_array($fn)) {
                     $fd = $fn;
