@@ -473,13 +473,19 @@ class Tecnodesign_Query_Api
                 while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
                     list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $body, 2);
                 }
-                $this->response = json_decode($body, true);
+                if($this->headers && strpos($this->header('Content-Type'), 'json')===false) {
+                    $this->response = $body;
+                } else {
+                    $this->response = json_decode($body, true);
+                }
                 unset($body);
             } else {
                 $this->headers = null;
                 $this->response = json_decode($body, true);
             }
         }
+        unset($conn);
+        self::disconnect($this->schema('database'));
 
         if($msg || preg_match(static::$errorPattern, $this->headers)) {
             if(isset($this->response['error'])) {
@@ -526,7 +532,7 @@ class Tecnodesign_Query_Api
                 }
             }
         } catch(Exception $e) {
-            tdz::log('Error in '.__METHOD__.":\n  ".$e->getMessage()."\n ".$e);
+            //tdz::log('Error in '.__METHOD__.":\n  ".$e->getMessage()."\n ".$e);
             return false;
         }
     }

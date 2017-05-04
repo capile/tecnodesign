@@ -1432,7 +1432,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!is_null($groupBy) && !is_bool($groupBy)) $q['groupBy'] = $groupBy;
         else if(isset(static::$schema['group-by'])) $q['groupBy'] = static::$schema['group-by'];
         $q['limit'] = $limit;
-        $Q = Tecnodesign_Query::handler(get_called_class())->find($q);
+        $Q = Tecnodesign_Query::handler(get_called_class(), true)->find($q);
         if(!$Q) {
             return false;
         } else if($limit==1) {
@@ -2185,7 +2185,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if (method_exists($this, $m)) {
             $ret = $this->$m();
         } else if(strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
-            if(!is_null($this->$firstName)) {
+            if(isset($this->$firstName)) {
                 if($ref) return $this->$firstName->$ref;
                 else return $this->$firstName;
             } else {
