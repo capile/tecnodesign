@@ -1688,7 +1688,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->id = $o->$pk;
                     $this->search = array($pk=>$this->id);
                 }
-                $next = 'preview';
+                $next = (static::$format!='html')?(null):('preview');
                 if(isset($this->options['next'])) {
                     if(is_array($this->options['next'])) {
                         if(isset($this->options['next'][$this->action])) {
@@ -1698,9 +1698,13 @@ class Tecnodesign_Interface implements ArrayAccess
                         $next = $this->options['next'];
                     }
                 }
-                $this->action = $next;
-                $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.static::t('newSuccess').'</p></div>');
-                $this->redirect($this->link(), $oldurl);
+                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.static::t('newSuccess').'</p></div>';
+                if($next) {
+                    $this->action = $next;
+                    $this->message($msg);
+                    $this->redirect($this->link(), $oldurl);
+                }
+                $this->text['summary'] .= $msg;
             }
             unset($post);
         } catch(Exception $e) {

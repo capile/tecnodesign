@@ -261,6 +261,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!is_array($scope)) $scope = static::columns($scope);
             $sfo = array();
             foreach($scope as $label=>$fn) {
+                if(is_string($fn) && strpos($fn, '<')!==false) {
+                    $sfo[] = $fn;
+                    continue;
+                }
                 $fd = array();
                 if(is_array($fn)) {
                     $fd = $fn;
