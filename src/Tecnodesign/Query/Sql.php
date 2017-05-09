@@ -566,7 +566,7 @@ class Tecnodesign_Query_Sql
                             unset($vk, $vs);
                         }
                         $r .= " {$fn}".(($cnot || $cop=='<>' || substr($cop, 0, 1)=='!')?(' not'):('')).' in('.implode(',',$v).')';
-                    } else if(is_array($v)) {
+                    } else if(is_array($v) && !($cop=='^' || $cop=='$' || $cop=='*' || $cop=='%')) {
                         $nv = array();
                         if($cop!='=') $nv[] = $cop;
                         if($cnot) $nv[] = '!';
@@ -576,14 +576,27 @@ class Tecnodesign_Query_Sql
                         }
                         $v = $this->getWhere($v);
                         if($v) $r .= "({$v})";
+
+                    } else if(!$v && $cop=='=') {
+                        $r .= (($cnot)?(' not'):(' '))."({$fn}=".self::escape($v)." or {$fn} is null)";
+
+                    } else if(!$v && $cop=='<>') {
+                        $r .= " ({$fn}<>".self::escape($v)." and {$fn} is not null)";
+
+                    } else if($cop=='^' || $cop=='$' || $cop=='*') {
+                        $b = " {$fn}".(($cnot)?(' not'):(''))." like '";
+                        if($cop!='^') $b .= '%';
+                        $a = ($cop!='$')?("%'"):("'");
+                        if(is_array($v)) {
+                            $r .= $b.implode($a." {$cxor}".$b, self::escape($v, false)).$a;
+                        } else {
+                            $r .= $b.self::escape($v, false).$a;
+                        }
+                    } else if($cop=='%') {
+                        $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v, $cn::$queryAllowedChars, true))."%'";
+                    } else {
+                        $r .= ($not)?(" not({$fn}{$cop}".self::escape($v).')'):(" {$fn}{$cop}".self::escape($v));
                     }
-                    else if(!$v && $cop=='=') $r .= (($cnot)?(' not'):(' '))."({$fn}=".self::escape($v)." or {$fn} is null)";
-                    else if(!$v && $cop=='<>') $r .= " ({$fn}<>".self::escape($v)." and {$fn} is not null)";
-                    else if($cop=='^') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '".self::escape($v, false)."%'";
-                    else if($cop=='$') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".self::escape($v, false)."'";
-                    else if($cop=='*') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".self::escape($v, false)."%'";
-                    else if($cop=='%') $r .= " {$fn}".(($cnot)?(' not'):(''))." like '%".str_replace('-', '%', tdz::slug($v, $cn::$queryAllowedChars, true))."%'";
-                    else $r .= ($not)?(" not({$fn}{$cop}".self::escape($v).')'):(" {$fn}{$cop}".self::escape($v));
                 }
                 unset($cop, $cnot);
             }
@@ -801,6 +814,7 @@ class Tecnodesign_Query_Sql
             }
             $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
             $r = $conn->exec($this->_last);
+            \tdz::log(__METHOD__, $this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
@@ -873,6 +887,7 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "update {$tn} set {$sql} where {$wsql}";
+            \tdz::log(__METHOD__, $this->_last);
             $r = $conn->exec($this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
@@ -896,6 +911,7 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "delete from {$tn} where {$wsql}";
+            \tdz::log(__METHOD__, $this->_last);
             $r = $conn->exec($this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
