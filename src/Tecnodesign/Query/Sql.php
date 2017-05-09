@@ -814,7 +814,6 @@ class Tecnodesign_Query_Sql
             }
             $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
             $r = $conn->exec($this->_last);
-            \tdz::log(__METHOD__, $this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
@@ -887,7 +886,6 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "update {$tn} set {$sql} where {$wsql}";
-            \tdz::log(__METHOD__, $this->_last);
             $r = $conn->exec($this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
@@ -911,7 +909,6 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "delete from {$tn} where {$wsql}";
-            \tdz::log(__METHOD__, $this->_last);
             $r = $conn->exec($this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
