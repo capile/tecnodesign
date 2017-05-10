@@ -2,7 +2,7 @@
 (function()
 {
     "use strict";
-    var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _loading={}, _ids={}, _q=[], _last, _reStandalone=/\btdz-i-standalone\b/;
+    var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _reload={}, _loading={}, _ids={}, _q=[], _last, _reStandalone=/\btdz-i-standalone\b/;
 
     function startup(I)
     {
@@ -418,10 +418,12 @@
                 if(!valid) return false;
             }
             if(t=this.getAttribute('data-url')) {
+                u=t;
                 l=_ids[I.getAttribute('data-url')];
                 if(q=this.getAttribute('data-qs')) {
                     t=t.replace(/\?.*/, '');
                     q='?'+q;
+                    u += q;
                 } else q='';
                 if(t.indexOf('{id}')>-1) {
                     i=(l.length && !m)?(1):(l.length);
@@ -434,6 +436,7 @@
                     urls.push(t+q);
                 }
             } else if(t=this.getAttribute('action')) {
+                u=t;
                 if(this.getAttribute('method').toLowerCase()=='post') {
                     var enc=this.getAttribute('enctype');
                     if(enc=='multipart/form-data') {
@@ -446,6 +449,14 @@
                         h['Content-Type'] = enc;
                     }
                     if(!data) data = Z.formData(this);
+
+                    // set index interface to be reloaded
+                    var iu = u.replace(/\/[^/]+\/[^/]+(\?.*)$/, ''),
+                        ib = Z.parentNode(this, '.tdz-i-box'),
+                        ih = (ib)?(ib.querySelector('.tdz-i-header .tdz-i--list[data-url^="'+iu+'"]')):(null);
+                    if(ih) {
+                        _reload[ih.getAttribute('data-url')]=true;
+                    }
                 } else {
                     t = t.replace(/\?(.*)$/, '')+'?'+Z.formData(this);
                 }
@@ -539,50 +550,51 @@
 
     function activeInterface(I)
     {
-        var u, H;
+        var u, qs, H;
         if(!I || typeof(I)=='string' || !Z.isNode(I)) {
             if(typeof(I)=='string') {
                 u = I;
+                if(u.indexOf('?')) {
+                    qs = u.substr(u.indexOf('?')+1);
+                    u=u.substr(0, u.indexOf('?'));
+                }
                 I = document.querySelector('.tdz-i[data-url="'+u+'"]');
             } else {
                 if(I && ('stopPropagation' in I)) {
                     I.stopPropagation();
                     I.preventDefault();
+                    // click events reload the interface
+                    I=Z.node(this);
+                    if(I && (u=I.getAttribute('data-url')) && (u in _reload)) {
+                        delete(_reload[u]);
+                        qs = I.getAttribute('data-qs');
+                        if(!qs && I.getAttribute('href')) {
+                            u=I.getAttribute('href');
+                        }
+                        I=null;
+                    }
+                } else {
+                    I=Z.node(this);
                 }
-                I=Z.node(this);
             }
         }
-        if(I) u=I.getAttribute('data-url');
-        if(u) H = document.querySelector('.tdz-i-title[data-url="'+u+'"]');
-        if(I==H) I = document.querySelector('.tdz-i[data-url="'+u+'"]');
+        if(I) {
+            u=I.getAttribute('data-url');
+            if(u) H = document.querySelector('.tdz-i-title[data-url="'+u+'"]');
+            if(I==H) I = document.querySelector('.tdz-i[data-url="'+u+'"]');
+        }
         if(!I && !u) {
             // get u from hash?
             return false;
         } else if(!I) {
-            loadInterface(u);
+            loadInterface((qs)?(u+'?'+qs):(u));
             return false;
         } else if(!_reStandalone.test(I.className)) {
             if(I.className.search(/\btdz-i-active\b/)<0) I.className += ' tdz-i-active';
             if(H && H.className.search(/\btdz-i-off\b/)>-1) H.className = H.className.replace(/\s*\btdz-i-off\b/, '');
             if(H && H.className.search(/\btdz-i-title-active\b/)<0) H.className += ' tdz-i-title-active';
-            var h=I.getAttribute('data-url'), qs = I.getAttribute('data-qs');
             if(_is) {
                 reHash();
-                /*
-                if(h!=_base) {
-                    if(h.substr(0,_base.length)==_base){
-                        h=h.substr(_base.length);
-                        if(h.substr(0,1)=='/') h = h.substr(1);
-                    }
-                    if(qs) h+='?'+qs;
-                    //window.location.hash = '!'+h;
-                } else if(qs) {
-                    h = '?'+qs;
-                } else {
-                    h = '';
-                }
-                setHash(h);
-                */
             }
             var R = document.querySelectorAll('.tdz-i-title-active,.tdz-i-active'),i=R.length;
             while(i-- > 0) {
