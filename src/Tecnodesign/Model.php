@@ -1694,6 +1694,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else {
                 $qsb = '?';
             }
+            $qslink = null;
         } else {
             $qs = Tecnodesign_Ui::$qs;
             $qsb = ($qs)?(substr($qs,1)):('');
@@ -1709,6 +1710,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!(($sd=Tecnodesign_App::request('get', 'd')) && ($sd=='asc' || $sd=='desc'))) {
                 $sd=(isset($schema['order'][$sf]))?($schema['order'][$sf]):('asc');
             }
+            $qslink = $qs;
         }
 
         if(!is_null($this->_collection)) {
@@ -1776,6 +1778,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else {
             $url=false;
         }
+        $qs = $qslink;
         if($qs=='?')$qs='';
         if(!isset($ba['class'])) $ba['class'] = (($i%2)?('even'):('odd'));
         $s .= '<tr';

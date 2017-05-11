@@ -71,17 +71,16 @@ Tecnodesign_App::response('title', $title);
 
                 if(isset($searchForm)) echo '<span class="i-check-label tdz-i-switch">';
 
-
                 if(isset($list)) {
                     // list counter
                     echo '<span class="'.$Interface::$attrCounterClass.'">';
                     if(isset($searchCount)) {
                         if($searchCount<=0) {
-                            echo sprintf($Interface::t('listNoSearchResults'), tdz::formatNumber($count,0), $searchTerms);
+                            echo sprintf($Interface::t('listNoSearchResults'), tdz::formatNumber($searchCount,0), $searchTerms);
                         } else if($searchCount==1) {
-                            echo sprintf($Interface::t('listSearchResult'), tdz::formatNumber($count,0), $searchTerms);
+                            echo sprintf($Interface::t('listSearchResult'), tdz::formatNumber($searchCount,0), $searchTerms);
                         } else { 
-                            echo sprintf($Interface::t('listSearchResults'), tdz::formatNumber($searchCount,0), tdz::formatNumber($count,0), $searchTerms);
+                            echo sprintf($Interface::t('listSearchResults'), tdz::formatNumber($searchCount,0), tdz::formatNumber($searchCount,0), $searchTerms);
                         }
                         $count = $searchCount;
                     } else if($count) {
