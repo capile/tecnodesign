@@ -525,7 +525,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(is_null($pat)) {
                 $pat = '{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
             }
-            $pages = glob($f.$pat, GLOB_BRACE);
+            $pages = glob(str_replace('.', '{-,.}', $f).$pat, GLOB_BRACE);
 
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
@@ -685,6 +685,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         else if(preg_match('/\.('.implode('|',array_keys(tdzContent::$contentType)).')$/', $u, $m)) {
             $u = substr($u, 0, strlen($u)-strlen($m[0]));
         }
+
+        if(strpos($u, '.')) $u = str_replace('.', '-', $u);
 
         static $pat;
         if(is_null($pat)) {
