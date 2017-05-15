@@ -39,6 +39,7 @@ class Tecnodesign_Model_Mysql
         'soft-delete'=>array('active-records', 'before-delete'),
         'auto-increment'=>array('before-insert'),
     );
+    public static $properties=array('serialize','alias');
     public static function updateSchema($schema, $o=false)
     {
         $tn = $schema['tableName'];
@@ -78,12 +79,23 @@ class Tecnodesign_Model_Mysql
         // see static $behaviors
         $events=array();
         $se=array();
+        $reprop = '/('.implode('|',self::$properties).'):\s*([^,\s\;]+)([,\s\;]+)?/';
         foreach ($tdesc as $fd) {
             if($fd['Comment']!='') {
+                $fn = array_values($fd);
+                $fn = array_shift($fn);
+                if(preg_match_all($reprop, $fd['Comment'], $m)) {
+                    foreach($m[1] as $k=>$v) {
+                        $schema['columns'][$fn][$v] = $m[2][$k];
+                        unset($k, $v);
+                    }
+                    str_replace($m[0], '', $fd['Comment']);
+                    unset($m);
+                    if(trim($fd['Comment'])=='') continue;
+                }
+
                 foreach(self::$behaviors as $bn=>$e) {
                     if(strpos($fd['Comment'], $bn)!==false) {
-                        $fn = array_values($fd);
-                        $fn = array_shift($fn);
                         if(isset($schema['form'][$fn])) {
                             unset($schema['form'][$fn]);
                         }
@@ -110,7 +122,7 @@ class Tecnodesign_Model_Mysql
         }
         if(count($se)>0) {
             if(isset($se['active-records'])) {
-                $se['active-records'] = implode('is null and ', $events['active-records']['soft-delete']).' is null';
+                $se['active-records'] = '`'.implode('` is null and `', $events['active-records']['soft-delete']).'` is null';
                 unset($events['active-records']);
             }
             $add = array('events'=>$se, 'actAs'=>$events);

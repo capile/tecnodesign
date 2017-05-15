@@ -82,6 +82,10 @@ class Tecnodesign_Form implements ArrayAccess
                     unset($fd['credential']);
                 }
                 $fd['prefix'] = $this->prefix;
+
+                // php doesn't parse post values with .
+                $fn = str_replace('.', '_', $fn);
+
                 $fd['id'] = $fn;
                 $last = $fn;
                 if(isset($before)) {
