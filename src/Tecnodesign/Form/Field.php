@@ -738,7 +738,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
                      */
                     if(!isset($upload['error']) || $upload['error']==4) {
                         // no upload made, skipping
-                        $value[$i] = false;
+                        if(isset($upload['_'])) {
+                            $new[$i] = $upload['_'];
+                        } else {
+                            $value[$i] = false;
+                        }
                         continue;
                     }
                     $name = preg_replace('#[\?\#\$\%,\|/\\\\]+#', '', preg_replace('#[\s]+#', ' ', tdz::encodeUTF8($upload['name'])));

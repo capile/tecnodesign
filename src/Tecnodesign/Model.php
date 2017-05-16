@@ -829,6 +829,33 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $this->_delete;
     }
+
+    public function refresh($scope=null)
+    {
+        $scope = static::columns($scope);
+        $f = array();
+        foreach($scope as $fn) {
+            if(strpos($fn, ' ')!==false || !isset($this->$fn)) {
+                $f[] = $fn;
+            }
+        }
+        if($f) {
+            if($M = $this::find($this->getPk(true),1,$f)) {
+                foreach($f as $i=>$fn) {
+                    if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' '));
+                    if(isset($M->$fn)) {
+                        if(isset($this::$schema['columns'][$fn]) && !isset($this->_original[$fn])) {
+                            $this->_original[$fn]=$M->$fn;
+                        } 
+                        $this->$fn = $M->$fn;
+                    }
+                    unset($f[$i], $i, $fn);
+                }
+            }
+            unset($M);
+        }
+        return $this;
+    }
     
     public function asArray($scope=null, $keyFormat=null, $valueFormat=null, $serialize=null)
     {
@@ -1780,7 +1807,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else {
                 $uid=false;
             }
-            $url = $link.'/';
+            $url = ($link)?($link.'/'):(false);
         } else {
             $url=false;
         }
@@ -1845,7 +1872,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             
             $s .= '<td class="f-'.$fn.'">'
                 . (($uid && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.$this->getPk().'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
-                . (($uid)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
+                . (($uid && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
             if($uid) $uid=false;
             unset($label, $fn);

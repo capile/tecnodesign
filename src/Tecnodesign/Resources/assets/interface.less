@@ -15,7 +15,6 @@
   z-index:16;
   &.tdz-i-active{
     border-top:3px solid @colorTabActive;
-    min-height:50vh;
     height:auto;
     opacity:1;
   }
@@ -878,8 +877,9 @@ select, input {
     &.tdz-i--down:before          {content: "\f107";}
 }
 
-.tdz-i-button {
+.tdz-i-button, .tdz-i-link {
   color:@colorTabActive;
+  background:none;
   &:hover, &:active {
     color: @colorActive !important;
     text-decoration:none;
@@ -889,9 +889,16 @@ select, input {
     text-decoration:none;
   }
 }
+
+.tdz-i-link {
+  color:@colorTabActive !important;
+  background:none !important;
+  i {display:inline-block;vertical-align:middle;line-height:0.8em;font-size:1.25em;padding:0 0.1em;}
+}
 th > input[type=checkbox], td > input[type=checkbox]{
   margin:0 0.5em 0 0;padding:0;
 }
+
 .tdz-i-a, .tdz-i-a:link, .tdz-i-a:visited, .tdz-i-list-one .tdz-i-a-one, .tdz-i-list-many .tdz-i-a-many{
   line-height: 2em;
   height:2em;
@@ -955,6 +962,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
       width:2em;
     }
   }
+  margin-bottom:2em;
 }
 
 .tdz-i-body .tdz-i-standalone .tdz-i-footer a:hover span {display:none;}
