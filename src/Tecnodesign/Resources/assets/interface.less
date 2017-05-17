@@ -331,7 +331,7 @@ input.tdz-i-switch{
     font-weight:normal;
     font-size:1em;
     color:@colorTabText;
-    background:@colorTab;
+    background:@colorTabActive;
     margin: 0 -0.5em;
     padding:0.375em 0.5em;
     text-shadow:none;
@@ -381,13 +381,13 @@ input.tdz-i-switch{
     line-height:1.5em;
     margin:0 0.75em 0 0;
     padding:0.25em 1em;
-    background:(@colorTab *0.5) + #d0d0d0;
+    background:(@colorTab *0.1) + #d0d0d0;
     color:@colorTab;
     border:1px solid @colorTab;
     .border(@borderRadius);
   }
   button[type=submit] {
-    background:@colorTab;
+    background:@colorTabActive;
     color:@colorTabText;
     border-color:@colorTabActive;
   }
@@ -450,12 +450,11 @@ textarea {
 .tdz-i-search {
   input[type=text],select {
     width:62.75%;
-    background:@colorSummary * 1.5;
+    background:@colorSummary * 1.25;
   }
   input[type=search], input#q {
     .border(0.5em);
     width:100%;
-    background:none;
   }
   .field {
     position:relative;
@@ -906,7 +905,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
   color:@colorSummaryText;
   cursor: pointer;
   &:hover,&:active{
-    background:@colorSummary + @colorTab;
+    background:@colorSummary + (@colorTabActive * 0.25);
     color: @colorSummaryText;
     text-decoration:none;
   }
@@ -997,7 +996,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
     }
   }
   th {
-    background:@colorTab;
+    background:@colorTabActive;
     color:@colorTabText;
     font-weight:normal;
     position:relative;
