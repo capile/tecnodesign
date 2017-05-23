@@ -805,7 +805,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function checkEmail($value, $message='')
     {
         $value = trim($value);
-        if($value && !tdz::checkEmail($value)) {
+        if($value && !tdz::checkEmail($value, false)) {
             $message = tdz::t('This is not a valid e-mail address.', 'exception');
             $this->error[$message]=$message;
         }
