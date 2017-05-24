@@ -312,6 +312,9 @@ class Tecnodesign_Excel
                 $this->sheet->setCellValueExplicit($c,$v);
             } else {
                 $this->sheet->setCellValue($c,$v);
+                if(substr($v, 0, 8)=='https://' || substr($v, 0, 7)=='http://') {
+                    $this->sheet->getHyperlink($c)->setUrl(strip_tags($v));
+                }
             }
         }
         if($s) {

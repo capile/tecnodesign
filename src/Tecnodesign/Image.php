@@ -339,7 +339,11 @@ class Tecnodesign_Image
 
         // Text
         if(isset($config['text'])) {
-            $fontfile = (file_exists(TDZ_ROOT.'/src/fonts/'.$this->font))?(TDZ_ROOT.'/src/fonts/'.$this->font):($fontfile);
+            $fontfile = null;
+            if($this->font) {
+                if(file_exists($this->font)) $fontfile = $this->font;
+                else if(file_exists(TDZ_ROOT.'/src/fonts/'.$this->font)) $fontfile = TDZ_ROOT.'/src/fonts/'.$this->font;
+            }
             $tx=$x;
             if($this->textAlign=='right') {
                 $box= imagettfbbox ($this->fontSize, 0, $fontfile, $config['text']);

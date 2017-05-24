@@ -23,7 +23,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * be used to check the validity of the added information.
      */
     protected $prefix=false, $id=false, $type='text', $form, $bind, $attributes=array(), $placeholder=false, $scope=false,
-        $label=false, $choices=false, $choicesFilter, $tooltip=false, $renderer=false, $error=false, $filters=false, $dataprop, $class='',
+        $label=false, $choices=false, $choicesFilter, $serialize, $tooltip=false, $renderer=false, $error=false, $filters=false, $dataprop, $class='',
         $template=false, $rules=false, $_className, $multiple=false, $required=false, $html_labels=false, $messages=null,
         $disabled=false, $readonly=false, $size=false, $min_size=false, $value, $range=false, $decimal=0, $accept=false, $toAdd=null,
         $insert=true, $update=true, $before=false, $fieldset=false, $after=false, $next, $default, $query;
@@ -128,17 +128,22 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $M = $this->getModel();
         if(!$M) return false;
         if(strpos($name, ' ')!==false) $name = substr($name, strrpos($name, ' ')+1);
+
         $schema = $this->getSchema();
-        if($schema && (isset($schema['columns'][$name]) || isset($schema['relations'][$name]))) {
+
+        if(($p=strpos($name, '.')) && isset($schema['columns'][substr($name, 0, $p)]['serialize'])) $fd = $schema['columns'][substr($name, 0, $p)];
+
+        if($schema && (isset($fd) || isset($schema['columns'][$name]) || isset($schema['relations'][$name]))) {
             $this->bind = $name;
             if (isset($schema['relations'][$name]) && $schema['relations'][$name]['type']=='one') {
                 $this->bind = $schema['relations'][$name]['local'];
             }
             if($return) {
                 $return = array();
+                if(!isset($fd) && isset($schema['columns'][$name])) $fd=$schema['columns'][$name];
                 $return['required']=(isset($fd['null']) && !$fd['null']);
-                if(isset($schema['columns'][$name])) {
-                    $return = static::properties($schema['columns'][$name], $M->isNew());
+                if(isset($fd)) {
+                    $return = static::properties($fd, $M->isNew());
                 } else {
                     $rel = $schema['relations'][$name];
                     if($rel['type']=='one') {
@@ -261,7 +266,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $this->value = ($this->value->count()>0)?($this->value->getItems()):(array());
                 }
             } catch(Exception $e) {
-                tdz::log(__METHOD__.': '.$e->getMessage());
                 $this->value = false;
             }
             if(($this->value===false || is_null($this->value)) && !is_null($this->default)) {
@@ -275,6 +279,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         $this->error=array();
         $value = $this->parseValue($value);
+
         foreach($this->getRules() as $m=>$message) {
             $msg = '';
             try {
@@ -294,6 +299,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         $value = $tg::$fn($value, $message);
                     }
                 } else {
+                    \tdz::log(__METHOD__.', '.__LINE__.' [DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
                     @eval("\$value = {$m};");
                 }
                 unset($tg, $fn);
@@ -392,13 +398,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $cn = $this->bind;
         $M = $this->getModel();
         $fn = ($cn!=$this->name)?($this->name):($cn);
-        $m = 'validate'.ucfirst(tdz::camelize($fn));
+        $m = 'validate'.tdz::camelize($fn, true);
         if(method_exists($M, $m)) {
             $newvalue = $M->$m($value);
             if(!is_bool($newvalue)) $value = $newvalue;
             unset($newvalue);
         }
-        if($value!==$this->value) {
+        if($value!==$this->value || $M->$cn!=$value) {
             $value = $M->$cn = $value;
         }
         unset($cn, $M, $fn, $m);
@@ -732,7 +738,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
                      */
                     if(!isset($upload['error']) || $upload['error']==4) {
                         // no upload made, skipping
-                        $value[$i] = false;
+                        if(isset($upload['_'])) {
+                            $new[$i] = $upload['_'];
+                        } else {
+                            $value[$i] = false;
+                        }
                         continue;
                     }
                     $name = preg_replace('#[\?\#\$\%,\|/\\\\]+#', '', preg_replace('#[\s]+#', ' ', tdz::encodeUTF8($upload['name'])));
@@ -795,7 +805,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function checkEmail($value, $message='')
     {
         $value = trim($value);
-        if($value && !tdz::checkEmail($value)) {
+        if($value && !tdz::checkEmail($value, false)) {
             $message = tdz::t('This is not a valid e-mail address.', 'exception');
             $this->error[$message]=$message;
         }

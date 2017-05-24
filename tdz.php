@@ -1810,14 +1810,24 @@ class tdz
         return $s . "\n";
     }
 
-    public static function serialize($a)
+    public static function serialize($a, $hint=null)
     {
-        return (is_object($a))?(serialize($a)):(json_encode($a,JSON_UNESCAPED_UNICODE));
+        if(!is_null($hint)) {
+            if($hint=='yaml') return Tecnodesign_Yaml::dump($a);
+            else if($hint=='json') return json_encode($a,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+            else if($hint=='php') return serialize($a);
+        }
+        return (is_object($a))?(serialize($a)):(json_encode($a,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
     }
 
-    public static function unserialize($a)
+    public static function unserialize($a, $hint=null)
     {
         if(is_string($a)) {
+            if(!is_null($hint)) {
+                if($hint=='yaml') return Tecnodesign_Yaml::load($a);
+                else if($hint=='json') return json_decode($a,true);
+                else if($hint=='php') return unserialize($a);
+            }
             return (substr($a,1,1)==':' && strpos('aOidsN', substr($a,0,1))!==false)?(unserialize($a)):(json_decode($a,true));
         }
     }

@@ -15,7 +15,6 @@
   z-index:16;
   &.tdz-i-active{
     border-top:3px solid @colorTabActive;
-    min-height:50vh;
     height:auto;
     opacity:1;
   }
@@ -332,7 +331,7 @@ input.tdz-i-switch{
     font-weight:normal;
     font-size:1em;
     color:@colorTabText;
-    background:@colorTab;
+    background:@colorTabActive;
     margin: 0 -0.5em;
     padding:0.375em 0.5em;
     text-shadow:none;
@@ -382,13 +381,13 @@ input.tdz-i-switch{
     line-height:1.5em;
     margin:0 0.75em 0 0;
     padding:0.25em 1em;
-    background:(@colorTab *0.5) + #d0d0d0;
+    background:(@colorTab *0.1) + #d0d0d0;
     color:@colorTab;
     border:1px solid @colorTab;
     .border(@borderRadius);
   }
   button[type=submit] {
-    background:@colorTab;
+    background:@colorTabActive;
     color:@colorTabText;
     border-color:@colorTabActive;
   }
@@ -451,12 +450,11 @@ textarea {
 .tdz-i-search {
   input[type=text],select {
     width:62.75%;
-    background:@colorSummary * 1.5;
+    background:@colorSummary * 1.25;
   }
   input[type=search], input#q {
     .border(0.5em);
     width:100%;
-    background:none;
   }
   .field {
     position:relative;
@@ -878,8 +876,9 @@ select, input {
     &.tdz-i--down:before          {content: "\f107";}
 }
 
-.tdz-i-button {
+.tdz-i-button, .tdz-i-link {
   color:@colorTabActive;
+  background:none;
   &:hover, &:active {
     color: @colorActive !important;
     text-decoration:none;
@@ -889,9 +888,16 @@ select, input {
     text-decoration:none;
   }
 }
+
+.tdz-i-link {
+  color:@colorTabActive !important;
+  background:none !important;
+  i {display:inline-block;vertical-align:middle;line-height:0.8em;font-size:1.25em;padding:0 0.1em;}
+}
 th > input[type=checkbox], td > input[type=checkbox]{
   margin:0 0.5em 0 0;padding:0;
 }
+
 .tdz-i-a, .tdz-i-a:link, .tdz-i-a:visited, .tdz-i-list-one .tdz-i-a-one, .tdz-i-list-many .tdz-i-a-many{
   line-height: 2em;
   height:2em;
@@ -899,7 +905,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
   color:@colorSummaryText;
   cursor: pointer;
   &:hover,&:active{
-    background:@colorSummary + @colorTab;
+    background:@colorSummary + (@colorTabActive * 0.25);
     color: @colorSummaryText;
     text-decoration:none;
   }
@@ -955,6 +961,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
       width:2em;
     }
   }
+  margin-bottom:2em;
 }
 
 .tdz-i-body .tdz-i-standalone .tdz-i-footer a:hover span {display:none;}
@@ -989,7 +996,7 @@ th > input[type=checkbox], td > input[type=checkbox]{
     }
   }
   th {
-    background:@colorTab;
+    background:@colorTabActive;
     color:@colorTabText;
     font-weight:normal;
     position:relative;

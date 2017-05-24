@@ -829,8 +829,35 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $this->_delete;
     }
+
+    public function refresh($scope=null)
+    {
+        $scope = static::columns($scope);
+        $f = array();
+        foreach($scope as $fn) {
+            if(strpos($fn, ' ')!==false || !isset($this->$fn)) {
+                $f[] = $fn;
+            }
+        }
+        if($f) {
+            if($M = $this::find($this->getPk(true),1,$f)) {
+                foreach($f as $i=>$fn) {
+                    if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' '));
+                    if(isset($M->$fn)) {
+                        if(isset($this::$schema['columns'][$fn]) && !isset($this->_original[$fn])) {
+                            $this->_original[$fn]=$M->$fn;
+                        } 
+                        $this->$fn = $M->$fn;
+                    }
+                    unset($f[$i], $i, $fn);
+                }
+            }
+            unset($M);
+        }
+        return $this;
+    }
     
-    public function asArray($scope=null, $keyFormat=null, $valueFormat=null)
+    public function asArray($scope=null, $keyFormat=null, $valueFormat=null, $serialize=null)
     {
         $schema = $this->schema();
         $result = array();
@@ -861,6 +888,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $k = sprintf($keyFormat, $fn);
                     } else {
                         $k = $fn;
+                    }
+                    if(is_array($v) && $serialize) {
+                        if(isset($schema['columns'][$fn]['serialize'])) {
+                            $serialize = $schema['columns'][$fn]['serialize'];
+                        }
+                        $v = tdz::serialize($v, $serialize);
                     }
                     $result[$k] = $v;
                     unset($k, $v);
@@ -1774,7 +1807,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else {
                 $uid=false;
             }
-            $url = $link.'/';
+            $url = ($link)?($link.'/'):(false);
         } else {
             $url=false;
         }
@@ -1839,7 +1872,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             
             $s .= '<td class="f-'.$fn.'">'
                 . (($uid && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.$this->getPk().'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
-                . (($uid)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
+                . (($uid && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
             if($uid) $uid=false;
             unset($label, $fn);
@@ -2151,7 +2184,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     }
     
     
-    public function getOriginal($fn, $fallback=true)
+    public function getOriginal($fn, $fallback=true, $serialize=null)
     {
         if(!array_key_exists($fn, $this->_original)) {
             if($fallback) {
@@ -2159,6 +2192,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else {
                 return false;
             }
+        }
+        if($serialize && !is_string($this->_original[$fn])) {
+            if(isset(static::$schema['columns'][$fn]['serialize'])) $serialize=static::$schema['columns'][$fn]['serialize'];
+            return tdz::serialize($this->_original[$fn], $serialize);
+
         }
         return $this->_original[$fn];
     }
@@ -2187,7 +2225,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      */
     public function __get($name)
     {
-        $m='get'.ucfirst(tdz::camelize($name));
+        $m='get'.tdz::camelize($name, true);
         $ret = false;
         @list($firstName,$ref)=explode('.', $name, 2);
         if (method_exists($this, $m)) {
@@ -2203,8 +2241,34 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         } else if (isset($this->$name)) {
             $ret = $this->$name;
-        } else if($firstName && $ref && isset($this->$firstName) && isset($this->{$firstName}[$ref])) {
-            $ret = $this->{$firstName}[$ref];
+        } else if($firstName && $ref && (isset($this->$firstName) || method_exists($this, $m='get'.tdz::camelize($firstName, true)))) {
+            if(method_exists($this, $m='get'.tdz::camelize($firstName, true))) {
+                $a = $this->$m();
+            } else if(isset(static::$schema['columns'][$firstName]['serialize']) && is_string($this->$firstName)) {
+                $this->$firstName = tdz::unserialize($this->$firstName, static::$schema['columns'][$firstName]['serialize']);
+                $a = $this->$firstName;
+            } else {
+                $a = $this->$firstName;
+            }
+            if(isset($a[$ref])) {
+                $ret = $a[$ref];
+                unset($a);
+            } else if(strpos($ref, '.')) {
+                while($p=strpos($ref, '.')) {
+                    $n = substr($ref, 0, $p);
+                    if(!isset($a[$n])) {
+                        unset($a);
+                        break;
+                    }
+                    $a = $a[$n];
+                    $ref = substr($ref, $p+1);
+                    unset($n, $p);
+                }
+                if(isset($a[$ref])) {
+                    $ret = $a[$ref];
+                }
+                unset($a);
+            }
         }
         return $ret;
     }
@@ -2237,6 +2301,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $this->_original[$name] = $this->$name;
         }
         @list($firstName,$ref)=explode('.', $name, 2);
+
         if (method_exists($this, $m='set'.$mn)) {
             $this->$m($value);
         } else if(isset(static::$schema['columns'][$name])) {
@@ -2247,8 +2312,34 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else if($firstName && $ref && method_exists($this, $m='set'.tdz::camelize($firstName, true))) {
             $this->$m(array($ref=>$value));
         // add other options for dotted.names?
-        } else if($firstName && $ref && isset($this->$firstName) && (is_array($this->$firstName) || is_object($this->$firstName))) {
-            $this->{$firstName}[$ref] = $value;
+        } else if($firstName && $ref && (isset($this->$firstName) || isset(static::$schema['columns'][$firstName]))) {
+            if(!isset(static::$schema['columns'][$firstName]['serialize'])) {
+                if(is_array($this->$firstName) || is_object($this->$firstName)) {
+                    $this->{$firstName}[$ref] = $value;
+                }
+            } else {
+                if(isset(static::$schema['columns'][$firstName]) && !array_key_exists($firstName, $this->_original)) {
+                    $this->_original[$firstName] = $this->$firstName;
+                }
+                if(is_string($this->$firstName) && isset(static::$schema['columns'][$firstName]['serialize'])) {
+                    $this->$firstName = tdz::unserialize($this->$firstName, static::$schema['columns'][$firstName]['serialize']);
+                }
+
+                $a =& $this->{$firstName};
+                if(strpos($ref, '.')) {
+                    while($p=strpos($ref, '.')) {
+                        $n = substr($ref, 0, $p);
+                        if(!isset($a[$n])) {
+                            $a[$n] = array();
+                        }
+                        $a =& $a[$n];
+                        $ref = substr($ref, $p+1);
+                        unset($n, $p);
+                    }
+                }
+                $a[$ref] =& $value;
+                unset($a);
+            }
         } else if(static::$allowNewProperties || substr($name,0,1)=='_') {
             $this->$name=$value;
         } else {

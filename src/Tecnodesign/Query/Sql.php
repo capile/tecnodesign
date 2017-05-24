@@ -329,6 +329,9 @@ class Tecnodesign_Query_Sql
             return str_replace($s, $r, $fn);
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
+        } else if(substr($f, 0, 1)=='_') {
+            // not to be queried
+            return false;
         }
 
         if(strpos($fn, '[')!==false && preg_match('/\[([^\]]+)\]/', $fn, $m)) {
@@ -363,7 +366,15 @@ class Tecnodesign_Query_Sql
                 @list($rn, $fn) = explode('.', $ofn,2);
                 $ofn=$fn;
                 $rnf .= ($rnf)?('.'.$rn):($rn);
-                if(isset($sc['relations'][$rn])) {
+                if($rn==$rnf && isset($sc['columns'][$rn]['serialize'])) {
+                    $found = true;
+                    if(isset($sc['columns'][$rn]['alias']) && $sc['columns'][$rn]['alias']) {
+                        $fn = $ta.'.'.$sc['columns'][$rn]['alias'].' '.tdz::sql($rn);
+                    } else {
+                        $fn = $ta.'.'.$rn;
+                    }
+                    break;
+                } else if(isset($sc['relations'][$rn])) {
                     $rcn = (isset($sc['relations'][$rn]['className']))?($sc['relations'][$rn]['className']):($rn);
                     $rsc = $rcn::$schema;
                     if(!isset($this->_alias[$rnf])) {
@@ -784,7 +795,7 @@ class Tecnodesign_Query_Sql
 
     public function insert($M, $conn=null)
     {
-        $odata = $M->asArray('save');
+        $odata = $M->asArray('save', null, null, true);
         $data = array();
 
         $fs = $M::$schema['columns'];
@@ -794,14 +805,14 @@ class Tecnodesign_Query_Sql
             if(isset($fv['increment']) && $fv['increment']=='auto' && !isset($odata[$fn])) {
                 continue;
             }
-            if(!isset($odata[$fn]) && isset($fv['default']) &&  $M->getOriginal($fn, false)===false) {
+            if(!isset($odata[$fn]) && isset($fv['default']) &&  $M->getOriginal($fn, false, true)===false) {
                 $odata[$fn] = $fv['default'];
             }
             if (!isset($odata[$fn]) && $fv['null']===false) {
                 throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $M::fieldLabel($fn)));
             } else if(array_key_exists($fn, $odata)) {
                 $data[$fn] = self::sql($odata[$fn], $fv);
-            } else if($M->getOriginal($fn, false)!==false && is_null($M->$fn)) {
+            } else if($M->getOriginal($fn, false, true)!==false && is_null($M->$fn)) {
                 $data[$fn] = 'null';
             }
             unset($fs[$fn], $fn, $fv);
@@ -841,14 +852,14 @@ class Tecnodesign_Query_Sql
 
     public function update($M, $conn=null)
     {
-        $odata = $M->asArray('save');
+        $odata = $M->asArray('save', null, null, true);
         $data = array();
 
         $fs = $M::$schema['columns'];
         if(!$fs) $fs = array_flip(array_keys($odata));
         $sql = '';
         foreach($fs as $fn=>$fv) {
-            $original=$M->getOriginal($fn);
+            $original=$M->getOriginal($fn, false, true);
             if(isset($fv['primary']) && $fv['primary']) {
                 $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
             }

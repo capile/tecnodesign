@@ -1921,6 +1921,10 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function preview()
     {
+        if(static::$format && static::$format!='html') {
+            Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
+            Tecnodesign_App::end($this->render());
+        }
         $this->template = 'interface-standalone';
         return $this->render();
     }

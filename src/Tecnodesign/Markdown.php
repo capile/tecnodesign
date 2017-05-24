@@ -22,7 +22,8 @@ if(!class_exists('ParsedownExtra')) {
 class Tecnodesign_Markdown extends ParsedownExtra
 {
     public static 
-        $htmlMarkup=true, 
+        $htmlMarkup=true,
+        $allBreaksEnabled=false,
         $syntaxHighlight='pygmentize',//'geshi',
         $cacheSyntaxHighlight=3600,
         $index=array(),
@@ -37,6 +38,7 @@ class Tecnodesign_Markdown extends ParsedownExtra
         $this->InlineTypes['!'][]= 'App';
         //$this->inlineMarkerList .= '#';
         $this->inlineMarkup = !static::$htmlMarkup;
+        if(static::$allBreaksEnabled) $this->breaksEnabled = true;
         parent::__construct();
     }
 
