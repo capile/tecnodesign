@@ -429,6 +429,7 @@ class Tecnodesign_Studio
     {
         if(!is_array(self::$ignore)) return false;
         if(substr(basename($url), 0, 1)=='.') return true;
+        if(preg_match('#//+|\:#', $url)) return true;
         foreach(self::$ignore as $p) {
             if(strpos($url, $p)!==false) return true;
             unset($p);
