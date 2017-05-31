@@ -102,7 +102,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
     protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Content, $Permission, $Child, $Parent, $Relation, $Children;
     //--tdz-schema-end--
     
-    protected $dynamic=false, $modified, $credential;
+    protected $dynamic=false, $wrapper, $modified, $credential;
 
     public function render()
     {
@@ -315,6 +315,28 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
         }
         $layout .= "\n\$meta.=tdz::meta();";
+        if($this->wrapper && is_array($this->wrapper)) {
+            foreach($this->wrapper as $n=>$s) {
+                $mrg = array();
+                $idx = null;
+                foreach($merge as $i=>$slotname) {
+                    if(in_array(substr($slotname,1), $s)) {
+                        if(is_null($idx)) {
+                            $idx = $i;
+                            $mrg[$idx] = "'<div id=\"{$n}\">'.".$slotname;
+                        } else {
+                            $mrg[$idx] .= '.'.$slotname;
+                        }
+                    } else {
+                        $mrg[$i] = $slotname; 
+                    }
+                }
+                if(!is_null($idx)) {
+                    $mrg[$idx] .= ".'</div>'";
+                    $merge = array_values($mrg);
+                }
+            }
+        }
         if(count($merge)>0) {
             $layout .= "\n\$content = ".implode('.',$merge).';';
         }

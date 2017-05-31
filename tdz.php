@@ -182,6 +182,7 @@ class tdz
         $decimalSeparator=',',
         $thousandSeparator='.',
         $connection,
+        $connectRetries=3,
         $perfmon=0,
         $autoload,
         $tplDir,
@@ -373,6 +374,10 @@ class tdz
         } catch(PDOException $e) {
             $msg = $e->getMessage();
             tdz::log('Error in '.__METHOD__.":\n  ".$msg.'('.$e->getLine().')');
+            if(self::$connectRetries--) {
+                tdz::log('retrying...');
+                return tdz::connect($name, $app, $throw);
+            }
             if($throw) {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not connect to database. Reasons are: %s', 'exception'), $msg));
             }
@@ -422,15 +427,15 @@ class tdz
     public static function query($sql)
     {
         $ret = array();
+        $sqls = (is_array($sql))?($sql):(array($sql));
+        $arg = func_get_args();
         try {
-            $sqls = (is_array($sql))?($sql):(array($sql));
             foreach($sqls as $sql) {
                 $conn=tdz::connect();
                 if (!$conn) {
                     throw new Tecnodesign_Exception(tdz::t('Could not connect to database server.'));
                 }
                 $query = $conn->query($sql);
-                $arg = func_get_args();
                 $result=array();
                 if ($query && count($arg)==1) {
                     if(preg_match('/^\s*(insert|update|delete|replace|set|begin|commit|create|alter|drop) /i', $sql)) $result = true;
