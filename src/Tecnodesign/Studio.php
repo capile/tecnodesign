@@ -451,6 +451,7 @@ class Tecnodesign_Studio
     public static function page($url, $exact=false, $published=null)
     {
         $url = tdz::validUrl($url);
+        $url = preg_replace('#\.+/+#', '', $url);
         //$url = preg_replace('/\/(\.)*\/+/','/',$url);
         //$url = preg_replace('/\/\/+/','/',$url);
         if ($url=='') {

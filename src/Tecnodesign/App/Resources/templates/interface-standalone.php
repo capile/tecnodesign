@@ -78,9 +78,9 @@ Tecnodesign_App::response('title', $title);
                 }
                 $count = $searchCount;
             } else if($count) {
-                echo sprintf($Interface::t('listResults'), tdz::formatNumber($count,0));
+                echo sprintf($Interface::t(($count>1)?('listResults'):('listResult')), tdz::formatNumber($count,0));
             } else {
-                echo $Interface::t('listResult');
+                echo $Interface::t('listNoResults');
             }
 
             if($count>1) {
