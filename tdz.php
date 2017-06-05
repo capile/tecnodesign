@@ -1245,7 +1245,7 @@ class tdz
                 $s[$k] = tdz::fixEncoding($v, $encoding);
             }
         } else {
-            $s=iconv($encoding, "{$encoding}//IGNORE", $s);
+            $s=@iconv($encoding, "{$encoding}//IGNORE", $s);
         }
         return $s;
     }
@@ -1673,7 +1673,7 @@ class tdz
             if (substr($str, 0, 1) != '/')
                 $str = "/{$str}";
             $str = preg_replace('#\.\.+#', '.', $str);
-            $str = preg_replace('#\.+([^a-z0-9-_])#', '$1', $str);
+            $str = preg_replace('#\.+([^a-z0-9-_])#i', '$1', $str);
             $str = strtr($str, tdz::$slugReplacements);
             //$str = strtolower(trim($str));
             $str = preg_replace('/[^a-z0-9-_\.\/]+/i', '-', $str);
