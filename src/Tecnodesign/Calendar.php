@@ -78,7 +78,7 @@ class Tecnodesign_Calendar implements ArrayAccess
         if (isset($this->_vars['timezone'])) {
             $timezone =  $this->_vars['timezone'];
             $TZ = new DateTimeZone($timezone);
-            $tz = $TZ->getOffset(new DateTime('now', new DateTimeZone('UTC')));
+            $tz = -1*$TZ->getOffset(new DateTime('now', new DateTimeZone('UTC')));
             unset($TZ);
         } else {
             $timezone = 'UTC';
