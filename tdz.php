@@ -1947,9 +1947,13 @@ class tdz
     {
         static $c;
         if(is_null($c)) {
-            $c = new League\HTMLToMarkdown\HtmlConverter();
+            if(!class_exists('League\HTMLToMarkdown\HtmlConverter')) {
+                $c = false;
+            } else {
+                $c = new League\HTMLToMarkdown\HtmlConverter();
+            }
         }
-        $r = strip_tags($c->convert($s));
+        $r = strip_tags(($c)?($c->convert($s)):($s));
         if(!$r && $s) {
             $r = strip_tags(html_entity_decode($s));
         }
