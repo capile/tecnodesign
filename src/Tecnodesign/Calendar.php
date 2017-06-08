@@ -74,8 +74,12 @@ class Tecnodesign_Calendar implements ArrayAccess
         $s[]='VERSION:2.0';
         $s[]='CALSCALE:GREGORIAN';
         $s[]='METHOD:PUBLISH';
+        $tz = 0;
         if (isset($this->_vars['timezone'])) {
             $timezone =  $this->_vars['timezone'];
+            $TZ = new DateTimeZone($timezone);
+            $tz = $TZ->getOffset(new DateTime('now', new DateTimeZone('UTC')));
+            unset($TZ);
         } else {
             $timezone = 'UTC';
         }
@@ -90,6 +94,7 @@ class Tecnodesign_Calendar implements ArrayAccess
         }
         if (isset($this->_vars['url'])) {
             $s[]='X-ORIGINAL-URL:' . tdz::buildUrl($this->_vars['url']);
+            $s[]='URL:' . tdz::buildUrl($this->_vars['url']);
         }
         if (is_array($this->_vars['events'])) {
             foreach($this->_vars['events'] as $uid=>$e) {
@@ -114,8 +119,8 @@ class Tecnodesign_Calendar implements ArrayAccess
                     $uid = $e['uid'];
                 }
                 $s[]='BEGIN:VEVENT';
-                $s[]=($time)?('DTSTART:'.gmdate('Ymd\THis',$start).'Z'):('DTSTART;VALUE=DATE:'.date('Ymd',$start));
-                $s[]=($time)?('DTEND:'.gmdate('Ymd\THis',$end).'Z'):('DTEND;VALUE=DATE:'.date('Ymd',$end));
+                $s[]=($time)?('DTSTART:'.gmdate('Ymd\THis',$start+$tz).'Z'):('DTSTART;VALUE=DATE:'.date('Ymd',$start));
+                $s[]=($time)?('DTEND:'.gmdate('Ymd\THis',$end+$tz).'Z'):('DTEND;VALUE=DATE:'.date('Ymd',$end));
                 $s[]='DTSTAMP:' . gmdate('Ymd\THis') . 'Z';
                 $s[]='UID:'.$uid;
 
