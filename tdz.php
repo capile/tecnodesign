@@ -1953,7 +1953,7 @@ class tdz
                 $c = new League\HTMLToMarkdown\HtmlConverter();
             }
         }
-        $r = strip_tags(($c)?($c->convert($s)):($s));
+        $r = strip_tags(($c)?($c->convert($s)):(str_replace(array('</p>','</div>'), "\n", $s)));
         if(!$r && $s) {
             $r = strip_tags(html_entity_decode($s));
         }
