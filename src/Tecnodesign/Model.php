@@ -2107,7 +2107,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                     $d = date_parse_from_format($format, $value);
                 }
-                if($d) {
+                if($d && !isset($d['errors'])) {
                     $value = str_pad((int)$d['year'], 4, '0', STR_PAD_LEFT)
                         . '-' . str_pad((int)$d['month'], 2, '0', STR_PAD_LEFT)
                         . '-' . str_pad((int)$d['day'], 2, '0', STR_PAD_LEFT);
@@ -2117,7 +2117,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                             . ':' . str_pad((int)$d['second'], 2, '0', STR_PAD_LEFT);
                     }
                 } else if($d = strtotime($value)) {
-                    //$nvalue = (substr($schema['type'], 0, 8)=='datetime')?(date('Y-m-d H:i:s', $d)):(date('Y-m-d', $d));
+                    $value = (substr($schema['type'], 0, 8)=='datetime')?(date('Y-m-d H:i:s', $d)):(date('Y-m-d', $d));
                 }
             }
         }

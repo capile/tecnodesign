@@ -533,16 +533,23 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
     }
 
 
-    public static function findPage($url, $multiview=false)
+    public static function findPage($url, $multiview=false, $redirect=false)
     {
         // get file-based page definitions
         if(substr(basename($url),0,1)=='.') return;
         $P=null;
         if(!$multiview) {
             $f = tdzEntry::file(static::$pageDir.$url, false);
-            if(substr($f, -1)=='/') $f.=static::$indexFile;
-            else if(is_dir($f)) $f .= '/'.static::$indexFile; // redirect?
-
+            if(substr($f, -1)=='/') {
+                $f.=static::$indexFile;
+            } else if(is_dir($f)) {
+                if($redirect && substr(tdz::scriptName(), -1)!='/') {
+                    tdz::redirect($url.'/');
+                }
+                $f .= '/'.static::$indexFile;
+            } else if($redirect && substr(tdz::scriptName(), -1)=='/') {
+                tdz::redirect($url);
+            }
             static $pat;
             if(is_null($pat)) {
                 $pat = '{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';

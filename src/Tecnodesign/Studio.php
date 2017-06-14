@@ -500,7 +500,7 @@ class Tecnodesign_Studio
             unset($f, $published);
             return $E;
         }
-        if(!$E && ($E=tdzEntry::findPage($url))) {
+        if(!$E && ($E=tdzEntry::findPage($url, false, true))) {
             if(!self::$connection) self::checkIndex();
             unset($f, $published);
         }
