@@ -1793,8 +1793,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $s .= '<th class="c-'.$so.' f-'.$fid.(($sc==$sf)?(' ui-order ui-order-'.$sd):('')).'">'
                     . ((isset($first) && $checkbox==='checkbox')?('<input type="checkbox" data-callback="toggleInput" label="'.tdz::t('Select all', 'ui').'" data-label-alternative="'.tdz::t('Clear selection', 'ui').'" />'):(''))
                     . $label
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.$soa).'" class="tdz-i--up icon asc"></a>'):(''))
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xmlEscape($qsb.$sod).'" class="tdz-i--down icon desc"></a>'):(''))
+                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$soa).'" class="tdz-i--up icon asc"></a>'):(''))
+                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$sod).'" class="tdz-i--down icon desc"></a>'):(''))
                     . '</th>';
                 $so++;
                 unset($label, $fn, $sort, $first);
@@ -1857,13 +1857,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         }
                     }
                 }
+                if(isset($schema['form'][$fn]['html_labels']) && $schema['form'][$fn]['html_labels']) $display = true;
             }
+            if(!$display) $value = tdz::xml($value);
             if(is_array($link)) {
                 if(isset($link[$fn])) {
                     if(!isset($replace)) {
                         $replace = $this->asArray(null, '{%s}');
                     }
-                    $uid = tdz::xmlEscape(str_replace(array_keys($replace), array_values($replace), $link[$fn]));
+                    $uid = tdz::xml(str_replace(array_keys($replace), array_values($replace), $link[$fn]));
                 } else {
                     $uid = false;
                 }
@@ -1871,7 +1873,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
             
             $s .= '<td class="f-'.$fn.'">'
-                . (($uid && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.$this->getPk().'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
+                . (($uid && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.\tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
                 . (($uid && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
             if($uid) $uid=false;
