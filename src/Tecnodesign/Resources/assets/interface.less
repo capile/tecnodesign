@@ -186,7 +186,9 @@ div.tdz-i-switched{
 input.tdz-i-switch{
   display:none;
   &:checked ~  div.tdz-i-switched {
-    opacity:1;max-height:100%;
+    opacity:1;
+    max-height:100%;
+    background:@colorSummary;
   }
   & + label {
     .transition(max-width 1s ease-in-out);
@@ -195,14 +197,13 @@ input.tdz-i-switch{
     padding:0;overflow-x:hidden;overflow-y:hidden;whitespace:nowrap;
     height:1.25em;
     width:1.5em;
-    color:@colorSummary;
     position:relative;
     z-index:21;
     .fontAwesomeBase();
     &:before{
+      content:"\f0c9";
       display:block;width:1.5em;height:1.5em;line-height:1.5em;
       text-align:center;vertical-align:baseline;
-      color:@colorSummaryText;
     }
   }
   &:checked + label:before {
@@ -450,7 +451,7 @@ textarea {
 }
 
 .tdz-i-search {
-  input[type=text],select {
+  input[type=text],input[type=search],select {
     width:62.75%;
     background:@colorSummary * 1.25;
   }
@@ -501,8 +502,8 @@ textarea {
       border-color:@colorSummary - #444;
     }
     button[type=submit] {
-      background:(@colorSummary *0.5) + #d0d0d0;
-      color:@colorSummary - #444;
+      background:@colorSummaryText;
+      color:@colorSummary;
       border-color:@colorSummary - #444;
     }
   }
@@ -907,18 +908,18 @@ th > input[type=checkbox], td > input[type=checkbox]{
   color:@colorSummaryText;
   cursor: pointer;
   &:hover,&:active{
-    background:@colorSummary + (@colorTabActive * 0.25);
+    background:@colorSummary + (@colorTab * 0.25);
     color: @colorSummaryText;
     text-decoration:none;
   }
 }
 
 .tdz-i-a-one, .tdz-i-a-many, .tdz-i-list-none .tdz-i-a-one, .tdz-i-list-none .tdz-i-a-many {
-  color:@colorSummaryText - #444;
+  color:@colorSummaryText;
+  opacity:0.6;
   cursor: not-allowed;
   &:hover,&:active{
-    background:@colorSummary - #222;
-    color: @colorSummaryText - #444;
+    background:@colorSummary;
     text-decoration:none;
   }
 }
@@ -972,10 +973,10 @@ th > input[type=checkbox], td > input[type=checkbox]{
   &:after{content:': ';display:inline-block;white-space:pre;}
 }
 .tdz-i-label-id{
-  &:before{content:'#';display:inline-block;color:#ddd;}
+  &:before{content:'#';display:inline-block;color:@colorSummaryText;opacity:0.6;}
 }
 .tdz-i-label-title{
-  color:#ddd;
+  color:@colorSummaryText;opacity:0.6;
   &:before{content:' (';display:inline-block;white-space:pre;}
   &:after{content:')';display:inline-block;}
 }

@@ -140,7 +140,7 @@ class Tecnodesign_Database
             return $models[$tn];
         } else {
             $p = self::$classPrefix;
-            if(!is_null(self::$ns)) {
+            if(!is_null(self::$ns) && self::$ns) {
                 $p = self::$ns.'\\'.$p;
             }
             return $p.ucfirst(tdz::camelize($tn));
@@ -343,12 +343,7 @@ class Tecnodesign_Database
                 . "/**\n"
                 . " * {$ocn} table description\n"
                 . " *\n"
-                . " * PHP version 5.3\n"
-                . " *\n" . $meta
-                . " * @version   SVN: \$Id\$\n"
-                . " */\n\n"
-                . "/**\n"
-                . " * {$ocn} table description\n"
+                . " * PHP version 5.4+\n"
                 . " *\n" . $meta
                 . " */\n"
                 . (($ns)?("namespace {$ns};\n"):(''))
