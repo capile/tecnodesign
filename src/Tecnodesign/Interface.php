@@ -932,8 +932,12 @@ class Tecnodesign_Interface implements ArrayAccess
         return false;
     }
 
-    public static function status($code=200)
+    public static function status($code=null)
     {
+        if(!$code) {
+            if(!static::$status) $code = 200;
+            else return;
+        }
         static::$status = $code;
 
         // add status headers

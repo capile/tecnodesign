@@ -568,6 +568,9 @@ class Tecnodesign_Query_Sql
                     }
                     if($cop=='~') {
                         // between
+                        if(is_array($v) && count($v)==2) {
+                            $r .= " {$fn} between ".self::escape($v[0])." and ".self::escape($v[1]);
+                        }
                     } else if (is_array($v) && ($cop=='=' || $cop=='!=' || $cop=='!' || $cop=='<>')) {
                         foreach ($v as $vk=>$vs) {
                             $v[$vk] = self::escape($vs);

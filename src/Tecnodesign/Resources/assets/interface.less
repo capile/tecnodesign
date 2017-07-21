@@ -149,12 +149,14 @@
   }
   .tdz-date-from, .tdz-date-to {
     display:inline-block;
-    span.input {
-      width:auto;
-      input {
-        width: 17.25em;
-      }
+    white-space:nowrap;
+    width:50%;
+    span.label, span.input {
+      width:50%;
     }
+  }
+  .tdz-date-to {
+    span.label {display:none;} 
   }
 }
 
