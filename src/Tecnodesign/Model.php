@@ -835,21 +835,21 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $scope = static::columns($scope);
         $f = array();
         foreach($scope as $fn) {
-            if(strpos($fn, ' ')!==false || !isset($this->$fn)) {
-                $f[] = $fn;
+            $p = (strpos($fn, ' ')!==false)?(substr($fn, strrpos($fn, ' ')+1)):($fn);
+            if(!isset($this->$p)) {
+                $f[$p] = $fn;
             }
         }
         if($f) {
             if($M = $this::find($this->getPk(true),1,$f)) {
-                foreach($f as $i=>$fn) {
-                    if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' '));
-                    if(isset($M->$fn)) {
-                        if(isset($this::$schema['columns'][$fn]) && !isset($this->_original[$fn])) {
-                            $this->_original[$fn]=$M->$fn;
+                foreach($f as $p=>$fn) {
+                    if(isset($M->$p)) {
+                        if(isset($this::$schema['columns'][$p]) && !isset($this->_original[$p])) {
+                            $this->_original[$p]=$M->$p;
                         } 
-                        $this->$fn = $M->$fn;
+                        $this->$p = $M->$p;
                     }
-                    unset($f[$i], $i, $fn);
+                    unset($f[$p], $p, $fn);
                 }
             }
             unset($M);
