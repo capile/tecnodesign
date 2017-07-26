@@ -63,7 +63,7 @@ class Tecnodesign_Cache_Memcached
         if(!self::memcached()) return Tecnodesign_Cache_File::get($key, $expires);
 
         if ($expires || $m) {
-            if($expires && $expires<2592000) {
+            if($expires && $expires<315360000) {
                 $expired = time()-(int)$expires;
                 $expires = time()+(int)$expires;
             } else {

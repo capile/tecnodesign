@@ -73,7 +73,7 @@ class Tecnodesign_Cache
     public static function get($key, $expires=0, $method=null, $fileFallback=false)
     {
         $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($expires && $expires<2592000) $expires = microtime(true)-(float)$expires;
+        if($expires && $expires<315360000) $expires = microtime(true)-(float)$expires;
         if(is_array($key)) {
             foreach($key as $ckey) {
                 $ret = $cn::get($ckey, $expires);
@@ -108,7 +108,7 @@ class Tecnodesign_Cache
     public static function set($key, $value, $expires=0, $method=null, $fileFallback=false)
     {
         $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($expires && $expires<2592000) $expires = microtime(true)+(float)$expires;
+        if($expires && $expires<315360000) $expires = microtime(true)+(float)$expires;
         $ret = $cn::set($key, $value, $expires);
         if($fileFallback && $method!='file' && !$expires) {
             $ret = Tecnodesign_Cache_File::set($key, $value);
@@ -129,7 +129,7 @@ class Tecnodesign_Cache
     public static function size($key, $expires=0, $method=null, $fileFallback=false)
     {
         $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($expires && $expires<2592000) $expires = microtime(true)+(float)$expires;
+        if($expires && $expires<315360000) $expires = microtime(true)+(float)$expires;
         $ret = $cn::size($key, $expires=0);
         if($fileFallback && $ret===false && $method!='file') {
             $ret = Tecnodesign_Cache_File::size($key);

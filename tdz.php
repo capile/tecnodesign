@@ -680,7 +680,7 @@ class tdz
                 if($raw) {
                     continue;
                 }
-                if(strpos($url, '<script')!==false || strpos($url, '<style')!==false) {
+                if(strpos($url, '<')!==false) {
                     $sa .= $url;
                     continue;
                 }
@@ -774,7 +774,8 @@ class tdz
                     }
                     $tempnam = tempnam(dirname($file), '._');
                     $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --nomunge --type '.$type.' -o '.$tempnam;
-                    exec($cmd, $output, $ret);
+                    exec($cmd, $cmdoutput, $ret);
+                    unset($cmdoutput, $ret);
                     if(file_exists($tempnam)) {
                         $build = false;
                         rename($tempnam, $file);
@@ -1970,12 +1971,10 @@ class tdz
         if (!is_array($url)) {
             $url = parse_url($url);
         }
-        if(!isset($_SERVER['SERVER_PORT'])) {
-            $_SERVER += array('SERVER_PORT'=>'80', 'HTTP_HOST'=>'localhost');
-        }
+        $_SERVER += array('SERVER_PORT'=>'80', 'HTTP_HOST'=>'localhost', 'HTTPS'=>'off');
         $url += $parts;
         $url += array(
-            'scheme' => ($_SERVER['SERVER_PORT'] == '443' || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO']=='https')) ? ('https') : ('http'),
+            'scheme' => ($_SERVER['HTTPS']=='on' || $_SERVER['SERVER_PORT'] == '443' || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO']=='https')) ? ('https') : ('http'),
             'host' => (self::get('hostname')) ? (self::get('hostname')) : ($_SERVER['HTTP_HOST']),
             'path' => tdz::scriptName(true),
         );

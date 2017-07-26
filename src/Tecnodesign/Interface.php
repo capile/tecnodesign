@@ -33,6 +33,7 @@ class Tecnodesign_Interface implements ArrayAccess
     const P_REAL_BASE=false;
 
     public static
+        $request,
         $envelope           = true,
         $pretty             = true,
         $listResult         = 'There\'s only one record available.',
@@ -339,6 +340,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if(self::$className!=get_called_class()) self::$className = get_called_class();
         try {
             if(!is_null($url)) tdz::scriptName($url);
+            static::$request = tdz::requestUri();
             $p = tdz::urlParams();
             $l = count($p) -1;
             if(isset($p[$l]) && preg_match('/\.([a-z0-9]{3,4})$/', $p[$l], $m) && in_array($m[1], static::$formats)) {

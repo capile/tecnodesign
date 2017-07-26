@@ -18,12 +18,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={},
 var _reWeb=/^https?:\/\//;
 function initZ(d)
 {
-    Z.language = Z.cookie('lang');
-    if(!Z.language) {
-        var m=document.querySelector('meta[name="language"]');
-        if(m) Z.language = m.getAttribute('content');
-        else Z.language = 'en';
-    }
+    Z.lang();
     var store=true;
     if(!('user' in Z)) {
         Z.user=null;
@@ -230,6 +225,20 @@ function _cookieValue(offset) {
 Z.lang=function(s)
 {
     if(s) Z.language=s;
+    else {
+        if(!Z.language) {
+            Z.language = Z.cookie('lang');
+        }
+        if(!Z.language) {
+            var m=document.querySelector('meta[name="language"]');
+            if(m) Z.language = m.getAttribute('content');
+            else {
+                if(m=document.querySelector('html[lang]')) 
+                    Z.language = m.getAttribute('lang');
+                else Z.language = 'en';
+            }
+        }
+    }
     return Z.language;
 }
 
