@@ -87,7 +87,7 @@ if(isset($list) && is_array($list)) {
                 foreach($S as $k=>$c) {
                     $vc = (isset($M[$c]))?($v->{$M[$c]}()):($v[$c]);
                     if($vc!=='' && $vc!==false && $vc!==null) {
-                        $e[$k] = tdz::raw($vc);
+                        $e[$k] = str_replace("\t",' ', tdz::raw($vc));
                     } else if(!$nonull) {
                         $e[$k] = null;
                     }
