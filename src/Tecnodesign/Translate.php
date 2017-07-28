@@ -30,7 +30,7 @@
  */
 class Tecnodesign_Translate
 {
-    public static $method='bing', $apiKey=null, $clientId=null, $sourceLanguage='en';
+    public static $method='bing', $apiKey=null, $clientId=null, $sourceLanguage='en', $forceTranslation;
     protected static $_t=null;
     protected $_from='en', $_lang='en', $_table=null, $_keys=array();
 
@@ -56,7 +56,7 @@ class Tecnodesign_Translate
         if(is_null($to)) {
             $to = tdz::$lang;
         }
-        if($to==self::$sourceLanguage)
+        if(self::$forceTranslation!=true && $to==self::$sourceLanguage)
             return $message;
         
         if(!isset(self::$_t[$to])) {
