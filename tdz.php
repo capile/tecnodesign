@@ -779,6 +779,7 @@ class tdz
                     if(file_exists($tempnam)) {
                         $build = false;
                         rename($tempnam, $file);
+                        chmod($file, 0666);
                         unset($tempnam);
                     }
                 }

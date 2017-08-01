@@ -286,7 +286,7 @@ Z.load=function()
         if(arguments[i].indexOf('.css')>-1) Z.element.call(document.getElementsByTagName('head')[0], {e:'link',a:{rel:'stylesheet',type:'text/css',href:arguments[i]}});
         else if(arguments[i].indexOf('.js')>-1) Z.element.call(document.body, {e:'script',p:{async:true,src:arguments[i]}});
     }
-    delete(i);
+    i=null;
 };
 
 Z.element=function(o,before,after) {
@@ -298,20 +298,20 @@ Z.element=function(o,before,after) {
         if(o.p) {
             for(n in o.p) {
                 r[n]=o.p[n];
-                delete(n);
+                n=null;
             }
         }
         if(o.a) {
             for(n in o.a) {
                 r.setAttribute(n,o.a[n]);
-                delete(n);
+                n=null;
             }
         }
         if(o.t) {
             for(n in o.t) {
                 if(n=='trigger' || n=='fastTrigger') Z[n](r,o.t[n]);
                 else Z.addEvent(r,n,o.t[n]);
-                delete(n);
+                n=null;
             }
         }
     } else if(Z.isNode(o)) {
@@ -335,8 +335,8 @@ Z.element=function(o,before,after) {
                 else Z.element.call(r,o.c[i]);
                 i++;
             }
-            delete(i);
-            delete(t);
+            i=null;
+            t=null;
         }
     }
 
@@ -408,7 +408,7 @@ Z.ready=function(fn)
 Z.isNode=function()
 {
     for(var i=0;i<arguments.length;i++) {
-        o=arguments[i];
+        var o=arguments[i];
         if(typeof(o)=='string' && o) {
             return document.querySelector(o);
         }
@@ -423,9 +423,11 @@ Z.isNode=function()
 Z.node=function()
 {
     for(var i=0;i<arguments.length;i++) {
-        o=arguments[i];
-        if(typeof(o)=='string' && o && (document.querySelector(o))) return o;
-        else if('nodeName' in o) return o;
+        var o=arguments[i];
+        var t=typeof(o);
+        if(t=='undefined' || !o) continue;
+        else if(t=='string' && (o=document.querySelector(o))) return o;
+        else if(t=='object' && ('nodeName' in o)) return o;
         else if('jquery' in o) return o.get(0);
     }
     return false;
@@ -578,7 +580,7 @@ Z.val=function(o, val, fire)
             } else if (o.options[i].selected) v.push(o.options[i].value);
         }
         if(val && fire) Z.fire(o, 'change');
-        delete(i);
+        i=null;
     } else if(t && (t=='checkbox' || t=='radio')) {
         var id=o.name;
         if(val!==false) {
@@ -604,7 +606,7 @@ Z.val=function(o, val, fire)
                     }
                 }
             }
-            delete(vi);
+            vi=null;
         } else {
             var L=o.form.querySelectorAll('input[name="'+id+'"]:checked'), i=L.length;
             if(i) {
@@ -616,8 +618,8 @@ Z.val=function(o, val, fire)
                 v = '';
             }
         }
-        delete(L);
-        delete(i);
+        L=null;
+        i=null;
     } else if(f=='html' && (!(e=o.getAttribute('data-editor')) || e=='tinymce')) {
         Z.fire(o, 'validate');
         v=o.value;
@@ -635,7 +637,7 @@ Z.val=function(o, val, fire)
         }
         v=o.getAttribute('value');
     }
-    delete(t);
+    t=null;
     if(v && typeof(v) == 'object' && v.length<2) v=v.join('');
     return v;
 }
@@ -1665,9 +1667,9 @@ function ajaxProbe(e)
             } else {
                 R.error.apply(R.context, [ d, R.r.status, u, R.r ]);
             }
-            delete(d);
+            d=null;
             if('r' in R) delete(R.r);
-            delete(R);
+            R=null;
         }
     }
 }
