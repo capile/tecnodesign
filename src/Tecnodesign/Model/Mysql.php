@@ -143,7 +143,10 @@ class Tecnodesign_Model_Mysql
             $fcode[] = '$'.$fn;
         }
         $indent = 2;
-        $code = "//--tdz-schema-start--".date('Y-m-d H:i:s')."\npublic static \$schema = ".preg_replace('/\n'.str_repeat('  ', $indent).'( |\))+/e', '" ".trim("$1")', preg_replace('/(=>)\s+/', '=> ', var_export($schema, true)));
+        $code = "//--tdz-schema-start--".date('Y-m-d H:i:s')."\npublic static \$schema = "
+            . str_replace(array("\n  array (",',),','array ( '),array('array(',' ),','array( '),preg_replace('/\n\r?    (a|\)| ) */', '$1', var_export($schema, true)))
+            //. preg_replace('/\n'.str_repeat('  ', $indent).'( |\))+/e', '" ".trim("$1")', preg_replace('/(=>)\s+/', '=> ', var_export($schema, true)))
+            ;
         $code .= ";\nprotected ".implode(', ', $fcode).";\n";
         
         if(preg_match_all('/array \( (([0-9]+) \=\> \'[^\']*\', )+\)/', $code, $m)) {

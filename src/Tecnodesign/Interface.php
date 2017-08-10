@@ -256,7 +256,6 @@ class Tecnodesign_Interface implements ArrayAccess
         } else if(isset($_SERVER['HTTP_TDZ_INTERFACE_MODE'])) {
             if($_SERVER['HTTP_TDZ_INTERFACE_MODE']=='standalone') $this->template = 'interface-standalone';
         }
-
         if(isset($d['formats']) && is_array($d['formats'])) {
             static::$formats = $d['formats'];
             unset($d['formats']);
@@ -343,26 +342,16 @@ class Tecnodesign_Interface implements ArrayAccess
             static::$request = tdz::requestUri();
             $p = tdz::urlParams();
             $l = count($p) -1;
-            if(isset($p[$l]) && preg_match('/\.([a-z0-9]{3,4})$/', $p[$l], $m) && in_array($m[1], static::$formats)) {
-                static::$ext = $m[0];
-                $format = static::$format = $m[1];
+
+            // load extension first, then only check formats after the interface was loaded
+            $ext = null;
+            if(isset($p[$l]) && preg_match('/\.([a-z0-9]{3,4})$/', $p[$l], $m)) {
+                $ext = $m[1];
                 $p[$l] = substr($p[$l], 0, strlen($p[$l]) - strlen($m[0]));
-            } else if(($m=Tecnodesign_App::request('extension')) && in_array($m, static::$formats)) {
-                static::$ext = '.'.$m;
-                $format = static::$format = $m;
+            } else {
+                $ext = Tecnodesign_App::request('extension');
             }
             unset($m);
-            if(isset($_SERVER['HTTP_ACCEPT']) && preg_match('#^application/([a-z]+)#', $_SERVER['HTTP_ACCEPT'], $m)) {
-                if($m[1]=='yaml') $m[1]='yml';
-                if(!in_array($m[1], static::$formats)) {
-                    return static::error(400, static::t('errorNotSupported'));
-                } else if(static::$ext && static::$ext!='.'.$m[1]) {
-                    return static::error(400, static::t('errorConflictFormat'));
-                }
-
-                static::$format = $m[1];
-                unset($m);
-            }
 
             static::$base = tdz::scriptName();
             if($n) {
@@ -372,11 +361,32 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
 
+            $I = static::currentInterface($p);
+
+            if($ext && !in_array($ext, static::$formats)) {
+                return static::error(400, static::t('errorNotSupported'));
+            } else if($ext) {
+                static::$ext = '.'.$ext;
+                $format = static::$format = $ext;
+            }
+            unset($ext);
+
+            if(isset($_SERVER['HTTP_ACCEPT']) && preg_match('#^application/([a-z]+)#', $_SERVER['HTTP_ACCEPT'], $m)) {
+                if($m[1]=='yaml') $m[1]='yml';
+                if(!in_array($m[1], static::$formats)) {
+                    return static::error(400, static::t('errorNotSupported'));
+                } else if(static::$ext && static::$ext!='.'.$m[1]) {
+                    return static::error(400, static::t('errorConflictFormat'));
+                }
+                static::$format = $m[1];
+                unset($m);
+            }
+
+            if(!$I) return false;
+
             tdz::$variables['variables']['script'][700] = tdz::$assetsUrl.'/studio/interface.js';
             tdz::$variables['variables']['style'][700] = tdz::$assetsUrl.'/studio/interface.less';
             //Tecnodesign_App::response(array('script'=>array(700=>tdz::$assetsUrl.'/tecnodesign/js/interface.js')));
-            $I = static::currentInterface($p);
-            if(!$I) return false;
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
 
@@ -1203,6 +1213,36 @@ class Tecnodesign_Interface implements ArrayAccess
         return implode( $delimiter, $output );
     }
 
+    public static function ldif($a)
+    {
+        if(!is_array($a)) {
+            return str_replace("\n", "\n ", wordwrap(preg_replace('/([,=+<>#;\\"])/', '\\\$1', $a)));
+        } else {
+            $s = '';
+            foreach($a as $k=>$v) {
+                if(is_int($k)) {
+                    $s .= "\n".self::ldif($v);
+                } else if(is_array($v)) {
+                    $s .= "\n{$k}: ";
+                    foreach($v as $vk=>$vv) {
+                        if(is_int($vk)) {
+                            $s .= (($vk==0)?(''):("\n{$k}: ")).$vv;
+                        } else if(is_array($vv)) {
+                            $s .= "{$vk}=".implode(",{$vk}=",$vv).',';
+                        } else {
+                            $s .= "{$vk}=".self::ldif($vv).',';
+                        }
+                    }
+                    if(substr($s, -1)==',')
+                        $s = substr($s, 0, strlen($s)-1);
+                } else {
+                    $s .= "\n{$k}: ".self::ldif($v);
+                }
+            }
+            return $s;
+        }
+    }
+
     public static function envelope($a)
     {
         $r = array();
@@ -1480,6 +1520,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         tdz::$variables['Interface'] = $this;
         static::$currentAction = $this->action;
+
         if($this->run) {
             $o = $this->run;
             $call = array_shift($o);
@@ -1517,7 +1558,6 @@ class Tecnodesign_Interface implements ArrayAccess
         } else {
             $data = $this->execute($this->options);
         }
-
 
         $f=static::template($this->template, 'interface-'.static::$format, 'interface-'.$this->action, 'interface');
         $vars = $this->text;
@@ -2279,10 +2319,22 @@ class Tecnodesign_Interface implements ArrayAccess
         $cn = $this->getModel();
         if(is_null($this->scope) || $a) {
             if(!$a) $a = $this->action;
-            if(!is_array($a) && isset($this->options['scope'][$a]) && !isset($cn::$schema['scope'][$a])) {
-                $cn::$schema['scope'] += $this->options['scope'];
+            $this->scope = $a;
+            if(!is_array($a)) {
+                if(isset($this->options['scope'][$a.'-'.static::$format])) {
+                    $scope = $a.'-'.static::$format;
+                    $this->scope = $this->options['scope'][$a.'-'.static::$format];
+                } else if(isset($this->options['scope'][$a])) {
+                    $scope = $a;
+                    $this->scope = $this->options['scope'][$a];
+                } else {
+                    $scope = null;
+                }
+                if($scope && !isset($cn::$schema['scope'][$scope])) {
+                    $cn::$schema['scope'] += $this->options['scope'];
+                }
+                unset($scope);
             }
-            $this->scope = (isset($cn::$schema['scope'][$a]))?($cn::$schema['scope'][$a]):($a);
             if(!is_array($this->scope)) $this->scope = $cn::columns($this->scope);
         }
         if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && substr($rs, 0, 1)!='_' && is_array($this->scope)) {
