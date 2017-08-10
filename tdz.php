@@ -173,6 +173,7 @@ class tdz
         $assetsUrl = '/_assets',
         $async = true,
         $variables = array(),
+        $minifier = array(),
         $paths=array(
             'cat'=>'/bin/cat',
             'java'=>'/usr/bin/java',
@@ -773,7 +774,11 @@ class tdz
                         mkdir($dir, 0777, true);
                     }
                     $tempnam = tempnam(dirname($file), '._');
-                    $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --nomunge --type '.$type.' -o '.$tempnam;
+                    if(isset(tdz::$minifier[$type])) {
+                        $cmd = sprintf(tdz::$minifier[$type], implode(' ',$fs), $tempnam);
+                    } else {
+                        $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --nomunge --type '.$type.' -o '.$tempnam;
+                    }
                     exec($cmd, $cmdoutput, $ret);
                     unset($cmdoutput, $ret);
                     if(file_exists($tempnam)) {

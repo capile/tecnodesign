@@ -42,7 +42,7 @@ function initZ(d)
         if(Object.prototype.toString.call(d)=='[object Array]') {
             Z.user = false;
         } else {
-            var n, start=false;
+            var n;
             if('plugins' in d) {
                 if(!('plugins' in Z)) Z.plugins = {};
                 for(n in d.plugins) {
@@ -1004,7 +1004,7 @@ function formFilters(e)
     if(reset) this.className += ' tdz-a-filters';
 
     var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'), 
-      tn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk;
+      tn, tp='', L, l, T, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk;
     if(nn.indexOf('[')>-1) {
         nn=nn.replace(/.*\[([^\[]+)\]$/, '$1');
         tp = this.id.substr(0, this.id.length - nn.length);
@@ -1219,7 +1219,7 @@ function datalistQuery(e)
         datalistClear.apply(o);
     }
 
-    var u=o.getAttribute('data-datalist-api'), api=(u!=''), h;
+    var u=o.getAttribute('data-datalist-api'), h;
     if(u) {
         var m=u.match(/\$[a-z0-9\-\_]+/ig), i=(m)?(m.length):(0), n;
         if(u.substr(0,1)!='/' && u.substr(0,4)!='http') {
@@ -1455,7 +1455,7 @@ function uploadFile(file, U)
             b.className += ' tdz-f-file';
             el.setAttribute('data-status', 'ready');
             el = clearFileInput(el);
-            var v=d.value;
+            //var v=d.value;
         }
 
         if(workers--) {
@@ -1719,3 +1719,8 @@ var matchesSelector = function(node, selector) {
 initZ();
 
 })(window.Z);
+if (typeof exports !== 'undefined') {
+  if (typeof module !== 'undefined' && module.exports) {
+    exports = module.exports = Z;
+  }
+}
