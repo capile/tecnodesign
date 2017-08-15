@@ -2270,10 +2270,19 @@ class tdz
         if($type=='uuid') {
             return self::encrypt($str, $salt, 'uuid');
         } else if(is_string($type)) {
-            $h = hash($type, $str);
-            if ($salt != null && strcasecmp($h, $salt)==0) {
-                return $salt;
-            } 
+            $t = strtoupper($type);
+            if(substr($t, 0, 4)=='SSHA' || substr(strtolower($t), 0, 4)=='SMD5') {
+                if(is_null($salt)) $salt = openssl_random_pseudo_bytes(20);
+                else if(substr($salt, 0, strlen($type)+2)=="{{$t}}") {
+                    $salt = substr(base64_decode(substr($salt, strlen($type)+2)), strlen(hash(strtolower(substr($t,1)), null, true)));
+                }
+                $h = "{{$t}}" . base64_encode(hash(strtolower(substr($t,1)), $str . $salt, true) . $salt);
+            } else {
+                $h = hash($type, $str);
+                if ($salt != null && strcasecmp($h, $salt)==0) {
+                    return $salt;
+                } 
+            }
             return $h;
         } else {
             $len = 8;

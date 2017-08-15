@@ -728,6 +728,24 @@
                 Z.delay(msg, 5000, 'msg');
             }
         },
+        download:function(o) {
+            if(o.getAttribute('data-message')) {
+                msg(o.getAttribute('data-message'));
+                Z.delay(msg, 5000, 'msg');
+            }
+            var u = o.getAttribute('data-url') || o.getAttribute('href');
+            if(!u) return false;
+            var d=o.getAttribute('data-download') || '';
+
+            var link = document.createElement("a");
+            link.setAttribute('download',d);
+            link.target = "_blank";
+            link.href = u;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            delete link;
+        },
         redirect:function(o) {
             if(o.getAttribute('data-message')) {
                 msg(o.getAttribute('data-message'));

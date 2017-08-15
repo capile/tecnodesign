@@ -1689,6 +1689,29 @@ class Tecnodesign_Interface implements ArrayAccess
         $this->text['listLimit']=50000;
     }
 
+    public function download($f, $msg='Download...')
+    {
+        $fn = preg_replace('/^[0-9\.]+\-/', '', basename($f));
+        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+            if($f && file_exists($f)) {
+                $uid = uniqid();
+                $uri = $this->link(null, true);
+                $uri .= (strpos($uri, '?'))?('&'):('?');
+                $uri .= '-bgd='.$uid;
+                Tecnodesign_Cache::set('bgd/'.$uid, $f);
+                $msg = '<a data-action="download" data-download="'.tdz::xml($fn).'" data-url="'.tdz::xml($uri).'" data-message="'.tdz::xml($msg).'"></a>';
+            } else {
+                $msg = '<a data-action="error" data-message="'.tdz::xml(tdz::t('There was an error while processing your request. Please try again or contact support.','interface')).'"></a>';
+            }
+            tdz::output($msg, 'text/html; charset=utf8', true);
+        } else if(($uid=Tecnodesign_App::request('get', '-bgd')) && ($f=Tecnodesign_Cache::get('bgd/'.$uid)) && file_exists($f)) {
+            Tecnodesign_Cache::delete('bgd/'.$uid);
+            tdz::download($f, null, $fn, 0, true, false, false);
+            unlink($f);
+            //exit($f);
+        }
+    }
+
     public function renderPreview($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
     {
         $cn = $this->getModel();
