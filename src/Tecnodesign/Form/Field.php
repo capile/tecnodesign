@@ -22,11 +22,49 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * Common attributes to each form field. If there's a set$Varname, then it'll 
      * be used to check the validity of the added information.
      */
-    protected $prefix=false, $id=false, $type='text', $form, $bind, $attributes=array(), $placeholder=false, $scope=false,
-        $label=false, $choices=false, $choicesFilter, $serialize, $tooltip=false, $renderer=false, $error=false, $filters=false, $dataprop, $class='',
-        $template=false, $rules=false, $_className, $multiple=false, $required=false, $html_labels=false, $messages=null,
-        $disabled=false, $readonly=false, $size=false, $min_size=false, $value, $range=false, $decimal=0, $accept=false, $toAdd=null,
-        $insert=true, $update=true, $before=false, $fieldset=false, $after=false, $next, $default, $query;
+    protected 
+        $prefix=false,          // prefix to be added to the form field, useful for CSRF and subforms
+        $id=false,              // field ID, usually automatically created from key index
+        $type='text',           // field type, must have a corresponding function render$Type
+        $form,                  // form instance id
+        $bind,                  // model it this field is conected to, accepts relations
+        $attributes=array(),    // element attributes, usually class names and data-*
+        $placeholder=false,     // placeholder text
+        $scope=false,           // scope to be used in references and sub forms
+        $label=false,           // label, if not set will be build from $name
+        $choices=false,         // for select, checkbox and radio types, the acceptable options (method or callback)
+        $choicesFilter,         // filter for the choices, usually based on another property
+        $serialize,             // if the contents should be serialized, and by which serialization method
+        $tooltip=false,         // additional tooltips to be shown on focus
+        $renderer=false,        // use another renderer instead of the template, accepts callbacks
+        $error=false,           // field errors
+        $filters=false,         // filters this field choices based on another field's value
+        $dataprop,              // 
+        $class='',              // container class names (attribute value, use spaces for multiple classes)
+        $template=false,        // custom template, otherwise, guess from $type
+        $rules=false,           // validation rules, regular expression => message
+        $_className,            // class name
+        $multiple=false,        // for select and checkboxes, if accepts multiple values
+        $required=false,        // if this field is mandatory (raises errors)
+        $html_labels=false,     // if true, labels and other template contents won't be escaped
+        $messages=null,         // 
+        $disabled=false,        // should updates be disabled?
+        $readonly=false,        // makes this readonly
+        $size=false,            // size, in bytes, for the contents of this field, for numeric types use $range
+        $min_size=false,        // minimum size, in bytes, for the contents of this field, for numeric types use $range
+        $value,                 // value of the field
+        $range=false,           // range valudation rules = array($min, $max)
+        $decimal=0,             // decimal values accepted
+        $accept=false,          // content types accepted, used for file uploads
+        $toAdd=null,            // for subforms
+        $insert=true,           
+        $update=true,           
+        $before=false,          // content to be displayed before the field
+        $fieldset=false,        // fieldset label this field belongs to
+        $after=false,           // content to be displayed after the field
+        $next,                  // tab order (use field name)
+        $default,               // default field value
+        $query;
     public static $labels = array('blank'=>'—'), $maxOptions=500;
 
     public function __construct($def=array(), $form=false)
@@ -608,6 +646,39 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $value;
     }
 
+    public function checkRange($value, $message='')
+    {
+        $r = $this->range;
+        $err = null;
+        if(substr($this->type, 0, 4)=='date') {
+            $v = tdz::strtotime($value);
+            if(!is_int($r[0])) $r[0] = tdz::strtotime($r[0]);
+            if(!is_int($r[1])) $r[1] = tdz::strtotime($r[1]);
+        } else if(is_numeric($value)) {
+            $v = $value;
+        } else {
+            $err = array('%s should be a number.');
+        }
+
+        if(!$err && (!($v >= $r[0]) || !($v <= $r[1]))) {
+            $err = $message;
+        }
+        if($err) {
+            if(!is_array($err)) {
+                $err = array(tdz::t($err, 'exception'));
+                $err[] = $this->range[0];
+                $err[] = $this->range[1];
+                $err[] = $this->getLabel();
+                $err[] = $value;
+            } else {
+                $err[0] = tdz::t($err[0], 'exception');
+            }
+            throw new Tecnodesign_Exception($err);
+        }
+
+        return $value;
+    }
+
     public function checkFile($value=false, $message='')
     {
         // check ajax uploader
@@ -859,6 +930,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 } else if($this->min_size) {
                     $rules['size']=array("Should be greater than %s characters.", $this->min_size);
                 }
+            }
+            if($this->range && is_array($this->range) && count($this->range)==2) {
+                $rules['range'] = array("Should be between %s and %s.", $this->range[0], $this->range[1]);
             }
         }
         $rules = $this->rules + $rules;

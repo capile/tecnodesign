@@ -21,13 +21,14 @@ class Tecnodesign_Studio
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
         $webInterface=true,
+        $checkOrigin=true,  // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
         $cacheTimeout=1800, // configurable, cache timeout, use false to disable caching, 0 means forever
         $staticCache=3600,  // configurable, store static previews of entries
-        $home='/_/studio',   // configurable, where to load E-Studio interface
+        $home='/_/studio',  // configurable, where to load E-Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
         $uploadDir='studio/uploads', // configurable, relative to TDZ_VAR
         $index='studio/index.db', // configurable, relative to TDZ_VAR
@@ -401,6 +402,17 @@ class Tecnodesign_Studio
     public static function uid()
     {
         self::$private=true;
+        if(Tecnodesign_Studio::$checkOrigin) {
+            $allow = tdz::buildUrl('');
+            $from = null;
+            if(isset($_SERVER['HTTP_ORIGIN'])) $from = $_SERVER['HTTP_ORIGIN'];
+            else if(isset($_SERVER['HTTP_REFERER'])) $from = $_SERVER['HTTP_REFERER'];
+            else if(Tecnodesign_Studio::$checkOrigin>1) return false;
+            if($from && substr($from, 0, strlen($allow))!=$allow) {
+                return false; 
+            }
+        }
+
         $U = tdz::getUser();
         if($U) {
             $r = $U->asArray();

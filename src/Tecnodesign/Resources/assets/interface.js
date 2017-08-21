@@ -40,7 +40,7 @@
         if(!_base) {
             var be=document.querySelector('.tdz-i-box[base-url]');
             if(be) _base = be.getAttribute('base-url');
-            delete(be);
+            be=null;
         }
         var base=I.getAttribute('data-base-url');
         if(!base) {
@@ -68,7 +68,6 @@
         while(i-- > 0) Z.bind(l[i], 'submit', loadInterface);
 
         L=null;
-        delete(L);
 
         // bind other actions
         var S=I.querySelectorAll('*[data-action-schema]');
@@ -91,7 +90,7 @@
                     bt= M[j];
                 }
                 Z.element.call(bt, {e:'a',a:{href:u+'?scope='+bu+iurl,'class':'tdz-i-button tdz-i--'+k},t:{click:loadAction}});
-                delete(bt);
+                bt=null;
             }
         }
         /*
@@ -307,8 +306,8 @@
                     if(ch.substr(0,_base.length+1)==_base+'/') ch=ch.substr(_base.length+1);
                 }
                 if(ch==_H[0]) _H=[];
-                delete(I);
-                delete(ch);
+                I=null;
+                ch=null;
             }
         }
 
@@ -359,7 +358,7 @@
         var T=b.querySelector('.tdz-i-header .tdz-i-title[data-url="'+u+'"]');
         if(T) {
             T.parentNode.removeChild(T);
-            delete(T);
+            T=null;
         }
         var B = I.previousSibling;
         if(arguments.length>2) {
@@ -368,16 +367,15 @@
         } else {
             B = I.previousSibling;
             I.parentNode.removeChild(I);
-            delete(I);
         }
+        I=null;
         if(!(I=b.querySelector('.tdz-i-active[data-url]'))) {
             if(!B) B=b.querySelector('.tdz-i[data-url]');
             activeInterface(B);
         }
         b=null;
-        delete(B);
-        delete(b);
-        delete(I);
+        B=null;
+        I=null;
         if(arguments.length<2 || arguments[1]) reHash();
     }
 
@@ -542,7 +540,7 @@
             }
             startup(t);
             Z.focus(t);
-            delete(t);
+            t=null;
         }
 
         return false;
@@ -622,8 +620,8 @@
                     _A[ra].call(this, r[i]);
                 }
                 if(r[i].parentNode) r[i].parentNode.removeChild(r[i]);
-                delete(r[i]);
             }
+            r=null;
 
             var H = box.querySelector('.tdz-i-header'),
                 Hs = f.querySelectorAll('.tdz-i-header > .tdz-i-title'),
@@ -744,7 +742,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            delete link;
+            link=null;
         },
         redirect:function(o) {
             if(o.getAttribute('data-message')) {

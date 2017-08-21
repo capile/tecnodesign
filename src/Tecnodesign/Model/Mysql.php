@@ -149,10 +149,10 @@ class Tecnodesign_Model_Mysql
             ;
         $code .= ";\nprotected ".implode(', ', $fcode).";\n";
         
-        if(preg_match_all('/array \( (([0-9]+) \=\> \'[^\']*\', )+\)/', $code, $m)) {
+        if(preg_match_all('/ array\( (([0-9]+) \=\> \'[^\']*\',? )+\)/', $code, $m)) {
             $r=array();
             foreach($m[0] as $l) {
-                if(preg_match_all('/([0-9]+) \=\> (\'[^\']*\', )/', $l, $n)) {
+                if(preg_match_all('/([0-9]+) \=\> (\'[^\']*\',? )/', $l, $n)) {
                     $numeric = true;
                     $i=0;
                     $v='';
@@ -164,7 +164,7 @@ class Tecnodesign_Model_Mysql
                         }
                     }
                     if($numeric) {
-                        $r[$l] = 'array ( '.$v.')';
+                        $r[$l] = 'array( '.$v.')';
                     }
                 }
             }
