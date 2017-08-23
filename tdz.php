@@ -1775,6 +1775,18 @@ class tdz
      */
     public static function log()
     {
+        if(tdz::$logDir=='syslog' && openlog('tdz', LOG_PID|LOG_NDELAY, LOG_LOCAL7)) {
+            foreach (func_get_args() as $k => $v) {
+                $v = tdz::toString($v);
+                $l = LOG_INFO;
+                if(substr($v, 0, 4)=='[ERR') $l = LOG_ERR;
+                else if(substr($v, 0, 5)=='[WARN') $l = LOG_WARNING;
+                else $l = LOG_INFO;
+                syslog($l, $v);
+            }
+            closelog();
+            return;
+        }
         if(!tdz::$logDir) {
             if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
                 tdz::$logDir = $app->tecnodesign['log-dir'];
