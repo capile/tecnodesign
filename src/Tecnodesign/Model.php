@@ -1679,6 +1679,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $a .= ' '.substr($label, 2).'="'.$v.'"';
                 } else if($v!==false && !($excludeEmpty && !$v)) {
                     if(strpos($fn, ' ')) $fn = substr($fn, strrpos($fn, ' ')+1);
+                    if(is_array($v)) $v = implode(', ', $v);
                     $s .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
                 }
                 unset($scope[$label], $label, $fn, $v, $m, $class, $fd);

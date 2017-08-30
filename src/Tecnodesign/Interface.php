@@ -1222,6 +1222,8 @@ class Tecnodesign_Interface implements ArrayAccess
             foreach($a as $k=>$v) {
                 if(is_int($k)) {
                     $s .= "\n".self::ldif($v);
+                } else if($k=='..') {
+                    $s .= self::ldif($v);
                 } else if(is_array($v)) {
                     $s .= "\n{$k}: ";
                     foreach($v as $vk=>$vv) {
@@ -1712,9 +1714,50 @@ class Tecnodesign_Interface implements ArrayAccess
         }
     }
 
+    public static function checkRequestScope($rs, $ps)
+    {
+        if(in_array($rs, $ps)) return true;
+
+        foreach($ps as $s) {
+            if(is_string($s) && strlen($s)>strlen($rs) && substr($s, 0, strlen($rs)+1)==$rs.':') {
+                if(tdz::getUser()->hasCredentials(preg_split('/,+/', substr($s, strlen($rs)+1), null, PREG_SPLIT_NO_EMPTY))) {
+                    return true;
+                }
+            }
+        }
+
+
+    }
+
+    public function requestScope()
+    {
+        if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
+            // check if $this->options['scope'][$this->action] requires authentication
+            $r = 'scope::'.$rs;
+
+            $as = $this->action;
+            $ad = static::$actionsDefault;
+            while(!isset($this->options['scope'][$as]) && $ad) {
+                $as = array_shift($ad);
+            }
+            if(isset($this->options['scope'][$as]) && !$this::checkRequestScope($r, $this->options['scope'][$as])) {
+                $r = null;
+            }
+            return $rs;
+        }
+
+    }
+
     public function renderPreview($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
     {
         $cn = $this->getModel();
+        if(!$scope) {
+            if($rs=$this->requestScope()) {
+                $scope = array('scope::'.$rs);
+                unset($rs);
+            }
+        }
+
         $this->options['scope'] = $this->scope($scope);
         if(!$o) $o = $this->model();
         if(!$o) {
