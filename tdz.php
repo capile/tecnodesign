@@ -1786,6 +1786,11 @@ class tdz
             }
             closelog();
             return;
+        } else if(tdz::$logDir=='error_log') {
+            foreach (func_get_args() as $k => $v) {
+                error_log(tdz::toString($v), 0);
+            }
+            return;
         }
         if(!tdz::$logDir) {
             if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
