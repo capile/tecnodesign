@@ -1775,7 +1775,7 @@ class tdz
      */
     public static function log()
     {
-        if(tdz::$logDir=='syslog' && openlog('tdz', LOG_PID|LOG_NDELAY, LOG_LOCAL7)) {
+        if(tdz::$logDir=='syslog' && openlog('tdz', LOG_PID|LOG_NDELAY, LOG_LOCAL5)) {
             foreach (func_get_args() as $k => $v) {
                 $v = tdz::toString($v);
                 $l = LOG_INFO;
