@@ -2887,7 +2887,9 @@ class Tecnodesign_Interface implements ArrayAccess
         if(is_null($dd)) $dd = tdz::getApp()->tecnodesign['data-dir'];
         $s = tdz::slug($s, '/_');
         foreach(static::$dir as $d) {
-            if(file_exists($f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml')) {
+            if(file_exists( $f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml') ) {
+                return $f;
+            } elseif (file_exists( $f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.static::$base.'/'.$s.'.yml') ) {
                 return $f;
             }
             unset($d, $f);
