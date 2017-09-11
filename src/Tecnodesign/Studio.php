@@ -294,7 +294,7 @@ class Tecnodesign_Studio
             unset($tmp);
         }
         if(!isset(tdzContent::$contentType[$ext])) return false;
-        else if(is_array(tdzContent::$disableExtensions) && in_array($ext, tdzContent::$disableExtensions)) continue;
+        else if(is_array(tdzContent::$disableExtensions) && in_array($ext, tdzContent::$disableExtensions)) return false;
         $p = file_get_contents($page);
         if(!$p) return false;
         $m = tdzEntry::meta($p);
