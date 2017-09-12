@@ -342,7 +342,6 @@ class tdz
             if(substr($db['dsn'], 0, 6)=='mysql:') {
                 $mysql=true;
                 $params['options'][PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES utf8';
-                $params['options'][PDO::ATTR_PERSISTENT] = true;
             } else if(substr($db['dsn'], 0, 7)=='sqlite:') {
                 if(!isset($app)) {
                     $app = tdz::getApp();
