@@ -1216,17 +1216,23 @@ class Tecnodesign_Interface implements ArrayAccess
         return implode( $delimiter, $output );
     }
 
-    public static function ldif($a)
+    public static function ldif($a, $dn=false)
     {
         if(!is_array($a)) {
-            return str_replace("\n", "\n ", wordwrap(preg_replace('/([,=+<>#;\\"])/', '\\\$1', $a)));
+            if($dn) {
+                return str_replace("\n", "\n ", wordwrap(preg_replace('/([,=+<>#;\\"])/', '\\\$1', $a)));
+            } else {
+                // do not escape base64 characters
+                return str_replace("\n", "\n ", wordwrap(preg_replace('/([,<>#;\\"])/', '\\\$1', $a)));
+            }
         } else {
             $s = '';
             foreach($a as $k=>$v) {
+                $dn1 = ($k=='dn')?(true):($dn);
                 if(is_int($k)) {
-                    $s .= "\n".self::ldif($v);
+                    $s .= "\n".self::ldif($v, $dn1);
                 } else if($k=='..') {
-                    $s .= self::ldif($v);
+                    $s .= self::ldif($v, $dn1);
                 } else if(is_array($v)) {
                     $s .= "\n{$k}: ";
                     foreach($v as $vk=>$vv) {
@@ -1235,13 +1241,13 @@ class Tecnodesign_Interface implements ArrayAccess
                         } else if(is_array($vv)) {
                             $s .= "{$vk}=".implode(",{$vk}=",$vv).',';
                         } else {
-                            $s .= "{$vk}=".self::ldif($vv).',';
+                            $s .= "{$vk}=".self::ldif($vv, $dn1).',';
                         }
                     }
                     if(substr($s, -1)==',')
                         $s = substr($s, 0, strlen($s)-1);
                 } else {
-                    $s .= "\n{$k}: ".self::ldif($v);
+                    $s .= "\n{$k}: ".self::ldif($v, $dn1);
                 }
             }
             return $s;
