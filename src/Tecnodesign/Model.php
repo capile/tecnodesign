@@ -846,8 +846,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     if(isset($M->$p)) {
                         if(isset($this::$schema['columns'][$p]) && !isset($this->_original[$p])) {
                             $this->_original[$p]=$M->$p;
-                        } 
-                        $this->$p = $M->$p;
+                        }
+                        $this->safeSet($p, $M->$p, true);
                     }
                     unset($f[$p], $p, $fn);
                 }
@@ -1147,6 +1147,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             $map = array();
             if($ro instanceof Tecnodesign_Model) $ro = array($ro);
+            else if(!$ro) $ro=array();
             foreach($ro as $i=>$R) {
                 if(is_string($R)) continue;
                 if($R instanceof Tecnodesign_Model) {
@@ -2298,6 +2299,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      */
     public function __set($name, $value)
     {
+        return $this->safeSet($name, $value);
+    }
+
+    public function safeSet($name, $value, $skipValidation=false)
+    {
         if($name=='ROWSTAT') return $this;
         $mn=tdz::camelize($name, true);
         if(isset(static::$schema['columns'][$name]) && !array_key_exists($name, $this->_original)) {
@@ -2308,7 +2314,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if (method_exists($this, $m='set'.$mn)) {
             $this->$m($value);
         } else if(isset(static::$schema['columns'][$name])) {
-            $value = $this->validate(static::$schema['columns'][$name], $value, $name);
+            if(!$skipValidation) {
+                $value = $this->validate(static::$schema['columns'][$name], $value, $name);
+            }
             $this->$name=$value;
         } else if(isset(static::$schema['relations'][$name])) {
             $this->setRelation($name, $value);
