@@ -374,11 +374,14 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($_SERVER['HTTP_ACCEPT']) && preg_match('#^application/([a-z]+)#', $_SERVER['HTTP_ACCEPT'], $m)) {
                 if($m[1]=='yaml') $m[1]='yml';
                 if(!in_array($m[1], static::$formats)) {
-                    return static::error(400, static::t('errorNotSupported'));
+                    if(!in_array('*', static::$formats)) {
+                        return static::error(400, static::t('errorNotSupported'));
+                    }
                 } else if(static::$ext && static::$ext!='.'.$m[1]) {
                     return static::error(400, static::t('errorConflictFormat'));
+                } else if($m[1]!='*') {
+                    static::$format = $m[1];
                 }
-                static::$format = $m[1];
                 unset($m);
             }
 
