@@ -77,7 +77,9 @@ class Tecnodesign_Studio
         }
         $sn = $req['script-name'];
 
-        if(isset(self::$app->tecnodesign['languages'])) tdz::$lang=self::language(self::$app->tecnodesign['languages']);
+        if(!self::$languages && isset(self::$app->tecnodesign['languages'])) self::$languages=self::$app->tecnodesign['languages'];
+
+        if(self::$languages) tdz::$lang=self::language(self::$languages);
 
         if(is_null(self::$connection)) {
             if(isset(self::$app->studio['connection'])) {
@@ -128,7 +130,7 @@ class Tecnodesign_Studio
             $req = self::$app->request();
             if(substr($req['query-string'],0,1)=='!' && in_array($lang=substr($req['query-string'],1), $l)) {
                 setcookie('lang',$lang,0,'/',false,false);
-                tdz::redirect($req['script-name']);
+                tdz::redirect($req['script-name'].'?'.$lang);
             }
             unset($lang);
             if(!(isset($_COOKIE['lang']) && ($lang=$_COOKIE['lang']) && (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))))) {
@@ -147,6 +149,8 @@ class Tecnodesign_Studio
         }
         if(!isset($lang)) {
             $lang = tdz::$lang;
+        } else if($lang!=tdz::$lang) {
+            tdz::$lang = $lang;
         }
         return $lang;
     }
@@ -253,7 +257,6 @@ class Tecnodesign_Studio
 
     public static function content($page, $checkLang=true, $checkTemplates=true)
     {
-        static $langs;
         if(!file_exists($page)) return;
         $slotname = tdzEntry::$slot;
         $pos = '00000';
@@ -266,17 +269,9 @@ class Tecnodesign_Studio
         $ext = strtolower(array_pop($pp));
         if(count($pp)>0) {
             $lang = array_pop($pp);
-            if(is_null($langs)) {
-                if(isset(self::$app->tecnodesign['languages'])) {
-                    $langs = self::$app->tecnodesign['languages'];
-                }
-                unset($app);
-                if(!$langs) $langs=array();
-            }
-            if(!in_array($lang, $langs)) {
+            if(self::$languages && !in_array($lang, self::$languages)) {
                 $pp[]=$lang;
             } else {
-                if(!in_array($lang, Tecnodesign_Studio::$languages)) Tecnodesign_Studio::$languages[array_search($lang, $langs)]=$lang;
                 if($checkLang && $lang!=tdz::$lang) return false;
             }
             unset($lang);

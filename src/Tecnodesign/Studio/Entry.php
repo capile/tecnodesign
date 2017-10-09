@@ -552,7 +552,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
             static $pat;
             if(is_null($pat)) {
-                $pat = '{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
+                $pat = '{,.'.tdz::$lang.'}{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
             }
             $pages = glob(str_replace('.', '{-,.}', $f).$pat, GLOB_BRACE);
 
@@ -719,7 +719,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
 
         static $pat;
         if(is_null($pat)) {
-            $pat = '{,.*}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
+            $pat = '{,.*}{,.'.tdz::$lang.'}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
         }
         $pages = glob($root.$u.$pat, GLOB_BRACE);
 
