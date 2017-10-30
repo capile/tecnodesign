@@ -216,7 +216,7 @@ class Tecnodesign_Mail
                 $this->headers[$hint]=array();
             }
         }
-		$ep = '[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})';
+		$ep = '[_a-z0-9-]+[\._a-z0-9-\+]*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})';
         if (is_array($email)) {
             if(count($email)!=2 || !isset($email[1]) || !preg_match("/{$ep}/i", $email[1])) {
                 foreach($email as $e) {

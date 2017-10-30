@@ -450,7 +450,7 @@ class Tecnodesign_Query_Api
 
     public function run($q, $conn=null)
     {
-        if(!$conn) $conn = self::connect($this->schema('database'));
+        if(!$conn) $conn = static::connect($this->schema('database'));
         curl_setopt($conn, CURLOPT_URL, $q);
         if(isset($this->_options['certificate']) && $this->_options['certificate']) {
             if(strpos($this->_options['certificate'], ':')>1) {
@@ -558,7 +558,7 @@ class Tecnodesign_Query_Api
     /*
     public function lastInsertId($fn=null)
     {
-        $id = self::connect($this->schema('connection'))->lastInsertId($fn);
+        $id = static::connect($this->schema('connection'))->lastInsertId($fn);
         return $id;
     }
     */
@@ -613,7 +613,7 @@ class Tecnodesign_Query_Api
         if($data && is_object($data)) {
             $data = $data->asArray('save');
         }
-        if(!$conn) $conn = self::connect($this->schema('database'));
+        if(!$conn) $conn = static::connect($this->schema('database'));
 
         $H = static::$curlOptions[CURLOPT_HTTPHEADER];
         if(!is_array($H)) $H = array();

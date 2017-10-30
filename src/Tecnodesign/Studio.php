@@ -269,10 +269,12 @@ class Tecnodesign_Studio
         $ext = strtolower(array_pop($pp));
         if(count($pp)>0) {
             $lang = array_pop($pp);
-            if(self::$languages && !in_array($lang, self::$languages)) {
+            if(!preg_match('/^[a-z]{2}$/', $lang) || (self::$languages && !in_array($lang, self::$languages))) {
                 $pp[]=$lang;
             } else {
-                if($checkLang && $lang!=tdz::$lang) return false;
+                if($checkLang && $lang!=tdz::$lang) {
+                    return false;
+                }
             }
             unset($lang);
         }

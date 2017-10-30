@@ -1332,6 +1332,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $rc=(isset($rd['className']))?($rd['className']):($rcn);
                     if(isset($this->$rcn)) {
                         $rel = $this->$rcn;
+                        if(is_object($rel) && ($rel instanceof Tecnodesign_Collection)) {
+                            unset($rel);
+                            continue;
+                        }
                         $lfn=(is_array($rd['local']))?($rd['local']):(array($rd['local']));
                         $rfn=(is_array($rd['foreign']))?($rd['foreign']):(array($rd['foreign']));
                         $rv=array();
@@ -1663,9 +1667,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $v1 = (isset($this->$fn))?($this->$fn):(null);
                         if($v0!=$v1) {
                             $this->$fn = $v0;
-                            $v = '<span class="tdz-m-original">'.$this->renderField($fn, $fd, $xmlEscape).'</span>'
-                               . '<span class="tdz-m-value">'.$v.'</span>'
-                               ;
+                            $nv = $this->renderField($fn, $fd, $xmlEscape);
+                            if($nv!=$v) {
+                                $v = '<span class="tdz-m-original">'.$nv.'</span>'
+                                   . '<span class="tdz-m-value">'.$v.'</span>'
+                                   ;
+                            }
+                            unset($nv);
                             $this->$fn = $v1;
                         }
                     }
