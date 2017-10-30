@@ -83,6 +83,9 @@ Z.storage=function(n, v, e)
 
 Z.init=function(o)
 {
+    if(!('modules' in Z)) {
+        Z.modules = defaultModules;
+    }
     if(!('modules' in Z)) return;
     var c=(arguments.length>0)?(Z.node(o, this)):(null),n;
     if(!c) {
@@ -94,6 +97,7 @@ Z.init=function(o)
         if(Z.modules[i] && (ifn in Z)) {
             if(typeof(Z.modules[i])=='string') {
                 var L=c.querySelectorAll(Z.modules[i]), j=0;
+                console.log(Z.modules[i]+' '+j);
                 for(j=0;j<L.length;j++) Z[ifn].call(L[j]);
                 L=null;
                 j=null;
@@ -704,14 +708,23 @@ Z.initCheckLabel=function(e)
     }
 }
 
-var _Tl,_L={};
+var _Tl,_L=[];
 function checkLabel(e)
 {
     if(_Tl) clearTimeout(_Tl);
     if(arguments.length>0) {
         if(Z.node(this)) {
             var nn=this.nodeName.toLowerCase(),E;
-            if(nn!='input' && nn!='label' && (E=this.querySelector('input[type="radio"],input[type="checkbox"]'))) {
+            if(nn=='input') {
+                _L.push(this);
+            } else {
+                E=this.querySelector('input[type="radio"],input[type="checkbox"]');
+                if(E) {
+                    _L.push(E);
+                }
+                if(nn=='label') E=null;
+            }
+            if(E) {
                 if(E.checked) {
                     E.checked = false;
                     E.removeAttribute('checked');
@@ -719,13 +732,23 @@ function checkLabel(e)
                     E.checked = true;
                     E.setAttribute('checked', 'checked');
                 }
+                _L.push(E);
+            } else {
+                _L.push(this);
             }
         }
         _Tl=setTimeout(checkLabel, 50);
         return;
     }
     var L=document.querySelectorAll(Z.modules.CheckLabel), i=L.length, P, cn;
+    if(!i && _L.length>0) {
+        L = _L;
+        i=L.length;
+        _L=[];
+    }
+    console.log('checlLabel: '+i);
     while(i--) {
+            console.log(' checkLabel: '+i+' '+L[i].name);
         P=Z.parentNode(L[i], 'label');
         if(!P) P=L[i].parentNode;
         cn=P.className;
