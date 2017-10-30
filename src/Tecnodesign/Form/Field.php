@@ -15,8 +15,25 @@
  */
 class Tecnodesign_Form_Field implements ArrayAccess
 {
-    public static $hashMethods=array('datetime'=>'date("Ymd/His_").tdz::slug($name,"._")', 'time'=>'microtime(true)', 'md5'=>'md5_file($dest)', 'sha1'=>'sha1_file($dest)', 'none'=>'$name'),
-        $dateInputType='date', $datetimeInputType='datetime-local', $emailInputType='email', $numberInputType='number', $rangeInputType='range', $urlInputType='url', $searchInputType='search', $phoneInputType='phone';
+    public static 
+        $hashMethods=array(
+            'datetime'=>'date("Ymd/His_").tdz::slug($name,"._")',
+            'time'=>'microtime(true)',
+            'md5'=>'md5_file($dest)',
+            'sha1'=>'sha1_file($dest)',
+            'none'=>'$name',
+        ),
+        $dateInputType='date',
+        $dateInputFormat,
+        $datetimeInputType='datetime-local',
+        $datetimeInputFormat,
+        $emailInputType='email',
+        $numberInputType='number',
+        $rangeInputType='range',
+        $urlInputType='url',
+        $searchInputType='search',
+        $phoneInputType='phone'
+        ;
     
     /**
      * Common attributes to each form field. If there's a set$Varname, then it'll 
@@ -1601,7 +1618,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $arg['value']=$this->parseValue($arg['value']);
             }
             $t = strtotime($arg['value']);
-            $arg['value'] = date(tdz::$dateFormat, $t);
+            if(!self::$dateInputFormat) {
+                self::$dateInputFormat = tdz::$dateFormat;
+            }
+            $arg['value'] = date(self::$dateInputFormat, $t);
         }
         if(Tecnodesign_Form::$enableStyles) {
             tdz::$variables['style'][Tecnodesign_Form::$enableStyles]=tdz::$assetsUrl.'/tecnodesign/css/datepicker.less';
@@ -1667,7 +1687,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $this->range = array($this->range[1], $this->range[0]);
         }
         $rd = $this->range[1] - $this->range[0];
-        $df = tdz::$dateFormat;
+        if(!self::$dateInputFormat) {
+            self::$dateInputFormat = tdz::$dateFormat;
+        }
+        $df = self::$dateInputFormat;
         
         $yf = (strpos($df, 'Y'))?('Y'):('y');
         $input=array();
@@ -1788,7 +1811,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $arg['data-type']='datetime';
         if(isset($arg['value']) && $arg['value'] && ($t = tdz::strtotime($arg['value']))) {
             if(self::$datetimeInputType=='text') {
-                $arg['value'] = date(tdz::$dateFormat.' '.tdz::$timeFormat, $t);
+                if(!self::$datetimeInputFormat) {
+                    self::$datetimeInputFormat = tdz::$dateFormat.' '.tdz::$timeFormat;
+                }
+                $arg['value'] = date(self::$datetimeInputFormat, $t);
             } else {
                 $arg['value'] = date('Y-m-d\TH:i:s', $t);
             }
