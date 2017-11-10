@@ -97,7 +97,6 @@ Z.init=function(o)
         if(Z.modules[i] && (ifn in Z)) {
             if(typeof(Z.modules[i])=='string') {
                 var L=c.querySelectorAll(Z.modules[i]), j=0;
-                console.log(Z.modules[i]+' '+j);
                 for(j=0;j<L.length;j++) Z[ifn].call(L[j]);
                 L=null;
                 j=null;
@@ -746,9 +745,7 @@ function checkLabel(e)
         i=L.length;
         _L=[];
     }
-    console.log('checlLabel: '+i);
     while(i--) {
-            console.log(' checkLabel: '+i+' '+L[i].name);
         P=Z.parentNode(L[i], 'label');
         if(!P) P=L[i].parentNode;
         cn=P.className;
