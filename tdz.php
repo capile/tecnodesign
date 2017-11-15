@@ -3003,6 +3003,8 @@ class tdz
                     $s .= "\tincreased memory limit to ".$mem.'M';
                     gc_collect_cycles();
                 }
+            } else {
+                $mem = $used;
             }
             unset($used);
         }
@@ -3018,8 +3020,8 @@ class tdz
                     $s .= "\tincreased time limit to {$limit}s";
                 }
             }
+            if(tdz::$log) tdz::log($s." ({$mem}M {$run}s)");
             unset($run);
-            if(tdz::$log) tdz::log($s." ({$mem}M {$limit}s)");
         } else {
             if(tdz::$log) tdz::log($s." ({$mem}M)");
         }
