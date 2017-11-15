@@ -3003,9 +3003,8 @@ class tdz
                     $s .= "\tincreased memory limit to ".$mem.'M';
                     gc_collect_cycles();
                 }
-            } else {
-                $mem = $used;
             }
+            $mem = $used;
             unset($used);
         }
         if($t) {
