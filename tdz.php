@@ -3073,6 +3073,10 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
     unset($d);
 }
 
+if(!defined('GLOB_BRACE')) {
+    define('GLOB_BRACE', 0);
+}
+
 spl_autoload_register('tdz::autoload');
 if(is_null(tdz::$lib)) {
     tdz::$lib = array();
