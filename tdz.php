@@ -232,7 +232,7 @@ class tdz
 
     public static function appConfig()
     {
-        return tdz::objectCall(tdz::getApp(), 'config', func_get_args());
+        return @tdz::objectCall(tdz::getApp(), 'config', func_get_args());
     }
 
     /**
@@ -3071,10 +3071,6 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
         define('TDZ_DOCUMENT_ROOT', $d);
     }
     unset($d);
-}
-
-if(!defined('GLOB_BRACE')) {
-    define('GLOB_BRACE', 0);
 }
 
 spl_autoload_register('tdz::autoload');
