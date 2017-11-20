@@ -321,7 +321,7 @@ class tdz
                 if($db && isset(tdz::$database[$db])) {
                     $db = tdz::$database[$db];
                 } else {
-                    $db = array_shift(array_values(tdz::$database));
+                    $db = array_shift($db=array_values(tdz::$database));
                 }
             }
         } else {
