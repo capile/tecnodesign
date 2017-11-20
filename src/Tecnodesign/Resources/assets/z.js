@@ -109,8 +109,9 @@ Z.init=function(o)
 
 Z.addPlugin=function(id, fn, q) {
     id = '_'+id;
-    if(!(id in Z.modules)) {
-        Z.modules[id]=q;
+    var t = (!('modules' in Z))?(defaultModules):(Z.modules);
+    if(!(id in t)) {
+        t[id]=q;
         Z['init'+id]=fn;
     }
 }

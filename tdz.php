@@ -899,10 +899,10 @@ class tdz
 
     public static function urlParams($url=false)
     {
-        if(!$url) $url = tdz::scriptName();
+        if($url===false) $url = tdz::scriptName();
         $fullurl = tdz::scriptName(true);
         $urlp = array();
-        if ($url != $fullurl 
+        if ($fullurl!='/' && $url != $fullurl 
             && substr($fullurl, 0, strlen($url) + 1) == $url . '/'
         ) {
             $urlp = explode('/', substr($fullurl, strlen($url) + 1));
