@@ -984,6 +984,34 @@ Z.removeChildren=function(o)
     }
 }
 
+Z.selectOption=function(e)
+{
+    var o=this.getAttribute('data-original'), val=Z.val(this);
+    if(o===null) {
+        this.setAttribute('data-original',val);
+        return;
+    } else if(o==val) {
+        return;
+    } else {
+        this.setAttribute('data-original',val);
+    }
+    var F=this.form, i=this.options.length, j, n, v, t;
+    while(i--) {
+        if(this.options[i].selected) {
+            j=this.options[i].attributes.length;
+            while(j--) {
+                n=this.options[i].attributes[j].nodeName;
+                if(n.substr(0,5)=='data-' && (v=this.options[i].getAttribute(n))) {
+                    if(t=F.querySelector('input[name="'+n.substr(5)+'"]')) {
+                        Z.val(t,v);
+                    }
+                }
+            }
+        }
+
+    }
+}
+
 Z.initFilters=function()
 {
     var t=this;
