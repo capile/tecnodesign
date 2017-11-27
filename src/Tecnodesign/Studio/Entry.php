@@ -554,7 +554,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(is_null($pat)) {
                 $pat = '{,.'.tdz::$lang.'}{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
             }
-            $pages = glob(str_replace('.', '{-,.}', $f).$pat, GLOB_BRACE);
+            $pages = self::glob(str_replace('.', '{-,.}', $f).$pat);
 
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
@@ -571,6 +571,46 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         }
         return $P;
     }
+
+    public static function glob($pat)
+    {
+        if(defined('GLOB_BRACE')) {
+            return glob($pat, GLOB_BRACE);
+        } else if (strpos($pat, '{')===false) {
+            return glob($pat);
+        }
+        $pat0 = $pat;
+        $p = array();
+        while(preg_match('/\{([^\}]+)\}/', $pat, $m)) {
+            $dosub = ($p);
+            $n = explode(',', $m[1]);
+            $p0 = $p;
+            $p = array();
+            foreach($n as $v) {
+                if(!$dosub) {
+                    $p[] = $pat;
+                    $p = str_replace($m[0], $v, $p);
+                } else {
+                    foreach($p0 as $np) {
+                        $p[] = str_replace($m[0], $v, $np);
+                        unset($np);
+                    }
+                }
+                unset($v);
+            }
+            $pat = $p[count($p)-1];
+            unset($p0, $n, $dosub);
+        }
+        $r = array();
+        foreach($p as $i=>$o) {
+            $r = array_merge($r, glob($o));
+        }
+        if($r) {
+            asort($r);
+            $r = array_unique($r);
+        }
+        return $r;
+    }   
 
     protected static function _checkPage($page, $url, $multiview=false)
     {
@@ -721,7 +761,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         if(is_null($pat)) {
             $pat = '{,.*}{,.'.tdz::$lang.'}{.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
         }
-        $pages = glob($root.$u.$pat, GLOB_BRACE);
+        $pages = self::glob($root.$u.$pat);
 
         //$pages = glob($f.'.*');
         if($checkTemplate) {

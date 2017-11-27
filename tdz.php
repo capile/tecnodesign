@@ -52,6 +52,7 @@ class tdz
     $filters = array(),
     $script_name = null,
     $real_script_name = null,
+    $encoder,
     $cp1252_map = array(
         "\xc2\x80" => "\xe2\x82\xac",
         "\xc2\x82" => "\xe2\x80\x9a",
@@ -232,7 +233,7 @@ class tdz
 
     public static function appConfig()
     {
-        return tdz::objectCall(tdz::getApp(), 'config', func_get_args());
+        return @tdz::objectCall(tdz::getApp(), 'config', func_get_args());
     }
 
     /**
@@ -321,7 +322,10 @@ class tdz
                 if($db && isset(tdz::$database[$db])) {
                     $db = tdz::$database[$db];
                 } else {
-                    $db = array_shift(array_values(tdz::$database));
+                    $db=array_values(tdz::$database);
+                    if(!isset($db['dsn'])) {
+                        $db = array_shift($db);
+                    }
                 }
             }
         } else {
@@ -1074,7 +1078,7 @@ class tdz
 
     public static function cleanCache($prefix='')
     {
-        $cf = sfConfig::get('sf_app_cache_dir') . '/' . $prefix;
+        $cf = tdz::getApp()->tecnodesign['cache'] . '/' . $prefix;
         $cf.='.*';
         foreach (glob($cf) as $f) {
             @unlink($f);
@@ -1246,12 +1250,25 @@ class tdz
 
     public static function fixEncoding($s, $encoding='UTF-8')
     {
-        if (is_array($s)) {
+        if(tdz::$encoder===false) {
+            return $s;
+        } else if (is_array($s)) {
             foreach ($s as $k => $v) {
                 $s[$k] = tdz::fixEncoding($v, $encoding);
             }
-        } else {
-            $s=@iconv($encoding, "{$encoding}//IGNORE", $s);
+        } else if(is_string($s)) {
+            $s0 = $s;
+            if(tdz::$encoder) {
+                $m = tdz::$encoder;
+                $s = $m($s, $encoding);
+                unset($m);
+            } else {
+                $s=iconv($encoding, "{$encoding}//IGNORE", $s);
+            }
+            if($s===false) {
+                $s = $s0;
+            }
+            unset($s0);
         }
         return $s;
     }
@@ -2030,7 +2047,7 @@ class tdz
             $http = ($_SERVER['SERVER_PORT'] == '443') ? ('https://') : ('http://');
         }
         if ($hostname == '') {
-            $hostname = (sfConfig::get('hostname')) ? (sfConfig::get('hostname')) : ($_SERVER['HTTP_HOST']);
+            $hostname = $_SERVER['HTTP_HOST'];
         }
         $url = trim($url);
         if (preg_match('/[\,\n]/', $url)) {
