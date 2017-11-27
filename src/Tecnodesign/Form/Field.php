@@ -459,7 +459,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(!is_bool($newvalue)) $value = $newvalue;
             unset($newvalue);
         }
-        if($value!==$this->value || $M->$cn!=$value) {
+        if($value!==$this->value || $M->$cn!==$value) {
             $value = $M->$cn = $value;
         }
         unset($cn, $M, $fn, $m);
@@ -1045,8 +1045,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(is_array($value) && $this->type=='file') {
             $value = $this->checkFile($value);
         }
-        if(is_array($value) && $this->multiple && $this->type!='form') {
-            $value = implode(',', $value);
+        if($this->multiple && $this->type!='form') {
+            if(is_array($value)) {
+                $value = implode(',', $value);
+            } else if($value===false) {
+                $value = '';
+            }
         }
         if($value===false){
             $value=null;
@@ -2308,7 +2312,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
             return $input;
         }
 
-        
         $input = '<select';
         foreach ($a as $attr=>$value) {
             if (is_bool($value)) {
