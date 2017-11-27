@@ -476,7 +476,30 @@ class Tecnodesign_Query_Api
                 if($this->headers && strpos($this->header('Content-Type'), 'json')===false) {
                     $this->response = $body;
                 } else {
-                    $this->response = json_decode($body, true);
+                    $this->response = json_decode(preg_replace('/^\xEF\xBB\xBF/', '', $body), true);
+                    if($this->response===null) {
+                        $err = json_last_error();
+                        if($err) {
+                            $errs = array (
+                              0 => 'JSON_ERROR_NONE',
+                              1 => 'JSON_ERROR_DEPTH',
+                              2 => 'JSON_ERROR_STATE_MISMATCH',
+                              3 => 'JSON_ERROR_CTRL_CHAR',
+                              4 => 'JSON_ERROR_SYNTAX',
+                              5 => 'JSON_ERROR_UTF8',
+                              6 => 'JSON_ERROR_RECURSION',
+                              7 => 'JSON_ERROR_INF_OR_NAN',
+                              8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
+                              9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
+                              10 => 'JSON_ERROR_UTF16',
+                            );
+                            if(isset($errs[$err])) {
+                                tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
+                            } else {
+                                tdz::log('[ERROR] JSON unknown error: '.$err);
+                            }
+                        }
+                    }
                 }
                 unset($body);
             } else {
@@ -614,7 +637,6 @@ class Tecnodesign_Query_Api
             $data = $data->asArray('save');
         }
         if(!$conn) $conn = static::connect($this->schema('database'));
-
         $H = static::$curlOptions[CURLOPT_HTTPHEADER];
         if(!is_array($H)) $H = array();
         if(!is_string($data)) {

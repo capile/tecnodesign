@@ -318,6 +318,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public static function columns($scope='default', $type=null, $expand=3, $clean=false)
     {
         if(!$scope) $scope = 'default';
+        if(is_string($scope) && substr($scope, -4)=='.yml' && !isset(static::$schema['scope'][$scope]) && file_exists($f=TDZ_APP_ROOT.'/config/'.$scope) && ($S=Tecnodesign_Yaml::load($f))) {
+            $scope = $S;
+            unset($S, $f);
+        }
+
         if(!is_array($scope)) {
             if($scope=='uid') {
                 $scope = static::pk();

@@ -33,8 +33,8 @@ class Tecnodesign_Query implements \ArrayAccess
                 if(file_exists($f=TDZ_APP_ROOT.'/config/databases.yml')) {
                     $C = Tecnodesign_Yaml::load($f);
                     tdz::$database = array();
-                    if(isset($C[tdz::$_env])) {
-                        tdz::$database = $C[tdz::$_env]; 
+                    if(isset($C[tdz::env()])) {
+                        tdz::$database = $C[tdz::env()]; 
                     }
                     if(isset($C['all'])) {
                         tdz::$database += $C['all']; 
