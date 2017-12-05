@@ -42,6 +42,8 @@ class Tecnodesign_User
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess='lastAccess', // property to use when setting last access, set to false to disable
         $setCookie=true,        // percentage of timeout to set a new cookie
+        $cookieSecure=true,
+        $cookieHttpOnly=true,
         $resetCookie=0.5;       // percentage of timeout to set a new cookie
 
     const FORM_USER = 'user';
@@ -430,7 +432,7 @@ class Tecnodesign_User
                 unset($s);
             }
             if($delete && count($cookies)>0) {
-                setcookie($cookie, '', time() -86700);
+                setcookie($cookie, '', time() -86700, '', static::$cookieSecure, static::$cookieHttpOnly);
             }
             unset($cookies);
         }
@@ -540,7 +542,7 @@ class Tecnodesign_User
         if($p=strpos($domain, ':')) $domain = substr($domain, 0, $p);
         $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         if($timeout > 0 && $timeout<31536000) $timeout += time();
-        setcookie($n, $this->_cid, $timeout, '/', $domain, false, true);
+        setcookie($n, $this->_cid, $timeout, '/', $domain, static::$cookieSecure, static::$cookieHttpOnly);
         $cookiesSent[$n.'/'.$this->_cid]=true;
         unset($n, $domain, $timeout);
         return true;
