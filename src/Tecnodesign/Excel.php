@@ -239,7 +239,9 @@ class Tecnodesign_Excel
     
     public function getColLetter($idx) 
     {
-        return $this->_cols[$idx];
+        if(isset($this->_cols[$idx])) {
+            return $this->_cols[$idx];
+        }
     }
     
     private function getColIndex($letter) 

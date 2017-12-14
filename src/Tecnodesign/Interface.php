@@ -1589,7 +1589,7 @@ class Tecnodesign_Interface implements ArrayAccess
             else if($k) {
                 $k = 'X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k))));
                 $v = preg_replace('/[\n\r\t]+/', '', strip_tags((is_array($v))?(implode(';',$v)):($v)));
-                header($k.': '.$v);
+                @header($k.': '.$v);
             }
         }
         if(static::$status) {

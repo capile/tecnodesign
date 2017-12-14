@@ -132,7 +132,7 @@ while($list || $worksheet) {
         $S = array();
         $M = array();
         foreach($scope as $label=>$fn) {
-            if(strpos($label, ':') || (substr($fn, 0, 2)=='--' && substr($fn, 0, -2)=='--')) continue;
+            if(strpos($label, ':') || (is_string($fn) && substr($fn, 0, 2)=='--' && substr($fn, 0, -2)=='--')) continue;
             if(is_array($fn)) {
                 $fd = $fn;
                 if(isset($fd['bind'])) $fn=$fd['bind'];
