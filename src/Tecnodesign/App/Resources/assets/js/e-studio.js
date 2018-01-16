@@ -380,9 +380,9 @@ tdz.cms_hreset=function(){var a=$(this);a.css({opacity:.2});
   a.parent().css({'background':'none'});
 };
 
-tdz.initStudioUpload=function()
+tdz.initEstudioUpload=function()
 {
-  if(!('StudioUpload' in tdz.modules)) tdz.modules.StudioUpload='.tdz .upload-input';
+  if(!('EstudioUpload' in tdz.modules)) tdz.modules.EstudioUpload='.tdz .upload-input';
   $('.tdz .upload-input').hide();
   $('.tdz .upload-name').bind('click',function(e){
     $(this).find('.upload-input').show('fast');
@@ -394,8 +394,8 @@ tdz.init_form=function()
   var f=$('form.tdzf');
   //tdz.form_required();
   tdz.form_toggle(f);
-  tdz.modules.StudioUpload='.tdz .upload-input';
-  tdz.initStudioUpload();
+  tdz.modules.EstudioUpload='.tdz .upload-input';
+  tdz.initEstudioUpload();
   $('.tdz .typelist input').bind('click',tdz.cms_reload);
 
   var pos=-1,embed=$('.tdzf .embedded');

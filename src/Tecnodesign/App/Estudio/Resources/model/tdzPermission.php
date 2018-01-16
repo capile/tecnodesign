@@ -27,6 +27,6 @@
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
-class tdzPermission extends Tecnodesign_App_Studio_Permission
+class tdzPermission extends Tecnodesign_App_Estudio_Permission
 {
 }

@@ -1,4 +1,4 @@
-tdz.exec.studio_ui=function(){
+tdz.exec.estudio_ui=function(){
 $('input#tdze_tags').bind('keydown', function(e){if(e.keyCode===$.ui.keyCode.TAB && $(this).data('autocomplete').menu.active){e.preventDefault();};})
 .autocomplete({
   source: function( request, response ) {
@@ -29,4 +29,4 @@ $('input#tdze_tags').bind('keydown', function(e){if(e.keyCode===$.ui.keyCode.TAB
 });
 
 };
-tdz.exec.studio_ui();
+tdz.exec.estudio_ui();

@@ -19,7 +19,7 @@ ksort($style);
 $style = tdz::minify($style);
 
 echo '<'.'?xml version="1.0" encoding="UTF-8" ?'.'>';
-?><!doctype html><html class="studio"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title><?php if(isset($title)) echo tdz::xmlEscape($title) ?></title><?php
+?><!doctype html><html class="estudio"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title><?php if(isset($title)) echo tdz::xmlEscape($title) ?></title><?php
     echo $style;
     if(isset($meta)) echo $meta;
 ?><link rel="icon" type="image/png" href="/favicon.png" /></head><body><?php

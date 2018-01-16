@@ -2,7 +2,7 @@
 /**
  * Navigation List
  *
- * @package      Studio
+ * @package      Estudio
  * @author       Tecnodesign <ti@tecnodz.com>
  * @link         http://tecnodz.com/
  * @copyright    Tecnodesign (c) 2012
@@ -27,8 +27,8 @@ if(in_array('linkhome', $options)) {
     array_unshift($c, $entry->asArray());
 }
 
-if(!function_exists('studio_navigation_list')) {
-function studio_navigation_list($list)
+if(!function_exists('estudio_navigation_list')) {
+function estudio_navigation_list($list)
 {
     $s = '';
     if($list && count($list)>0) {
@@ -36,7 +36,7 @@ function studio_navigation_list($list)
             $c = ($e['id']==tdzEntry::$current['page'])?(' class="current"'):('');
             $s .= '<li'.$c.'>'
                 . (($e['link'])?('<a'.$c.' href="'.tdz::xmlEscape($e['link']).'">'.tdz::xmlEscape($e['title']).'</a>'):(tdz::xmlEscape($e['title'])))
-                .  (($e instanceof tdzEntry)?(studio_navigation_list($e->getChildren())):(''))
+                .  (($e instanceof tdzEntry)?(estudio_navigation_list($e->getChildren())):(''))
                 . '</li>';
         }
         if($s) {
@@ -46,7 +46,7 @@ function studio_navigation_list($list)
     return $s;
 }};
 
-$s = studio_navigation_list($c);
+$s = estudio_navigation_list($c);
 
 echo $s0.$s.$s1;
 

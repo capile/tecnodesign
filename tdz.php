@@ -192,7 +192,8 @@ class tdz
         $markdown='Tecnodesign_Markdown',
         $database,
         $log,
-        $logDir
+        $logDir,
+        $noeval
         ;
     
     /**
@@ -346,6 +347,7 @@ class tdz
             if(substr($db['dsn'], 0, 6)=='mysql:') {
                 $mysql=true;
                 $params['options'][PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES utf8';
+                $params['options'][PDO::ATTR_PERSISTENT] = true;
             } else if(substr($db['dsn'], 0, 7)=='sqlite:') {
                 if(!isset($app)) {
                     $app = tdz::getApp();
@@ -660,7 +662,7 @@ class tdz
      */
     public static function minify($s, $root=false, $compress=true, $before=true, $raw=false, $output=false)
     {
-        if(!$root) {
+        if($root===false) {
             $root = TDZ_DOCUMENT_ROOT;
         }
         // search for static files to compress
@@ -732,7 +734,8 @@ class tdz
                                         $lc = new lessc();
                                         $lc->setVariables(array('assets-url'=>'"'.self::$assetsUrl.'"'));
                                         $imp = array(dirname($root.$less).'/',$root);
-                                        if(is_dir($d=$root.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d); 
+                                        if($root!=TDZ_DOCUMENT_ROOT && is_dir($d=TDZ_DOCUMENT_ROOT.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d); 
+                                        if(is_dir($d=$root.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d);
                                         $lc->setImportDir($imp);
                                         $lc->registerFunction('dechex', function($a){
                                             return dechex($a[1]);
@@ -1229,16 +1232,25 @@ class tdz
             }
         }
         ob_start();
+        if (isset($a['pi']) && $a['pi']) {
+            if(tdz::$noeval) {
+                $pi = tempnam(TDZ_VAR, 'tdzapp');
+                file_put_contents($pi, '<?php '.$a['pi']);
+                include $pi;
+                $tdzres.=ob_get_contents();
+                unlink($pi);
+            } else {
+                $tdzres.=eval($a['pi']);
+                if(!$tdzres) $tdzres.=ob_get_contents();
+            }
+        }
+
         if (isset($a['script']) && substr($a['script'], -4) == '.php') {
             $script_name = str_replace('/../', '/', $a['script']);
             include $script_name;
             $tdzres.=ob_get_contents();
         };
 
-        if (isset($a['pi'])) {
-            $tdzres.=eval($a['pi']);
-            if(!$tdzres) $tdzres.=ob_get_contents();
-        }
         ob_end_clean();
         
         if ($script_name) {
@@ -1553,7 +1565,7 @@ class tdz
     {
         if (connection_status() != 0 || !$file)
             return(false);
-        if(!$fname && $attachment) $fname = basename($file);
+        if(!$fname && $attachmnent) $fname = basename($file);
         $extension = strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1',$fname));
         tdz::unflush();
 
@@ -2010,10 +2022,12 @@ class tdz
         if (!is_array($url)) {
             $url = parse_url($url);
         }
-        $_SERVER += array('SERVER_PORT'=>'80', 'HTTP_HOST'=>'localhost', 'HTTPS'=>'off');
+        if(!isset($_SERVER['SERVER_PORT'])) {
+            $_SERVER += array('SERVER_PORT'=>'80', 'HTTP_HOST'=>'localhost');
+        }
         $url += $parts;
         $url += array(
-            'scheme' => ($_SERVER['HTTPS']=='on' || $_SERVER['SERVER_PORT'] == '443' || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO']=='https')) ? ('https') : ('http'),
+            'scheme' => ($_SERVER['SERVER_PORT'] == '443' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO']=='https')) ? ('https') : ('http'),
             'host' => (self::get('hostname')) ? (self::get('hostname')) : ($_SERVER['HTTP_HOST']),
             'path' => tdz::scriptName(true),
         );

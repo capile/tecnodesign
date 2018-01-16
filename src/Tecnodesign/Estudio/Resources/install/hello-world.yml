@@ -1,0 +1,21 @@
+---
+tdzEntry:
+  -
+    id: 1
+    version: 1
+    title: Hello World!
+    language: en
+    type: page
+    link: /
+    published: 2014-12-27T16:00:00
+tdzContent:
+  - 
+    id: 1
+    entry: 1
+    version: 1
+    slot: body
+    content_type: html
+    content: |
+      html: <h1>It works!</h1><p>Hello world!</p>
+    position: 1
+    published: 2014-12-27T16:00:00

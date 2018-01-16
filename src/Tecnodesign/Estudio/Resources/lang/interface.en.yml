@@ -1,0 +1,20 @@
+---
+listResult: There's only one record available.
+listSearchResults: There are %s records in %s that match your query for %s.
+listResults: There are %s records available.
+listCounter: Showing from %s to %s.
+listNoResults: There are no records available.
+listNoSearchResults: There are no records available for your query. Please try again using different parameters.
+updateSuccess: Record successfully updated.
+createSuccess: Record successfully created.
+deleteSuccess: Record successfully removed.
+updateError: It wasn\'t possible to update the record. Please verify the error messages and try again.
+createError: It wasn\'t possible to create the record. Please verify the error messages and try again.
+deleteError: It wasn\'t possible to remove the record. Please verify the error messages and try again.
+labelFilter: Filter
+labelActions: Actions
+labelNew: New
+labelPreview: Preview
+labelUpdate: Update
+labelPublish: Publish
+labelDelete: Delete

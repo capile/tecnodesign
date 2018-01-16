@@ -13,7 +13,7 @@ if(!('tdz' in window)) window.tdz={};
         dev: false,
         language:'pt-BR',
         dateFormat:'dd/mm/yy',
-        timeFormat:'hh:ii:ss',
+        timeFormat:'HH:mm:ss',
         decimalSeparator:',',
         thousandSeparator:'.',modules:{},
         iconClass:'icon',
@@ -142,7 +142,20 @@ if(!('tdz' in window)) window.tdz={};
         return x1 + x2;
     };
 
-
+    tdz.text=function(o)
+    {
+        if('textContent' in o) {
+            if(arguments.length>1) {
+                o.textContent = arguments[1];
+            }
+            return o.textContent;
+        } else {
+            if(arguments.length>1) {
+                o.innerText = arguments[1];
+            }
+            return o.innerText;
+        }
+    }
 
     tdz.debug=function()
     {
@@ -469,28 +482,22 @@ if(!('tdz' in window)) window.tdz={};
             if(o.p) {
                 for(n in o.p) {
                     r[n]=o.p[n];
-                    delete(o.p[n]);
                     delete(n);
                 }
             }
-            delete(o.p);
             if(o.a) {
                 for(n in o.a) {
                     r.setAttribute(n,o.a[n]);
-                    delete(o.a[n]);
                     delete(n);
                 }
             }
-            delete(o.a);
             if(o.t) {
                 for(n in o.t) {
                     if(n=='trigger' || n=='fastTrigger') tdz[n](r,o.t[n]);
                     else tdz.addEvent(r,n,o.t[n]);
-                    delete(o.t[n]);
                     delete(n);
                 }
             }
-            delete(o.t);
         } else {
             if(o instanceof Array) o={c:o};
             r=document.createDocumentFragment();
@@ -509,7 +516,6 @@ if(!('tdz' in window)) window.tdz={};
                 delete(t);
             }
         }
-        delete(o.c);
         delete(o);
 
         if(before) return before.parentNode.insertBefore(r,before);
@@ -556,8 +562,11 @@ if(!('tdz' in window)) window.tdz={};
         if(o.getAttribute('type')!='text' && !tdz.isDateInputSupported() && tdz.dateFormat && o.value) {
             var d=new Date(o.value);
             var f=tdz.dateFormat;
-            if(o.getAttribute('data-type')=='datetime') f+=' '+tdz.timeFormat;
-            if(d) o.value = $.datepicker.formatDate(f,d);
+            if(d) {
+                var s=$.datepicker.formatDate(f,d);
+                if(o.getAttribute('data-type')=='datetime') s+=' '+$.datepicker.formatTime(tdz.timeFormat,{hour:d.getHours(),minute:d.getMinutes(),second:d.getSeconds(),timezone:d.getTimezoneOffset()/60});
+                o.value = s;
+            }
         }
     }
 
@@ -585,7 +594,6 @@ if(!('tdz' in window)) window.tdz={};
         if(v) o.value=v;
     }
 
-/*!validateForm*/
     tdz.validateForm=function(e)
     {
         // validation
@@ -623,7 +631,6 @@ if(!('tdz' in window)) window.tdz={};
         return _v;
     }
 
-/*!validateField*/
     tdz.validateField=function(o){
         var v=true;
         tdz.fire(o, 'validate');
@@ -640,7 +647,6 @@ if(!('tdz' in window)) window.tdz={};
         return val;
     }
 
-/*!val*/
     tdz.val=function(o, val, fire)
     {
         if(typeof(o)=='string') {
@@ -719,7 +725,7 @@ if(!('tdz' in window)) window.tdz={};
         if(v && typeof(v) == 'object' && v.length<2) v=v.join('');
         return v;
     }
-/*!formdata*/
+
     tdz.formData=function(f)
     {
         var d;
@@ -744,7 +750,7 @@ if(!('tdz' in window)) window.tdz={};
         }
         return s;
     }
-/*!ue*/
+
     function formUrl(f)
     {
         f=$(f);
@@ -794,18 +800,16 @@ if(!('tdz' in window)) window.tdz={};
         return true;
     }
 
-
     var _ajax={};
-    tdz.ajax=function(url, data, success, error, dataType, context, headers) {
-        if( typeof error == 'undefined' || !error ) error = tdzError;
+    tdz.ajax=function(url, data, success, error, dataType, context, headers)
+    {
+        if( typeof error == 'undefined' || !error ) error = this.error;
         if(!context) context = this;
-        if (!window.XMLHttpRequest) {
+        if (!window.XMLHttpRequest  || (url in _ajax)) {
+            // no support for ajax
             error.apply(context);
             return false;
-        } else if(url in _ajax) { // still processing, should wait?
-            return false;
         }
-
         _ajax[url] = { r: new XMLHttpRequest(),
             success: success,
             error: error,
@@ -815,21 +819,35 @@ if(!('tdz' in window)) window.tdz={};
         var qs = (data===true)?(((url.indexOf('?')>-1)?('&'):('?'))+(new Date().getTime())):(''),
             m = (data && data!==true)?('post'):('get');
 
+        // make post!!!
         _ajax[url].r.onreadystatechange = ajaxProbe;
+        //_ajax[url].r.onload = ajaxOnload;
         _ajax[url].r.open(m, url+qs, true);
         _ajax[url].r.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         if(headers) {
-            for(var h in headers) {
-                if(headers[h]!==false) _ajax[url].r.setRequestHeader(h, headers[h]);
+            for(var n in headers) {
+                if(headers[n]) {
+                    _ajax[url].r.setRequestHeader(n, headers[n]);
+                }
             }
         }
-        // make post!!!
         if(m=='post') {
-            if(!headers || !('Content-Type' in headers)) {
+            var addct=(!headers || !('Content-Type' in headers));
+            if(typeof(data)=='object' && ('nodeName' in data) && data.nodeName.toLowerCase()=='form') {
+                var enctype=data.getAttribute('enctype');
+                if(!('FormData' in window) || (enctype && enctype.substr(0,33)=='application/x-www-form-urlencoded')) {
+                    data = tdz.formData(data);
+                } else {
+                    data = new FormData(data);
+                    addct=false;
+                }
+            } else if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);
+
+            if(addct) {
                 _ajax[url].r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+                _ajax[url].r.setRequestHeader('Connection', 'close');
             }
-            if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);
-            _ajax[url].r.setRequestHeader('Connection', 'close');
+            console.log('added data: ', data, addct, headers);
             _ajax[url].r.send(data);
         } else {
             _ajax[url].r.send();
@@ -841,7 +859,6 @@ if(!('tdz' in window)) window.tdz={};
         console.log('[ERROR]'+JSON.stringify(arguments));
     }
 
-/*!ajax*/
     function ajaxProbe()
     {
         var u;
@@ -864,7 +881,7 @@ if(!('tdz' in window)) window.tdz={};
             }
         }
     }
-/*!addEvent*/
+
     tdz.addEvent=function(o, tg, fn) {
         if(!o) return;
         if (o.addEventListener) {
@@ -875,7 +892,7 @@ if(!('tdz' in window)) window.tdz={};
             o['on'+tg] = fn;
         }
     }
-/*!form*/
+
     tdz.modules.FormAutocomplete='form.enable-autocomplete';
     tdz.initFormAutocomplete=function(o)
     {
@@ -907,11 +924,11 @@ if(!('tdz' in window)) window.tdz={};
         if(!('length' in o)) o=[o];
         var i=o.length;
         while(i-- > 0) {
-            tdz.bind(o[i], 'click', _reset);
+            tdz.bind(o[i], 'click', tdz.resetForm);
         }
     }
 
-    function _reset()
+    tdz.resetForm=function()
     {
         var f=tdz.parentNode(this, 'form'),e=f.querySelectorAll('input,textarea,select'),i=e.length;
         while(i-- > 0) {
@@ -1029,7 +1046,7 @@ if(!('tdz' in window)) window.tdz={};
         }
         tdz.bind(t, 'change', datalistQueryTimeout);
     }
-/*!keypress*/
+
     function datalistKeypress(e)
     {
         e = e || window.event;
@@ -1074,7 +1091,7 @@ if(!('tdz' in window)) window.tdz={};
             datalistOption.apply(s);
         }
     }
-/*!end keypress*/
+
     var _dq=null;
     function datalistQueryTimeout()
     {
@@ -2241,7 +2258,6 @@ if(!('tdz' in window)) window.tdz={};
     }
     tdz.modules.Ui='#ui-nav';
 
-/*! matchesSelector */
 var matchesSelector = function(node, selector) {
     if(!('parentNode' in node) || !node.parentNode) return false;
     return Array.prototype.indexOf.call(node.parentNode.querySelectorAll(selector)) != -1

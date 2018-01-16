@@ -1,11 +1,11 @@
 <?php
 /**
- * Tecnodesign_App_Studio_Relation table description
+ * Tecnodesign_App_Estudio_Relation table description
  *
  * PHP version 5.3
  *
  * @category  Model
- * @package   Studio
+ * @package   Estudio
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
@@ -13,15 +13,15 @@
  */
 
 /**
- * Tecnodesign_App_Studio_Relation table description
+ * Tecnodesign_App_Estudio_Relation table description
  *
  * @category  Model
- * @package   Studio
+ * @package   Estudio
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_App_Studio_Relation extends Tecnodesign_Model
+class Tecnodesign_App_Estudio_Relation extends Tecnodesign_Model
 {
     /**
      * Tecnodesign_Model schema
@@ -30,7 +30,7 @@ class Tecnodesign_App_Studio_Relation extends Tecnodesign_Model
      */
     //--tdz-schema-start--2012-02-29 19:40:02
     public static $schema = array (
-      'database' => 'studio',
+      'database' => 'estudio',
       'tableName' => 'tdz_relations_version',
       'className' => 'tdzRelation',
       'columns' => array (

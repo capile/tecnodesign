@@ -1,0 +1,24 @@
+---
+listResult: Há apenas um registro disponível.
+listSearchResults: Há %s registros em %s que atendem à consulta por %s.
+listResults: Há %s registros disponíveis.
+listCounter: Exibindo de %s até %s.
+listNoResults: Não há registros disponíveis.
+listNoSearchResults: Não há registros disponíveis para esta consulta. Experimente outros parâmetros.
+updateSuccess: Atualização bem-sucedida!
+createSuccess: Registro criado com sucesso.
+deleteSuccess: Eliminado.
+updateError: Não foi possível atualizar. Verifique as mensagens de erro e tente novamente.
+createError: Houve um erro e o registro não foi criado. Corrija se necessário e tente novamente.
+deleteError: "Problemas ao remover o registro, ele não foi removido."
+labelFilter: Refinar listagem
+labelActions: Ações
+labelNew: Criar
+labelPreview: Visualizar
+labelUpdate: Editar
+labelPublish: Publicar
+labelDelete: Remover
+Search: Consultar
+
+
+

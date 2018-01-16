@@ -1,0 +1,31 @@
+
+E-Studio is installed as a plugin, use the framework installation script.
+
+
+Here's a sample Nginx configuration:
+
+<code nginx>
+server {
+    listen 80;
+    listen 443 ssl;
+
+    server_name _;
+
+    root   /path/to/document-root;
+    index index.html;
+
+    location ~ ^(/.*\.php)(/|$) {
+        include /etc/nginx/fastcgi_params;
+        fastcgi_cache                 microcache;
+        fastcgi_pass                  php5app;
+        fastcgi_split_path_info       ^(/.*\.php)(/.*|$);
+        fastcgi_param PATH_INFO       $fastcgi_path_info;
+    }
+
+    # serve static files directly
+    location / {
+        expires           max;
+        try_files $uri /path/to/app.php?$args;
+    }
+}
+</code>

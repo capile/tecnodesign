@@ -27,6 +27,6 @@
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
-class tdzRelation extends Tecnodesign_App_Studio_Relation
+class tdzRelation extends Tecnodesign_App_Estudio_Relation
 {
 }

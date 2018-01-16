@@ -1,11 +1,11 @@
 <?php
 /**
- * Tecnodesign_App_Studio_Content table description
+ * Tecnodesign_App_Estudio_Content table description
  *
  * PHP version 5.3
  *
  * @category  Model
- * @package   Studio
+ * @package   Estudio
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
@@ -13,15 +13,15 @@
  */
 
 /**
- * Tecnodesign_App_Studio_Content table description
+ * Tecnodesign_App_Estudio_Content table description
  *
  * @category  Model
- * @package   Studio
+ * @package   Estudio
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
+class Tecnodesign_App_Estudio_Content extends Tecnodesign_Model
 {
     /**
      * Tecnodesign_Model schema
@@ -30,7 +30,7 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
      */
     //--tdz-schema-start--2012-02-29 19:44:01
     public static $schema = array (
-      'database' => 'studio',
+      'database' => 'estudio',
       'tableName' => 'tdz_contents_version',
       'className' => 'tdzContent',
       'columns' => array (
@@ -49,7 +49,7 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
         'expired' => array ( 'type' => 'datetime', 'null' => true, ),
       ),
       'relations' => array (
-        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'Tecnodesign_App_Studio_Entry', ),
+        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'Tecnodesign_App_Estudio_Entry', ),
       ),
       'scope' => array (
       ),
@@ -57,18 +57,18 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
         'version'=>'desc',
       ),
       'events' => array (
-        'before-save' => array ( 'Tecnodesign_App_Studio::forceNew', ),
+        'before-save' => array ( 'Tecnodesign_App_Estudio::forceNew', ),
         'before-insert' => array ( 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
         'active-records' => 'expired is null',
-        'after-insert' => array ( 'Tecnodesign_App_Studio::updateVersion', ),
+        'after-insert' => array ( 'Tecnodesign_App_Estudio::updateVersion', ),
       ),
       'form' => array (
-        'content_type'=>array('bind'=>'content_type', 'type'=>'select', 'choices'=>'Tecnodesign_App_Studio::config(\'content_types\')', 'class'=>'studio-field-content-type'),
-        'content'=>array('bind'=>'content', 'type'=>'hidden', 'class'=>'studio-field-content'),
-        'show_at'=>array('bind'=>'show_at', 'type'=>'textarea', 'class'=>'studio-left studio-textarea-small'),
-        'hide_at'=>array('bind'=>'hide_at', 'type'=>'textarea', 'class'=>'studio-right studio-textarea-small'),
+        'content_type'=>array('bind'=>'content_type', 'type'=>'select', 'choices'=>'Tecnodesign_App_Estudio::config(\'content_types\')', 'class'=>'estudio-field-content-type'),
+        'content'=>array('bind'=>'content', 'type'=>'hidden', 'class'=>'estudio-field-content'),
+        'show_at'=>array('bind'=>'show_at', 'type'=>'textarea', 'class'=>'estudio-left estudio-textarea-small'),
+        'hide_at'=>array('bind'=>'hide_at', 'type'=>'textarea', 'class'=>'estudio-right estudio-textarea-small'),
       ),
       'actAs' => array (
         'before-insert' => array ( 'auto-increment'=> array('id'), 'timestampable' => array ( 'created', 'updated' ), 'sortable' => array ( 'position', ), ),
@@ -116,7 +116,7 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
         $cn = get_called_class();
         if(!isset($cn::$schema['e-studio-configured'])) {
             $cn::$schema['e-studio-configured']=true;
-            $cfg = Tecnodesign_App_Studio::config('content_types');
+            $cfg = Tecnodesign_App_Estudio::config('content_types');
             $cn::$schema['scope']['e-studio']=array('content_type','content');
             foreach($cfg as $tn=>$d) {
                 foreach($d['fields'] as $fn=>$fd) {
@@ -140,8 +140,8 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
                     }
                     $n='content-'.$tn.'-'.$fn;
                     $cn::$schema['form'][$n]=$fd;
-                    if(!isset($cn::$schema['form'][$n]['class'])) $cn::$schema['form'][$n]['class']='studio-field-disabled studio-field-contents studio-content-'.$tn;
-                    else $cn::$schema['form'][$n]['class']='studio-field-disabled studio-field-contents studio-content-'.$tn.' '.$cn::$schema['form'][$n]['class'];
+                    if(!isset($cn::$schema['form'][$n]['class'])) $cn::$schema['form'][$n]['class']='estudio-field-disabled estudio-field-contents estudio-content-'.$tn;
+                    else $cn::$schema['form'][$n]['class']='estudio-field-disabled estudio-field-contents estudio-content-'.$tn.' '.$cn::$schema['form'][$n]['class'];
                     $cn::$schema['scope']['e-studio'][]=$n;
                 }
             }
@@ -156,8 +156,8 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
     {
         if(is_null(self::$content_types)) {
             $app = tdz::getApp();
-            $ct=$app->studio['content_types'];
-            $widgets=$app->studio['widgets'];
+            $ct=$app->estudio['content_types'];
+            $widgets=$app->estudio['widgets'];
             if(is_array($widgets) && count($widgets)>0) {
                 $wg=array();
                 foreach($widgets as $wk=>$w) {
@@ -344,7 +344,7 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
 
     public static function renderWidget($code=null, $e=null)
     {
-        $widgets=tdz::getApp()->studio['widgets'];
+        $widgets=tdz::getApp()->estudio['widgets'];
         if(!is_array($code) || !isset($code['app']) || !isset($widgets[$code['app']])) {
             return false;
         }
@@ -422,12 +422,12 @@ class Tecnodesign_App_Studio_Content extends Tecnodesign_Model
         $app = tdz::getApp();
         if(isset($code['master']) && file_exists($app->tecnodesign['templates-dir'].'/'.$code['master'].'.php')) {
             $code['master']=$app->tecnodesign['templates-dir'].'/'.$code['master'].'.php';
-        } else if(isset($code['master']) && file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/'.$code['master'].'.php')) {
-            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/'.$code['master'].'.php';
+        } else if(isset($code['master']) && file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Estudio/Resources/templates/'.$code['master'].'.php')) {
+            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Estudio/Resources/templates/'.$code['master'].'.php';
         } else if(file_exists($app->tecnodesign['templates-dir'].'/tdz_feed.php')) {
             $code['master']=$app->tecnodesign['templates-dir'].'/tdz_feed.php';
-        } else if(file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/tdz_feed.php')) {
-            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/tdz_feed.php';
+        } else if(file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Estudio/Resources/templates/tdz_feed.php')) {
+            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Estudio/Resources/templates/tdz_feed.php';
         } else {
             unset($code['master']);
         }

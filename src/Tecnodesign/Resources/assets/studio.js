@@ -2,6 +2,8 @@
 if('Z' in window)
 (function(Z) {
 
+"use strict";
+
 if(!('plugins' in Z)) Z.plugins={};
 if(!('studio' in Z.plugins)) {
     Z.plugins.studio=[];
@@ -108,17 +110,25 @@ function doubleClick(e)
     }
 }
 
-/*!getinterface*/
-function getInterface(u)
+function getViewport()
 {
     if(!_V) _V = document.getElementById('studio-viewport');
-    var t=_V.querySelector('.tdz-i[data-url="'+u+'"]');
     var b=_V.querySelector('.tdz-i-header');
     if(!b) {
         Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header'}});
         b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body'}});
     }
+    return _V;
+}
+
+
+/*!getinterface*/
+function getInterface(u)
+{
+    if(!_V) getViewport();
+
     /*
+    var t=_V.querySelector('.tdz-i[data-url="'+u+'"]');
     if(!t) {
         var b=_V.querySelector('.tdz-i-header');
         if(!b) {
@@ -133,7 +143,28 @@ function getInterface(u)
     //Z.loadInterface.call(t, u);
     trigger(null, true);
     Z.loadInterface.call(_V, u);
+}
 
+function searchInterface(s)
+{
+    var d, u=Z.home+'/q';
+    if(typeof(s)=='object') {
+        d = JSON.stringify({q:s});
+    } else {
+        u+='?q='+escape(s);
+    }
+    Z.ajax(u, d, listResults, null, 'json', _Z, {'Tdz-Action':'Studio','Content-Type':'application/json'});
+}
+
+function listResults(d)
+{
+    if(typeof(d)=='object' && ('status' in d) && d.status=='OK' && ('data' in d)) {
+        if('interface' in d.data) {
+            if(!_V) getViewport();
+            Z.setInterface(d.data['interface']);
+        }
+    } 
+    console.log('listResults!', d);
 }
 
 function errorInterface(d)
@@ -215,9 +246,16 @@ function trigger(e, active)
     if(arguments.length>1) toggle.call(_Z, e, active);
     else toggle.call(_Z, e);
     var on=(_Z.className.search(/\bs-active\b/)>-1);
+    if(!_Z.querySelector('.tdz-i')) {
+        // no interface, preview current page, if found
+        searchInterface({e:{link:window.location.pathname}});
+    }
+
+    /*
     if(!_L) {
         getProperties();
     }
+    */
 }
 
 function toggle(e, active)
@@ -226,7 +264,7 @@ function toggle(e, active)
     if(arguments.length>1) {
         on=active;
     } else {
-        on=!(this.className.search(/\bs-active\b/)>-1);        
+        on=(this.className.search(/\bs-active\b/)<0);        
     }
     console.log('toggle: '+on, on);
     if(on) {
@@ -260,13 +298,22 @@ Z.initCallback = function(fn)
         Z.bind(this, 'change', Z[fn]);
         Z[fn].call(this);
     }
-}
+};
 
 
 Z.contentType = function()
 {
-    console.log('ContentType: ', this);
-}
+    var F = Z.parentNode(this, 'form,.item'), L=F.querySelectorAll('*[data-content-type]'), i=L.length,v=Z.val(this);
+    console.log('ContentType: '+v, L);
+    while(i--) {
+        var el=Z.parentNode(L[i], '.tdz-i-field');
+        if(v && String(','+L[i].getAttribute('data-content-type')+',').indexOf(','+v+',')>-1) {
+            el.className = el.className.replace(/\s*\bi-hidden\b/g, '');
+        } else if(el.className.search(/\bi-hidden\b/)<0) {
+            el.className+=' i-hidden';
+        }
+    }
+};
 
 startup();
 

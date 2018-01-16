@@ -5,22 +5,22 @@ In order to install e-Studio CMS:
 1. Configure your database and add its configuration parameters to the config file (please use your own database configuration):
 
   database:
-    studio:
-      dsn: 'mysql:host=localhost;dbname=studio'
-      username: studio
-      password: studio
+    estudio:
+      dsn: 'mysql:host=localhost;dbname=estudio'
+      username: estudio
+      password: estudio
       
    $ mysql -u root -p
    
-   mysql> create database studio;
-   mysql> grant all privileges on studio.* to 'studio'@'localhost' identified by 'studio';
+   mysql> create database estudio;
+   mysql> grant all privileges on estudio.* to 'estudio'@'localhost' identified by 'estudio';
    mysql> flush privileges;
 
 2. Add e-studio to the included add-ons at your application configuration:
 
   tecnodesign:
     addons:
-      studio: true
+      estudio: true
 
 3. Add at least one configuration line, to enable e-Studio self-installation:
 

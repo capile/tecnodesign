@@ -27,7 +27,7 @@
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_App_Studio_Install
+class Tecnodesign_App_Estudio_Install
 {
     protected $errors=array();
     protected $classes=array('Entry','Content', 'Tag', 'Permission', 'Relation');
@@ -49,14 +49,14 @@ class Tecnodesign_App_Studio_Install
         $req = $app->request();
         $meta = array(
             'category'=>'Model',
-            'package'=>'Studio',
+            'package'=>'Estudio',
             'author'=>'Guilherme Capilé, Tecnodesign <ti@tecnodz.com>',
             'copyright'=>date('Y').' Tecnodesign',
             'link'=>'http://tecnodz.com/',
         );
         $cns=array();
         foreach($this->classes as $cn) {
-            $cns[]='Tecnodesign_App_Studio_'.$cn;
+            $cns[]='Tecnodesign_App_Estudio_'.$cn;
         }
         Tecnodesign_Database::syncronizeModels($cns, TDZ_ROOT.'/src', $meta);
         echo("ok!\n");

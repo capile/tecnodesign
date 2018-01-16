@@ -14,7 +14,7 @@ $s .= (($link)?('<a href="'.htmlspecialchars($link, ENT_QUOTES, 'UTF-8', false).
 $s .= '</li>';
 echo $s;
 */
-$e = Tecnodesign_App_Studio::$response['entry'];
+$e = Tecnodesign_App_Estudio::$response['entry'];
 $s = '';
 while($e) {
     $title = ($s)?(preg_replace('/ do Cravo$/i', '', preg_replace('/^Sobre (o|a) (Cravo )?/i', '', $e['title']))):($e['title']);

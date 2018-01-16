@@ -27,7 +27,7 @@ CREATE  TABLE IF NOT EXISTS `tdz_content` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
-COMMENT = 'className: Tecnodesign_App_Studio_Content' ;
+COMMENT = 'className: Tecnodesign_App_Estudio_Content' ;
 
 
 -- -----------------------------------------------------
@@ -56,7 +56,7 @@ CREATE  TABLE IF NOT EXISTS `tdz_entry` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8, 
-COMMENT = 'className: Tecnodesign_App_Studio_Entry' ;
+COMMENT = 'className: Tecnodesign_App_Estudio_Entry' ;
 
 
 -- -----------------------------------------------------
@@ -76,7 +76,7 @@ CREATE  TABLE IF NOT EXISTS `tdz_permission` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8, 
-COMMENT = 'className: Tecnodesign_App_Studio_Permission' ;
+COMMENT = 'className: Tecnodesign_App_Estudio_Permission' ;
 
 
 -- -----------------------------------------------------
@@ -96,7 +96,7 @@ CREATE  TABLE IF NOT EXISTS `tdz_relation` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8, 
-COMMENT = 'className: Tecnodesign_App_Studio_Relation' ;
+COMMENT = 'className: Tecnodesign_App_Estudio_Relation' ;
 
 
 -- -----------------------------------------------------
@@ -116,7 +116,7 @@ CREATE  TABLE IF NOT EXISTS `tdz_tag` (
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8, 
-COMMENT = 'className: Tecnodesign_App_Studio_Tag' ;
+COMMENT = 'className: Tecnodesign_App_Estudio_Tag' ;
 
 
 

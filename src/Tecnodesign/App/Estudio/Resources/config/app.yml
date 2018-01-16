@@ -8,13 +8,13 @@
 
 # default values
 dev:
-  studio:
+  estudio:
     prefix_url: ~
     install: true
 all:
-  studio:
+  estudio:
     install: false
-    symfony-app: studio
+    symfony-app: estudio
     assets_optimize: on
     assets_optimize_actions:
       min: 
@@ -79,7 +79,7 @@ all:
     date_format: d/m
     past_year_date_format: d/m/Y
     prefix_url: 
-    connection_name: studio
+    connection_name: estudio
     # time to keep contents cached (before rebuilding), set to 0 to disable caching
     cache_timeout: 1800
 

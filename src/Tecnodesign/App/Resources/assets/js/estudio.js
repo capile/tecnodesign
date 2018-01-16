@@ -6,31 +6,31 @@
  * @link      http://tecnodz.com/
 */
 (function(tdz){
-    tdz.modules.Studio='div.tdzs.container';
-    tdz.initStudioPlugins={
+    tdz.modules.Estudio='div.tdzs.container';
+    tdz.initEstudioPlugins={
     };
-    tdz.studio={};
-    tdz.studio.url=window.location.pathname;
+    tdz.estudio={};
+    tdz.estudio.url=window.location.pathname;
     tdz.dev=false;
     tdz.user=null;
     tdz.updateUserInfo=false;
     var _ui='/_e';
     var _editor=false;
     var _credentials=false;
-    tdz.initStudio=function(s)
+    tdz.initEstudio=function(s)
     {
-        if(tdz.dev) console.log('tdz.initStudio', arguments);
+        if(tdz.dev) console.log('tdz.initEstudio', arguments);
         if(s.length==0)return;
         if(tdz.user===null) {
             tdz.user=false;
             // read user information and permissions -- can this user see unpublished content, create, update, or publish anything?
             $.ajax({
                 'type':'GET',
-                'url':_ui+'/u?'+escape(tdz.studio.url),
+                'url':_ui+'/u?'+escape(tdz.estudio.url),
                 'context': s,
                 'dataType':'json',
                 'headers':{'Tdz-Action':'auth' },
-                'success': function(u){tdz.user=u;tdz.initStudio(this);}
+                'success': function(u){tdz.user=u;tdz.initEstudio(this);}
             });
             return true;
         } else if(!tdz.user || !('actions' in tdz.user)) {
@@ -42,10 +42,10 @@
         _editor=true;
         _credentials=tdz.user.actions;
         
-        tdz.studioToolbar();
+        tdz.estudioToolbar();
         // user must be authenticated and have at least one privilege
-        for(var p in tdz.initStudioPlugins){
-            var el=$(p, s),m=tdz.initStudioPlugins[p];
+        for(var p in tdz.initEstudioPlugins){
+            var el=$(p, s),m=tdz.initEstudioPlugins[p];
             if(el.length>0) {
                 if(typeof(m)=='string'){
                     tdz[m](el);
@@ -62,7 +62,7 @@
         else return t;
     }
     
-    tdz.studioToolbar=function(){
+    tdz.estudioToolbar=function(){
         if($('#tdzm').length>0 || !_editor) return false;
         console.log(_credentials);
         var m='<div id="tdzm" class="tdze"><span class="tdzm tdzcms">', g={}, b={}, pid='';

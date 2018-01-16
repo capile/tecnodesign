@@ -11,4 +11,4 @@
  */
 if(!isset($message))$message='';
 $message.=tdz::getUser()->getMessage(false,true);
-?><header><div id="studio-header"><div class="studio-icon logo"><a href="/"></a></div><span class="studio-icon studio-<?php echo $action ?>"></span><h1><?php echo $title ?></h1></div></header><section><div class="studio-body"><?php echo $message.$content ?></div></section>
+?><header><div id="estudio-header"><div class="estudio-icon logo"><a href="/"></a></div><span class="estudio-icon estudio-<?php echo $action ?>"></span><h1><?php echo $title ?></h1></div></header><section><div class="estudio-body"><?php echo $message.$content ?></div></section>

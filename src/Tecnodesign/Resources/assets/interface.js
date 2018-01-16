@@ -16,6 +16,7 @@
             Z.modules.Interface=_sel;
             Z.initInterface = startup;
             Z.loadInterface = loadInterface;
+            Z.setInterface = setInterface;
             // run once
             Z.bind(window, 'hashchange', hashChange);
         }
@@ -413,7 +414,14 @@
                 if(this.className.search(/\btdz-i-a-one\b/)>-1) {
                     if(I.matchesSelector('.tdz-i-list-one')) valid = true;
                 }
-                if(!valid) return false;
+                if(!valid) {
+                    if (m) {
+                        msg(Z.l[Z.language].moreRecord, 'tdz-i-error');
+                    } else {
+                        msg(Z.l[Z.language].noRecordSelected, 'tdz-i-error');
+                    }
+                    return false;
+                }
             }
             if(t=this.getAttribute('data-url')) {
                 u=t;

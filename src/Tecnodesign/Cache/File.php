@@ -60,7 +60,7 @@ class Tecnodesign_Cache_File
         $cfile = self::filename($key);
         @clearstatcache(true, $cfile);
         if($expires) {
-            if($expires<315360000) {
+            if($expires<2592000) {
                 $expired = time()-(int)$expires;
                 $expires = time()+(int)$expires;
             } else {
@@ -95,7 +95,7 @@ class Tecnodesign_Cache_File
         if(self::$serialize) {
             $value = tdz::serialize($value);
         }
-        if($timeout && $timeout<315360000) $timeout = microtime(true)+(float)$timeout;
+        if($timeout && $timeout<2592000) $timeout = microtime(true)+(float)$timeout;
         $ret = tdz::save(self::filename($key), ((float) $timeout)."\n".$value, true);
         unset($key,$value,$timeout);
         return $ret;

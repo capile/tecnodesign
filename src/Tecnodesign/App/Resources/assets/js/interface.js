@@ -5,7 +5,7 @@ if(!('Z' in window)) {
 }
 (function(Z)
 {
-    var _is=false, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _loading={}, _ids={}, _q=[], _last;
+    var _is=false, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _loading={}, _ids={}, _q=[], _last, _I = '';
 /*!startup*/
     function startup(I)
     {
@@ -19,7 +19,9 @@ if(!('Z' in window)) {
         }
         if(I.getAttribute('data-startup')) return;
         I.setAttribute('data-startup', '1');
+        console.log('startup', Z);
         if('init' in Z) Z.init(I);
+        console.log('after init...');
 
         var b = Z.parentNode(I, '.tdz-i-box');
         if(!_base) _base = Z.parentNode(I, '.tdz-i-box').getAttribute('base-url');
@@ -124,7 +126,6 @@ if(!('Z' in window)) {
         l=document.querySelectorAll('.tdz-i-header .tdz-i-title.tdz-i-off');
         i=l.length;
         while(i-- > 0) {
-            console.log('....127', l[i]);
             l[i].parentNode.removeChild(l[i]);
         }
 
@@ -254,8 +255,8 @@ if(!('Z' in window)) {
 /*!unloadInterface*/
     function unloadInterface(I)
     {
+        //tdz.trace('unloadInterface: ', I);
         var u=I.getAttribute('data-url'), b=Z.parentNode(I, '.tdz-i-box'), T=b.querySelector('.tdz-i-header .tdz-i-title[data-url="'+u+'"]');
-            console.log('unloadInterface 258');
         T.parentNode.removeChild(T);
         delete(T);
         var B = I.previousSibling;
@@ -298,10 +299,10 @@ if(!('Z' in window)) {
             if(this.className.search(/\btdz-i-a-(many|one)\b/)>-1) {
                 valid = false;
                 if(this.className.search(/\btdz-i-a-many\b/)>-1) {
-                    m=true;
-                    if(I.matchesSelector('.tdz-i-list-many')) valid = true;
+                    valid = true;
+                    if(I.matchesSelector('.tdz-i-list-many')) m=true;
                 }
-                if(this.className.search(/\btdz-i-a-one\b/)>-1) {
+                if(!valid && this.className.search(/\btdz-i-a-one\b/)>-1) {
                     if(I.matchesSelector('.tdz-i-list-one')) valid = true;
                 }
                 if(!valid) return false;
@@ -316,10 +317,15 @@ if(!('Z' in window)) {
                     i=(l.length && !m)?(1):(l.length);
                     while(i-- > 0) urls.push(t.replace('{id}', l[i])+q);
                 } else {
+                    if(_I) {
+                        q+=(q)?('&'):('?');
+                        q+='_I='+encodeURIComponent(_I);
+                    }
                     if(l.length>0) {
                         q+=(q)?('&'):('?');
                         q+='_uid='+l.join(',');
                     }
+
                     urls.push(t+q);
                 }
             } else if(t=this.getAttribute('action')) {
@@ -347,16 +353,24 @@ if(!('Z' in window)) {
         var o, H;
         while(i-- > 0) {
             var url = urls[i].replace(/(\/|\/?\?.+)$/, '');
-            if(!document.querySelector('.tdz-i-title[data-url="'+url+'"]')) {
+            o=document.querySelector('.tdz-i-title[data-url="'+url+'"]');
+            if(!o) {
+                o=document.createElement('a');
+                o.className = 'tdz-i-title tdz-i-off';
+                o.setAttribute('data-url', url);
+                o.setAttribute('href', urls[i]);
                 if(!H) H = document.querySelector('.tdz-i-box .tdz-i-header');
-                if(H) {
-                    Z.element.call(H, {e:'a',a:{'class':'tdz-i-title tdz-i-off','data-url':url,href:urls[i]}});
-                }
+                if(H) H.appendChild(o);
             }
+            o=null;
 
             o=document.querySelector('.tdz-i[data-url="'+url+'"]');
             if(!o) {
-                o=Z.element.call(document.querySelector('.tdz-i-body'), {e:'div',a:{'class':'tdz-i tdz-i-off','data-url':url}});
+                o=document.createElement('div');
+                o.className = 'tdz-i tdz-i-off';
+                o.setAttribute('data-url', url);
+                //o=I.parentNode.insertBefore(o, I.nextSibling);
+                document.querySelector('.tdz-i-body').appendChild(o);
             }
             var t=new Date().getTime();
             if(!(url in _loading) || t-_loading[url]>1000) {
@@ -406,7 +420,6 @@ if(!('Z' in window)) {
             // get tdz-i only
             var t=this.parentNode.insertBefore(document.createElement('div'), this);
             t.className='tdz-i-scope-block';
-            console.log('...');
             this.parentNode.removeChild(this);
             var i=0;
             while(i<I.children.length) {
@@ -454,21 +467,22 @@ if(!('Z' in window)) {
             }
         }
         if(I) u=I.getAttribute('data-url');
-        //console.log('activeInterface: '+u);
+        console.log('activeInterface: '+u);
         if(u) H = document.querySelector('.tdz-i-title[data-url="'+u+'"]');
         if(I==H) I = document.querySelector('.tdz-i[data-url="'+u+'"]');
         if(!I && !u) {
             // get u from hash?
             return false;
         } else if(!I) {
-            //console.log('-- should load interface?');
+            console.log('-- should load interface?');
             loadInterface(u);
             return false;
         }
         if(I.className.search(/\btdz-i-active\b/)<0) I.className += ' tdz-i-active';
-        if(H && H.className.search(/\btdz-i-off\b/)>-1) H.className = H.className.replace(/\s*\btdz-i-off\b/, '');
         if(H && H.className.search(/\btdz-i-title-active\b/)<0) H.className += ' tdz-i-title-active';
         var h=I.getAttribute('data-url'), qs = I.getAttribute('data-qs');
+        _I = h;
+        if(qs) _I += '?'+qs;
         if(_is) {
             if(h!=_base) {
                 if(h.substr(0,_base.length)==_base){
@@ -489,6 +503,7 @@ if(!('Z' in window)) {
             if(R[i]==H || R[i]==I) continue;
             R[i].className = R[i].className.replace(/\btdz-i-(title-)?active\b\s*/g, '').trim();
         }
+        console.log('ending...');
         updateInterface(I);
         return false;
     }
@@ -526,13 +541,11 @@ if(!('Z' in window)) {
                         c.setAttribute('data-action', 'close');
                         Z.bind(c, 'click', loadInterface);
                         Hs[i].appendChild(c);
+                        delete(c);
                     }
-                    c = null;
                 }
-                /*
                 if(h) H.replaceChild(Hs[i], h);
                 else H.appendChild(Hs[i]);
-                */
                 h=null;
             }
             var I = f.querySelector('.tdz-i');
@@ -569,7 +582,6 @@ if(!('Z' in window)) {
 /*!actionUnload*/
     var _A = {
         unload:function(o) {
-            console.log('_A.unload 568');
             var 
               ru = o.getAttribute('data-url'),
               rn = document.querySelector('.tdz-i-box .tdz-i-header .tdz-i-title[data-url="'+ru+'"]');

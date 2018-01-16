@@ -1,5 +1,4 @@
-@fontAwesomePath: '/_/studio';
-
+/*!Tecnodesign Interface */
 @import "interface-vars.less";
 @import "fontawesome.less";
 
@@ -136,7 +135,7 @@
   position:relative;
   border-top:1px solid #fff;
   background:@color;
-  .contador {
+  .tdz-counter {
     float:none;display:inline-block;padding:5px 0 5px 10px;max-width:90%;
   }
 }
@@ -195,7 +194,7 @@ input.tdz-i-switch{
   & + label {
     .transition(max-width 1s ease-in-out);
     display:inline-block;
-    vertical-align:-0.25em;
+    vertical-align:-0.525em;
     padding:0;overflow-x:hidden;overflow-y:hidden;whitespace:nowrap;
     height:1.25em;
     width:1.5em;
@@ -209,8 +208,7 @@ input.tdz-i-switch{
     }
   }
   &:checked + label:before {
-    color:#fff - (@colorSummary);
-    opacity:1;
+    color:#fff - @colorSummary;
   }
   &.tdz-i-search + label:before {
     content:"\f0b0";
@@ -402,10 +400,19 @@ input.tdz-i-switch{
 .tdz-i-field {
   margin:0 0 0.5em 0;padding:0;vertical-align:top;
   dt {
-    display:inline-block;font-size:0.75em;color:@colorTabActive;
+    display:block;
+    width:auto;
+    font-size:0.8em;
+    line-height:1em;
+    color:@colorTabActive;
+    float:none;
   }
   dd {
-    margin:0;padding:0 1em 0 0;min-height:1em;position:relative;
+    display:block;
+    margin:0;
+    padding:0 1em 0 0;
+    min-height:1em;
+    position:relative;
   }
 
   .tdz-input-search {
@@ -434,15 +441,15 @@ input.tdz-i-switch{
 input,select,textarea {
   font-size:1em;
   padding:0.25em 0;
-  width:100%;
   @border: ((@colorTabActive + #ddd) * 0.5);
+  color:#000;
+  background:#fff;
   border:1px solid @border;
 }
-input {
-  text-indent: 0.5em;
+input[type=text],input[type=search],input[type=url],input[type^=date] {
+  text-indent: 0.25em;
 }
 input[type=checkbox],input[type=radio] {
-  width:auto;
   border:none;
   text-indent:none;
 }
@@ -458,7 +465,11 @@ textarea {
     width:62.75%;
     background:@colorSummary * 1.25;
   }
-  input[type=search], input#q {
+  .input.tdz-input-search {
+    display:inline-block;
+    width:47%;
+  }
+  input#q,input[type=search] {
     .border(0.5em);
     width:100%;
   }
@@ -818,8 +829,7 @@ select, input {
       top: 0;
       right: 0;
       content: "\f0c9";
-      color: #fff - (@colorSummary);
-      opacity: 0.6;
+      color: #666;
       height:1.25em;width:0.75em;font-size:1.5em;line-height:1em;
       padding: 0;
       text-align:right;
@@ -841,8 +851,6 @@ select, input {
     }
   }
   .tdz-i-buttons{
-    border-top:1px solid @colorSummary - #111;
-    position:relative;
     top: 0;right:0;
     .box-shadow(0, 0.2em, 0.25em, rgba(0,0,0,0.4));
     a{
@@ -858,6 +866,16 @@ select, input {
     }
   }
 }
+
+.tdz-i-buttons{
+  border-top:1px solid @colorSummary - #111;
+  position:relative;
+  background:@colorTab;
+  color:@colorTabText;
+}
+
+
+
 .tdz-i-label-action{
   display:none;
 }
@@ -905,28 +923,35 @@ th > input[type=checkbox], td > input[type=checkbox]{
   margin:0 0.5em 0 0;padding:0;
 }
 
-.tdz-i-a, .tdz-i-a:link, .tdz-i-a:visited, .tdz-i-list-one .tdz-i-a-one, .tdz-i-list-many .tdz-i-a-many{
-  line-height: 2em;
-  height:2em;
-  background:@colorSummary;
-  color:@colorSummaryText;
-  cursor: pointer;
-  opacity:1;
+.tdz-i-list-none .tdz-i-a-one, .tdz-i-list-none .tdz-i-a-many, .tdz-i-list-one .tdz-i-a-many {
+  opacity:0.6;
+  cursor: not-allowed;
+  background:@colorTab;
+  color:@colorTabText;
   &:hover,&:active{
-    background:@colorSummary + (@colorTab * 0.25);
-    color: @colorSummaryText;
+    background:@colorTab;
+    color:@colorTabText;
     text-decoration:none;
   }
 }
 
-.tdz-i-a-one, .tdz-i-a-many, .tdz-i-list-none .tdz-i-a-one, .tdz-i-list-none .tdz-i-a-many {
-  color:@colorSummaryText;
-  opacity:0.6;
-  cursor: not-allowed;
+.tdz-i-a, .tdz-i-a:link, .tdz-i-a:visited, .tdz-i-list-one .tdz-i-a-one, 
+.tdz-i-list-one .tdz-i-a-many.tdz-i-a-one, .tdz-i-list-many .tdz-i-a-many{
+  line-height: 2em;
+  height:2em;
+  background:@colorTab;
+  color:@colorTabText;
+  cursor: pointer;
   &:hover,&:active{
-    background:@colorSummary;
+    background:@colorTab * 1.25;
+    color: @colorTabActiveText;
     text-decoration:none;
   }
+}
+
+.tdz-i-list-one .tdz-i-a-one, .tdz-i-list-one .tdz-i-a-many.tdz-i-a-one, 
+.tdz-i-list-many .tdz-i-a-many{
+  opacity: 1;
 }
 
 .tdz-i-summary, .tdz-i-footer{
@@ -969,7 +994,6 @@ th > input[type=checkbox], td > input[type=checkbox]{
       width:2em;
     }
   }
-  margin-bottom:2em;
 }
 
 .tdz-i-body .tdz-i-standalone .tdz-i-footer a:hover span {display:none;}

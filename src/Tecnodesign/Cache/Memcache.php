@@ -60,7 +60,7 @@ class Tecnodesign_Cache_Memcache
         }
         unset($siteKey);
         if ($expires || $m) {
-            if($expires && $expires<315360000) {
+            if($expires && $expires<2592000) {
                 $expired = time()-(int)$expires;
                 $expires = time()+(int)$expires;
             } else {

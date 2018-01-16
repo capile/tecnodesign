@@ -122,13 +122,6 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             return $this;
         }
         
-        if(is_object($sql)) {
-            $this->_query = $sql;
-            $this->_count = $sql->count();
-            return $this;
-        }
-
-
         if(!$conn) {
             $conn = $this->_conn();
             /*
@@ -625,120 +618,111 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             } else {
                 $ret = $this->{$this->_items[$p]};
             }
+
         } else if($p < $this->_count && $p >= 0) {
-            if(is_object($this->_query)) {
+            $q=$this->_queryStatement();
+            if($this->_driver!='dblib' && get_class($q)=='PDO') { // lost original connection
+                $sql = $this->_query;
+                if($this->_driver=='pgsql') {
+                    $sql .= ' limit :max offset :offset';
+                } else if($this->_driver=='mssql2012') {
+                    $sql .= ' OFFSET (:offset) ROWS FETCH NEXT :max ROWS ONLY';
+                } else {
+                    $sql .= ' limit :offset,:max';
+                }
+                $q = $q->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
+                unset($sql);
+            }
+
+            try {
+                $ft = PDO::FETCH_ASSOC;
                 $this->_offset = (int) $p;
                 $this->_max    = (int) $limit;
-                if($this->_hint) {
-                    $ret = $this->_query->fetch($this->_offset, $this->_max);
-                } else {
-                    $ret = $this->_query->fetchArray($this->_offset, $this->_max);
-                }
-            } else {
-                $q=$this->_queryStatement();
-                if($this->_driver!='dblib' && get_class($q)=='PDO') { // lost original connection
-                    $sql = $this->_query;
-                    if($this->_driver=='pgsql') {
-                        $sql .= ' limit :max offset :offset';
-                    } else if($this->_driver=='mssql2012') {
-                        $sql .= ' OFFSET (:offset) ROWS FETCH NEXT :max ROWS ONLY';
+
+                if(get_class($q)=='PDO') { // the connection is stored for dblib (MSSQL)
+                    $scroll = uniqid('tdz');
+                    $start = $this->_offset +1;
+                    $q->query('set rowcount '.($p+$limit));
+                    $q->query('set nocount on');
+                    $q->query("DECLARE {$scroll} SCROLL CURSOR FOR {$this->_query}");
+                    $q->query("OPEN {$scroll}");
+                    $st = $q->query("FETCH ABSOLUTE {$start} FROM {$scroll}");
+                    //$this->reset();
+                    if($this->_hint) {
+                        $ret = $st->fetchObject($this->_hint);
                     } else {
-                        $sql .= ' limit :offset,:max';
+                        $ret = $st->fetch($ft);
                     }
-                    $q = $q->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
-                    unset($sql);
-                }
-
-                try {
-                    $ft = PDO::FETCH_ASSOC;
-                    $this->_offset = (int) $p;
-                    $this->_max    = (int) $limit;
-
-                    if(get_class($q)=='PDO') { // the connection is stored for dblib (MSSQL)
-                        $scroll = uniqid('tdz');
-                        $start = $this->_offset +1;
-                        $q->query('set rowcount '.($p+$limit));
-                        $q->query('set nocount on');
-                        $q->query("DECLARE {$scroll} SCROLL CURSOR FOR {$this->_query}");
-                        $q->query("OPEN {$scroll}");
-                        $st = $q->query("FETCH ABSOLUTE {$start} FROM {$scroll}");
-                        //$this->reset();
-                        if($this->_hint) {
-                            $ret = $st->fetchObject($this->_hint);
+                    unset($st);
+                    if($ret && $limit > 1) {
+                        if($asCollection) {
+                            $this->{$this->_offset} = $ret;
+                            $this->_count--;
+                            //$this->_items[]=$this->_offset;
+                            unset($ret);
                         } else {
-                            $ret = $st->fetch($ft);
+                            $ret=array($ret);
                         }
-                        unset($st);
-                        if($ret && $limit > 1) {
-                            if($asCollection) {
-                                $this->{$this->_offset} = $ret;
-                                $this->_count--;
-                                //$this->_items[]=$this->_offset;
-                                unset($ret);
-                            } else {
-                                $ret=array($ret);
-                            }
-                            $l=$limit -1;
-                            while($l>0) {
-                                $st = $q->query("FETCH NEXT FROM {$scroll}");
-                                if($this->_hint) {
-                                    $r = $st->fetchObject($this->_hint);
-                                } else {
-                                    $r = $st->fetch($ft);
-                                }
-                                unset($st);
-                                if($r) {
-                                    if($asCollection) {
-                                        $this->{$start} = $r;
-                                        $this->_count--;
-                                        //$this->_items[]=$start;
-                                        $start++;
-                                    } else {
-                                        $ret[]=$r;
-                                    }
-                                } else {
-                                    break;
-                                }
-                                unset($r);
-                                $l--;
-                            }
-                        }
-                        $q->query("CLOSE {$scroll}");
-                        $q->query("DEALLOCATE {$scroll}");
-                        $q->query('set rowcount 0');
-                        $q->query('set nocount off');
-                        unset($q);
-                    } else {
-                        if($this->_hint) {
-                            $q->setFetchMode(PDO::FETCH_CLASS, $this->_hint);
-                            $ft = PDO::FETCH_CLASS;
-                        }
-                        $q->bindParam(':offset', $this->_offset, PDO::PARAM_INT);
-                        $q->bindParam(':max', $this->_max, PDO::PARAM_INT);
-                        $q->execute();
-                        if($limit > 1) {
+                        $l=$limit -1;
+                        while($l>0) {
+                            $st = $q->query("FETCH NEXT FROM {$scroll}");
                             if($this->_hint) {
-                                $ret = $q->fetchAll($ft, $this->_hint);
+                                $r = $st->fetchObject($this->_hint);
                             } else {
-                                $ret = $q->fetchAll($ft);
+                                $r = $st->fetch($ft);
                             }
-                            if ($asCollection) {
-                                //$this->reset();
-                                foreach($ret as $k=>$v) {
-                                    $this->__set($k, $v);
+                            unset($st);
+                            if($r) {
+                                if($asCollection) {
+                                    $this->{$start} = $r;
                                     $this->_count--;
-                                    //$this->_items[] = $k;
+                                    //$this->_items[]=$start;
+                                    $start++;
+                                } else {
+                                    $ret[]=$r;
                                 }
+                            } else {
+                                break;
                             }
-                        } else {
-                            $ret = $q->fetch($ft);
+                            unset($r);
+                            $l--;
                         }
-                        $q->closeCursor();
-                        unset($q);
                     }
-                } catch(Exception $e) {
-                    tdz::log(__METHOD__.': '.$e->getMessage()."\n  ".$e->getFile().':'.$e->getLine());
+                    $q->query("CLOSE {$scroll}");
+                    $q->query("DEALLOCATE {$scroll}");
+                    $q->query('set rowcount 0');
+                    $q->query('set nocount off');
+                    unset($q);
+                } else {
+                    if($this->_hint) {
+                        $q->setFetchMode(PDO::FETCH_CLASS, $this->_hint);
+                        $ft = PDO::FETCH_CLASS;
+                    }
+                    $q->bindParam(':offset', $this->_offset, PDO::PARAM_INT);
+                    $q->bindParam(':max', $this->_max, PDO::PARAM_INT);
+                    $q->execute();
+                    if($limit > 1) {
+                        if($this->_hint) {
+                            $ret = $q->fetchAll($ft, $this->_hint);
+                        } else {
+                            $ret = $q->fetchAll($ft);
+                        }
+                        if ($asCollection) {
+                            //$this->reset();
+                            foreach($ret as $k=>$v) {
+                                $this->__set($k, $v);
+                                $this->_count--;
+                                //$this->_items[] = $k;
+                            }
+                        }
+                    } else {
+                        $ret = $q->fetch($ft);
+                    }
+                    $q->closeCursor();
+                    unset($q);
                 }
+            } catch(Exception $e) {
+                tdz::log(__METHOD__.': '.$e->getMessage()."\n  ".$e->getFile().':'.$e->getLine());
             }
         }
         if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem: {$limit}\n  query: {$sql}");

@@ -20,7 +20,7 @@ class tdzPindoramamigrationTask extends sfBaseTask
     ));
 
     $this->addOptions(array(
-      new sfCommandOption('app', null, sfCommandOption::PARAMETER_REQUIRED, 'Application', 'studio'),
+      new sfCommandOption('app', null, sfCommandOption::PARAMETER_REQUIRED, 'Application', 'estudio'),
       new sfCommandOption('env', null, sfCommandOption::PARAMETER_REQUIRED, 'The environment', 'dev'),
       new sfCommandOption('id', null, sfCommandOption::PARAMETER_OPTIONAL, 'Document ID', ''),
       new sfCommandOption('url', null, sfCommandOption::PARAMETER_OPTIONAL, 'Document ID', ''),

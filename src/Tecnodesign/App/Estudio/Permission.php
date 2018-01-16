@@ -1,11 +1,11 @@
 <?php
 /**
- * Tecnodesign_App_Studio_Permission table description
+ * Tecnodesign_App_Estudio_Permission table description
  *
  * PHP version 5.3
  *
  * @category  Model
- * @package   Studio
+ * @package   Estudio
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
@@ -13,15 +13,15 @@
  */
 
 /**
- * Tecnodesign_App_Studio_Permission table description
+ * Tecnodesign_App_Estudio_Permission table description
  *
  * @category  Model
- * @package   Studio
+ * @package   Estudio
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_App_Studio_Permission extends Tecnodesign_Model
+class Tecnodesign_App_Estudio_Permission extends Tecnodesign_Model
 {
     /**
      * Tecnodesign_Model schema
@@ -30,7 +30,7 @@ class Tecnodesign_App_Studio_Permission extends Tecnodesign_Model
      */
     //--tdz-schema-start--2012-02-29 19:44:01
     public static $schema = array (
-      'database' => 'studio',
+      'database' => 'estudio',
       'tableName' => 'tdz_permissions_version',
       'className' => 'tdzPermission',
       'columns' => array (
@@ -43,7 +43,7 @@ class Tecnodesign_App_Studio_Permission extends Tecnodesign_Model
       ),
       'relations' => array (
       /*
-        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'Tecnodesign_App_Studio_Entry', ),
+        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'Tecnodesign_App_Estudio_Entry', ),
       */
       ),
       'scope' => array (

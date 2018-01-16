@@ -2403,6 +2403,40 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $input;
     }
     
+
+
+    /**
+     * CSRF implementation (beta)
+     */
+    public function renderCsrf(&$arg)
+    {
+        $ua = (isset($_SERVER['HTTP_USER_AGENT']))?($_SERVER['HTTP_USER_AGENT']):('unknown');
+        $arg['value'] = tdz::encrypt(md5($ua).":".TDZ_TIME);
+        if($this->placeholder){
+            $this->choices=array($arg['value'] => $this->placeholder);
+            $arg['value'] = '0';
+            $s = $this->renderHidden($arg);
+            unset($arg['template']);
+            $arg['type'] = 'checkbox';
+            return $s.$this->renderCheckbox($arg, 'checkbox');
+        } else {
+            $arg['type']='hidden';
+            return $this->renderHidden($arg);
+        }
+    }
+
+    public function checkCsrf($value, $message='')
+    {
+        if($value && ($d=tdz::decrypt($value))) {
+            @list($h, $t) = explode(':', $d, 2);
+            $ua = (isset($_SERVER['HTTP_USER_AGENT']))?($_SERVER['HTTP_USER_AGENT']):('unknown');
+            if(md5($ua)==$h && $t && $t +3600 > TDZ_TIME) {
+                return $value;
+            }
+        }
+        throw new Tecnodesign_Exception(array(tdz::t($message, 'exception'), $this->getLabel(), $value));
+    }
+
     public function setPrefix($s)
     {
         $this->prefix=$s;

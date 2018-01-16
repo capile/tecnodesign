@@ -1,0 +1,132 @@
+/*! Estudio v2.1 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
+@import "estudio-base.less";
+#estudio{
+    position:fixed;
+    top:0;
+    right:0;
+    font-size:15px;
+    line-height:15px;
+
+    div {
+        font-size:1em;
+        line-height:1em;
+        margin:0;
+        padding:0;
+    }
+
+    #e-bar {
+        position:absolute;right:0;top:0;
+        height:100vh;width:100vw;
+        max-width:240px;
+        overflow-x:hidden;
+        background:#fff;
+        .box-shadow(-1em 0 1em 1em rgba(0,0,0,0.4));
+        flex-direction:column;
+        opacity:0.8;
+        display:none;
+    }
+
+    &.e-active #e-bar {
+        .flex-display();
+    }
+
+    button {
+        font-size:2em;
+        vertical-align:top;
+        background:#fff;
+        .box-shadow(none);
+        border: 2px solid #0cf;
+        color:#0cf;
+        border-radius:0.5em;
+        line-height:1em;
+        max-height:1em;
+        min-width:1em;
+        text-align:center;
+        padding:0;
+        margin:0;
+        display:inline-block;
+        position:relative;
+        .studio-type();
+        opacity:0.5;
+
+        &:after {
+            content:'!';display:inline-block;margin-top:0;padding:0;line-height:1em;vertical-align:top;position:relative;top:-6px
+        }
+        &:hover, &:focus, &:active{
+            color:#f0c;
+            border-color:#f0c;
+            opacity:1;
+        }
+    }
+
+
+    /* specific buttons */
+    #e-trigger{
+        position:absolute;
+        z-index:5;
+        top:0.25em;
+        right:0.25em;
+        &:after{content:'e'}
+    }
+    &.e-active #e-trigger{
+        color:#999;
+        border-color:#999;
+        &:after{
+            content:'\00d7';
+            top:-4px;
+        }
+    }
+
+}
+
+/* sidebar */
+#estudio:focus #e-bar,#estudio:hover #e-bar,#estudio:active #e-bar{opacity:1;}
+#estudio .e-box{
+    flex: 0 0 0;
+    min-height:1em;
+}
+#estudio #e-header{
+    padding:3em 0 2em 0;
+}
+#estudio #e-header:before{
+    position:absolute;
+    top:0.4em;left:0;
+    display:block;
+    content:'estudio';
+    text-align:center;
+    width:100%;
+    font-size:2.25em;
+    .studio-type();
+    color:#0CF;
+}
+
+
+/* form */
+#estudio #e-form{
+    display:flex;
+    flex-direction:row;
+    border:1px solid #ccc;border-radius:1em;height:2em;background:#eee;margin:0 0.5em;
+
+}
+#estudio #e-form span{
+    flex: 1 1 auto;
+}
+#estudio #e-form input{line-height:1.8em;font-size:1em;
+    .studio-type();
+    background:none;
+    border:none;
+    width:auto;
+    padding:0 0.25em;margin:0;
+}
+#estudio #e-form #e-term{
+    flex: 0 0 auto;
+}
+
+#estudio #e-list{
+    flex: 1 1 auto;
+    overflow-x:hidden;
+    overflow-y:auto;
+    border-top:2px solid #ddd;
+    border-bottom:2px solid #ddd;
+}
+#estudio #e-footer{}

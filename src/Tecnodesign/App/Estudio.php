@@ -11,7 +11,7 @@
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Studio.php 1210 2013-05-05 12:28:45Z capile $
+ * @version   SVN: $Id: Estudio.php 1210 2013-05-05 12:28:45Z capile $
  * @link      http://tecnodz.com/
  */
 
@@ -27,7 +27,7 @@
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_App_Studio
+class Tecnodesign_App_Estudio
 {
     public static $enableCache=false;
     private $_env=null;
@@ -58,8 +58,8 @@ class Tecnodesign_App_Studio
         if(!is_array($config)) {
             $config = array();
         }
-        $cfile = dirname(__FILE__).'/Studio/Resources/config/app.yml';
-        $config = tdz::config($config, $cfile, $env, 'studio');
+        $cfile = dirname(__FILE__).'/Estudio/Resources/config/app.yml';
+        $config = tdz::config($config, $cfile, $env, 'estudio');
         $app = tdz::getApp();
         if(isset($config['symfony-app'])) {
             $sfconfig = tdz::config($app->tecnodesign['apps-dir'].'/apps/'.$config['symfony-app'].'/config/app.yml', $env, 'e-studio');
@@ -68,7 +68,7 @@ class Tecnodesign_App_Studio
             $config['document_root']=realpath($config['document_root']);
             $config['upload_dir']=(substr($config['upload_dir'],0,1)!='/')?(realpath($app->tecnodesign['apps-dir'].'/'.$config['upload_dir'])):(realpath($config['upload_dir']));
         }
-        $app->__set('studio', $config);
+        $app->__set('estudio', $config);
         $this->addConfig($app);
     }
     
@@ -76,14 +76,14 @@ class Tecnodesign_App_Studio
     {
         $tdz = $app->tecnodesign;
         // routes
-        $ui = $app->studio['ui-url'];
+        $ui = $app->estudio['ui-url'];
         $tdz['routes']['/e-studio']=array(
-            'class'=>'Tecnodesign_App_Studio',
+            'class'=>'Tecnodesign_App_Estudio',
             'method'=>'runLegacyAction',
             'additional-params'=>true,
         );
         $tdz['routes'][$ui]=array(
-            'class'=>'Tecnodesign_App_Studio',
+            'class'=>'Tecnodesign_App_Estudio',
             'method'=>'runAction',
             'additional-params'=>true,
             'params'=>array(
@@ -104,27 +104,27 @@ class Tecnodesign_App_Studio
             ),
         );
         $tdz['routes'][$ui]+=Tecnodesign_App::$defaultController;
-        if($app->studio['install']) {
+        if($app->estudio['install']) {
             if(!is_dir($tdz['data-dir'].'/e-studio')) {
                 // add e-studio installer routes
                 $tdz['routes']['e-studio-install']=array(
-                  'class'=>'Tecnodesign_App_Studio_Install',
+                  'class'=>'Tecnodesign_App_Estudio_Install',
                   'method'=>'install',
                 );
                 $tdz['routes']['e-studio-install']+=Tecnodesign_App::$defaultController;
                 $tdz['routes']['e-studio-update-schema']=array(
-                  'class'=>'Tecnodesign_App_Studio_Install',
+                  'class'=>'Tecnodesign_App_Estudio_Install',
                   'method'=>'updateSchema',
                 );
                 $tdz['routes']['e-studio-update-schema']+=Tecnodesign_App::$defaultController;
             }
         }
-        $tdz['routes'][$app->studio['assets-url'].'/tecnodesign/js/loader.js']=array(
-            'class'=>'Tecnodesign_App_Studio',
+        $tdz['routes'][$app->estudio['assets-url'].'/tecnodesign/js/loader.js']=array(
+            'class'=>'Tecnodesign_App_Estudio',
             'method'=>'runLegacyAction', // 'runJsLoader',
         );
         $tdz['routes']['.*']=array(
-            'class'=>'Tecnodesign_App_Studio',
+            'class'=>'Tecnodesign_App_Estudio',
             'method'=>'runPreviewEntry',
         );
         $tdz['routes']['.*']+=Tecnodesign_App::$defaultController;
@@ -132,7 +132,7 @@ class Tecnodesign_App_Studio
             if(!is_array($tdz['lib-dir'])) {
                 $tdz['lib-dir'] = array($tdz['lib-dir']);
             }
-            $lib = dirname(__FILE__).'/Studio/Resources/model';
+            $lib = dirname(__FILE__).'/Estudio/Resources/model';
             $tdz['lib-dir'][] = $lib;
             tdz::$lib[] = $lib;
             $sep = (isset($_SERVER['WINDIR']))?(';'):(':');
@@ -144,7 +144,7 @@ class Tecnodesign_App_Studio
     public function run()
     {
         self::$app = tdz::getApp();
-        Tecnodesign_App_Studio::$instance=$this;
+        Tecnodesign_App_Estudio::$instance=$this;
     }
     
     /**
@@ -164,7 +164,7 @@ class Tecnodesign_App_Studio
      */
     public function setLanguage($language=null)
     {
-        $e = self::$app->studio;
+        $e = self::$app->estudio;
         if(!isset($e['languages']) || !is_array($e['languages'])) {
             $e['languages']=array();
         }
@@ -214,7 +214,7 @@ class Tecnodesign_App_Studio
         forwarded to symfony while methods aren't created at tecnodesign framework
         */
         $env = 'prod';
-        $appname = self::$app->studio['symfony-app'];
+        $appname = self::$app->estudio['symfony-app'];
         require_once(self::$app->tecnodesign['apps-dir'].'/config/ProjectConfiguration.class.php');
         $configuration = ProjectConfiguration::getApplicationConfiguration($appname, $env, false);
         sfContext::createInstance($configuration,$appname)->dispatch();
@@ -257,7 +257,7 @@ class Tecnodesign_App_Studio
         if(!method_exists($this, $m)) {
             if(method_exists($this, $ba)) $m=$ba;
             else {
-                tdz::log('Studio::'.$m.' was not defined!');
+                tdz::log('Estudio::'.$m.' was not defined!');
                 return $false;
             }
         }
@@ -284,8 +284,8 @@ class Tecnodesign_App_Studio
 
     public static function config($name, $value=null)
     {
-        if(!is_null($value)) self::$app->studio[$name]=$value;
-        return self::$app->studio[$name];
+        if(!is_null($value)) self::$app->estudio[$name]=$value;
+        return self::$app->estudio[$name];
     }
 
     public function runNew($arg)
@@ -294,23 +294,23 @@ class Tecnodesign_App_Studio
         $on=str_replace('tdz', '', $cn);
         self::title(tdz::t('New '.strtolower($on), 'e-studio'));
         $e=new $cn();
-        $fo=$e->getForm('studio-new');
-        $fo->attributes['class']='studio-form studio-form-new';
-        $fo->buttons = array('submit'=>'<span class="studio-icon studio-button-new"></span>'.tdz::t('Create', 'form'));
+        $fo=$e->getForm('estudio-new');
+        $fo->attributes['class']='estudio-form estudio-form-new';
+        $fo->buttons = array('submit'=>'<span class="estudio-icon estudio-button-new"></span>'.tdz::t('Create', 'form'));
         $s = '';
         if(count($_POST)>0) {
             try {
                 if($fo->validate($_POST)) {
                     $e->version=1;
                     $e->save();
-                    $eurl = self::$app->studio['ui-url'].'/e/'.array_search($on, self::$models).'/'.$e->id;
+                    $eurl = self::$app->estudio['ui-url'].'/e/'.array_search($on, self::$models).'/'.$e->id;
                     tdz::redirect($eurl);
                 }
             } catch (Exception $e) {
                 tdz::log(__METHOD__.':'.$e->getMessage());
                 $err = $fo->getError();
                 if(!$err) {
-                    $s .= '<div class="studio-error">'.tdz::t('There was an error while processing your request. Please try again or contact technical support.', 'e-studio').'</div>';
+                    $s .= '<div class="estudio-error">'.tdz::t('There was an error while processing your request. Please try again or contact technical support.', 'e-studio').'</div>';
                 }
             }
             // remove errors
@@ -336,17 +336,17 @@ class Tecnodesign_App_Studio
         }
         self::title(tdz::t('Edit', 'e-studio').' '.$type);
         $e=new $cn($arg['object']->asArray(),true,false);
-        $fo=$e->getForm('studio-edit');
+        $fo=$e->getForm('estudio-edit');
         if($arg['object']->expired) {
-            $fo->attributes['class']='studio-form studio-form-delete';
+            $fo->attributes['class']='estudio-form estudio-form-delete';
             $fo->buttons = array(
-                'submit'=>'<span class="studio-icon studio-button-edit"></span>'.tdz::t('Restore', 'e-studio'),
+                'submit'=>'<span class="estudio-icon estudio-button-edit"></span>'.tdz::t('Restore', 'e-studio'),
             );
         } else {
-            $fo->attributes['class']='studio-form studio-form-edit';
+            $fo->attributes['class']='estudio-form estudio-form-edit';
             $fo->buttons = array(
-                'submit'=>'<span class="studio-icon studio-button-edit"></span>'.tdz::t('Update', 'e-studio'),
-                'delete'=>'<button type="button" class="delete" onclick="return tdz.eFormDelete(this,\''.sprintf(tdz::t('Are you sure you want to remove this %s?', 'e-studio'), $type).'\')"><span class="studio-icon studio-button-delete"></span>'.tdz::t('Delete', 'e-studio').'</button>',
+                'submit'=>'<span class="estudio-icon estudio-button-edit"></span>'.tdz::t('Update', 'e-studio'),
+                'delete'=>'<button type="button" class="delete" onclick="return tdz.eFormDelete(this,\''.sprintf(tdz::t('Are you sure you want to remove this %s?', 'e-studio'), $type).'\')"><span class="estudio-icon estudio-button-delete"></span>'.tdz::t('Delete', 'e-studio').'</button>',
             );
         }
         $s = '';
@@ -368,10 +368,10 @@ class Tecnodesign_App_Studio
                     $cn::$schema['events']['before-insert']=$cn::$schema['events']['before-update'];
                     $cn::$schema['actAs']['before-insert']=$cn::$schema['actAs']['before-update'];
                     $e->save();
-                    self::$response['variables']['message']='<div class="studio-message studio-success">'.sprintf(tdz::t($msg, 'e-studio'), $type).'</div>';
+                    self::$response['variables']['message']='<div class="estudio-message estudio-success">'.sprintf(tdz::t($msg, 'e-studio'), $type).'</div>';
                     if($redirect) {
                         tdz::getUser()->setMessage(self::$response['variables']['message']);
-                        $eurl = self::$app->studio['ui-url'].'/e/'.array_search($on, self::$models).'/'.$e->id;
+                        $eurl = self::$app->estudio['ui-url'].'/e/'.array_search($on, self::$models).'/'.$e->id;
                         tdz::redirect($eurl);
                     }
                 }
@@ -379,7 +379,7 @@ class Tecnodesign_App_Studio
                 tdz::log(__METHOD__.':'.$e->getMessage());
                 $err = $fo->getError();
                 if(!$err) {
-                    self::$response['variables']['message'] = '<div class="studio-message studio-error">'.tdz::t('There was an error while processing your request. Please try again or contact technical support.', 'e-studio').'</div>';
+                    self::$response['variables']['message'] = '<div class="estudio-message estudio-error">'.tdz::t('There was an error while processing your request. Please try again or contact technical support.', 'e-studio').'</div>';
                 }
             }
         }
@@ -503,7 +503,7 @@ class Tecnodesign_App_Studio
             'layout'=>false,
             'optimize'=>false,
         );
-        tdz::$assetsUrl = $app->studio['assets-url'];
+        tdz::$assetsUrl = $app->estudio['assets-url'];
         $ci=false;
         if (false && $cmod && $updated && $cmod>$updated) {
             $ci=Tecnodesign_Cache::get($ckey);
@@ -520,7 +520,7 @@ class Tecnodesign_App_Studio
             self::$response['entry'] = tdzEntry::match($url, false, !$editor);
         }
 
-        if((!self::$response['entry'] || self::$response['entry']->link!=$url) && preg_match('/\.([^\.\/]+)\.(jpe?g|png|gif)$/i', $url, $m) && isset($app->studio['assets_optimize_actions'][$m[1]])) {
+        if((!self::$response['entry'] || self::$response['entry']->link!=$url) && preg_match('/\.([^\.\/]+)\.(jpe?g|png|gif)$/i', $url, $m) && isset($app->estudio['assets_optimize_actions'][$m[1]])) {
             $nurl = substr($url, 0, strlen($url) - strlen($m[0])).'.'.$m[2];
             $ne = tdzEntry::match($nurl, false, !$editor);
             if(!$ne) { 
@@ -559,9 +559,9 @@ class Tecnodesign_App_Studio
                 //tdz::debug(self::$response, var_export($editor, true), __METHOD__.','.__LINE__);
                 self::$response['layout']=$this->previewAsset($url);
             }
-            Tecnodesign_Cache::set($ckey, self::$response, $app->studio['cache_timeout']);
+            Tecnodesign_Cache::set($ckey, self::$response, $app->estudio['cache_timeout']);
         }
-        $prefix_url = $app->studio['prefix_url'];
+        $prefix_url = $app->estudio['prefix_url'];
         //$this->getResponse()->setHttpHeader('Last-Modified', $this->getResponse()->getDate($timestamp));
         if(self::$response['layout']) {
             if(self::$response['download']) {
@@ -587,15 +587,15 @@ class Tecnodesign_App_Studio
                 tdz::scriptName(self::$response['entry']->link);
             }
             if(self::$response['entry']) {
-                self::$response['javascript']['e-studio']=$app->studio['ui-assets-url'].'/js/loader.js?link='.urlencode(self::$response['entry']->link);
+                self::$response['javascript']['e-studio']=$app->estudio['ui-assets-url'].'/js/loader.js?link='.urlencode(self::$response['entry']->link);
             } else {
-                self::$response['javascript']['e-studio']=$app->studio['ui-assets-url'].'/js/loader.js';
+                self::$response['javascript']['e-studio']=$app->estudio['ui-assets-url'].'/js/loader.js';
             }
             self::$response['language']=$language;
-            if(isset($app->studio['symfony-app'])) {
-                self::$response['script'][]=$app->studio['ui-assets-url'].'/js/e-studio.js';
+            if(isset($app->estudio['symfony-app'])) {
+                self::$response['script'][]=$app->estudio['ui-assets-url'].'/js/e-studio.js';
                 self::$response['script'][]=self::$response['javascript']['e-studio'];
-                self::$response['style'][]=$app->studio['ui-assets-url'].'/css/e-studio.css';;
+                self::$response['style'][]=$app->estudio['ui-assets-url'].'/css/e-studio.css';;
             }
             Tecnodesign_App::response(self::$response);
             return true;
@@ -615,14 +615,14 @@ class Tecnodesign_App_Studio
         $e = (isset(self::$response['entry']) && self::$response['entry'])?(self::$response['entry']):(false);
         return array(
             'user'=> (string) tdz::getUser(),
-            'poll'=> self::$app->studio['poll'],
+            'poll'=> self::$app->estudio['poll'],
             'language'=>tdz::$lang,
             'dir'=>tdz::$assetsUrl.'/tecnodesign',
             'link'=>($e)?($e->link):(''),
             'entry'=>($e)?($e->id):(''),
-            'tinymce_css'=>self::$app->studio['tinymce_css'],
+            'tinymce_css'=>self::$app->estudio['tinymce_css'],
             'ui'=>'/e-studio',
-            'l'=>Tecnodesign_Yaml::load(dirname(__FILE__).'/Studio/Resources/config/labels.'.substr(tdz::$lang, 0, 2).'.yml'),
+            'l'=>Tecnodesign_Yaml::load(dirname(__FILE__).'/Estudio/Resources/config/labels.'.substr(tdz::$lang, 0, 2).'.yml'),
         );
     }
 
@@ -724,10 +724,10 @@ class Tecnodesign_App_Studio
             tdz::download($root.$url, null, null, 0, false, false, false);
             self::$app->end();
         }
-        $assets = self::$app->studio['assets-url'];
-        $optimize = (isset(self::$app->studio['assets-optimize']) && self::$app->studio['assets-optimize'] && substr($url, 0, strlen($assets))==$assets);
-        if($optimize && preg_match('/^(.*\.)([^\.\/]+)\.([^\.\/]+)$/', $url, $m) && file_exists($root.$m[1].$m[3]) && isset(self::$app->studio['assets-optimize-actions'][$m[2]])) {
-            $method = self::$app->studio['assets-optimize-actions'][$m[2]];
+        $assets = self::$app->estudio['assets-url'];
+        $optimize = (isset(self::$app->estudio['assets-optimize']) && self::$app->estudio['assets-optimize'] && substr($url, 0, strlen($assets))==$assets);
+        if($optimize && preg_match('/^(.*\.)([^\.\/]+)\.([^\.\/]+)$/', $url, $m) && file_exists($root.$m[1].$m[3]) && isset(self::$app->estudio['assets-optimize-actions'][$m[2]])) {
+            $method = self::$app->estudio['assets-optimize-actions'][$m[2]];
             $file = $root.$m[1].$m[3];
             $ext = strtolower($m[3]);
             if(in_array($ext, $method['extensions']) || in_array('*', $method['extensions'])) {
@@ -827,7 +827,7 @@ class Tecnodesign_App_Studio
             }
         }
         if(!isset($ep[0])) {
-            $d=self::$app->studio['permissions'];
+            $d=self::$app->estudio['permissions'];
             foreach($d as $r=>$c) {
                 $rk=array_search($r, $order);
                 if($rk!==false && !isset($ep[$rk])) {
@@ -856,7 +856,7 @@ class Tecnodesign_App_Studio
     }
     /**
      * Find current template file location, or false if none are found, accepts multiple arguments, processed in order.
-     * example: $template = Tecnodesign_App_Studio::templateFile($mytemplate, 'tdz_entry');
+     * example: $template = Tecnodesign_App_Estudio::templateFile($mytemplate, 'tdz_entry');
      */
     public static function templateFile($tpl)
     {
@@ -864,7 +864,7 @@ class Tecnodesign_App_Studio
         $apps = self::$app->tecnodesign['apps-dir'];
         $template=false;
         foreach(func_get_args() as $tpl) {
-            if($tpl && ((substr($tpl, 0, strlen($apps))==$apps && file_exists($tplf=$tpl.'.php')) || file_exists($tplf=$tpld.'/'.$tpl.'.php') || file_exists($tplf=TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/'.$tpl.'.php'))) {
+            if($tpl && ((substr($tpl, 0, strlen($apps))==$apps && file_exists($tplf=$tpl.'.php')) || file_exists($tplf=$tpld.'/'.$tpl.'.php') || file_exists($tplf=TDZ_ROOT.'/src/Tecnodesign/App/Estudio/Resources/templates/'.$tpl.'.php'))) {
                 $template = $tplf;
                 break;
             }

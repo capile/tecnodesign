@@ -1,0 +1,6 @@
+---
+Not enough privileges: "Acesso restrito"
+Looks like you don't have enough credentials to access this page. Please try logging in or accessing it with a different username.: "Parece que você não possui as credenciais para acessar esta página. Por favor experimente se conectar ou acessar com uma credencial diferente."
+Oops, where is this page?: "Ôpa, onde foi parar esta página?"
+We haven't found the page you requested. Are you sure the address is correct?: "Não encontramos a página que você requisitou. Você tem certeza de que o endereço está correto?"
+Could not connect to database. Reasons are: %s: "Não foi possível se conectar ao banco de dados. Os possíveis motivos são: %s"
