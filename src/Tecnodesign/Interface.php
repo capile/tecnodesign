@@ -363,7 +363,6 @@ class Tecnodesign_Interface implements ArrayAccess
             }
 
             $I = static::currentInterface($p);
-
             if($ext && !in_array($ext, static::$formats)) {
                 return static::error(400, static::t('errorNotSupported'));
             } else if($ext) {

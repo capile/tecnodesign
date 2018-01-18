@@ -74,7 +74,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         'after-insert' => array ( 'actAs', ),
         'after-update' => array ( 'actAs', ),
         'after-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
       ),
       'form' => array (
         'content_type' => array ( 'bind' => 'content_type', 'type' => 'select', 'class' => 'studio-field-content-type s-inline', 'attributes'=>array('data-callback'=>'contentType')),
@@ -162,7 +162,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
     public static function preview($c)
     {
         if(!($c instanceof self)) {
-            $c = self::find($c);
+            $c = self::find($c,1);
         }
         if($c) {
             return $c->render(true);
@@ -197,7 +197,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         if(substr($this->content, 0,1)=='{') {
             $r = json_decode($this->content, true);
         } else if(preg_match('#^\n*(---[^\n]*\n)?[a-z0-9\- ]+\:#i', $this->content)) {
-            $r = str_replace('\r\n', "\n", Tecnodesign_Yaml::load($this->content));
+            $r = str_replace(array('\r\n', "\\r\n"), "\n", Tecnodesign_Yaml::load($this->content));
             //$r = Tecnodesign_Yaml::load($this->content);
         } else {
             $r = $this->content;
@@ -402,7 +402,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             } else if(!$this->id && !is_numeric($this->id) && $this->isNew()) {
                 $this->id=null;
             }
-            \tdz::log(__METHOD__, var_Export($this, true));
             throw new Tecnodesign_Exception('We could not find the source content to update.', 1);
 
         }
@@ -457,6 +456,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
                 }
                 if(isset($r['export'])) {
                     $result .= eval("return {$r['export']};");
+                } else if(isset($r['exec'])) {
+                    $result .= tdz::exec($r['exec']);
                 } else {
                     $result .= (isset($r['content']))?($r['content']):('');
                 }
@@ -538,12 +539,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             if(substr($code['pi'], 0,5)=='<'.'?php') $code['pi'] = trim(substr($code['pi'], 5));
         }
         return tdz::exec($code);
-        /*
-        if(Tecnodesign_Studio::$cacheTimeout===false) {
-            return tdz::exec($code);
-        }
-        return array('export'=>'tdz::exec('.var_export($code,true).')');
-        */
     }
 
     public static function renderWidget($code=null, $e=null)
@@ -586,7 +581,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         if(!is_numeric($o['variables']['entry'])) {
             $o['variables']['entry']=$e;
         }
-        $E = ($e instanceof tdzEntry)?($e):(tdzEntry::find($o['variables']['entry']));
+        $E = ($e instanceof tdzEntry)?($e):(tdzEntry::find($o['variables']['entry'],1));
         if($E) {
             $o['variables'] += $E->asArray();
             $f = array('Relation.parent'=>$E->id);
@@ -601,7 +596,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         }
         */
         unset($code);
-        return array('export'=>'tdz::exec('.var_export($o,true).')');
+        return tdz::exec($o);
+        //return array('export'=>'tdz::exec('.var_export($o,true).')');
     }
     
 }

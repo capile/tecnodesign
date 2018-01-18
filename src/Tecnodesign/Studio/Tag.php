@@ -54,7 +54,7 @@ class Tecnodesign_Studio_Tag extends Tecnodesign_Model
         'before-insert' => array ( 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
         'after-insert' => array ( 'actAs', ),
         'after-update' => array ( 'actAs', ),
         'after-delete' => array ( 'actAs', ),

@@ -441,9 +441,7 @@ class Tecnodesign_App
             self::$_response += tdz::$variables;
             $result = $this->runTemplate(self::$_response['layout'], self::$_response);
         }
-        $proto = (isset($_SERVER['SERVER_PROTOCOL']))?($_SERVER['SERVER_PROTOCOL']):('HTTP/1.1');
-        @header($proto.' '.$errors[$error]);
-        @header('Content-Type: text/html; charset=utf-8');
+        //@header('Content-Type: text/html; charset=utf-8');
         @header('Content-Length: '.strlen($result));
         tdz::cacheControl('no-cache, private, must-revalidate', false);
         echo $result;

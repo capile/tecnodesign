@@ -146,7 +146,7 @@ class Tecnodesign_App_Install
                 $dir = $this->root.'/'.$dir;
             }
             if(file_exists($dir)) {
-                chmod ($dir, $umask);
+                @chmod ($dir, $umask);
             } else if(!mkdir($dir, $umask, true)) {
                 $this->errors[] = "Could not create dir {$dir}";
             }

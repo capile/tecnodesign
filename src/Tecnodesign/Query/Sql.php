@@ -38,20 +38,24 @@ class Tecnodesign_Query_Sql
     {
         if(!isset(static::$conn[$n]) || !static::$conn[$n]) {
             try {
+                $level = 'find';
                 $db = Tecnodesign_Query::database($n);
                 if(!$n && is_array($db)) $db = array_shift($db); 
                 $db += array('username'=>null, 'password'=>null, 'options'=>static::$options);
+                $level = 'connect';
                 static::$conn[$n] = new \PDO($db['dsn'], $db['username'], $db['password'], $db['options']);
                 if(!static::$conn[$n]) {
+                    tdz::log('Connection to '.$n.' failed, retrying... '.$tries);
                     $tries--;
                     if(!$tries) return false;
                     return static::connect($n, $exception, $tries);
                 }
                 if(isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+                    $level = 'initialize';
                     static::$conn[$n]->exec($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND]);
                 }
             } catch(Exception $e) {
-                tdz::log('Could not connect to '.$n.":\n  {$e->getMessage()}");
+                tdz::log('Could not '.$level.' to '.$n.":\n  {$e->getMessage()}\n".$e);
                 if($exception) {
                     throw new Exception('Could not connect to '.$n);
                 }
@@ -73,7 +77,7 @@ class Tecnodesign_Query_Sql
     public function scope($o=null)
     {
         $cn = $this->_schema;
-        if($o==='uid') return $cn::pk();
+        if($o==='uid') return $cn::pk(null, true);
         return $cn::scope($o);
     }
 
@@ -147,7 +151,7 @@ class Tecnodesign_Query_Sql
                 $s = ' count(distinct '.$cc.')';
             }
         } else {
-            $s = ($this->_select)?($this->_distinct.$this->_select):(' a.*');
+            $s = ($this->_select)?($this->_distinct.' '.implode(', ', $this->_select)):(' a.*');
         }
 
         $q = 'select'
@@ -197,14 +201,18 @@ class Tecnodesign_Query_Sql
         return $i;
     }
 
-    public function select($o)
+    public function select($o=false)
     {
-        $this->_select = null;
-        return $this->addSelect($o);
+        if($o!==false) {
+            $this->_select = null;
+            $this->addSelect($o);
+        }
+        return ' '.implode(', ', $this->_select);
     }
 
     public function addSelect($o)
     {
+        if(is_null($this->_select)) $this->_select = array();
         if(is_array($o)) {
             foreach($o as $s) {
                 $this->addSelect($s);
@@ -212,8 +220,9 @@ class Tecnodesign_Query_Sql
             }
         } else {
             $fn = $this->getAlias($o);
-            if($fn && strpos($fn, $this->_select)===false) {
-                $this->_select .= ($this->_select)?(", {$fn}"):(" {$fn}");
+            if($fn) {
+                $this->_select[$fn]=$fn;
+                //$this->_select .= ($this->_select)?(", {$fn}"):(" {$fn}");
             }
             unset($fn);
         }
@@ -259,6 +268,9 @@ class Tecnodesign_Query_Sql
                 unset($s);
             }
         } else if($o) {
+            if(preg_match('/\s+[\_\-a-z0-9]+\s*$/i', $o, $m)) {
+                $o = substr($o, 0, strlen($o)-strlen($m[0]));
+            }
             $fn = (!is_int($o))?($this->getAlias($o)):($o);
             if($fn && strpos($fn, $this->_orderBy)===false) {
                 if($sort!='asc' && $sort!='desc')$sort='';
@@ -310,12 +322,12 @@ class Tecnodesign_Query_Sql
         return $this;
     }
 
-    private function getFunctionNext($fn)
+    protected function getFunctionNext($fn)
     {
         return 'ifnull(max('.$this->getAlias($fn).'),0)+1';
     }
 
-    private function getAlias($f, $sc=null)
+    protected function getAlias($f, $sc=null)
     {
         $ofn = $fn = $f;
         if(substr($f, 0, 1)=='-' && substr($f,-1)=='-') return false;
@@ -467,7 +479,7 @@ class Tecnodesign_Query_Sql
         return $fn;
     }
 
-    private function getWhere($w, $xor='and')
+    protected function getWhere($w, $xor='and')
     {
         $r='';
         $e = $this->schema('events');
@@ -533,6 +545,7 @@ class Tecnodesign_Query_Sql
                     }
                 }
             } else {
+                $k=trim($k);
                 $cop = $op;
                 $pxor = (isset($cxor))?($cxor):(null);
                 $cxor = $xor;

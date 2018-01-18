@@ -115,7 +115,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         Tecnodesign_Studio::$page = $this->id;
         if($this->link!=tdz::scriptName()) tdz::scriptName($this->link);
         tdz::$variables['entry'] = $this;
-        $m = 'render'.ucfirst(tdz::camelize($this->type));
+        $m = 'render'.ucfirst(tdz::camelize($this->getType()));
         if(!method_exists($this, $m)) {
             Tecnodesign_Studio::error(404);
         }
@@ -155,6 +155,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
         }
         if(is_null($c) && $this->credential) $c = $this->credential;
+        else if($c==='*') $c = false;
 
         if($c && !(($U=tdz::getUser()) && $U->hasCredential($c, false))) {
             Tecnodesign_Studio::error(403);
@@ -461,6 +462,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         return '';
     }
 
+    public function getType()
+    {
+        if(!$this->type && !$this->isNew()) {
+            $this->type = 'page';
+        }
+        return $this->type;
+    }
 
     public function getParent($scope=null)
     {
