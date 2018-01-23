@@ -97,7 +97,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      */
     public static function timestamp($tns=null)
     {
-        return Tecnodesign_Query::handler(get_called_class())->timestamp($tns);
+        return static::queryHandler()->timestamp($tns);
     }
     
     public function __sleep()
@@ -864,12 +864,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     
     public function asArray($scope=null, $keyFormat=null, $valueFormat=null, $serialize=null)
     {
+        $noscope = (is_null($scope));
         $schema = $this->schema();
         $result = array();
         if (!is_null($scope) && (is_array($scope) || isset($schema['scope'][$scope]))) {
             if(!is_array($scope)) $scope = $schema['scope'][$scope];
         } else if(isset($schema['columns'])) {
             $scope = $schema['columns'];
+        }
+        if(!$scope && $noscope) {
+            return $this->_original;
         }
         if($scope && is_array($scope)) {
             foreach($scope as $fn=>$fv) {
@@ -1225,7 +1229,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!$conn) {
             $conn = static::$schema['database'];
         }
-        if(is_null($Q)) $Q = Tecnodesign_Query::handler(get_called_class());
+        if(is_null($Q)) $Q = static::queryHandler();
         $C = $Q->connect($conn);
         if($C && is_object($C)) return $C;
         return $Q;
@@ -1234,7 +1238,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
     public static function beginTransaction($conn=null, $Q=null)
     {
-        if(is_null($Q)) $Q = Tecnodesign_Query::handler(get_called_class());
+        if(is_null($Q)) $Q = static::queryHandler();
         if($Q && method_exists($Q, 'transaction')) {
             return $Q->transaction(null, $conn);
         }
@@ -1242,7 +1246,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     
     public static function commitTransaction($trans, $conn=null, $Q=null)
     {
-        if(is_null($Q)) $Q = Tecnodesign_Query::handler(get_called_class());
+        if(is_null($Q)) $Q = static::queryHandler();
         if($Q && method_exists($Q, 'commit')) {
             return $Q->commit($trans, $conn);
         }
@@ -1250,7 +1254,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
     public static function rollbackTransaction($trans, $conn=null, $Q=null)
     {
-        if(is_null($Q)) $Q = Tecnodesign_Query::handler(get_called_class());
+        if(is_null($Q)) $Q = static::queryHandler();
         if($Q && method_exists($Q, 'rollback')) {
             return $Q->rollback($trans, $conn);
         }
@@ -1265,7 +1269,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(is_null($relations)) $relations = static::$relationDepth;
         if(tdz::$perfmon) $perfmon = microtime(true);
         try {
-            $this->_query = Tecnodesign_Query::handler($cn);
+            $this->_query = static::queryHandler();
             if(!$conn) {
                 $conn = $this->_query->connect($cn::$schema['database']);
             }
@@ -1852,7 +1856,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             $fd=false;
             if(!$display && isset($schema['columns'][$fn])) {
-                $fd=$schema['columns'][$fn];
+                $fd=$schema['columns'][$fn]+array('type'=>'string');
                 if($fd['type']=='datetime' || $fd['type']=='date') {
                     if($value && $t=strtotime($value)) {
                         $df = ($fd['type']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
@@ -2096,6 +2100,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if (!is_null($name) && method_exists($this, $m='validate'.\tdz::camelize($name, true))) {
             $value = $this->$m($value);
         }
+        if(!isset($schema['type'])) $schema['type']='string';
         if ($schema['type']=='string') {
             $value = (is_array($value))?(implode(',',$value)):(@(string) $value);
             if (isset($schema['size']) && $schema['size'] && strlen($value) > $schema['size']) {
@@ -2244,7 +2249,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     {
         $m='get'.tdz::camelize($name, true);
         $ret = false;
-        @list($firstName,$ref)=explode('.', $name, 2);
+        $dot = strpos($name, '.');
+        if($dot!==false) {
+            @list($firstName,$ref)=explode('.', $name, 2);
+        }
         if (method_exists($this, $m)) {
             $ret = $this->$m();
         } else if(strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
@@ -2258,7 +2266,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         } else if (isset($this->$name)) {
             $ret = $this->$name;
-        } else if($firstName && $ref && (isset($this->$firstName) || method_exists($this, $m='get'.tdz::camelize($firstName, true)))) {
+        } else if($dot && $firstName && $ref && (isset($this->$firstName) || method_exists($this, $m='get'.tdz::camelize($firstName, true)))) {
             if(method_exists($this, $m='get'.tdz::camelize($firstName, true))) {
                 $a = $this->$m();
             } else if(isset(static::$schema['columns'][$firstName]['serialize']) && is_string($this->$firstName)) {

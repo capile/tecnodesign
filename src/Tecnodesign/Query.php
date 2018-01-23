@@ -61,15 +61,19 @@ class Tecnodesign_Query implements \ArrayAccess
             }
         }
         if(!isset($H[$n])) {
-            $dbs = self::database();
-            $db = (!isset($dbs[$n]))?(array_shift($dbs)):($dbs[$n]);
-            $cn = (isset($db['class']))?($db['class']):('Tecnodesign_Query_'.ucfirst(substr($db['dsn'], 0, strpos($db['dsn'], ':'))));
-            $H[$n] = $cn;
-            unset($dbs, $db);
-        } else {
-            $cn = $H[$n];
+            $H[$n] = self::databaseHandler($n);
         }
+        $cn = $H[$n];
         return new $cn($s);
+    }
+
+    public static function databaseHandler($n)
+    {
+        $dbs = self::database();
+        $db = (!isset($dbs[$n]))?(array_shift($dbs)):($dbs[$n]);
+        $cn = (isset($db['class']))?($db['class']):('Tecnodesign_Query_'.ucfirst(substr($db['dsn'], 0, strpos($db['dsn'], ':'))));
+        unset($dbs, $db);
+        return $cn;
     }
 
     public function offsetSet($offset, $value) {

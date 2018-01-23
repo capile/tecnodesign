@@ -31,8 +31,9 @@ $r['{columns}'] = count($scope);
 
 $m = (isset($meta) && is_array($meta))?($meta):(array());
 
-$format = 'xlsx';
-$Interface::format($format);
+$format = $Interface::format();
+//$format = 'xlsx';
+//$Interface::format($format);
 
 if(!isset($m['filename'])) $m['filename']=$interface;
 $fname = $m['filename'];
@@ -215,13 +216,13 @@ if($st) {
     $Interface::worker(tdz::t('Packaging...', 'interface'));
     $download = false;
     $keepFile = true;
-    $fname = $filename.'.xlsx';
+    $fname = $filename.'.'.$format;
 } else {
     $download=true;
     $keepFile=false;
-    $fname .= '.xlsx';
+    $fname .= '.'.$format;
 }
-$s = $R->render('xlsx', $fname, $download, $keepFile);
+$s = $R->render($format, $fname, $download, $keepFile);
 
 if($st) {
     $Interface::worker(tdz::t('Download!', 'interface'), $s);

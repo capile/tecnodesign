@@ -675,30 +675,18 @@ class Tecnodesign_Excel
      */
     private function renderPdf($file, $download=true, $keepFile=false)
     {
-        if (!PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_DOMPDF, TDZ_ROOT.'/src/dompdf')) {
-            if (!PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_TCPDF, TDZ_ROOT.'/src/tcpdf')) {
-                tdz::debug('Could not load PDF renderer.');
+        if(!class_exists('Dompdf\Dompdf') || !PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_DOMPDF, dirname(TDZ_ROOT).'/dompdf')) {
+            if(!class_exists('TCPDF') || !PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_TCPDF, dirname(TDZ_ROOT).'/TCPDF-src')) {
+                new Tecnodesign_Pdf();
+                PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_TCPDF, dirname(TDZ_ROOT).'/TCPDF-src');
             }
-        } else {
-            define('DOMPDF_ENABLE_AUTOLOAD', false);
-            define('DOMPDF_FONT_DIR', TDZ_ROOT . '/src/fonts/');
-            define('DOMPDF_FONT_CACHE', TDZ_VAR . '/cache/fonts/');
-            require_once(TDZ_ROOT . '/src/dompdf/include/autoload.inc.php');
-            require_once(TDZ_ROOT . '/src/php-font-lib/src/FontLib/Font.php');
+
         }
 
-
-        //$file = realpath($file);
-        $p=getcwd();
-        chdir('/');
-        // Create a Writer for PDF, which will automatically pick up the settings that you've defined
         $writer = PHPExcel_IOFactory::createWriter($this->excel, 'PDF');
-        //$writer = new PHPExcel_Writer_PDF($this->excel);
         $writer->save($file);
         $this->clearAllObjects();
         $this->download($download, $file, $keepFile);
-        chdir($p);
-        unset($p);
         return $file;
     }
     

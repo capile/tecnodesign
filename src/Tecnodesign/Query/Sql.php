@@ -13,8 +13,8 @@
 class Tecnodesign_Query_Sql
 {
     const TYPE='sql';
-    public static $microseconds=6;
-    protected static $options, $conn=array();
+    public static $microseconds=6, $enableOffset=true;
+    protected static $options, $conn=array(), $tableDefault;
     protected $_schema, $_scope, $_select, $_distinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction, $_last;
 
     public function __construct($s=null)
@@ -329,7 +329,7 @@ class Tecnodesign_Query_Sql
             return str_replace($s, $r, $fn);
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
-        } else if(substr($f, 0, 1)=='_') {
+        } else if(substr($f, 0, 1)=='_' && !isset($this->schema('columns')[$f])) {
             // not to be queried
             return false;
         }
@@ -929,6 +929,44 @@ class Tecnodesign_Query_Sql
             }
             return $r;
         }
+    }
+
+    public function create($tn=null, $conn=null)
+    {
+        $schema = $this->schema();
+        if(!$tn) $tn = $schema['tableName'];
+        $q = '';
+        $pk = array();
+        foreach($schema['columns'] as $fn=>$fd) {
+            $q .= (($q)?(",\n "):("\n "))
+                . '`'.$fn.'` ';
+            if($fd['type']=='string') {
+                $q .= 'varchar('
+                    . ((isset($fd['size']))?($fd['size']):(255))
+                    . ')';
+            } else if(isset($fd['data-type'])) {
+                $q .= $fd['data-type'];
+            } else {
+                $q .= $fd['type'];
+            }
+            if(isset($fd['null']) && !$fd['null']) $q .= ' not';
+            $q .= ' null';
+            if(isset($fd['primary']) && $fd['primary']) $pk[]=$fn;
+        }
+        if($pk) {
+            $q .= (($q)?(",\n "):("\n "))
+                . 'primary key(`'.implode('`,`', $pk).'`)';
+        }
+        $q = 'create table `'.$tn.'` ('.$q."\n)".static::$tableDefault;
+        if(!$conn) {
+            $conn = self::connect($this->schema('database'));
+        }
+        $this->_last = $q;
+        $r = $conn->exec($this->_last);
+        if($r===false && $conn->errorCode()!=='00000') {
+            throw new Tecnodesign_Exception(array(tdz::t('Could not create %s.', 'exception'), $tn));
+        }
+        return $r;
     }
 
     /**

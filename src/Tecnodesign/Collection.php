@@ -110,7 +110,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         if(!$sql) {
             if($this->_statement) {
                 // must fetch the objects and remove the query
-                $toAdd = $this->getItem(0, 10000);
+                $toAdd = $this->getItem(0, $this->_max);
                 $this->_queryStatement(false);
                 $this->_count=0;
                 if($toAdd) {

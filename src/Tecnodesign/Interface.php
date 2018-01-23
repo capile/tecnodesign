@@ -2451,6 +2451,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->scope = $r;
             return $r;
         }
+
         /*
         if($clean) {
             $scope = $this->scope;
@@ -2478,12 +2479,18 @@ class Tecnodesign_Interface implements ArrayAccess
                 $R = $cn::find($this->search,1,array('count('.$pk.') _count'),true,false,true);
                 if($R) $r = (int) $R->_count;
                 unset($R);
+            } else if(method_exists($Q, 'count')) {
+                if($this->search) {
+                    $Q->where($this->search);
+                }
+                $r = $Q->count();
             } else {
                 $pk = $cn::pk(null, true);
                 $R = $cn::find($this->search,0,$pk,true,false,true);
                 if($R) $r = $R->count();
                 unset($R);
             }
+            unset($Q);
         }
         return $r;
     }
