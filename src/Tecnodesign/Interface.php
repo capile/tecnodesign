@@ -348,8 +348,9 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($p[$l]) && preg_match('/\.([a-z0-9]{3,4})$/', $p[$l], $m)) {
                 $ext = $m[1];
                 $p[$l] = substr($p[$l], 0, strlen($p[$l]) - strlen($m[0]));
-            } else {
-                $ext = Tecnodesign_App::request('extension');
+            } else if(($m=Tecnodesign_App::request('extension')) && in_array($m, static::$formats)) {
+                static::$ext = '.'.$m;
+                $format = static::$format = $m;
             }
             unset($m);
 
@@ -362,7 +363,6 @@ class Tecnodesign_Interface implements ArrayAccess
             }
 
             $I = static::currentInterface($p);
-
             if($ext && !in_array($ext, static::$formats)) {
                 return static::error(400, static::t('errorNotSupported'));
             } else if($ext) {
@@ -387,8 +387,9 @@ class Tecnodesign_Interface implements ArrayAccess
 
             if(!$I) return false;
 
-            tdz::$variables['variables']['script'][700] = tdz::$assetsUrl.'/studio/interface.js';
-            tdz::$variables['variables']['style'][700] = tdz::$assetsUrl.'/studio/interface.less';
+            tdz::$variables['variables']['script'][700] = tdz::minify(tdz::$assetsUrl.'/studio/interface.js', TDZ_DOCUMENT_ROOT, true, true, false, tdz::$assetsUrl.'/interface.js');
+            tdz::$variables['variables']['style'][700] = tdz::minify(tdz::$assetsUrl.'/studio/interface.less', TDZ_DOCUMENT_ROOT, true, true, false, tdz::$assetsUrl.'/interface.css');
+
             //Tecnodesign_App::response(array('script'=>array(700=>tdz::$assetsUrl.'/tecnodesign/js/interface.js')));
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
@@ -410,8 +411,9 @@ class Tecnodesign_Interface implements ArrayAccess
                 $sn = tdz::scriptName();
                 tdz::scriptName($I->url);
             }
-            $s = $I->render($p);
-            if(static::$headers) static::headers();
+
+            return $I->output($p);
+
         } catch(Tecnodesign_App_End $e) {
             if(static::$headers) static::headers();
             throw $e;
@@ -419,7 +421,12 @@ class Tecnodesign_Interface implements ArrayAccess
             tdz::log(__METHOD__.'->'.get_class($e).':'.$e);
             static::error(500);
         }
+    }
 
+    public function output($p=null)
+    {
+        $s = $this->render($p);
+        if(static::$headers) static::headers();
         if(static::$format!='html') {
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($s);
@@ -429,7 +436,7 @@ class Tecnodesign_Interface implements ArrayAccess
             //exit($s);
         }
 
-        $base = ($I::$base && $I::P_REAL_BASE)?($I::$base):(tdz::scriptName());
+        $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):(tdz::scriptName());
         $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
 
         return $s;
@@ -920,6 +927,11 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if(isset($this->actions[$a])) {
             if(isset($this->actions[$a]['identified'])) {
+                if($this->actions[$a]['identified'] && !isset($this->id) && $this->search) {
+                    if($this->count()==1) {
+                        $this->id = $this->model()->getPk();
+                    }
+                }
                 if(($this->actions[$a]['identified'] && !$this->id)
                     || (!$this->actions[$a]['identified'] && $this->id)
                 ) {
@@ -1530,6 +1542,17 @@ class Tecnodesign_Interface implements ArrayAccess
     public function render($p=array())
     {
         tdz::$variables['Interface'] = $this;
+        if(!$this->action) {
+            foreach(static::$actionsDefault as $a) {
+                if($this->setAction($a)) {
+                    break;
+                }
+                unset($a);
+            }
+            if(!Tecnodesign_Interface::$urls) {
+                Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$this->getTitle(),'action'=>$this->action);
+            }
+        }
         static::$currentAction = $this->action;
 
         if($this->run) {
@@ -2451,7 +2474,6 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->scope = $r;
             return $r;
         }
-
         /*
         if($clean) {
             $scope = $this->scope;
@@ -2471,15 +2493,23 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         $r = 0;
         if($cn=$this->getModel()) {
-            $Q = $cn::queryHandler();
-            if($Q::TYPE=='sql') {
+            $sql = true;
+            $Q = null;
+            if(method_exists($cn, 'queryHandler')) {
+                $Q = $cn::queryHandler();
+                if($Q::TYPE!='sql') {
+                    $sql = false;
+                }
+                unset($Q);
+            }
+            if($sql) {
                 $pk = $cn::pk();
                 if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';
                 else $pk = 'distinct `'.$pk.'`';
                 $R = $cn::find($this->search,1,array('count('.$pk.') _count'),true,false,true);
                 if($R) $r = (int) $R->_count;
                 unset($R);
-            } else if(method_exists($Q, 'count')) {
+            } else if($Q && method_exists($Q, 'count')) {
                 if($this->search) {
                     $Q->where($this->search);
                 }

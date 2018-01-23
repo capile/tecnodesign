@@ -54,7 +54,7 @@ class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Model
         'before-insert' => array ( 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
       ),
       'form' => array (
         'content_type'=>array('bind'=>'content_type', 'type'=>'select', 'choices'=>'Tecnodesign_Studio::config(\'content_types\')', 'class'=>'studio-field-content-type'),
@@ -74,7 +74,7 @@ class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Model
     public static function preview($c)
     {
         if(!($c instanceof self)) {
-            $c = self::find($c);
+            $c = self::find($c,1);
         }
         if($c) {
             return $c->render(true);

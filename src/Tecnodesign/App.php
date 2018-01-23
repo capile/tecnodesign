@@ -48,7 +48,9 @@ class Tecnodesign_App
             'layout'=>false,
             'credentials'=>false,
         ),
-        $result;
+        $result,
+        $http2push=false,
+        $link;
     protected $_o=null;
     
     public function __construct($s, $siteMemKey=false, $env='prod')
@@ -345,6 +347,9 @@ class Tecnodesign_App
                     tdz::cacheControl('no-cache, private, must-revalidate', false);
                 }
             }
+            if(self::$http2push && self::$link) {
+                header('Link: '.static::$link);
+            }
             echo self::$result;
             tdz::flush();
         } else {
@@ -436,7 +441,7 @@ class Tecnodesign_App
             self::$_response += tdz::$variables;
             $result = $this->runTemplate(self::$_response['layout'], self::$_response);
         }
-        @header('Content-Type: text/html; charset=utf-8');
+        //@header('Content-Type: text/html; charset=utf-8');
         @header('Content-Length: '.strlen($result));
         tdz::cacheControl('no-cache, private, must-revalidate', false);
         echo $result;
@@ -731,6 +736,15 @@ class Tecnodesign_App
             }
             if(!isset(self::$_request['post'])) {
                 self::$_request['post']=tdz::postData($_POST);
+            }
+        }
+        if($q=='headers' && !isset(self::$_request[$q])) {
+            self::$_request[$q]=array();
+            foreach($_SERVER as $k=>$v) {
+                if(substr($k, 0, 5)=='HTTP_') {
+                    self::$_request[$q][str_replace('_','-',strtolower(substr($k,5)))] = $v;
+                }
+                unset($k, $v);
             }
         }
         if($q) {

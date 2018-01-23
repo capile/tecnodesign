@@ -45,7 +45,7 @@ class Tecnodesign_Studio_Relation extends Tecnodesign_Model
         'before-insert' => array ( 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
       ),
       'form' => array (
         'perfil' => array ( 'bind' => 'perfil', 'type' => 'select', 'choices' => 'Perfil', ),

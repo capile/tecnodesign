@@ -37,7 +37,7 @@ class Tecnodesign_Studio_Credential extends Tecnodesign_Model
         'before-insert' => array ( 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
       ),
       'form' => array (
         'user' => array ( 'bind' => 'user', 'type' => 'select', 'choices' => 'User', ),

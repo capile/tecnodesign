@@ -20,7 +20,8 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
-        $webInterface=true,
+        $automatedInstall=false,
+        $webInterface,
         $checkOrigin=true,  // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
@@ -50,13 +51,15 @@ class Tecnodesign_Studio
     public function __construct($config, $env='prod')
     {
         // this needs to be better, switching to command line
-        $version = (float) tdz::getApp()->studio['version'];
-        if($version<self::VERSION) {
+        if(self::$automatedInstall) {
+            $version = (float) tdz::getApp()->studio['version'];
             if($version<self::VERSION) {
-                Tecnodesign_Studio_Install::upgrade($version);
-                tdz::save($if, Tecnodesign_Yaml::dump(array('id'=>'Tecnodesign_Studio','version'=>self::VERSION)));
+                if($version<self::VERSION) {
+                    Tecnodesign_Studio_Install::upgrade($version);
+                    tdz::save($if, Tecnodesign_Yaml::dump(array('id'=>'Tecnodesign_Studio','version'=>self::VERSION)));
+                }
+                Tecnodesign_Cache::set('e-studio', self::VERSION);
             }
-            Tecnodesign_Cache::set('e-studio', self::VERSION);
         }
     }
 
@@ -68,7 +71,7 @@ class Tecnodesign_Studio
     public static function run()
     {
         self::$app = tdz::getApp();
-        $req = self::$app->request();
+        $req = Tecnodesign_App::request();
         if($req['shell']) {
             tdz::scriptName($req['script-name']);
             self::$cacheTimeout = false;
@@ -107,9 +110,10 @@ class Tecnodesign_Studio
             $E->render();
             unset($E);
             return true;
-        //} else if(tdzAsset::run($sn)) {
+        } else if(substr($sn, 0, strlen(tdz::$assetsUrl))==tdz::$assetsUrl && tdzAsset::run($sn)) {
+            return true;
         } else if(TDZ_CLI && $sn=='studio') {
-            Tecnodesign_Studio_Task::run(self::$app->request('argv'));
+            Tecnodesign_Studio_Task::run(Tecnodesign_App::request('argv'));
         } else {
             self::error(404);
         }
@@ -127,7 +131,7 @@ class Tecnodesign_Studio
         } else if(count($l)<2) {
             $lang = $l[0];
         } else {
-            $req = self::$app->request();
+            $req = Tecnodesign_App::request();
             if(substr($req['query-string'],0,1)=='!' && in_array($lang=substr($req['query-string'],1), $l)) {
                 setcookie('lang',$lang,0,'/',false,false);
                 tdz::redirect($req['script-name'].'?'.$lang);
@@ -168,6 +172,10 @@ class Tecnodesign_Studio
                 self::error(404);
             }
         } else {
+            static $methods = array(
+                '/p'=>'listProperties',
+                '/q'=>'listInterfaces',
+            );
             if(!($U=tdz::getUser()) || !$U->isAuthenticated() || !($U->isSuperAdmin() || ($c=self::credential(array('studio','edit','previewUnpublished'))) && $U->hasCredential($c, false))) {
                 return self::error(403);
             }
@@ -180,8 +188,9 @@ class Tecnodesign_Studio
                 Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
                 Tecnodesign_App::response('style', array('/studio.less'));
                 return Tecnodesign_Studio_Interface::run();
-            } else if($url=='/p') {
-                return self::listProperties();
+            } else if(isset($methods[$url])) {
+                $m = $methods[$url];
+                return self::$m();
             } else {
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
@@ -195,6 +204,49 @@ class Tecnodesign_Studio
         }
 
         self::error(404);
+    }
+
+    public static function listInterfaces()
+    {
+        $R = array();
+        $p = Tecnodesign_App::request('post', 'q');
+        if(!$p) $p = Tecnodesign_App::request('get', 'q');
+
+        if(!$p) {
+            tdz::output($R, 'json', false);
+            self::$app->end();
+            return true;
+        }
+
+        if(is_string($p)) {
+            if(strpos($p, ':')) {
+                try {
+                    $P = Tecnodesign_Yaml::load($p);
+                    if(!$P) $P = null;
+                } catch(Exception $e) {
+                    tdz::log('[ERROR]'.__METHOD__.' '.$e);
+                    $P = null;
+                }
+            }
+        } else {
+            $P = $p;
+        }
+        if(!isset($P)) $P = array($p);
+
+        foreach($P as $a=>$q) {
+            if(is_string($a) && ($I=Tecnodesign_Studio_Interface::searchInterface($a, $q))) {
+                $R['interface'] = $I->render();
+            }
+        }
+
+
+        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Studio') {
+            Tecnodesign_Studio_Interface::headers();
+            Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
+            //exit($s);
+        }
+
+        return $s;        
     }
 
     public static function listProperties()
@@ -415,7 +467,7 @@ class Tecnodesign_Studio
             $r = $U->asArray();
             if(self::$webInterface && (($U->isAuthenticated() && ($U->isSuperAdmin()) || (($ec= self::credential('studio')) && $U->hasCredential($ec, false))))) {
                 $r['plugins']=array(
-                    'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css'),
+                    'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css?interface'),
                 );
             }
             if($U->isAuthenticated() && ($cfg=Tecnodesign_Studio::$app->user)) {
@@ -749,39 +801,46 @@ class Tecnodesign_Studio
         return $template;
     }
 
-    protected static $t;
     public static function translate($s, $table=null, $to=null, $from=null)
     {
-        if($to && $to==$from) return $s;
-        else return self::t($s, null, $table); 
+        if($to && $to==$from)  {
+            return $s;
+        } else {
+            $r = self::t($s, null, $table);
+            return $r;
+            return self::t($s, null, $table);
+        }
     }
 
     public static function t($s, $alt=null, $table='lang')
     {
+        static $T;
         if(!$table) $table = 'lang';
-        if(is_null(self::$t)) {
-            if(!self::$t)self::$t=array();
+        if(is_null($T)) {
+            if(!$T)$T=array();
         }
-        if(!isset(self::$t[$table])) {
+        if(!isset($T[$table])) {
             $lang = substr(tdz::$lang, 0, 2);
             $ckey = 'studio/lang/'.$table.'.'.$lang;
-            self::$t[$table] = (self::$cacheTimeout)?(Tecnodesign_Cache::get($ckey, self::$cacheTimeout)):(array());
-            if(!self::$t[$table]) {
+            $T[$table] = false;//(self::$cacheTimeout)?(Tecnodesign_Cache::get($ckey, self::$cacheTimeout)):(array());
+            if(!$T[$table]) {
                 if(file_exists($f=self::$app->tecnodesign['data-dir'].'/'.$ckey.'.yml')) {
-                    self::$t[$table] = Tecnodesign_Yaml::load($f);
+                    $T[$table] = Tecnodesign_Yaml::load($f);
+                } else {
+                    $T[$table] = array();
                 }
                 if(file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/lang/'.$table.'.'.$lang.'.yml') || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/lang/'.$table.'.en.yml')) {
-                    if(!self::$t[$table]) self::$t[$table] = array();
+                    if(!$T[$table]) $T[$table] = array();
                     $trans = Tecnodesign_Yaml::load($f);
                     if($trans)
-                        self::$t[$table] += $trans;
+                        $T[$table] += $trans;
                 }
-                if(self::$cacheTimeout) Tecnodesign_Cache::set($ckey, self::$t[$table], self::$cacheTimeout);
+                if(self::$cacheTimeout) Tecnodesign_Cache::set($ckey, $T[$table], self::$cacheTimeout);
             }
             unset($lang, $ckey);
         }
-        if(isset(self::$t[$table][$s])) {
-            return self::$t[$table][$s];
+        if(isset($T[$table][$s])) {
+            return $T[$table][$s];
         } else if($alt) {
             //tdz::log('[Translate] no record for '.$s.' in '.$table.'.'.substr(tdz::$lang, 0, 2));
             return $alt;

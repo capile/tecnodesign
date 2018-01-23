@@ -46,7 +46,7 @@ class Tecnodesign_Studio_Permission extends Tecnodesign_Model
         'before-insert' => array ( 'nextId', 'actAs', ),
         'before-update' => array ( 'actAs', ),
         'before-delete' => array ( 'actAs', ),
-        'active-records' => 'expired is null',
+        'active-records' => '`expired` is null',
       ),
       'form' => array (
       ),
