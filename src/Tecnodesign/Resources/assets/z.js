@@ -740,7 +740,7 @@ Z.initRequiredField=function(e)
 
 }
 
-var _Tl,_L={};
+var _Tl,_L=[];
 function checkLabel(e)
 {
     if(_Tl) clearTimeout(_Tl);

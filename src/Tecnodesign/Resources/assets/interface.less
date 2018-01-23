@@ -136,7 +136,8 @@
   border-top:1px solid #fff;
   background:@color;
   .tdz-counter {
-    float:none;display:inline-block;padding:5px 0 5px 10px;max-width:90%;
+    float:none;display:inline-block;max-width:90%;
+    ~ label {display:inline-block;vertical-align:top;}
   }
 }
 
@@ -829,7 +830,8 @@ select, input {
       top: 0;
       right: 0;
       content: "\f0c9";
-      color: #666;
+      color: #fff - (@colorSummary);
+      opacity: 0.6;
       height:1.25em;width:0.75em;font-size:1.5em;line-height:1em;
       padding: 0;
       text-align:right;
