@@ -10,9 +10,10 @@
  * @copyright 2017 Tecnodesign
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sqlite
+class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 {
 
+    public static $textToVarchar=2147483647, $microseconds=3;
     /**
      * Returns the last inserted ID from a insert call
      * returns true if successful
@@ -47,6 +48,9 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sqlite
                 $s = ' count(distinct '.$cc.')';
             }
         } else {
+            if($this->_distinct && $this->_selectDistinct) {
+                $this->_select = $this->_selectDistinct + $this->_select;
+            }
             $s = $this->_distinct;
             if(!$this->_offset && $this->_limit) {
                 $s .= ' top '.$this->_limit;
@@ -68,6 +72,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sqlite
 
     public function addOrderBy($o, $sort='asc')
     {
+        if(!$o) return;
         if($this->_distinct) {
             if(is_array($o)) {
                 $fns = array();
@@ -95,6 +100,70 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sqlite
             return $r;
         } else {
             return $p.$a;
+        }
+    }
+
+    /**
+     * Enables transactions for this connector
+     * returns the transaction $id
+     */
+    public function transaction($id=null, $conn=null)
+    {
+        if(is_null($this->_transaction)) $this->_transaction = array();
+        if(!$id) {
+            $id = uniqid('tdzt');
+        }
+        if(!isset($this->_transaction[$id])) {
+            if(!$conn) {
+                $conn = self::connect($this->schema('database'));
+            }
+            $this->exec('begin transaction '.$id, $conn);
+            $this->_transaction[$id] = $conn;
+        }
+        return $id;
+    }
+
+    /**
+     * Commits transactions opened by ::transaction
+     * returns true if successful
+     */
+    public function commit($id=null, $conn=null)
+    {
+        if(!$this->_transaction) return false;
+        if(!$id) {
+            $id = array_shift(array_keys($this->_transaction));
+        }
+        if(isset($this->_transaction[$id])) {
+            if(!$conn) $conn = $this->_transaction[$id];
+            unset($this->_transaction[$id]);
+            if($conn) {
+                $this->exec('commit transaction '.$id, $conn);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Commits transactions opened by ::transaction
+     * returns true if successful
+     */
+    public function rollback($id=null, $conn=null)
+    {
+        if(!$this->_transaction) return false;
+        if(!$id) {
+            $id = array_shift(array_keys($this->_transaction));
+        }
+        if(isset($this->_transaction[$id])) {
+            if(!$conn) $conn = $this->_transaction[$id];
+            unset($this->_transaction[$id]);
+            if($conn) {
+                $this->exec('rollback transaction '.$id, $conn);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 

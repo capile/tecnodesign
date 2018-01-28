@@ -169,7 +169,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         }
         $id = ($this->id)?($this->id):(tdz::hash($this->link, null, 'uuid'));
         unset($c);
-        if(Tecnodesign_Studio::$cacheTimeout) {
+        if(Tecnodesign_Studio::$staticCache && Tecnodesign_Studio::$cacheTimeout) {
             $cf = Tecnodesign_Cache::cacheDir().'/'.Tecnodesign_Cache::siteKey().'/'.tdz::env().'/e-studio/page/e'.$id.'-'.$this->version.'-'.tdz::$lang.'.php';
             if(file_exists($cf) && (!Tecnodesign_Studio::$cacheTimeout || time()-filemtime($cf) < Tecnodesign_Studio::$cacheTimeout)) {
                 return array('layout'=>substr($cf, 0, strlen($cf)-4), 'template'=>'');
@@ -350,7 +350,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             Tecnodesign_Studio::$private = array_unique(Tecnodesign_Studio::$private);
             tdz::cacheControl('private', 60);
         }
-        if(Tecnodesign_Studio::$cacheTimeout && isset($cf) && tdz::save($cf, $layout, true)) {
+        if(Tecnodesign_Studio::$staticCache && Tecnodesign_Studio::$cacheTimeout && isset($cf) && tdz::save($cf, $layout, true)) {
             return array('layout'=>substr($cf, 0, strlen($cf)-4), 'template'=>'');
         } else {
             return tdz::exec(array('pi'=>substr($layout,5), 'variables'=>Tecnodesign_App::response()));

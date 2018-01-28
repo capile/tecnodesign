@@ -538,6 +538,9 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             $code['pi']=trim($code['pi']);
             if(substr($code['pi'], 0,5)=='<'.'?php') $code['pi'] = trim(substr($code['pi'], 5));
         }
+        if(Tecnodesign_Studio::$staticCache) {
+            return $code;
+        }
         return tdz::exec($code);
     }
 

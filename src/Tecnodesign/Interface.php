@@ -411,7 +411,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 $sn = tdz::scriptName();
                 tdz::scriptName($I->url);
             }
-
             return $I->output($p);
 
         } catch(Tecnodesign_App_End $e) {

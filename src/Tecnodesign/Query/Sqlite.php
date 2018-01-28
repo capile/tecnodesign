@@ -26,7 +26,7 @@ class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
             if(!$conn) {
                 $conn = self::connect($this->schema('database'));
             }
-            $conn->exec('begin transaction '.$id);
+            $this->exec('begin transaction '.$id, $conn);
             $this->_transaction[$id] = $conn;
         }
         return $id;
@@ -46,7 +46,7 @@ class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
             if(!$conn) $conn = $this->_transaction[$id];
             unset($this->_transaction[$id]);
             if($conn) {
-                return $conn->exec('commit transaction '.$trans);
+                return $this->exec('commit transaction '.$id, $conn);
             } else {
                 return false;
             }
@@ -67,7 +67,7 @@ class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
             if(!$conn) $conn = $this->_transaction[$id];
             unset($this->_transaction[$id]);
             if($conn) {
-                return $conn->exec('rollback transaction '.$trans);
+                return $this->exec('rollback transaction '.$id, $conn);
             } else {
                 return false;
             }

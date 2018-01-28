@@ -13,9 +13,9 @@
 class Tecnodesign_Query_Sql
 {
     const TYPE='sql';
-    public static $microseconds=6, $enableOffset=true;
+    public static $microseconds=6, $enableOffset=true, $textToVarchar;
     protected static $options, $conn=array(), $tableDefault;
-    protected $_schema, $_scope, $_select, $_distinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction, $_last;
+    protected $_schema, $_scope, $_select, $_distinct, $_selectDistinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction, $_last;
 
     public function __construct($s=null)
     {
@@ -56,6 +56,11 @@ class Tecnodesign_Query_Sql
                 }
             } catch(Exception $e) {
                 tdz::log('Could not '.$level.' to '.$n.":\n  {$e->getMessage()}\n".$e);
+                if($tries) {
+                    $tries--;
+                    if(isset(static::$conn[$n])) static::$conn[$n]=null;
+                    return static::connect($n, $exception, $tries);
+                }
                 if($exception) {
                     throw new Exception('Could not connect to '.$n);
                 }
@@ -74,9 +79,9 @@ class Tecnodesign_Query_Sql
         return $cn::$schema;
     }
 
-    public function scope($o=null)
+    public function scope($o=null, $sc=null)
     {
-        $cn = $this->_schema;
+        $cn = ($sc && isset($sc['className']))?($sc['className']):($this->_schema);
         if($o==='uid') return $cn::pk(null, true);
         return $cn::scope($o);
     }
@@ -150,8 +155,13 @@ class Tecnodesign_Query_Sql
             if($cc) {
                 $s = ' count(distinct '.$cc.')';
             }
+        } else if($this->_select) {
+            if($this->_distinct && $this->_selectDistinct) {
+                $this->_select = $this->_selectDistinct + $this->_select;
+            }
+            $s = $this->_distinct.' '.implode(', ', $this->_select);
         } else {
-            $s = ($this->_select)?($this->_distinct.' '.implode(', ', $this->_select)):(' a.*');
+            $s = ' a.*';
         }
 
         $q = 'select'
@@ -330,8 +340,9 @@ class Tecnodesign_Query_Sql
     protected function getAlias($f, $sc=null)
     {
         $ofn = $fn = $f;
-        if(substr($f, 0, 1)=='-' && substr($f,-1)=='-') return false;
-        else if(preg_match_all('#`([^`]+)`#', $fn, $m)) {
+        if(substr($f, 0, 1)=='-' && substr($f,-1)=='-') {
+            return false;
+        } else if(preg_match_all('#`([^`]+)`#', $fn, $m)) {
             $r = $s = array();
             foreach($m[1] as $i=>$nfn) {
                 $s[]=$m[0][$i];
@@ -339,6 +350,8 @@ class Tecnodesign_Query_Sql
                 unset($i, $nfn);
             }
             return str_replace($s, $r, $fn);
+        } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc))) {
+            return str_replace($m[1], $r, $m[0]);
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
         } else if(substr($f, 0, 1)=='_' && !isset($this->schema('columns')[$f])) {
@@ -369,6 +382,10 @@ class Tecnodesign_Query_Sql
             if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
                 $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sql($fn);
             } else {
+                if(isset($sc['columns'][$fn]['type']) && $sc['columns'][$fn]['type']=='string' && isset($sc['columns'][$fn]['size']) && $this::$textToVarchar && $this::$textToVarchar<=$sc['columns'][$fn]['size']) {
+                    if(!$this->_selectDistinct) $this->_selectDistinct=array();
+                    $this->_selectDistinct[$ta.'.'.$fn] = 'cast('.$ta.'.'.$fn.' as varchar(max)) '.$fn;
+                }
                 $fn = $ta.'.'.$fn;
             }
         } else if(!$found) {
@@ -411,28 +428,37 @@ class Tecnodesign_Query_Sql
                             if(!is_array($sc['relations'][$rn]['on'])) $sc['relations'][$rn]['on']=array($sc['relations'][$rn]['on']); 
                             foreach($sc['relations'][$rn]['on'] as $rfn) {
                                 list($rfn,$fnc)=explode(' ', $rfn, 2);
-                                if(substr($rfn,0,strlen($rn))==$rn) $join .=  "and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
-                                else $this->_from .= ' and '.$this->getAlias($rfn, $rsc).' '.$fnc;
+                                if(substr($rfn,0,strlen($rn))==$rn) {
+                                    $this->_from .= " and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
+                                } else {
+                                    $this->_from .= ' and '.$this->getAlias($rfn, $rsc).' '.$fnc;
+                                }
                                 unset($rfn, $fnc);
                             }
                         }
 
                         if(isset($rsc['events']['active-records']) && $rsc['events']['active-records']) {
-                            if(is_array($rsc['events']['active-records'])) {
-                                foreach($rsc['events']['active-records'] as $r=>$v) {
-                                    if($v=='') {
-                                        $ara = $this->getAlias($r, $rsc);
-                                        $this->_from .= ' and ('.$ara.' is null or '.$ara.'=\'\')';
-                                        unset($ara);
-                                    } else $this->_from .= ' and '.$this->getAlias($r, $rsc).'='.tdz::sql($v);
+                            $ar = $rsc['events']['active-records'];
+                            unset($rsc['events']['active-records']);
+                            if(is_array($ar)) {
+                                foreach($ar as $r=>$v) {
+                                    if(is_int($r)) {
+                                        $this->_from .= ' and '.$this->getAlias($v, $rsc);
+                                    } else {
+                                        $this->_from .= ' and '.$this->getWhere(array($r=>$v), 'and', $rsc);
+                                    }
+                                    unset($ar[$r], $r, $v);
                                 }
                             } else {
-                                if(strpos($rsc['events']['active-records'], '`')!==false || strpos($rsc['events']['active-records'], '[')!==false) {
-                                    $this->_from .= ' and '.$this->getAlias($rsc['events']['active-records'], $rsc);
+                                if(strpos($ar, '`')!==false || strpos($ar, '[')!==false) {
+                                    $this->_from .= ' and '.$this->getAlias($ar, $rsc);
+                                } else if(preg_match('/^([a-z0-9\_]+)[\s\<\>\!\=]/', $ar, $m)) {
+                                    $this->_from .= ' and '.$this->getAlias($m[1], $rsc).substr($ar, strlen($m[1]));
                                 } else {
-                                    $this->_from .= ' and '.$rsc['events']['active-records'];
+                                    $this->_from .= ' and '.$ar;
                                 }
                             }
+                            unset($ar);
                         }
 
                     } else {
@@ -465,10 +491,10 @@ class Tecnodesign_Query_Sql
                 } else {
                     $fn = $ta.'.'.$fn;
                 }
-            } else {
+            } else if(strtolower($fn)!=='null') {
                 //tdz::debug(__METHOD__, func_get_args(), "Cannot find by [{$fn}] at [{$sc['tableName']}]");
-                tdz::log("Cannot find by [{$fn}] at [{$sc['tableName']}]");
-                throw new Exception("Cannot find by [{$fn}] at [{$sc['tableName']}]");
+                tdz::log("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
+                throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
             }
         }
         unset($found, $sc, $ta);
@@ -479,18 +505,19 @@ class Tecnodesign_Query_Sql
         return $fn;
     }
 
-    protected function getWhere($w, $xor='and')
+    protected function getWhere($w, $xor='and', $sc=null)
     {
         $r='';
-        $e = $this->schema('events');
+        if(!$sc) $sc = $this->schema();
+        $e = (isset($sc['events']))?($sc['events']):(null);
         $add=array();
         $ar = null;
-        if(is_null($this->_where) && isset($e['active-records']) && $e['active-records']) {
+        if(is_null($this->_where) && $e && isset($e['active-records']) && $e['active-records']) {
             if(is_array($e['active-records'])) {
                 $add=$e['active-records'];
             } else {
                 if(strpos($e['active-records'], '`')!==false || strpos($e['active-records'], '[')!==false) {
-                    $ar = $this->getAlias($e['active-records']);
+                    $ar = $this->getAlias($e['active-records'], $sc);
                 } else {
                     $ar = $e['active-records'];
                 }
@@ -499,7 +526,7 @@ class Tecnodesign_Query_Sql
 
         if(!is_array($w)) {
             // must get from primary key or first column
-            $pk = $this->scope('uid');
+            $pk = $this->scope('uid', $sc);
             if(!$pk) return '';
             else if(count($pk)==1) $w = array( $pk[0] => $w );
             else {
@@ -523,7 +550,7 @@ class Tecnodesign_Query_Sql
         foreach($w as $k=>$v) {
             if(is_int($k)) {
                 if(is_array($v)) {
-                    if($v = $this->getWhere($v)) {
+                    if($v = $this->getWhere($v, 'and', $sc)) {
                         $r .= ($r)?(" {$xor} ({$v})"):("({$v})");
                     }
                 } else {
@@ -536,10 +563,8 @@ class Tecnodesign_Query_Sql
                         $v = substr($v, 1);
                     }
                     unset($c1);
-                    if(in_array($v, $cops)) {
+                    if(in_array($v, $cops) || in_array(substr($v,0,1), $like)) {
                         $op = $v;
-                    } else if(in_array($v[0], $like)) {
-                        $op = $v[0];
                     } else if(isset($xors[$v])) {
                         $xor = $xors[$v];
                     }
@@ -569,9 +594,9 @@ class Tecnodesign_Query_Sql
                         $cop = '=';
                     }
                 }
-                $fn = $this->getAlias($k);
+                $fn = $this->getAlias($k, $sc);
                 if($fn) {
-                    $cn = $this->_schema;
+                    $cn = (isset($sc['className']))?($sc['className']):($this->_schema);
                     if($cn && $cn::$prepareWhere && method_exists($cn, $m='prepareWhere'.tdz::camelize(substr($fn, 2),true))) {
                         $v = $cn::$m($v);
                     }
@@ -595,13 +620,12 @@ class Tecnodesign_Query_Sql
                         $r .= " {$fn}".(($cnot || $cop=='<>' || substr($cop, 0, 1)=='!')?(' not'):('')).' in('.implode(',',$v).')';
                     } else if(is_array($v) && !($cop=='^' || $cop=='$' || $cop=='*' || $cop=='%')) {
                         $nv = array();
-                        if($cop!='=') $nv[] = $cop;
                         if($cnot) $nv[] = '!';
                         if($cxor!='and') $nv[] = $cxor;
                         foreach($v as $vk=>$vs) {
-                            $nv[] = array($k=>$vs);
+                            $nv[] = ($vs && $cop!='=')?(array($k.$cop=>$vs)):(array($k=>$vs));
                         }
-                        $v = $this->getWhere($v);
+                        $v = $this->getWhere($nv, 'or');
                         if($v) $r .= "({$v})";
 
                     } else if(!$v && $cop=='=') {
@@ -635,6 +659,14 @@ class Tecnodesign_Query_Sql
         }
 
         return trim($r);
+    }
+
+    public function exec($q, $conn=null)
+    {
+        if(!$conn) {
+            $conn = self::connect($this->schema('database'));
+        }
+        return $conn->exec($q);
     }
 
     public function run($q)
@@ -701,7 +733,7 @@ class Tecnodesign_Query_Sql
         } else if(isset($d['type']) && $d['type']=='bool') {
             return ($v && $v>0)?(1):(0);
         } else if(isset($d['type']) && $d['type']=='datetime') {
-            $ms = (int) self::$microseconds;
+            $ms = (int) static::$microseconds;
             if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2}) ?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
                 if(!isset($m[3]) || !$m[3]) {
                     return "'{$m[2]}T00:00:00'";
@@ -840,7 +872,7 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
-            $r = $conn->exec($this->_last);
+            $r = $this->exec($this->_last, $conn);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
@@ -878,6 +910,7 @@ class Tecnodesign_Query_Sql
             $original=$M->getOriginal($fn, false, true);
             if(isset($fv['primary']) && $fv['primary']) {
                 $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
+                continue;
             }
             if(!is_array($fv)) $fv=array('null'=>true);
 
@@ -913,8 +946,7 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "update {$tn} set {$sql} where {$wsql}";
-            tdz::log(__METHOD__, $this->_last);
-            $r = $conn->exec($this->_last);
+            $r = $this->exec($this->_last, $conn);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
@@ -937,7 +969,7 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "delete from {$tn} where {$wsql}";
-            $r = $conn->exec($this->_last);
+            $r = $this->exec($this->_last, $conn);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
@@ -976,7 +1008,7 @@ class Tecnodesign_Query_Sql
             $conn = self::connect($this->schema('database'));
         }
         $this->_last = $q;
-        $r = $conn->exec($this->_last);
+        $r = $this->exec($this->_last, $conn);
         if($r===false && $conn->errorCode()!=='00000') {
             throw new Tecnodesign_Exception(array(tdz::t('Could not create %s.', 'exception'), $tn));
         }

@@ -2257,12 +2257,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $ret = $this->$m();
         } else if(strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
             if($dot && isset($this->$firstName)) {
-                if($ref) return $this->$firstName->$ref;
-                else return $this->$firstName;
-            } else {
-                if($dot && isset(static::$schema['relations'][$firstName])) {
-                    return $this->getRelation($firstName, $ref);
-                }
+                return $this->$firstName->$ref;
+            } else if($dot && isset(static::$schema['relations'][$firstName])) {
+                return $this->getRelation($firstName, $ref);
+            } else if(isset(static::$schema['relations'][$name])) {
+                return $this->getRelation($name);
             }
         } else if (isset($this->$name)) {
             $ret = $this->$name;

@@ -308,7 +308,7 @@ class Tecnodesign_Pdf_Wrapper extends FPDI
                 $footer = array($footer);
             }
             foreach($footer as $k=>$v) {
-                if(strpos($v, '[[')!==false) {
+                if(is_string($v) && strpos($v, '[[')!==false) {
                     $footer[$k] = str_replace(array('[[page]]', '[[pages]]'), array($this->PageNo(), $this->getAliasNbPages()), $v);
                 }
             }
