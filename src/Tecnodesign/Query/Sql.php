@@ -913,6 +913,7 @@ class Tecnodesign_Query_Sql
                 $conn = self::connect($this->schema('database'));
             }
             $this->_last = "update {$tn} set {$sql} where {$wsql}";
+            tdz::log(__METHOD__, $this->_last);
             $r = $conn->exec($this->_last);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));

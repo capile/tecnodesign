@@ -2256,11 +2256,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if (method_exists($this, $m)) {
             $ret = $this->$m();
         } else if(strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
-            if(isset($this->$firstName)) {
+            if($dot && isset($this->$firstName)) {
                 if($ref) return $this->$firstName->$ref;
                 else return $this->$firstName;
             } else {
-                if (isset(static::$schema['relations'][$firstName])) {
+                if($dot && isset(static::$schema['relations'][$firstName])) {
                     return $this->getRelation($firstName, $ref);
                 }
             }
