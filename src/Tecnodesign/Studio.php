@@ -27,8 +27,8 @@ class Tecnodesign_Studio
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
-        $cacheTimeout=1800, // configurable, cache timeout, use false to disable caching, 0 means forever
-        $staticCache=3600,  // configurable, store static previews of entries
+        $cacheTimeout=0,    // configurable, cache timeout, use false to disable caching, 0 means forever
+        $staticCache=0,     // configurable, store static previews of entries
         $home='/_/studio',  // configurable, where to load E-Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
         $uploadDir='studio/uploads', // configurable, relative to TDZ_VAR
