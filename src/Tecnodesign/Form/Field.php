@@ -44,7 +44,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $id=false,              // field ID, usually automatically created from key index
         $type='text',           // field type, must have a corresponding function render$Type
         $form,                  // form instance id
-        $bind,                  // model it this field is conected to, accepts relations
+        $bind,                  // model this field is conected to, accepts relations
         $attributes=array(),    // element attributes, usually class names and data-*
         $placeholder=false,     // placeholder text
         $scope=false,           // scope to be used in references and sub forms
@@ -2326,6 +2326,23 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $options[] = '<option class="placeholder" value="">'.$blank.'</option>';
         }
         $values = (!is_array($this->value))?(preg_split('/\s*\,\s*/', $this->value, null, PREG_SPLIT_NO_EMPTY)):($this->value);
+
+        if($values) {
+            $ref = null;
+            if($this->bind && ($sc=$this->getSchema()) && isset($sc['relations'][$this->bind])) {
+                $rel = $sc['relations'][$this->bind];
+                $cn = (isset($rel['className']))?($rel['className']):($this->bind);
+                $rpk = $cn::pk($cn::$schema, true);
+                $ref = array_pop($rpk);
+            }
+            foreach($values as $k=>$v) {
+                if(is_object($v) && $v instanceof Tecnodesign_Model) {
+                    $values[$k] = ($ref && isset($v->$ref))?($v->$ref):($v->pk);
+                } else {
+                    break;
+                }
+            }
+        }
 
         $dprop = null;
         if($this->dataprop) {

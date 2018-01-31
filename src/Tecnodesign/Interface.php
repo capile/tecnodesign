@@ -2395,7 +2395,7 @@ class Tecnodesign_Interface implements ArrayAccess
         } else if(isset($this->options['order'])) {
             $order=$this->options['order'];
         }
-        if(isset($this->options[$this->action])) {
+        if(isset($this->options['scope'][$this->action])) {
             $a = $this->action;
         } else if($max==1) {
             $a = 'preview';
