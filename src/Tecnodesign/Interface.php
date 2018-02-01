@@ -1444,6 +1444,8 @@ class Tecnodesign_Interface implements ArrayAccess
         if(!$req) {
             if(isset($this->options[$this->action.'-filter'])) {
                 $req = $this->options[$this->action.'-filter'];
+            } else if(!$this->search && isset($this->options['default-filter'])) {
+                $req = $this->options['default-filter'];
             }
         }
 
