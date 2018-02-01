@@ -846,18 +846,41 @@ Z.initButton=function(o)
 Z.initCallback=function(o)
 {
     if(!o || !Z.node(o)) o=this;
-    var fn = o.getAttribute('data-callback'), e=o.getAttribute('data-callback-event');
+    var fn = o.getAttribute('data-callback'), 
+        e=o.getAttribute('data-callback-event'),
+        nn=o.nodeName.toLowerCase(),
+        C,
+        noe;
     if(!fn) return;
-    if(!e) e='click';
-    else o.removeAttribute('data-callback-event');
+    if(!e) {
+        noe=true;
+        e='click';
+    } else {
+        o.removeAttribute('data-callback-event');
+    }
 
-    if(fn in Z) Z.bind(o, e, Z[fn]);
-    else if(fn in window) Z.bind(o, e, window[fn]);
-    else return;
+    if(fn in Z) {
+        C=Z[fn];
+    } else if(fn in window) {
+        C=window[fn];
+    } else if(fn.indexOf('.')>-1) {
+        var c=fn.substr(0,fn.indexOf('.'));
+        C=(c in window)?(window[c]):(null);
+        fn = fn.substr(fn.indexOf('.')+1);
+        while(C && fn.indexOf('.')>-1) {
+            c=fn.substr(0,fn.indexOf('.'));
+            fn = fn.substr(fn.indexOf('.')+1);
+            C=(c in C)?(C[c]):(null);
+        }
+        C=(fn in C)?(C[fn]):(null);
+    }
 
+    if(!C) return;
     o.removeAttribute('data-callback');
 
-    if(o.nodeName.toLowerCase()=='input' && o.checked) {
+    if(noe && ((nn=='input' && o.type!='radio' && o.type!='checkbox' && o.type!='button')||nn=='textarea'||nn=='select')) {
+        Z.bind(o, 'change', C);
+    } else if(nn=='input' && o.checked) {
         Z.fire(o, e);
     }
 }

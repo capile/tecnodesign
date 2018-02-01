@@ -231,9 +231,9 @@ class Tecnodesign_App
         self::request();
         if(isset($this->_vars['tecnodesign']['export'])) {
             foreach($this->_vars['tecnodesign']['export'] as $cn=>$toExport) {
-                if(!class_exists($cn)) {
-                    $cn = 'Tecnodesign_'.ucfirst(tdz::camelize($cn));
-                    if(!class_exists($cn)) {
+                if(!tdz::classFile($cn)) {
+                    $cn = 'Tecnodesign_'.tdz::camelize($cn, true);
+                    if(!tdz::classFile($cn)) {
                         return false;
                     }
                 }

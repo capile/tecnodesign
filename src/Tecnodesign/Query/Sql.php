@@ -145,16 +145,26 @@ class Tecnodesign_Query_Sql
             $this->_where = $this->getWhere(array());
         }
         if($count) {
-            $s = ' count(1)';
-            $cc = '';
-            if($this->_groupBy) {
-                $cc = trim($this->_groupBy);
-            } else if($this->_from && strpos($this->_from, ' left outer join ')) {
-                $cc = static::concat($this->scope('uid'),'a.');
+            if(!is_string($count)) {
+                $cc = '';
+                if($this->_groupBy) {
+                    if(strpos($this->_groupBy, ',')!==false) {
+                        $cc = static::concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),'');
+                    } else {
+                        $cc = trim($this->_groupBy);
+                    }
+                } else if($this->_from && strpos($this->_from, ' left outer join ')) {
+                    $cc = static::concat($this->scope('uid'),'a.');
+                } else {
+                    $count = '1';
+                }
+                if($cc) {
+                    $count = 'distinct '.$cc;
+                }
+            } else if(!is_numeric($count)) {
+                $count = $this->getAlias($count);
             }
-            if($cc) {
-                $s = ' count(distinct '.$cc.')';
-            }
+            $s = ' count('.$count.')';
         } else if($this->_select) {
             if($this->_distinct && $this->_selectDistinct) {
                 $this->_select = $this->_selectDistinct + $this->_select;
@@ -202,10 +212,11 @@ class Tecnodesign_Query_Sql
         return $this->query($this->buildQuery(), \PDO::FETCH_ASSOC);
     }
 
-    public function count($column='1')
+    public function count($column=true)
     {
         if(!$this->_schema) return false;
-        $r = $this->queryColumn($this->buildQuery(true));
+        if(!$column) $column=true;
+        $r = $this->queryColumn($C=$this->buildQuery($column));
         $i = (is_array($r))?((int) array_shift($r)):(0);
         if($this->_limit && $i > $this->_limit) $i = $this->_limit;
         return $i;

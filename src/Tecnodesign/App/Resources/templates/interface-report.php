@@ -26,14 +26,17 @@ if(!isset($r)) $r=array(
     '{action}'=>$action,
     '{model}'=>$model,
     '{count}'=>$count,
+    '{now}'=>date('YmdHis'),
 );
 $r['{columns}'] = count($scope);
 
 $m = (isset($meta) && is_array($meta))?($meta):(array());
 
 $format = $Interface::format();
-//$format = 'xlsx';
-//$Interface::format($format);
+if($format=='html') {
+    $format = 'xlsx';
+    $Interface::format($format);
+}
 
 if(!isset($m['filename'])) $m['filename']=$interface;
 $fname = $m['filename'];

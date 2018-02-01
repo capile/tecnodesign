@@ -1659,11 +1659,6 @@ class tdz
         }
         header('Content-Length: ' . ($seek_end - $seek_start + 1));
 
-        if (class_exists('sfConfig')) {
-            sfConfig::set('sf_web_debug', false);
-            sfConfig::set('sf_escaping_strategy', false);
-        }
-
         //open the file
         $fp = fopen($file, 'rb');
         //seek to start of missing part
@@ -1803,6 +1798,7 @@ class tdz
      */
     public static function log()
     {
+        static $trace;
         if(tdz::$logDir=='syslog' && openlog('tdz', LOG_PID|LOG_NDELAY, LOG_LOCAL5)) {
             foreach (func_get_args() as $k => $v) {
                 $v = tdz::toString($v);
@@ -1815,23 +1811,43 @@ class tdz
             closelog();
             return;
         } else if(tdz::$logDir=='error_log') {
-            foreach (func_get_args() as $k => $v) {
-                error_log(tdz::toString($v), 0);
-            }
-            return;
-        }
-        if(!tdz::$logDir) {
-            if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
-                tdz::$logDir = $app->tecnodesign['log-dir'];
-                unset($app);
-            }
+            $type = 0;
+            $dest = null;
+        } else {
+            $type = 3;
             if(!tdz::$logDir) {
-                tdz::$logDir = TDZ_VAR . '/log';
+                if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
+                    tdz::$logDir = $app->tecnodesign['log-dir'];
+                    unset($app);
+                }
+                if(!tdz::$logDir) {
+                    tdz::$logDir = TDZ_VAR . '/log';
+                }
             }
+            $dest = tdz::$logDir . '/tdz.log';
         }
-        $dest = tdz::$logDir . '/tdz.log';
+
         foreach (func_get_args() as $k => $v) {
-            error_log(tdz::toString($v), 3, $dest);
+            if($v===true) {
+                // enable trace
+                $trace = true;
+                continue;
+            } else if($v===false) {
+                $trace = false;
+                continue;
+            }
+            if(!$trace) {
+                error_log(tdz::toString($v), $type, $dest);
+            } else {
+                try {
+                    throw new Exception(tdz::toString($v));
+                } catch(Exception $e) {
+                    error_log($e->getMessage(), $type, $dest);
+                    error_log((string)$e, $type, $dest);
+                    unset($e);
+                }
+            }
+            unset($v, $k);
         }
     }
 
@@ -2920,24 +2936,37 @@ class tdz
      */
     public static function autoload($cn)
     {
+        if($f=tdz::classFile($cn)) {
+            require_once $f;
+            tdz::autoloadParams($cn);
+        } else if(tdz::$log) {
+            tdz::log(true, '[ERROR] Class '.$cn.' was not found!');
+        }
+        return false;
+    }
+
+    public static function classFile($cn)
+    {
         $c = str_replace(array('_', '\\'), '/', $cn);
         if (file_exists($f=TDZ_ROOT."/src/{$c}.php")) {
-            @include_once $f;
-            self::autoloadParams($cn);
             return $f;
         } else {
             foreach(tdz::$lib as $libi=>$d) {
                 if(substr($d, -1)=='/') tdz::$lib[$libi]=substr($d, 0, strlen($d)-1);
-                if(file_exists($f=$d.'/'.$c.'.php') || file_exists($f=$d.'/'.$c.'/'.$c.'.php') || file_exists($f=$d.'/'.$c.'/'.$c.'.inc.php') || file_exists($f = $d.'/'.$c.'.class.php')) {
-                    @include_once $f;
-                    self::autoloadParams($cn);
+                if (file_exists($f=$d.'/'.$c.'.php') || 
+                    file_exists($f=$d.'/'.$c.'/'.$c.'.php') || 
+                    file_exists($f=$d.'/'.$c.'/'.$c.'.inc.php') || 
+                    file_exists($f = $d.'/'.$c.'.class.php') || 
+                    file_exists($f=$d.'/'.$c.'/'.strtolower($c).'.php')
+                ) {
                     return $f;
                 }
                 unset($libi, $d, $f);
             }
         }
-        return false;
+        unset($c);
     }
+
     public static function autoloadParams($cn)
     {
         if(is_null(self::$autoload)) {
