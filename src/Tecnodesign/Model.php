@@ -1339,6 +1339,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $relations--;
                 foreach ($cn::$schema['relations'] as $rcn=>$rd) {
                     $rc=(isset($rd['className']))?($rd['className']):($rcn);
+                    if(!tdz::classFile($rc) || !isset($rc::$schema) || (isset($rc::$schema['type']) && $rc::$schema['type']=='view')) {
+                        continue;
+                    }
                     if(isset($this->$rcn)) {
                         $rel = $this->$rcn;
                         if(is_object($rel) && ($rel instanceof Tecnodesign_Collection)) {
