@@ -1792,7 +1792,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
         $ext = (isset($o['extension']))?($o['extension']):('');
 
-
         if($i==$start) {
             $s .= '<table class="app-list"'.$tattr.'><thead><tr>';
             $first = true;
@@ -1841,6 +1840,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $s .= '>';
         $first = true;
         foreach($labels as $label=>$fn) {
+            $fn = trim($fn);
             if($p=strrpos($fn, ' ')) {
                 $fn = substr($fn, $p+1);
             }
@@ -1855,7 +1855,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             } else if(strpos($fn, '.')!==false || isset($cn::$schema['relations'][$fn])) {
                 $value = (string) $this->getRelation($fn);
             } else {
-                $value = $this->__get($fn);
+                $value = $this[$fn];
             }
             $fd=false;
             if(!$display && isset($schema['columns'][$fn])) {
