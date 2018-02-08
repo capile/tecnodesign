@@ -205,18 +205,12 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
         }
 
-        if($this->modified) {
-            Tecnodesign_App::response(array('headers'=>array('Last-Modified'=>gmdate('D, d M Y H:i:s', $this->modified).' GMT')));
-        } else {
-            $this->modified = time();
-        }
-
         array_unshift(
             $slots['meta'], 
-            '<meta http-equiv="last-modified" content="'. gmdate('D, d M Y H:i:s',$this->modified) . ' GMT" />'
-            . '<meta name="generator" content="Tecnodesign E-Studio - https://tecnodz.com" />'
+            '<meta name="generator" content="Tecnodesign Studio - https://tecnodz.com" />'
             . $langs
         );
+
         foreach($slots as $slotname=>$slot) {
             if(is_null($slot)) {
                 $slots[$slotname] = array();
@@ -260,6 +254,14 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 }
             }
         }
+
+        if(!$dyn && $this->modified) {
+            Tecnodesign_App::response(array('headers'=>array('Last-Modified'=>gmdate('D, d M Y H:i:s', $this->modified).' GMT')));
+        } else {
+            $this->modified = time();
+        }
+
+        $slots['meta'][] = '<meta http-equiv="last-modified" content="'. gmdate('D, d M Y H:i:s',$this->modified) . ' GMT" />';
 
         $merge = array();
         $slotelements = array('header'=>true,'footer'=>true,'nav'=>true);
