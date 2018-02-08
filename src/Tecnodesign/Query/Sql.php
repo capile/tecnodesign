@@ -294,7 +294,7 @@ class Tecnodesign_Query_Sql
             }
             $fn = (!is_int($o))?($this->getAlias($o)):($o);
             if($fn && strpos($fn, $this->_orderBy)===false) {
-                if($sort!='asc' && $sort!='desc')$sort='';
+                if($sort!='asc' && $sort!='desc') $sort='';
                 $this->_orderBy .= ($this->_orderBy)?(", {$fn} {$sort}"):(" {$fn} {$sort}");
             }
             unset($fn);
@@ -711,7 +711,7 @@ class Tecnodesign_Query_Sql
                 return call_user_func_array(array($this->run($q), 'fetchAll'), $arg);
             }
         } catch(Exception $e) {
-            tdz::log('Error in '.__METHOD__.":\n  ".$e->getMessage()."\n ".$this);
+            tdz::log('Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n ".$this);
             return false;
         }
     }

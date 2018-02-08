@@ -72,6 +72,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 
     public function addOrderBy($o, $sort='asc')
     {
+        parent::addOrderBy($o, $sort);
         if($o && $this->_distinct) {
             if(is_array($o)) {
                 $fns = array();
@@ -81,7 +82,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
                     else $fns[] = $k;
                 }
             } else if(!is_int($o)) {
-                $fns = preg_replace('/\s+(asc|desc)/', '', $o);
+                $fns = array(preg_replace('/\s+(asc|desc)/', '', $o));
             }
             if($fns) {
                 foreach($fns as $i=>$o) {
@@ -92,7 +93,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
                 $this->addSelect($fns);
             }
         }
-        return parent::addOrderBy($o, $sort);
+        return $this;
     }
 
     public static function concat($a, $p='a.', $sep='-')
