@@ -371,7 +371,7 @@ FIM;
             } else {
                 echo "> Yes\n";
             }
-            if($type=='sqlite' || !file_exists(dirname($dbf))) {
+            if($type=='sqlite' && !file_exists(dirname($dbf))) {
                 mkdir(dirname($dbf), 0777, true);
             }
             $cfg['database'][$c] = $this->db[$c];

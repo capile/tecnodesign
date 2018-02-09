@@ -1403,7 +1403,7 @@ function datalistRender(d)
     var o=this, c=o.parentNode.querySelector('ul.tdz-datalist'), n, p;
     if(!c) c=Z.element.call(o.parentNode,{e:'span',p:{className:'tdz-datalist-container'},c:[{e:'ul',p:{className:'tdz-datalist'},a:{'data-target':o.getAttribute('id')}}]}).children[0];
     else c.innerHTML=''; // remove child nodes
-    var id=o.getAttribute('id');
+    var id=o.getAttribute('id'), prefix = o.getAttribute('data-prefix');
     _D[id]={};
     for(n in d) {
         if(d.hasOwnProperty(n)) {
@@ -1425,6 +1425,10 @@ function datalistRender(d)
                     }
                 }
             }
+            if (prefix != undefined ) {
+                p.a['data-prefix'] = prefix;
+            }
+
             _D[id][p.a['data-value']]=d[n];
 
             Z.element.call(c,p);
