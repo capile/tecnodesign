@@ -880,8 +880,11 @@ Z.initCallback=function(o)
 
     if(noe && ((nn=='input' && o.type!='radio' && o.type!='checkbox' && o.type!='button')||nn=='textarea'||nn=='select')) {
         Z.bind(o, 'change', C);
-    } else if(nn=='input' && o.checked) {
-        Z.fire(o, e);
+    } else {
+        Z.bind(o, e, C);
+        if(nn=='input' && o.checked) {
+            Z.fire(o, e);
+        }
     }
 }
 
