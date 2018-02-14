@@ -383,6 +383,9 @@ class Tecnodesign_Query_Sql
                 $ta = $this->_alias[$sc['className']];
             }
         }
+        if($ta=='a' && !in_array($ta, $this->_alias)) {
+            $this->_alias[$sc['className']] = $ta;
+        }
         $found=false;
         if($fn=='*') {
             return '*';
