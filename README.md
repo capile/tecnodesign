@@ -5,50 +5,85 @@ Tecnodesign Application Development Framework
 This is a framework developed by Tecnodesign to build web applications and websites. It comes with a powerful MVC structure and several additional modules.
 
 
-# Installation
+## Installation
 
 In order to install the Tecnodesign application framework:
 
-1. Copy all files to [apps-dir]/lib/vendor/tecnodesign
-2. cd to [apps-dir]
-3. Run: `php lib/vendor/tecnodesign/tdz.php install [project]`
+1. Copy all files to `[apps-dir]/lib/vendor/Tecnodesign/`
+2. cd to `[apps-dir]/`
+3. Run: `php lib/vendor/Tecnodesign/tdz.php install [project]`
 
 Usually [apps-dir] is located outside the document root, for example:
 
-     /var/www/sitename
-                |- htdocs
-                |- [apps-dir]
+     /var/www/sitename/
+                |- [apps-dir]/
+                |- www/
+                |- www-static/
 
 Installation script will prompt for additional modules and dependencies:
 
 ```bash
 mkdir -p app/lib/vendor/
 git init .
-git submodule add git@github.com:tecnodz/tdz.git app/lib/vendor/tecnodesign
+git submodule add https://github.com/capile/Tecnodesign.git app/lib/vendor/Tecnodesign
 cd app
-php lib/vendor/tecnodesign/tdz.php install [project]
+php lib/vendor/Tecnodesign/tdz.php install [project]
 ```
 
-## Database
+You can also use the installer for some specific coponents installation, for example:
 
-To install only module database connection into your [apps-dir]:
+- **Database**   
+  To install only module database connection into your [apps-dir]:  
+  `php lib/vendor/Tecnodesign/tdz.php install:database [project]`
 
-```bash
-php lib/vendor/tecnodesign/tdz.php install:database [project]
+- **Studio**   
+  To install Studio CMS modules:   
+  `php lib/vendor/Tecnodesign/tdz.php install:studio [project]`
+
+- **Dependencies**   
+  `php lib/vendor/tecnodesign/tdz.php install:deps [project]`   
+  Note that dependencies might need to be set as submodules of your main project rspository.
+
+
+## Configuration
+
+Most of the applications and components of the framework can be configured using YAML or ini configuration files within the `[apps-dir]/config/` folder.
+
+
+For example, to configure Studio's caching settings, templates or languages, we use public static variables in `Tecnodesign_Studio` class, that can be overwritten using a `[apps-dir]/config/autoload.Tecnodesign_Studio.yml` or a `[apps-dir]/config/autoload.Tecnodesign_Studio.ini` configuration file. Like this:
+
+```config/autoload.Tecnodesign_Studio.yml
+---
+cacheTimeout: 3600
+staticCache: 180
+languages: [ en, pt ]
 ```
 
-## E-studio
+The database connections can also be defined by updating the `tdz::$database` variable the same way. Or, alternatively, write down a `[apps-dir]/config/databases.yml` configuration file with the specific environment as the master key. Like this:
 
-To install E-studio CMS modules:
-
-```bash
-php lib/vendor/tecnodesign/tdz.php install:studio [project]
+```config/databases.yml
+---
+all:
+  myschema:
+    dsn: mysql:host=db;dbname=myschema;charset=utf8mb4
+    username: myschemauser
+    password: mypassword
+    sync: true
 ```
 
-## Dependencies
+Alternatively, it could also be written within the `autoload.tdz.yml` file:
 
-To Dependencies execute:
-
-```bash
-php lib/vendor/tecnodesign/tdz.php install:deps [project]
+```config/autoload.tdz.yml
+---
+assetsUrl: /_
+dateFormat: 'F j, Y'
+timeFormat: H:i:s
+logDir: syslog
+database:
+  myschema:
+    dsn: mysql:host=db;dbname=myschema;charset=utf8mb4
+    username: myschemauser
+    password: mypassword
+    sync: true
 ```
+
