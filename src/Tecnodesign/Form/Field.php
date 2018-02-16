@@ -574,12 +574,21 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(!is_array($scope)) $scope = $cn::columns($scope);
         if(!$scope) $scope = array_keys($cn::$schema['columns']);
         $bnull = array();
-        foreach($scope as $fn) {
-            if(!isset($add[$fn]) && isset($cn::$schema['columns'][$fn]) && !isset($cn::$schema['columns'][$fn]['primary'])) {
+        foreach($scope as $label=>$fn) {
+            if(is_array($fn)) {
+                if(isset($fn['bind'])) {
+                    $fn = $fn['bind'];
+                } else {
+                    continue;
+                }
+            }
+            if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
+            if(!isset($add[$fn]) && ((isset($cn::$schema['columns'][$fn]) && !isset($cn::$schema['columns'][$fn]['primary'])) || substr($fn, 0, 1)=='_')) {
                 $bnull[$fn]='';
             }
             unset($fn);
         }
+
         foreach($value as $i=>$v) {
             $v += $bnull;
             if(isset($R[$i])) {
@@ -613,6 +622,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             unset($F, $O, $v);
         }
+
         unset($bnull);
         if($R) {
             foreach($R as $i=>$O) {
