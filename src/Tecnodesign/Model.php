@@ -2218,7 +2218,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 return false;
             }
         }
-        if($serialize && !is_string($this->_original[$fn])) {
+        if($serialize && !is_string($this->_original[$fn]) && !is_null($this->_original[$fn])) {
             if(isset(static::$schema['columns'][$fn]['serialize'])) $serialize=static::$schema['columns'][$fn]['serialize'];
             return tdz::serialize($this->_original[$fn], $serialize);
 
