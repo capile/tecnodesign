@@ -64,9 +64,21 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
             . (($this->_where)?(' where '.$this->_where):(''))
             . ((!$count && $this->_groupBy)?(' group by'.$this->_groupBy):(''))
             . ((!$count && $this->_orderBy)?(' order by'.$this->_orderBy):(''))
-            . ((!$count && $this->_offset)?(' offset '.$this->_offset.' rows'):(''))
-            . ((!$count && $this->_limit && $this->_offset)?(' fetch next '.$this->_limit.' rows only'):(''))
         ;
+
+        if(!$count && ($this->_offset||$this->_limit)) {
+            if(!$this->_orderBy) {
+                $q .= ' order by 1';
+            }
+            if($this->_offset) {
+                $q .= ' offset '.$this->_offset.' rows';
+            }
+            if($this->_limit && $this->_offset) {
+                $q .= ' fetch next '.$this->_limit.' rows only';
+            }
+        }
+
+
         return $q;
     }
 
