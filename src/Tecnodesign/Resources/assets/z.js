@@ -1528,7 +1528,7 @@ function clearFileInput(el) {
 function uploadFile(file, U)
 {
     var loaded = 0;
-    var step = 1024*1024;
+    var step = 700000;//1024*1024;
     var total = file.size;
     var i=0;
     var ajax = [];
