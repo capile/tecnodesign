@@ -745,7 +745,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $R['file'] = $upload['file'];
             }
             //if(rand(0,3)==3) Tecnodesign_App::error(500);
-            tdz::output($R, 'json', $f);
+            tdz::output($R, 'json');
         }
 
         if(is_array($value)){
