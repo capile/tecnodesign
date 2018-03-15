@@ -40,7 +40,8 @@ class Tecnodesign_Studio
         $templateRoot,
         $languages=array(),
         $ignore=array('.meta', '.less', '.md', '.yml'),
-        $indexIgnore=array('js', 'css', 'font', 'json', 'studio');
+        $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
+        $allowedExtensions=array('.html');
     const VERSION = 1.1; 
 
     /**
@@ -564,6 +565,10 @@ class Tecnodesign_Studio
         if(!$E && ($E=tdzEntry::findPage($url, false, true))) {
             if(!self::$connection) self::checkIndex();
             unset($f, $published);
+        } else if(preg_match('/('.str_replace('.', '\.', implode('|',self::$allowedExtensions)).')$/', $url, $m) && ($E=tdzEntry::findPage(substr($url,0,strlen($url)-strlen($m[1])), false, true))) {
+            $url = substr($url,0,strlen($url)-strlen($m[1]));
+            if(!self::$connection) self::checkIndex();
+            unset($f, $published);
         }
         if(!$E && !$exact && substr($url, 0, 1)=='/' && strlen($url)>1) {
             $f['Content.content_type']=tdzContent::$multiviewContentType;
@@ -583,6 +588,7 @@ class Tecnodesign_Studio
                 //tdz::scriptName($u);
             }
         }
+
         if($E) {
             //if(self::$cacheTimeout) Tecnodesign_Cache::set('e-url'.$url, $E, self::$cacheTimeout);
             return $E;
