@@ -110,6 +110,9 @@ class Tecnodesign_Studio
         } else if($E=self::page($sn)) {
             $E->render();
             unset($E);
+            if(!self::$private && !tdz::get('cache-control')) {
+                tdz::cacheControl('public', 600);
+            }
             return true;
         } else if(substr($sn, 0, strlen(tdz::$assetsUrl))==tdz::$assetsUrl && tdzAsset::run($sn)) {
             return true;
