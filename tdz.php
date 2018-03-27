@@ -1565,7 +1565,7 @@ class tdz
     {
         if (connection_status() != 0 || !$file)
             return(false);
-        if(!$fname && $attachmnent) $fname = basename($file);
+        if(!$fname && $attachment) $fname = basename($file);
         $extension = strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1',$fname));
         tdz::unflush();
 
