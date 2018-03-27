@@ -213,7 +213,16 @@ if(isset(${'after-report'}) && is_array(${'after-report'})) {
     unset(${'after-report'});
 }
 $R->sheet(0);
-tdz::tune(__FILE__.': '.__LINE__);
+
+//Do you need more time to render?
+$mem = $sec = 20;
+$ltime = 2000;
+while ($total > $ltime) {
+    $mem += 5;
+    $sec += 5;
+    $ltime += 1000;
+}
+tdz::tune(__FILE__.': '.__LINE__,$mem,$sec);
 
 if($st) {
     $Interface::worker(tdz::t('Packaging...', 'interface'));
