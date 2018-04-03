@@ -686,6 +686,9 @@ class Tecnodesign_Query_Sql
     public function run($q)
     {
         $this->_last = $q;
+        if (tdz::$log) {
+            tdz::log('['.date('Y-m-d H:i:s').'] Debug: '.$q);
+        }
         return self::runStatic($this->schema('database'), $q);
     }
 
