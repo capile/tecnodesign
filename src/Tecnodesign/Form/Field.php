@@ -597,7 +597,28 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $v += $O;
                     $O = new $cn($O, false, false);
                 } else {
-                    $v += $O->asArray();
+                    // check if $pk changed, if it did, remove old record
+                    if($pk = $O->getPk(true)) {
+                        $pkdel = true;
+                        foreach($pk as $pkf=>$pkv) {
+                            if(!($pkv && isset($v[$pkf]) && $v[$pkf]!=$pkv)) {
+                                $pkdel = false;
+                                unset($pk[$pkf], $pkf, $pkv);
+                                break;
+                            }
+                            unset($pk[$pkf], $pkf, $pkv);
+                        }
+                        unset($pk);
+                        if($pkdel) {
+                            $R[microtime()]=$O;
+                            unset($O);
+                            $O = new $cn($v, true, false);
+                        } else {
+                            $v += $O->asArray();
+                        }
+                    } else {
+                        $v += $O->asArray();
+                    }
                 }
                 unset($R[$i]);
             } else {
