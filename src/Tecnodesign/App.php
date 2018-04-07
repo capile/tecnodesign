@@ -681,6 +681,7 @@ class Tecnodesign_App
             self::$_request['method']=(!self::$_request['shell'])?(strtolower($_SERVER['REQUEST_METHOD'])):('get');
             self::$_request['ajax']=(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH']=='XMLHttpRequest');
             if (!self::$_request['shell']) {
+                self::$_request['ip'] = $_SERVER['REMOTE_ADDR'];
                 self::$_request['hostname']=preg_replace('/[\s\n\;]+/', '', $_SERVER['HTTP_HOST']);
                 self::$_request['https']=(isset($_SERVER['HTTPS']));
                 self::$_request['host']=((self::$_request['https'])?('https://'):('http://')).self::$_request['hostname'];
@@ -713,6 +714,10 @@ class Tecnodesign_App
                 self::$_request['self']=$ui['path'];
             }
             self::$_request['get']=$_GET;
+            // fix: apache fills up CONTENT_TYPE rather than HTTP_CONTENT_TYPE
+            if(self::$_request['method']!='get' && !isset($_SERVER['HTTP_CONTENT_TYPE']) && isset($_SERVER['CONTENT_TYPE'])) {
+                $_SERVER['HTTP_CONTENT_TYPE'] = $_SERVER['CONTENT_TYPE'];
+            }
             if(self::$_request['method']!='get' && isset($_SERVER['HTTP_CONTENT_TYPE'])) {
                 if(substr($_SERVER['HTTP_CONTENT_TYPE'],0,16)=='application/json') {
                     if($d=file_get_contents('php://input')) {
