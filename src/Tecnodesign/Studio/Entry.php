@@ -363,7 +363,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
     {
         if($this->type!='file') return false;
 
-        tdz::set('cache-control', 'public');
+        if(!isset(tdz::$variables['cache-control'])) {
+            if(Tecnodesign_Studio::$private) {
+                tdz::set('cache-control', 'private');
+            } else {
+                tdz::set('cache-control', 'public');
+            }
+        }
         if(!file_exists($file=TDZ_VAR.'/'.$this->source)
             && !file_exists($file=Tecnodesign_Studio::$app->tecnodesign['document-root'].'/'.$this->source)
         ) {

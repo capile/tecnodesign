@@ -94,7 +94,7 @@ class tdz
             'gif' => 'image/gif',
             'png' => 'image/png',
             'jpeg' => 'image/jpeg',
-            'jpg' => 'image/jpg',
+            'jpg' => 'image/jpeg',
             'rar' => 'application/rar',
             'ra' => 'audio/x-pn-realaudio',
             'ram' => 'audio/x-pn-realaudio',
