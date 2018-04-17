@@ -63,7 +63,7 @@ class Tecnodesign_Yaml
     public static function load($s, $timeout=1800)
     {
         $readTimeout = $timeout;
-        if(strlen($s)<255 && file_exists($s)) {
+        if($s && strlen($s)<255 && file_exists($s)) {
             if(self::$parser=='php-yaml') {
                 $fn = 'yaml_parse_file';
             } else {
