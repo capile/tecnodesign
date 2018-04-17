@@ -1084,6 +1084,7 @@ var _FF={};
 
 function enableField(on)
 {
+    console.log('enableField: '+on, this);
     if(arguments.length==0) on=true;
     var cn = this.className,an='readonly';
     if(on) {
@@ -1120,7 +1121,7 @@ function formFilters(e)
         tn = tp+t[i];
         fk = fid+tn;
         if(fa) {
-            if(T=this.form.querySelector('#f__'+tn.replace(/-/g, '_'))) {
+            if(T=this.form.querySelector('#f__'+tn.replace(/-/g, '_')+',.tdz-i-field.if--'+tn)) {
                 var fn;
                 if(fa=='enable' || fa=='disable') {
                     enableField.call(T, (fa=='enable')?(v):(!v));

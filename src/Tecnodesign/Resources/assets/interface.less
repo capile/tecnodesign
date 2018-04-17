@@ -575,7 +575,7 @@ form .tdz-i-field a.tdz-i-upload {
   display:none;
 }
 
-.tdz-f-disable .input {
+.tdz-f-disable .input, .tdz-f-disable.tdz-i-field {
   opacity:0.5;
 }
 
@@ -751,18 +751,18 @@ select, input {
   overflow-y:auto;
   overflow-x:hidden;
 }
-.ih1  dd, .ih1  .input { max-height:@lh * 1  + @lh; textarea,select[multiple] { height:@lh * 1 ; } }
-.ih2  dd, .ih2  .input { max-height:@lh * 2  + @lh; textarea,select[multiple] { height:@lh * 2 ; } }
-.ih3  dd, .ih3  .input { max-height:@lh * 3  + @lh; textarea,select[multiple] { height:@lh * 3 ; } }
-.ih4  dd, .ih4  .input { max-height:@lh * 4  + @lh; textarea,select[multiple] { height:@lh * 4 ; } }
-.ih5  dd, .ih5  .input { max-height:@lh * 5  + @lh; textarea,select[multiple] { height:@lh * 5 ; } }
-.ih6  dd, .ih6  .input { max-height:@lh * 6  + @lh; textarea,select[multiple] { height:@lh * 6 ; } }
-.ih7  dd, .ih7  .input { max-height:@lh * 7  + @lh; textarea,select[multiple] { height:@lh * 7 ; } }
-.ih8  dd, .ih8  .input { max-height:@lh * 8  + @lh; textarea,select[multiple] { height:@lh * 8 ; } }
-.ih9  dd, .ih9  .input { max-height:@lh * 9  + @lh; textarea,select[multiple] { height:@lh * 9 ; } }
-.ih10 dd, .ih10 .input { max-height:@lh * 10 + @lh; textarea,select[multiple] { height:@lh * 10; } }
-.ih15 dd, .ih15 .input { max-height:@lh * 15 + @lh; textarea,select[multiple] { height:@lh * 15; } }
-.ih20 dd, .ih20 .input { max-height:@lh * 20 + @lh; textarea,select[multiple] { height:@lh * 20; } }
+.ih1  dd, .ih1  .input { min-height:@lh * 1  - @lh;max-height:@lh * 1  + @lh; textarea,select[multiple] { height:@lh * 1 ; } }
+.ih2  dd, .ih2  .input { min-height:@lh * 2  - @lh;max-height:@lh * 2  + @lh; textarea,select[multiple] { height:@lh * 2 ; } }
+.ih3  dd, .ih3  .input { min-height:@lh * 2  - @lh;max-height:@lh * 3  + @lh; textarea,select[multiple] { height:@lh * 3 ; } }
+.ih4  dd, .ih4  .input { min-height:@lh * 3  - @lh;max-height:@lh * 4  + @lh; textarea,select[multiple] { height:@lh * 4 ; } }
+.ih5  dd, .ih5  .input { min-height:@lh * 4  - @lh;max-height:@lh * 5  + @lh; textarea,select[multiple] { height:@lh * 5 ; } }
+.ih6  dd, .ih6  .input { min-height:@lh * 5  - @lh;max-height:@lh * 6  + @lh; textarea,select[multiple] { height:@lh * 6 ; } }
+.ih7  dd, .ih7  .input { min-height:@lh * 6  - @lh;max-height:@lh * 7  + @lh; textarea,select[multiple] { height:@lh * 7 ; } }
+.ih8  dd, .ih8  .input { min-height:@lh * 7  - @lh;max-height:@lh * 8  + @lh; textarea,select[multiple] { height:@lh * 8 ; } }
+.ih9  dd, .ih9  .input { min-height:@lh * 8  - @lh;max-height:@lh * 9  + @lh; textarea,select[multiple] { height:@lh * 9 ; } }
+.ih10 dd, .ih10 .input { min-height:@lh * 8 -  @lh;max-height:@lh * 10 + @lh; textarea,select[multiple] { height:@lh * 10; } }
+.ih15 dd, .ih15 .input { min-height:@lh * 8 -  @lh;max-height:@lh * 15 + @lh; textarea,select[multiple] { height:@lh * 15; } }
+.ih20 dd, .ih20 .input { min-height:@lh * 8 -  @lh;max-height:@lh * 20 + @lh; textarea,select[multiple] { height:@lh * 20; } }
 
 @media only screen and (min-width: @mobileBreakPoint) {
 
@@ -796,6 +796,9 @@ select, input {
   .i3s4 {width:75%;}
   .i1s3 {width:33.33%;}
   .i2s3 {width:66.66%;}
+
+  .i-float, .i-float-block, .i-float-left {float: left;}
+  .i-float-right {float: right;}
 }
 /*  .fontAwesomeBase();
   &:before{

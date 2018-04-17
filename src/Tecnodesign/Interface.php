@@ -417,7 +417,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(static::$headers) static::headers();
             throw $e;
         } catch(Exception $e) {
-            tdz::log(__METHOD__.'->'.get_class($e).':'.$e);
+            tdz::log('[ERROR] '.__METHOD__.'->'.get_class($e).':'.$e);
             static::error(500);
         }
     }
@@ -1853,7 +1853,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($post);
         } catch(Exception $e) {
-            tdz::log(__METHOD__.' [ERROR]: '.$e);
+            tdz::log('[ERROR] '.__METHOD__.' '.$e);
             $this->text['error'] = static::t('newError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
@@ -1923,7 +1923,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($post);
         } catch(Exception $e) {
-            tdz::log(__METHOD__.' [ERROR]: '.$e);
+            tdz::log('[ERROR] '.__METHOD__.' '.$e);
             $this->text['error'] = static::t('updateError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';

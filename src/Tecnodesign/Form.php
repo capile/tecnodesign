@@ -225,17 +225,6 @@ class Tecnodesign_Form implements ArrayAccess
     {
         if($p=strpos($fn, '[')) {
             return false;
-            /*
-            if(preg_match('/^([^\[]+)\[([0-9]+)\]\[([^\[]+)\](.*)/', $fn, $m)) {
-                $f = $m[1];
-                $i = $m[2];
-                $n = $m[3].$m[4];
-                if(isset($this->fields[$f]) && $this->fields[$f]->type!='form') return false;
-                tdz::log(__METHOD__, $m, var_export($this->fields[$f], true));
-            } else {
-                $fn = preg_replace('/\[.*$/', '', $fn);
-            }
-            */
         }
         if(isset($this->fields[$fn])) {
             return $this->fields[$fn];

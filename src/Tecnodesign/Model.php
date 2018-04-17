@@ -594,7 +594,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     unset($eo[$i], $i, $fn);
                 }
             } catch (Exception $e) {
-                tdz::log(__METHOD__.', '.$e->getLine().': '.get_class($this)."::{$fn}\n".$e->getMessage());
+                tdz::log('[INFO] '.__METHOD__.', '.$e->getLine().': '.get_class($this)."::{$fn}\n".$e->getMessage());
                 return false;
             }
         }
@@ -1392,7 +1392,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             throw new Tecnodesign_Exception($msg);
         }
-        if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem");
+        if(tdz::$perfmon>0) tdz::log('[INFO] '.__METHOD__.': '.tdz::formatNumber(microtime(true)-$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem");
         return true;
     }
     
@@ -2145,6 +2145,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $value = (substr($schema['type'], 0, 8)=='datetime')?(date('Y-m-d H:i:s', $d)):(date('Y-m-d', $d));
                 }
             }
+        }
+        if(($value==='' || $value===null) && isset($schema['default'])) {
+            $value = $schema['default'];
         }
         if (($value==='' || $value===null) && isset($schema['null']) && !$schema['null']) {
             $sch = $this->schema();

@@ -354,7 +354,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         $value = $tg::$fn($value, $message);
                     }
                 } else {
-                    \tdz::log(__METHOD__.', '.__LINE__.' [DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
+                    \tdz::log('[DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
                     @eval("\$value = {$m};");
                 }
                 unset($tg, $fn);
@@ -1145,7 +1145,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 if(is_null($this->_choicesCollection)) {
                     $t = microtime(true);
                     $this->choices = $choices::find($check, 0, 'choices');
-                    if(tdz::$perfmon) tdz::log(__METHOD__.'-->'.$choices.'  '.tdz::formatNumber(microtime(true)-$t, 5));
                     if(!$this->choices) {
                         $this->choices=new Tecnodesign_Collection();
                     }
@@ -1962,6 +1961,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         foreach ($a as $attr=>$value) {
             if ($attr!='value' && is_bool($value)) {
                 $value = var_export($value, true);
+            } else if(is_array($value) && isset($value['value'])) {
+                $value = $value['value'];
             }
             $input .= $attr . '="' . tdz::xmlEscape($value) . '" ';
         }
@@ -2196,16 +2197,20 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $ro=array();
             foreach($o as $k=>$v) {
                 if(is_object($v) && $v instanceof Tecnodesign_Model) {
-                    $value=$v->pk;
-                    $group = $v->group;
-                    $label = $v->label;
-                    if(!$label) {
-                        $label = (string) $v;
-                    }
-                    if($group) {
-                        $ro[]=array('value'=>$value, 'label'=>$label, 'group'=>$group);
+                    if(isset($v::$schema['scope']['choices']['value']) && isset($v::$schema['scope']['choices']['label'])) {
+                        $ro[]=$v->asArray('choices');
                     } else {
-                        $ro[]=array('value'=>$value, 'label'=>$label);
+                        $value=$v->pk;
+                        $group = $v->group;
+                        $label = $v->label;
+                        if(!$label) {
+                            $label = (string) $v;
+                        }
+                        if($group) {
+                            $ro[]=array('value'=>$value, 'label'=>$label, 'group'=>$group);
+                        } else {
+                            $ro[]=array('value'=>$value, 'label'=>$label);
+                        }
                     }
                 } else if(!is_string($v)) {
                     if(is_array($v)) {
@@ -2364,6 +2369,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $label = false;
             $group = false;
             $attrs = '';
+            if(is_object($v) && $v instanceof Tecnodesign_Model && isset($v::$schema['scope']['choices']['value']) && isset($v::$schema['scope']['choices']['label'])) {
+                $v = $v->asArray('choices');
+            }
             if (is_array($v)) {
                 $firstv=false;
                 foreach ($v as $vk=>$vv) {
