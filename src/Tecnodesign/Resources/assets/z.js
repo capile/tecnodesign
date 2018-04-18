@@ -1084,7 +1084,6 @@ var _FF={};
 
 function enableField(on)
 {
-    console.log('enableField: '+on, this);
     if(arguments.length==0) on=true;
     var cn = this.className,an='readonly';
     if(on) {

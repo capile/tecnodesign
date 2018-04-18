@@ -280,6 +280,13 @@ input.tdz-i-switch{
       line-height:1.5em;
       width:1.5em;
     }
+    &::after {
+      content:' ';
+      clear:both;
+      display:block;
+      height:0;
+      width:0;
+    }
   }
 }
 
@@ -320,7 +327,7 @@ input.tdz-i-switch{
     top:0;
     right:0;
   }
-  .ui-buttons{padding:0 0.5em 0.5em 0.5em;}
+  .ui-buttons{padding:0 0.5em 0.5em 0.5em;clear:both;}
 }
 .tdz-i-preview > div, .tdz-i-body .tdz-i-standalone {
   & > hr, & > form > hr {
@@ -751,18 +758,18 @@ select, input {
   overflow-y:auto;
   overflow-x:hidden;
 }
-.ih1  dd, .ih1  .input { min-height:@lh * 1  - @lh;max-height:@lh * 1  + @lh; textarea,select[multiple] { height:@lh * 1 ; } }
-.ih2  dd, .ih2  .input { min-height:@lh * 2  - @lh;max-height:@lh * 2  + @lh; textarea,select[multiple] { height:@lh * 2 ; } }
-.ih3  dd, .ih3  .input { min-height:@lh * 2  - @lh;max-height:@lh * 3  + @lh; textarea,select[multiple] { height:@lh * 3 ; } }
-.ih4  dd, .ih4  .input { min-height:@lh * 3  - @lh;max-height:@lh * 4  + @lh; textarea,select[multiple] { height:@lh * 4 ; } }
-.ih5  dd, .ih5  .input { min-height:@lh * 4  - @lh;max-height:@lh * 5  + @lh; textarea,select[multiple] { height:@lh * 5 ; } }
-.ih6  dd, .ih6  .input { min-height:@lh * 5  - @lh;max-height:@lh * 6  + @lh; textarea,select[multiple] { height:@lh * 6 ; } }
-.ih7  dd, .ih7  .input { min-height:@lh * 6  - @lh;max-height:@lh * 7  + @lh; textarea,select[multiple] { height:@lh * 7 ; } }
-.ih8  dd, .ih8  .input { min-height:@lh * 7  - @lh;max-height:@lh * 8  + @lh; textarea,select[multiple] { height:@lh * 8 ; } }
-.ih9  dd, .ih9  .input { min-height:@lh * 8  - @lh;max-height:@lh * 9  + @lh; textarea,select[multiple] { height:@lh * 9 ; } }
-.ih10 dd, .ih10 .input { min-height:@lh * 8 -  @lh;max-height:@lh * 10 + @lh; textarea,select[multiple] { height:@lh * 10; } }
-.ih15 dd, .ih15 .input { min-height:@lh * 8 -  @lh;max-height:@lh * 15 + @lh; textarea,select[multiple] { height:@lh * 15; } }
-.ih20 dd, .ih20 .input { min-height:@lh * 8 -  @lh;max-height:@lh * 20 + @lh; textarea,select[multiple] { height:@lh * 20; } }
+.ih1  dd, .ih1  .input { min-height:@lh * 1  - @lh;max-height:@lh * 1  + @lh; textarea,select[multiple] { min-height:@lh * 1  - @lh * 0.5; } }
+.ih2  dd, .ih2  .input { min-height:@lh * 2  - @lh;max-height:@lh * 2  + @lh; textarea,select[multiple] { min-height:@lh * 2  - @lh * 0.5; } }
+.ih3  dd, .ih3  .input { min-height:@lh * 3  - @lh;max-height:@lh * 3  + @lh; textarea,select[multiple] { min-height:@lh * 3  - @lh * 0.5; } }
+.ih4  dd, .ih4  .input { min-height:@lh * 4  - @lh;max-height:@lh * 4  + @lh; textarea,select[multiple] { min-height:@lh * 4  - @lh * 0.5; } }
+.ih5  dd, .ih5  .input { min-height:@lh * 5  - @lh;max-height:@lh * 5  + @lh; textarea,select[multiple] { min-height:@lh * 5  - @lh * 0.5; } }
+.ih6  dd, .ih6  .input { min-height:@lh * 6  - @lh;max-height:@lh * 6  + @lh; textarea,select[multiple] { min-height:@lh * 6  - @lh * 0.5; } }
+.ih7  dd, .ih7  .input { min-height:@lh * 7  - @lh;max-height:@lh * 7  + @lh; textarea,select[multiple] { min-height:@lh * 7  - @lh * 0.5; } }
+.ih8  dd, .ih8  .input { min-height:@lh * 8  - @lh;max-height:@lh * 8  + @lh; textarea,select[multiple] { min-height:@lh * 8  - @lh * 0.5; } }
+.ih9  dd, .ih9  .input { min-height:@lh * 9  - @lh;max-height:@lh * 9  + @lh; textarea,select[multiple] { min-height:@lh * 9  - @lh * 0.5; } }
+.ih10 dd, .ih10 .input { min-height:@lh * 10 - @lh;max-height:@lh * 10 + @lh; textarea,select[multiple] { min-height:@lh * 10 - @lh * 0.5; } }
+.ih15 dd, .ih15 .input { min-height:@lh * 15 - @lh;max-height:@lh * 15 + @lh; textarea,select[multiple] { min-height:@lh * 15 - @lh * 0.5; } }
+.ih20 dd, .ih20 .input { min-height:@lh * 20 - @lh;max-height:@lh * 20 + @lh; textarea,select[multiple] { min-height:@lh * 20 - @lh * 0.5; } }
 
 @media only screen and (min-width: @mobileBreakPoint) {
 

@@ -2103,6 +2103,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if (!is_null($name) && method_exists($this, $m='validate'.\tdz::camelize($name, true))) {
             $value = $this->$m($value);
         }
+
         if(!isset($schema['type'])) $schema['type']='string';
         if ($schema['type']=='string') {
             $value = (is_array($value))?(implode(',',$value)):(@(string) $value);
@@ -2146,6 +2147,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
             }
         }
+        if(!isset($schema['default']) && isset(static::$schema['form'][$name]['default'])) $schema['default'] = static::$schema['form'][$name]['default'];
         if(($value==='' || $value===null) && isset($schema['default'])) {
             $value = $schema['default'];
         }

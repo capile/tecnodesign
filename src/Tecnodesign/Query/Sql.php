@@ -506,7 +506,6 @@ class Tecnodesign_Query_Sql
                     $fn = $ta.'.'.$fn;
                 }
             } else if(strtolower($fn)!=='null') {
-                //tdz::debug(__METHOD__, func_get_args(), "Cannot find by [{$fn}] at [{$sc['tableName']}]");
                 tdz::log("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
                 throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
             }
