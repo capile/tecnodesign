@@ -1380,12 +1380,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         } catch(Exception $e) {
             $msg = $e->getMessage();
+            $c = explode("\n",$msg);
+            if (count($c) == 1) {
+                $msg = tdz::t($msg,'exception');
+            }
 
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
                 $msg = array(tdz::t('Could not save %s.', 'exception')."\n".tdz::t('Issues are', 'exception').":\n".$msg, $cn::label());
             }
 
-            if($sql=$this->lastQuery()) tdz::log($sql);
+            if($sql=$this->lastQuery()) tdz::log(__METHOD__.'('.__LINE__.'): '.$sql);
             if (isset($trans) && $trans) {
                 $cn::rollbackTransaction($trans, $conn, $this->_query);
                 self::$transaction=$defaultTransaction;
