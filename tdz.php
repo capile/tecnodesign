@@ -1658,6 +1658,8 @@ class tdz
             header('Content-Range: bytes ' . $seek_start . '-' . $seek_end . '/' . $size);
         }
         header('Content-Length: ' . ($seek_end - $seek_start + 1));
+        header('X-Accel-Buffering: no');
+
 
         //open the file
         $fp = fopen($file, 'rb');
