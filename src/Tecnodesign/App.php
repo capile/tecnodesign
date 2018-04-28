@@ -389,7 +389,7 @@ class Tecnodesign_App
         }
     }
 
-    public static function status($code=200)
+    public static function status($code=200, $header=true)
     {
         // http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
         static $status = array(
@@ -412,7 +412,7 @@ class Tecnodesign_App
         );
         if(!isset($status[$code])) $code = 500;
         $proto = (isset($_SERVER['SERVER_PROTOCOL']))?($_SERVER['SERVER_PROTOCOL']):('HTTP/1.1');
-        @header($proto.' '.$code.' '.$status[$code]);
+        @header($proto.' '.$code.' '.$status[$code], true);
         return $code.' '.$status[$code];
     }
     

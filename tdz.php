@@ -1363,10 +1363,11 @@ class tdz
         }
         exit();    }
 
-    public static function redirect($url='')
+    public static function redirect($url='', $temporary=false)
     {
         $url = ($url == '') ? (tdz::scriptName()) : ($url);
-        @header('HTTP/1.1 301 Moved Permanently', true);
+        Tecnodesign_App::status(($temporary)?(302):(301));
+
         if (preg_match('/\:\/\//', $url)) {
             @header("Location: $url", true, 301);
             $str = "<html><head><meta http-equiv=\"Refresh\" content=\"0;".
