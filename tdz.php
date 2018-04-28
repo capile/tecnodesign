@@ -1323,17 +1323,17 @@ class tdz
     public static function getBrowserCache($etag, $lastModified, $expires=false)
     {
         @header(
-            'Last-Modified: '.
+            'last-modified: '.
             gmdate("D, d M Y H:i:s", $lastModified) . ' GMT'
         );
         $cacheControl = tdz::cacheControl(null, $expires);
         if ($expires && $cacheControl=='public') {
             @header(
-                'Expires: '.
+                'expires: '.
                 gmdate("D, d M Y H:i:s", time() + $expires) . ' GMT'
             );
         }
-        @header('ETag: "'.$etag.'"');
+        @header('etag: "'.$etag.'"');
 
         $if_none_match = isset($_SERVER['HTTP_IF_NONE_MATCH']) ?
                 stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) :
@@ -1357,7 +1357,7 @@ class tdz
         /**
          * Nothing has changed since their last request - serve a 304 and exit
          */
-        @header('HTTP/1.1 304 Not Modified');
+        Tecnodesign_App::status(304);
         if(tdz::getApp()) {
             Tecnodesign_App::afterRun();
         }
@@ -1366,27 +1366,19 @@ class tdz
     public static function redirect($url='', $temporary=false)
     {
         $url = ($url == '') ? (tdz::scriptName()) : ($url);
-        Tecnodesign_App::status(($temporary)?(302):(301));
+        $status = ($temporary)?(302):(301);
 
-        if (preg_match('/\:\/\//', $url)) {
-            @header("Location: $url", true, 301);
-            $str = "<html><head><meta http-equiv=\"Refresh\" content=\"0;".
-                   "URL={$url}\"></head><body><body></html>";
-        } else {
-            $scheme = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on')||(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO']=='https')) ?
-                      ('https') : ('http');
-            @header(
-                "Location: {$scheme}://{$_SERVER['HTTP_HOST']}{$url}", true, 301
-            );
-            $str = "<html><head><meta http-equiv=\"Refresh\" content=\"0;".
-                   "URL={$scheme}://{$_SERVER['HTTP_HOST']}{$url}\">".
-                   "</head><body><body></html>";
+        if (!preg_match('/\:\/\//', $url)) {
+            $url = tdz::buildUrl($url);
         }
-        @header(
-            'Cache-Control: no-store, no-cache, must-revalidate,'.
-            'post-check=0, pre-check=0'
-        );
-        @header('Content-Length: '.strlen($str));
+        $str = "<html><head><meta http-equiv=\"Refresh\" content=\"0;".
+               "URL={$url}\"></head><body><body></html>";
+
+        Tecnodesign_App::status($status);
+        @header('location: '.$url, true, $status);
+        @header('cache-control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
+        @header('content-length: '.strlen($str));
+
         echo $str;
         tdz::flush();
 
@@ -1524,11 +1516,11 @@ class tdz
         }
         
         if ($format != '') {
-            @header('Content-Type: ' . $format);
+            @header('content-type: ' . $format);
         } else {
-            @header('Content-Type: text/html; charset=UTF8');
+            @header('content-type: text/html; charset=UTF8');
         }
-        @header('Content-Length: ' . strlen($s));
+        @header('content-length: ' . strlen($s));
         echo $s;
         tdz::flush();
         if ($exit) {
@@ -1553,11 +1545,10 @@ class tdz
             $cc = preg_replace('/\,.*/', '', $cacheControl);
 
             if (function_exists('header_remove')) {
-                header_remove('Cache-Control');
-                header_remove('Pragma');
+                header_remove('cache-control');
+                header_remove('pragma');
             }
-            @header('Cache-Control: '.$cacheControl);
-            @header('Cache-Control: max-age='.$expires.', s-maxage='.$expires, false);
+            @header('cache-control: '.$cacheControl.', max-age='.$expires.', s-maxage='.$expires);
         }
         return $cacheControl;
     }
@@ -1579,25 +1570,25 @@ class tdz
             $expires = (int)$_GET['t'];
         $lastmod = filemtime($file);
         if ($format != '')
-            @header('Content-Type: ' . $format);
+            @header('content-type: ' . $format);
         else {
             if($fname) $format=tdz::fileFormat($fname);
             else $format=tdz::fileFormat($file);
             if ($format)
-                @header('Content-Type: ' . $format);
+                @header('content-type: ' . $format);
         }
         $gzip = false;
         if (substr($format, 0, 5) == 'text/' && isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
             $gzip = true;
         if (substr($format, 0, 5) == 'text/')
-            header('Vary: Accept-Encoding', false);
+            header('vary: Accept-Encoding', false);
         if ($nocache) {
-            header('Cache-Control: no-cache, no-store, max-age=0, must-revalidate');
-            header('Expires: Thu, 11 Oct 2007 05:00:00 GMT'); // Date in the past
+            header('cache-control: no-cache, no-store, max-age=0, must-revalidate');
+            header('expires: Thu, 11 Oct 2007 05:00:00 GMT'); // Date in the past
         } else {
             tdz::getBrowserCache(md5_file($file) . (($gzip) ? (';gzip') : ('')), $lastmod, $expires);
         }
-        @header('Content-Transfer-Encoding: binary');
+        @header('content-transfer-encoding: binary');
 
         if ($attachment) {
             $contentDisposition = 'attachment';
@@ -1608,12 +1599,12 @@ class tdz
                 $contentDisposition = 'inline';
             if (strstr($_SERVER['HTTP_USER_AGENT'], "MSIE")) {
                 $fname = preg_replace('/\./', '%2e', $fname, substr_count($fname, '.') - 1);
-                @header("Content-Disposition: $contentDisposition; filename=\"$fname\"");
+                @header("content-disposition: $contentDisposition; filename=\"$fname\"");
             } else {
-                @header("Content-Disposition: $contentDisposition; filename=\"$fname\"");
+                @header("content-disposition: $contentDisposition; filename=\"$fname\"");
             }
         } else if($fname) {
-            @header("Content-Disposition: filename=\"$fname\"");
+            @header("content-disposition: filename=\"$fname\"");
         }
         if ($gzip) {
             $gzf=TDZ_VAR . '/cache/download/' . md5_file($file);
@@ -1625,7 +1616,7 @@ class tdz
             $gze = 'gzip';
             if (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip') !== false)
                 $gze = 'x-gzip';
-            header('Content-Encoding: ' . $gze);
+            header('content-encoding: ' . $gze);
             $file = $gzf;
         }
         $size = filesize($file);
@@ -1641,7 +1632,7 @@ class tdz
                     //list($range, $extra_ranges) = explode(',', $range_orig, 2);
                 }
             }
-            header('Accept-Ranges: bytes');
+            header('accept-ranges: bytes');
         }
 
         //figure out download piece from range (if set)
@@ -1655,11 +1646,11 @@ class tdz
 
         //Only send partial content header if downloading a piece of the file (IE workaround)
         if ($seek_start > 0 || $seek_end < ($size - 1)) {
-            header('HTTP/1.1 206 Partial Content');
-            header('Content-Range: bytes ' . $seek_start . '-' . $seek_end . '/' . $size);
+            Tecnodesign_App::status(206);
+            header('content-range: bytes ' . $seek_start . '-' . $seek_end . '/' . $size);
         }
-        header('Content-Length: ' . ($seek_end - $seek_start + 1));
-        header('X-Accel-Buffering: no');
+        header('content-length: ' . ($seek_end - $seek_start + 1));
+        header('x-accel-buffering: no');
 
 
         //open the file
@@ -1780,7 +1771,7 @@ class tdz
     {
         $arg = func_get_args();
         if (!headers_sent())
-            @header("Content-Type: text/plain;charset=UTF-8");
+            @header('content-type: text/plain;charset=UTF-8');
         foreach ($arg as $k => $v) {
             if ($v === false)
                 return false;
@@ -2206,8 +2197,8 @@ class tdz
                 fclose($fp);
             }
         }
-        @header('HTTP/1.1 401 Unauthorized');
-        @header('WWW-Authenticate: Basic realm="Restricted access, please provide your credentials."');
+        Tecnodesign_App::status(401);
+        @header('www-authenticate: Basic realm="Restricted access, please provide your credentials."');
         exit('<html><title>401 Unauthorized</title><body><h1>Forbidden</h1><p>Restricted access, please provide your credentials.</p></body></html>');
     }
     

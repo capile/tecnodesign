@@ -326,12 +326,12 @@ class Tecnodesign_App
         if(isset(tdz::$variables['exit']) && !tdz::$variables['exit']) return self::$result;
         if(!self::$_request['shell']) {
             if(!headers_sent()) {
-                if(!isset(self::$_response['headers']['Content-Length'])) {
+                if(!isset(self::$_response['headers']['content-length'])) {
                     if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
                         self::$result = gzencode(self::$result, 9);
-                        self::$_response['headers']['Content-Encoding'] = (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip'))?('x-gzip'):('gzip');
+                        self::$_response['headers']['content-encoding'] = (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip'))?('x-gzip'):('gzip');
                     }
-                    self::$_response['headers']['Content-Length'] = strlen(self::$result);
+                    self::$_response['headers']['content-length'] = strlen(self::$result);
                 }
                 foreach(self::$_response['headers'] as $hn=>$h) {
                     if(!is_int($hn)) {
@@ -348,7 +348,7 @@ class Tecnodesign_App
                 }
             }
             if(self::$http2push && self::$link) {
-                header('Link: '.static::$link);
+                header('link: '.static::$link);
             }
             echo self::$result;
             tdz::flush();
@@ -397,6 +397,7 @@ class Tecnodesign_App
             201 => 'Created',
             202 => 'Accepted',
             204 => 'No Content',
+            206 => 'Partial Content',
             301 => 'Moved Permanently',
             302 => 'Found',
             304 => 'Not Modified',
@@ -441,8 +442,8 @@ class Tecnodesign_App
             self::$_response += tdz::$variables;
             $result = $this->runTemplate(self::$_response['layout'], self::$_response);
         }
-        //@header('Content-Type: text/html; charset=utf-8');
-        @header('Content-Length: '.strlen($result));
+        //@header('content-type: text/html; charset=utf-8');
+        @header('content-length: '.strlen($result));
         tdz::cacheControl('no-cache, private, must-revalidate', false);
         echo $result;
         tdz::flush();

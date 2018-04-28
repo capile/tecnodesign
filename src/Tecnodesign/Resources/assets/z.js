@@ -28,11 +28,11 @@ function initZ(d)
     var store=true;
     if(!('user' in Z)) {
         Z.user=null;
-        d=Z.storage('Z-Auth');
+        d=Z.storage('z-auth');
         if(d && String(d)) {
             if(('token' in d) && d.token) {
                 if(!('headers' in Z)) Z.headers = {};
-                Z.headers['Z-Token']=d.token;
+                Z.headers['z-token']=d.token;
             }
             if(String(window.location).search('reload')<0) {
                 Z.uid=null;
@@ -1750,7 +1750,7 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
     }
     //_ajax[url].r.onload = ajaxOnload;
     _ajax[url].r.open(m, url+qs, true);
-    _ajax[url].r.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    _ajax[url].r.setRequestHeader('x-requested-with', "XMLHttpRequest");
     var n;
     if('headers' in Z) {
         for(n in Z.headers) {
@@ -1760,7 +1760,7 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
     }
     if(headers) {
         if(m=='post' && data && String(data)=='[object FormData]') {
-            headers['Content-Type']=false;
+            headers['content-type']=false;
         }
         for(n in headers) {
             if(headers[n])
@@ -1768,8 +1768,8 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
         }
     }
     if(m=='post') {
-        if(!headers || !('Content-Type' in headers)) {
-            _ajax[url].r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+        if(!headers || !('content-type' in headers)) {
+            _ajax[url].r.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
         }
         //if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);
         //_ajax[url].r.setRequestHeader('Connection', 'close');

@@ -53,10 +53,27 @@ class Tecnodesign_User
     const MAX_ATTEMPTS_TIMEOUT = 300;
     const LASTCOOKIE_ATTR = 'lastSessionCookie';
 
-    protected static $_current = null, $_cookies=array(), $audit=array('REMOTE_ADDR'=>'ip','HTTP_USER_AGENT'=>'ua');
-    protected $_uid, $_me, $_session, $_superAdmin, $_ns, 
-        $_map=array(), $_attr, $_cname=null, $_cid=null, $_credentials=null,
-        $_message=null, $_o=array(), $_useMem=false, $lastAccess;
+    protected static 
+        $_current = null,       // current session opened
+        $_cookies=array(),      // cookies retrieved from the browser
+        $_cookiesSent=array(),  // cookies sent to the browser
+        $audit=array('REMOTE_ADDR'=>'ip','HTTP_USER_AGENT'=>'ua')
+        ;
+    protected
+        $_uid,
+        $_me,
+        $_session,
+        $_superAdmin,
+        $_ns, 
+        $_map=array(),
+        $_attr,
+        $_cname=null,
+        $_cid=null,
+        $_credentials=null,
+        $_message=null,
+        $_o=array(),
+        $_useMem=false,
+        $lastAccess;
 
     /**
      * Checks if there's any valid authentication method opened for current session, 
@@ -527,23 +544,22 @@ class Tecnodesign_User
     public function setSessionCookie()
     {
         if(!static::$setCookie) return true;
-        static $cookiesSent = array();
         $n = $this->getSessionName();
-        if(isset($this->_cookiesSent[$n.'/'.$this->_cid])) return true;
+        if(isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
 
         if(isset($this->_ns['domain'])) {
             $domain = $this->_ns['domain'];
+            if(substr($domain,0,1)!='.') {
+                $domain = ".{$domain}";
+            }
         } else {
             $domain = $_SERVER['HTTP_HOST'];
-        }
-        if(substr($domain,0,1)!='.') {
-            $domain = ".{$domain}";
         }
         if($p=strpos($domain, ':')) $domain = substr($domain, 0, $p);
         $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         if($timeout > 0 && $timeout<31536000) $timeout += time();
         setcookie($n, $this->_cid, $timeout, '/', $domain, static::$cookieSecure, static::$cookieHttpOnly);
-        $cookiesSent[$n.'/'.$this->_cid]=true;
+        self::$_cookiesSent[$n.'/'.$this->_cid]=true;
         unset($n, $domain, $timeout);
         return true;
     }

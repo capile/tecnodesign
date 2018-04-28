@@ -1607,17 +1607,19 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function headers()
     {
         foreach(static::$headers as $k=>$v) {
+            $x = false;
+            $k=tdz::slug($k);
             if($k==static::H_LAST_MODIFIED) header($k.': '.$v);
-            else if(strtolower($k)=='location') header('Location: '.$v);
-            else if(preg_match('/^([A-Z][a-z0-9]+\-)+([A-Z][a-z0-9]+)$/', $k)) header($k.': '.$v);
-            else if($k) {
-                $k = 'X-'.str_replace(' ', '-', ucwords(str_replace('-', ' ', tdz::slug($k))));
+            else if($k=='location') header('location: '.$v);
+            else if(preg_match('/^([a-z0-9]+\-)+([a-z0-9]+)$/', $k)) header($k.': '.$v);
+            else $x = true;
+            if($x || defined('static::H_'.strtoupper(str_replace('-', '_', $k)))) {
                 $v = preg_replace('/[\n\r\t]+/', '', strip_tags((is_array($v))?(implode(';',$v)):($v)));
-                @header($k.': '.$v);
+                @header('x'-$k.': '.$v);
             }
         }
         if(static::$status) {
-            Tecnodesign_App::status(static::$status, static::$statusCodes[static::$status]);
+            Tecnodesign_App::status(static::$status);
         }
     }
 
@@ -1644,7 +1646,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $if = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
             if($if >= $lmod) {
                 if(static::$format!='html') {
-                    header('Content-Type: application/'.static::$format.'; charset=UTF-8');
+                    header('content-type: application/'.static::$format.'; charset=UTF-8');
                 }
                 Tecnodesign_App::end('', 304);
             }
