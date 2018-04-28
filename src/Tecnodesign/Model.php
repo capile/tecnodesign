@@ -170,7 +170,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $dbtype = preg_replace('/\:.*/', '', $dbold[$db]['dsn']);
             $scn = 'Tecnodesign_Model_'.ucfirst($dbtype);
             if(!class_exists($scn)) {
-                tdz::log('Don\'t know how to update this schema, sorry...');
+                tdz::log('[ERROR] '.__METHOD__.': Don\'t know how to update the schema '.$cn.', sorry...');
             } else {
                 $schema = $scn::updateSchema($schema);
                 Tecnodesign_Cache::set('schema/'.$cn, $schema, 0, false);
@@ -594,7 +594,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     unset($eo[$i], $i, $fn);
                 }
             } catch (Exception $e) {
-                tdz::log('[INFO] '.__METHOD__.', '.$e->getLine().': '.get_class($this)."::{$fn}\n".$e->getMessage());
+                tdz::log('[INFO] '.__METHOD__.', '.$e->getLine().': '.get_class($this)."::{$fn}\nerror: ".$e->getMessage());
                 return false;
             }
         }
@@ -750,7 +750,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             if(!isset($this->_original[$fn])) $this->_original[$fn]=$this->$fn;
             $this->$fn=$cn::$increment[$fn.'-'.$ik];
-            //tdz::log('sortable trigger!!!!', $this->$fn, $sql);
         }
         return true;
     }
@@ -1278,7 +1277,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
             if(!$this->runEvent('before-save', $conn)) {
-                throw new Exception("Could not save [{$schema['tableName']}]");
+                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
             }
 
             $trans = false;
@@ -1379,13 +1378,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
             }
         } catch(Exception $e) {
-            $msg = $e->getMessage();
+            tdz::log('[WARNING] '.__METHOD__.': '.$e->getMessage()."\nerror-message: {$e}");
 
+            $msg = ($e instanceof Tecnodesign_Exception)?($e->getMessage()):('');
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
-                $msg = array(tdz::t('Could not save %s.', 'exception')."\n".tdz::t('Issues are', 'exception').":\n".$msg, $cn::label());
+                if($msg) $msg = "\n".tdz::t('Issues are', 'exception').":\n".$msg;
+                $msg = array(tdz::t('Could not save %s.', 'exception').$msg, $cn::label());
             }
 
-            if($sql=$this->lastQuery()) tdz::log($sql);
             if (isset($trans) && $trans) {
                 $cn::rollbackTransaction($trans, $conn, $this->_query);
                 self::$transaction=$defaultTransaction;
