@@ -1606,18 +1606,21 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public static function headers()
     {
+        $r = array();
         foreach(static::$headers as $k=>$v) {
-            $x = false;
-            $k=tdz::slug($k);
-            if($k==static::H_LAST_MODIFIED) header($k.': '.$v);
-            else if($k=='location') header('location: '.$v);
-            else if(preg_match('/^([a-z0-9]+\-)+([a-z0-9]+)$/', $k)) header($k.': '.$v);
-            else $x = true;
-            if($x || defined('static::H_'.strtoupper(str_replace('-', '_', $k)))) {
+            $k = tdz::slug($k);
+            $x = true;
+            if($k===static::H_LAST_MODIFIED || $k==='location' || $k==='access-control-allow-origin') {
+                header($k.': '.$v);
+                $x = defined('static::H_'.strtoupper(str_replace('-', '_', $k)));
+            }
+            if($x) {
                 $v = preg_replace('/[\n\r\t]+/', '', strip_tags((is_array($v))?(implode(';',$v)):($v)));
-                @header('x'-$k.': '.$v);
+                @header('x-'.$k.': '.$v);
+                $r[] = 'x-'.$k.': '.$v;
             }
         }
+
         if(static::$status) {
             Tecnodesign_App::status(static::$status);
         }
