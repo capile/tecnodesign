@@ -2635,7 +2635,7 @@ class tdz
             }
             return true;
         } catch(Exception $e) {
-            tdz::log('['.date('Y-m-d H:i:s').']'.' [error] ['.__METHOD__.': '.$e->getLine().'] '.$e->getMessage());
+            tdz::log('[ERROR] Probably wrong filesystem permissions: '.$e);
             unlink($tmpfile);
             return false;
         }

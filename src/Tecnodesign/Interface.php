@@ -666,10 +666,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 return false;
             }
         }
-        if($c) {
-            self::authHeaders();
-        }
         if(isset($c['host']) && is_array($c['host'])) {
+            self::authHeaders();
             if(is_null($H)) {
                 $H = (isset($_SERVER['REMOTE_ADDR']))?($_SERVER['REMOTE_ADDR']):(false);
             }
@@ -683,8 +681,9 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             if(!$c['credential']) {
                 return true;
-            } else if($U->hasCredential($c['credential'], false)) {
-                return true;
+            } else {
+                self::authHeaders($U);
+                return $U->hasCredential($c['credential'], false);
             }
         }
         return false;
@@ -1612,7 +1611,9 @@ class Tecnodesign_Interface implements ArrayAccess
             $x = true;
             if($k===static::H_LAST_MODIFIED || $k==='location' || $k==='access-control-allow-origin') {
                 header($k.': '.$v);
-                $x = defined('static::H_'.strtoupper(str_replace('-', '_', $k)));
+                if($x = defined($c='static::H_'.strtoupper(str_replace('-', '_', $k)))) {
+                    $k=constant($c);
+                }
             }
             if($x) {
                 $v = preg_replace('/[\n\r\t]+/', '', strip_tags((is_array($v))?(implode(';',$v)):($v)));
@@ -1858,7 +1859,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($post);
         } catch(Exception $e) {
-            tdz::log('[ERROR] '.__METHOD__.' '.$e);
+            tdz::log('[INFO] User error while processing '.__METHOD__.': '.$e);
             $this->text['error'] = static::t('newError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
@@ -1928,7 +1929,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($post);
         } catch(Exception $e) {
-            tdz::log('[ERROR] '.__METHOD__.' '.$e);
+            tdz::log('[INFO] User error while processing '.__METHOD__.': '.$e);
             $this->text['error'] = static::t('updateError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
@@ -1967,7 +1968,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 return $this->redirect($this->link(false, false), $oldurl);
             }
         } catch(Exception $e) {
-            tdz::log('[ERROR]'.__METHOD__.': '.$e);
+            tdz::log('[INFO] User error while processing '.__METHOD__.': '.$e);
         }
         $msg = static::t('deleteError');
         if(static::$format!='html') {

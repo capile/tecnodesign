@@ -731,13 +731,12 @@ class Tecnodesign_Query_Api
                      ;
             }
             if($m) {
-                tdz::log('[ERROR] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg));
+                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg));
             }
             throw new Tecnodesign_Exception($msg);
         } else if(!preg_match(static::$successPattern, $r)) {
             $this->headers = $r;
             $this->response = false;
-            //tdz::log("[ERROR] API:\n", curl_error($conn), "\n{$r}");
         }
 
         if($cn && $this->response) {

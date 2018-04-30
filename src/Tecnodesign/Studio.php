@@ -228,7 +228,7 @@ class Tecnodesign_Studio
                     $P = Tecnodesign_Yaml::load($p);
                     if(!$P) $P = null;
                 } catch(Exception $e) {
-                    tdz::log('[ERROR]'.__METHOD__.' '.$e);
+                    tdz::log('[ERROR] Error while loading YAML '.$p.': '.$e);
                     $P = null;
                 }
             }

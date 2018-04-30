@@ -170,7 +170,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $dbtype = preg_replace('/\:.*/', '', $dbold[$db]['dsn']);
             $scn = 'Tecnodesign_Model_'.ucfirst($dbtype);
             if(!class_exists($scn)) {
-                tdz::log('[ERROR] '.__METHOD__.': Don\'t know how to update the schema '.$cn.', sorry...');
+                tdz::log('[WARNING] No schema information for '.$cn);
             } else {
                 $schema = $scn::updateSchema($schema);
                 Tecnodesign_Cache::set('schema/'.$cn, $schema, 0, false);
@@ -1378,7 +1378,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
             }
         } catch(Exception $e) {
-            tdz::log('[WARNING] '.__METHOD__.': '.$e->getMessage()."\nerror-message: {$e}");
+            tdz::log('[WARNING] Error while saving: '.$e->getMessage()."\nerror-message: {$e}");
 
             $msg = ($e instanceof Tecnodesign_Exception)?($e->getMessage()):('');
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {

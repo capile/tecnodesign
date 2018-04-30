@@ -265,7 +265,7 @@ class Tecnodesign_User
                         if($this->__set($fn, date('Y-m-d\TH:i:s', $t)))
                             $this->_me->save();
                     } catch(Exception $e) {
-                        tdz::log('[ERROR] '.__METHOD__.$e->getMessage());
+                        tdz::log('[ERROR] Error while updating user last access: '.$e);
                     }
                 }
                 unset($t1);
