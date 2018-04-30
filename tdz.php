@@ -1793,33 +1793,29 @@ class tdz
     public static function log()
     {
         static $trace;
-        if(tdz::$logDir=='syslog' && openlog('tdz', LOG_PID|LOG_NDELAY, LOG_LOCAL5)) {
-            foreach (func_get_args() as $k => $v) {
-                $v = tdz::toString($v);
-                $l = LOG_INFO;
-                if(substr($v, 0, 4)=='[ERR') $l = LOG_ERR;
-                else if(substr($v, 0, 5)=='[WARN') $l = LOG_WARNING;
-                else $l = LOG_INFO;
-                syslog($l, $v);
-            }
-            closelog();
-            return;
-        } else if(tdz::$logDir=='error_log') {
-            $type = 0;
-            $dest = null;
-        } else {
-            $type = 3;
-            if(!tdz::$logDir) {
-                if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
-                    tdz::$logDir = $app->tecnodesign['log-dir'];
-                    unset($app);
+        $logs = array();
+        $d = (!is_array(tdz::$logDir))?(array(tdz::$logDir)):(tdz::$logDir);
+        foreach($d as $l) {
+            if($l=='syslog' && openlog('tdz', LOG_PID|LOG_NDELAY, LOG_LOCAL5)) {
+                $logs['syslog'] = true;
+            } else if($l=='error_log') {
+                $logs[0] = true;
+            } else {
+                if(!$l) {
+                    if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
+                        $l = $app->tecnodesign['log-dir'];
+                        unset($app);
+                    }
+                    if(!$l) {
+                        $l = TDZ_VAR . '/log';
+                    }
                 }
-                if(!tdz::$logDir) {
-                    tdz::$logDir = TDZ_VAR . '/log';
-                }
+                if(substr($l, 0, 1)!='/') $l = realpath(TDZ_APP_ROOT.'/'.$l);
+                $logs[3] = $l . '/tdz.log';
             }
-            $dest = tdz::$logDir . '/tdz.log';
+            unset($l);
         }
+        unset($d);
 
         foreach (func_get_args() as $k => $v) {
             if($v===true) {
@@ -1831,7 +1827,20 @@ class tdz
                 continue;
             }
             if(!$trace) {
-                error_log(tdz::toString($v), $type, $dest);
+                $v = tdz::toString($v);
+                if(isset($logs['syslog'])) {
+                    $l = LOG_INFO;
+                    if(substr($v, 0, 4)=='[ERR') $l = LOG_ERR;
+                    else if(substr($v, 0, 5)=='[WARN') $l = LOG_WARNING;
+                    else $l = LOG_INFO;
+                    syslog($l, $v);
+                }
+                if(isset($logs[3])) {
+                    error_log($v, 3, $logs[3]);
+                }
+                if(isset($logs[0])) {
+                    error_log($v, 0);
+                }
             } else {
                 try {
                     throw new Exception(tdz::toString($v));
@@ -1843,6 +1852,11 @@ class tdz
             }
             unset($v, $k);
         }
+
+        if(isset($logs['syslog'])) {
+            closelog();
+        }
+        unset($logs);
     }
 
     public static function toString($o, $i=0)
