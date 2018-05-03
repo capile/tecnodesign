@@ -1849,7 +1849,8 @@ class Tecnodesign_Interface implements ArrayAccess
                         $next = $this->options['next'];
                     }
                 }
-                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.static::t('newSuccess').'</p></div>';
+                $this->text['success'] = static::t('updateSuccess');
+                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
                 if($next) {
                     $this->action = $next;
                     $this->message($msg);

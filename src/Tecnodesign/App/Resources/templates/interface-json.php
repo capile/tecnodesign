@@ -46,9 +46,11 @@ $r = array();
 // set parameters: envelope, pretty, fields, etc.
 if(isset($list) && is_array($list)) {
     $r = $list;
-} else if(isset($list) || (isset($preview) && ($preview instanceof Tecnodesign_Model))) {
+} else if(isset($list) || (isset($preview) && (($preview instanceof Tecnodesign_Model)||($preview instanceof Tecnodesign_Form)))) {
     // list counter
     if(isset($preview)) {
+        if($preview instanceof Tecnodesign_Form) $preview = $preview->getModel();
+
         $options['scope'] = $preview::columns($options['scope']);
         $total = 1;
         $listOffset = 0;

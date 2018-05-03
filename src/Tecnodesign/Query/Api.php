@@ -46,13 +46,13 @@ class Tecnodesign_Query_Api
             CURLOPT_TIMEOUT        => 120,          // timeout on response
             CURLOPT_MAXREDIRS      => 2,           // stop after 10 redirects
             CURLOPT_POST           => false,
-            CURLOPT_HTTPHEADER     => array('Accept: application/json'),
+            CURLOPT_HTTPHEADER     => array('accept: application/json'),
         ),
-        $requestHeaders = array('Accept: application/json'),
+        $requestHeaders = array('accept: application/json'),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
         $errorPattern='/HTTP\/[0-9\.]+ +[45][0-9]{2} .*/i',
-        $headerCount='X-Total-Count',
-        $headerModified='Last-Modified',
+        $headerCount='x-total-count',
+        $headerModified='last-modified',
         $dataAttribute,
         $enableOffset=true,
         $pagingAttribute,
@@ -398,9 +398,9 @@ class Tecnodesign_Query_Api
                 $h = $n;
             }
             $h .= ':';
-            if($p=strpos($this->headers, $h)) {
+            if($p=stripos($this->headers, $h)) {
                 $p += strlen($h);
-                return trim(substr($this->headers, $p, strpos($this->headers, "\n", $p)-$p));
+                return trim(substr($this->headers, $p, stripos($this->headers, "\n", $p)-$p));
             }
             return null;
         } else if(!$n) {
@@ -584,7 +584,7 @@ class Tecnodesign_Query_Api
                     list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $body, 2);
                 }
                 $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
-                if($this->headers && strpos($this->header('Content-Type'), 'json')===false) {
+                if($this->headers && strpos($this->header('content-type'), 'json')===false) {
                     $this->response = $body;
                 } else {
                     $this->response = json_decode($body, true);
@@ -720,11 +720,7 @@ class Tecnodesign_Query_Api
                 if(isset($this->response['message'])) {
                     $msg .= $this->response['message'];
                 }
-            } else if(!$msg && ($p=strpos($this->headers, "\nX-Message: "))) {
-                $p += 12;
-                $end = strpos($this->headers, "\n", $p);
-                if(!$end) $msg=substr($this->headers, $p);
-                else $msg=substr($this->headers, $p, $end - $p);
+            } else if(!$msg && ($msg=$this->header('x-message'))) {
                 $msg = '<div class="tdz-i-msg tdz-i-error">'
                      . $msg
                      . '</div>'
@@ -864,7 +860,7 @@ class Tecnodesign_Query_Api
         if(!is_string($data)) {
             if(static::$postFormat && static::$postFormat=='json') {
                 $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-                $H[] = 'Content-Type: application/json';
+                $H[] = 'content-type: application/json';
             } else {
                 $data = http_build_query($data);
             }
