@@ -50,7 +50,6 @@ if(isset($list) && is_array($list)) {
     // list counter
     if(isset($preview)) {
         if($preview instanceof Tecnodesign_Form) $preview = $preview->getModel();
-
         $options['scope'] = $preview::columns($options['scope']);
         $total = 1;
         $listOffset = 0;
@@ -119,10 +118,18 @@ if(isset($error) && $error) {
     if(isset($errorMessage)) {
         $R['message'] = $errorMessage;
     }
+    if(!$Interface::$envelope) {
+        $Interface::$headers[$Interface::H_MESSAGE] = $errorMessage;
+    }
     $R += $r;
     $Interface::error(422, $R);
 } else if(isset($success)) {
-    $R = array('message'=>$success);
+    if($Interface::$envelope) {
+        $R = array('message'=>$success);
+    } else {
+        $R = array();
+        $Interface::$headers[$Interface::H_MESSAGE] = $success;
+    }
     if(isset($status)) {
         $code = $status;
         $R += $r;

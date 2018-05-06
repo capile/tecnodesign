@@ -1820,6 +1820,7 @@ class Tecnodesign_Interface implements ArrayAccess
             else $scope = 'preview';
         }
         //$scope = $this->scope($scope);
+        $this->options['scope'] = $this->scope($scope);
         $a=($this->source)?($this->source):(array());
         if(!$o) $o = new $cn($a, true, false);
         $fo = $this->getForm($o, $scope);
@@ -1882,6 +1883,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
         //$scope = $this->scope($scope);
+        $this->options['scope'] = $this->scope($scope);
         $fo = $this->getForm($o, $scope);
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {

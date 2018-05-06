@@ -1450,6 +1450,17 @@ function datalistOption()
     if(!o) return;
     o.setAttribute('data-datalist-t', new Date().getTime() + 1000);
     var v=this.getAttribute('data-value'),p=_D[id][v],b=this.getAttribute('data-prefix'), s=false,fo=o.form;
+    var dts=o.getAttribute('data-datalist-target'), dt={};
+    if(dts) {
+        var L=dts.split(/[\s\,\;]+/g), i=L.length;
+        while(i-- >0) {
+            if(L[i]) dt[L[i]] = true;
+        }
+        L=null;
+        i=null;
+        dts=null;
+        console.log(dt);
+    }
     if(!b)b='';
     if(p) {
         if(typeof(p)=='string') {
@@ -1482,7 +1493,9 @@ function datalistOption()
                     }
                     var e=fo.querySelector('#'+b+n);
                     if(!e) e=fo.querySelector('*[name="'+b+n+'"]');
-                    if(e) datalistVal(e, p[n], (id!=n));
+                    if(e && (n in dt)) {
+                        datalistVal(e, p[n], (id!=n) && n.substr(0,3)!='q__');
+                    }
                 }
             }
         }
