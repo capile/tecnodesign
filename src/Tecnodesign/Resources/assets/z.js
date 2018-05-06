@@ -1459,7 +1459,6 @@ function datalistOption()
         L=null;
         i=null;
         dts=null;
-        console.log(dt);
     }
     if(!b)b='';
     if(p) {
