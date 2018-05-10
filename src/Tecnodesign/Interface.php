@@ -44,9 +44,9 @@ class Tecnodesign_Interface implements ArrayAccess
         $listCounter        = 'Showing from %s to %s.',
         $previewNoResult    = 'This record is not available.',
         $listNoResults      = 'There are no records available.',
-        $updateSuccess      = 'Record successfully updated.',
-        $newSuccess         = 'Record successfully created.',
-        $deleteSuccess      = 'Record successfully removed.',
+        $updateSuccess      = '%s ―%s― successfully updated.',
+        $newSuccess         = '%s ―%s― successfully created.',
+        $deleteSuccess      = '%s ―%s― successfully removed.',
         $updateError        = 'It wasn\'t possible to update the record. Please verify the error messages and try again.',
         $newError           = 'It wasn\'t possible to create the record. Please verify the error messages and try again.',
         $deleteError        = 'It wasn\'t possible to remove the record. Please verify the error messages and try again.',
@@ -77,10 +77,10 @@ class Tecnodesign_Interface implements ArrayAccess
         $actionsAvailable   = array(
                                 'list'      => array('position'=>0,  'identified'=>false, 'batch'=>false, 'query'=>true,  'additional-params'=>true, ),
                                 'report'    => array('position'=>10, 'identified'=>false, 'batch'=>false, 'query'=>true,  'additional-params'=>true,   'renderer'=>'renderReport',),
-                                'new'       => array('position'=>20, 'identified'=>false, 'batch'=>false, 'query'=>false, 'additional-params'=>false,  'renderer'=>'renderNew',),
+                                'new'       => array('position'=>20, 'identified'=>false, 'batch'=>false, 'query'=>false, 'additional-params'=>false,  'renderer'=>'renderNew', 'next'=>'preview'),
                                 'preview'   => array('position'=>30, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderPreview',),
-                                'update'    => array('position'=>40, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderUpdate'),
-                                'delete'    => array('position'=>50, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderDelete'),
+                                'update'    => array('position'=>40, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderUpdate', 'next'=>'preview'),
+                                'delete'    => array('position'=>50, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderDelete', 'next'=>'list'),
                             ),
         $relationAction     =                  array('position'=>60,    'action' => 'executeInterface','identified'=>true,  'batch'=>false, 'query'=>false, 'renderer'=>'renderInterface'),
         $additionalActions  = array(),
@@ -1850,7 +1850,13 @@ class Tecnodesign_Interface implements ArrayAccess
                         $next = $this->options['next'];
                     }
                 }
-                $this->text['success'] = static::t('updateSuccess');
+                if(!$next && isset($this->actions[$this->action]['next'])) {
+                    $next = $this->actions[$this->action]['next'];
+                }
+                if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
+                    if(!isset($this->actions[$next])) $next = null;
+                }
+                $this->text['success'] = sprintf(static::t('newSuccess'), $o::label(), (string)$o);
                 $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
                 if($next) {
                     $this->action = $next;
@@ -1899,13 +1905,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $o->save();
                 $newpk = implode('-', $o->getPk(true));
                 // success message
-                $this->text['success'] = static::t('updateSuccess');
-                if(isset($_GET['uri']) && !preg_match('#[\<\>\:\(\)]#', $_GET['uri'])) {
-                    $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>');
-                    $this->redirect($_GET['uri'], $oldurl);
-                }
-
-                $this->text['success'] = static::t('updateSuccess');
+                $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), (string)$o);
                 $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
 
                 $next = null;
@@ -1918,6 +1918,13 @@ class Tecnodesign_Interface implements ArrayAccess
                         $next = $this->options['next'];
                     }
                 }
+                if(!$next && isset($this->actions[$this->action]['next'])) {
+                    $next = $this->actions[$this->action]['next'];
+                }
+                if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
+                    if(!isset($this->actions[$next])) $next = null;
+                }
+
                 if($newpk!=$pk) {
                     $this->id = $newpk;
                     if(!$next) $next = $this->action;
@@ -1945,15 +1952,12 @@ class Tecnodesign_Interface implements ArrayAccess
         try {
             if(($M = $this->model())) {
                 $oldurl = $this->link();
+                $s = (string)$M;
                 $M->delete(true);
-                $msg = static::t('deleteSuccess');
-                if(static::$format!='html') {
-                    $this->message($msg);
-                } else {
-                    $this->message('<div class="tdz-i-msg tdz-i-success"><p>'.$msg.'</p></div>');
-                }
+                $this->text['success'] = sprintf(static::t('deleteSuccess'), $M::label(), $s);
+                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
 
-                $next = 'preview';
+                $next = null;
                 if(isset($this->options['next'])) {
                     if(is_array($this->options['next'])) {
                         if(isset($this->options['next'][$this->action])) {
@@ -1963,10 +1967,22 @@ class Tecnodesign_Interface implements ArrayAccess
                         $next = $this->options['next'];
                     }
                 }
-                $this->action = $next;
-                if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
-                    $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link($next, true)).'"></a>');
+                if(!$next && isset($this->actions[$this->action]['next'])) {
+                    $next = $this->actions[$this->action]['next'];
                 }
+                if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
+                    if(!isset($this->actions[$next])) $next = null;
+                }
+                if($next) {
+                    if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+                        // remove record preview, if  it exists
+                        $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link('preview', true)).'"></a>');
+                    }
+                    $this->action = $next;
+                    $this->message($msg);
+                    $this->redirect($this->link($next, false), $oldurl);
+                }
+                $this->text['summary'] .= $msg;
 
                 return $this->redirect($this->link(false, false), $oldurl);
             }

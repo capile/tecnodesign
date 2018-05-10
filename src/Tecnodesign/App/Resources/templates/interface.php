@@ -34,7 +34,7 @@ Tecnodesign_App::response('title', $title);
 ?><div class="tdz-i-body"><?php
 
     // .tdz-i
-    ?><div class="tdz-i<?php if(isset($active) && $active) echo ' tdz-i-active'; ?>" data-url="<?php echo $url ?>"<?php 
+    ?><div class="tdz-i<?php if(isset($active) && $active) echo ' tdz-i-active'; ?>" data-action="<?php echo tdz::xml($Interface['action']) ?>" data-url="<?php echo $url ?>"<?php 
         if($qs) echo ' data-qs="',str_replace(',', '%2C', tdz::xmlEscape($qs)),'"';
         if($Interface['id']) echo ' data-id="',tdz::xmlEscape($Interface['id']),'"';
         ?>><?php
