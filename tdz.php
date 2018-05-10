@@ -2483,11 +2483,11 @@ class tdz
                 $str .= ' '.self::t('from', 'date').' '.date(self::$timeFormat, $tstart)
                 . ' '.self::t('up to', 'date').' '.date(self::$timeFormat, $tend);
             }
-        } else if(substr($start, 0, 7) == substr($end, 0, 7)){// same month
+        } else if(substr($start, 0, 7) == substr($end, 0, 7) && tdz::$dateFormat=='d/m/Y'){// same month
             $str = date('d', $tstart)
                 . ' '.self::t('to', 'date')
                 . ' '.self::date($tend, $showtime);
-        } else if (substr($start, 0, 5) == substr($end, 0, 5)) { // same year
+        } else if (substr($start, 0, 5) == substr($end, 0, 5) && tdz::$dateFormat=='d/m/Y') { // same year
             $str = date(preg_replace('/[^a-z]*y[^a-z]*/i', '', self::$dateFormat), $tstart)
                 . ' '.self::t('to', 'date')
                 . ' '.self::date($tend, $showtime);
