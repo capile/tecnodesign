@@ -465,7 +465,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
 
         $m = 'validate'.tdz::camelize($fn, true);
-        if(method_exists($M, $m)) {
+        if(method_exists($M, $m) || method_exists($M, $m='validate'.tdz::camelize($cn, true))) {
             $newvalue = $M->$m($value);
             if(!is_bool($newvalue)) $value = $newvalue;
             unset($newvalue);

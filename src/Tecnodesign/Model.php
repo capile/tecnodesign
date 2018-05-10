@@ -282,9 +282,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         unset($col);
                     }
                 }
+                if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' ')+1);
                 if(isset($fd['id'])) $fid = $fd['id'];
                 else if(static::$formAsLabels && !is_int($label)) $fid = $label;
-                else if(strpos($fn, ' ')!==false) $fid = substr($fn, strrpos($fn, ' ')+1);
                 else $fid = $fn;
 
                 if(isset(static::$schema['form'][$fn])) {
@@ -297,7 +297,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     //$id = (isset($fd['id']))?($fd['id']):($label);
                     $sfo[$fid] = $fd;
                     //unset($id);
-                } else if(static::$allowNewProperties && substr($fn, 0, 2)!='--') {
+                } else if(substr($fn, 0, 1)=='_' || (static::$allowNewProperties && substr($fn, 0, 2)!='--')) {
                     $sfo[$fid] = array('type'=>'text','bind'=>$fn, 'label'=>$label);
                 } else if($allowText) {
                     if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
@@ -444,6 +444,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else if($relation && isset($cn::$schema['relations'][$s])) {
             $d = $cn::$schema['relations'][$s];
             if(!isset($d['className'])) $d['className']=$s;
+        } else if(property_exists($cn, $s)) {
+            $d = array('bind'=>$s);
         }
         if($d && $applyForm && isset($cn::$schema['form'][$s])) {
             $d = array_merge($d, $cn::$schema['form'][$s]);
