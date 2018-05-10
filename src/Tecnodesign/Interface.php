@@ -1856,7 +1856,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
                     if(!isset($this->actions[$next])) $next = null;
                 }
-                $this->text['success'] = sprintf(static::t('newSuccess'), $o::label(), (string)$o);
+                $this->text['success'] = sprintf(static::t('newSuccess'), $o::label(), $this->getTitle());
                 $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
                 if($next) {
                     $this->action = $next;
@@ -1905,7 +1905,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $o->save();
                 $newpk = implode('-', $o->getPk(true));
                 // success message
-                $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), (string)$o);
+                $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), $this->getTitle());
                 $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
 
                 $next = null;
@@ -1952,7 +1952,7 @@ class Tecnodesign_Interface implements ArrayAccess
         try {
             if(($M = $this->model())) {
                 $oldurl = $this->link();
-                $s = (string)$M;
+                $s = $this->getTitle();
                 $M->delete(true);
                 $this->text['success'] = sprintf(static::t('deleteSuccess'), $M::label(), $s);
                 $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
