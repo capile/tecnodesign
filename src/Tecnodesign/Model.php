@@ -1650,7 +1650,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         }
                     }
                     if($m[1]=='scope') {
-                        $s .= $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep);
+                        $s .= $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep, $excludeEmpty, $showOriginal);
                     } else if($m[1]=='sub') {
                         $class = $fn = $m[2];
                         $class .= ($class)?(' sub'):('sub');
@@ -1676,7 +1676,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $fd=static::column($fn,true,true);
                     }
                     $v = $this->renderField($fn, $fd, $xmlEscape);
-                    if($showOriginal && isset($this::$schema['columns'][$fn]) && array_key_exists($fn, $this->_original)) {
+                    if($showOriginal && array_key_exists($fn, $this->_original)) {
                         $v0 = (isset($this->_original[$fn]))?($this->_original[$fn]):(null);
                         $v1 = (isset($this->$fn))?($this->$fn):(null);
                         if($v0!=$v1) {
