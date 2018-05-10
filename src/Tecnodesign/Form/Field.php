@@ -1507,19 +1507,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
         } else if($this->serialize && ($fo=$this->getSubForm())) {
 
             // input for javascript
-            $form = new Tecnodesign_Form($fo);
-
-            /*
-            if(!$this->size && !$this->multiple) {
-                $this->size = 1;
-            }
-            */
-            $jsinput = '<div class="item">';
-            $fid = $this->getId();
             $prefix = $this->getName();
+            $fo['id'] = $prefix.'[§]';
+            $form = new Tecnodesign_Form($fo);
+            $jsinput = '<div class="item">';
             foreach($form->fields as $fn=>$f) {
-                $id = ($f->bind)?($f->bind):($f->id);
-                $f->prefix = $prefix.'[§]';
                 $jsinput .= $f->render();
                 unset($fn, $f);
             }
@@ -1527,6 +1519,21 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
             $value = $this->getValue();
             // loop for each entry and add to $input
+            if(is_array($value)) {
+                foreach($value as $i=>$o) {
+                    $fo['id'] = $prefix.'['.$i.']';
+                    $form = new Tecnodesign_Form($fo);
+                    $input .= '<div class="item '.(($i%2)?('even'):('odd')).'">';
+                    foreach($form->fields as $fn=>$f) {
+                        $id = ($f->bind)?($f->bind):($f->id);
+                        if(isset($o[$id])) {
+                            $f->setValue($o[$id]);
+                        }
+                        $input .= $f->render();
+                    }
+                    $input .= '</div>';
+                }
+            }
         }
         
         if (!isset($arg['template'])) {

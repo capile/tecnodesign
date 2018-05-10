@@ -282,7 +282,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         unset($col);
                     }
                 }
-                if(strpos($fn, ' ')!==false) $fn = substr($fn, strrpos($fn, ' ')+1);
+                if(strpos($fn, ' ')!==false && substr($fn, 0, 2)!='--') $fn = substr($fn, strrpos($fn, ' ')+1);
                 if(isset($fd['id'])) $fid = $fd['id'];
                 else if(static::$formAsLabels && !is_int($label)) $fid = $label;
                 else $fid = $fn;
