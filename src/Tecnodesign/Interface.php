@@ -926,7 +926,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if(isset($this->actions[$a])) {
             if(isset($this->actions[$a]['identified'])) {
                 if($this->actions[$a]['identified'] && !isset($this->id) && $this->search) {
-                    if($this->count()==1) {
+                    if($this->isOne()) {
                         $this->id = $this->model()->getPk();
                     }
                 }
