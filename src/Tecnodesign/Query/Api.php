@@ -885,7 +885,16 @@ class Tecnodesign_Query_Api
         $action = static::$insertPath;
         if(static::$insertQuery) $action .= '?'.sprintf(static::$insertQuery, $pk);
         try {
-            return $this->runAction($action, $M->asArray('save'), static::$insertMethod);
+            $R = $this->runAction($action, $M->asArray('save'), static::$insertMethod);
+            $pk = $M::pk(null, true);
+            if($R && $pk && is_array($d=$R->response)) {
+                foreach($pk as $fn) {
+                    if(isset($d[$fn])) {
+                        $M->$fn = $d[$fn];
+                    }
+                }
+            }
+            return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
