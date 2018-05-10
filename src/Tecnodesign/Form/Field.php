@@ -451,8 +451,19 @@ class Tecnodesign_Form_Field implements ArrayAccess
             return false;
         }
         $cn = $this->bind;
-        $M = $this->getModel();
         $fn = ($cn!=$this->name)?($this->name):($cn);
+        $M = $this->getModel();
+        $serialize = null;
+        if($this->prefix) {
+            $p0 = preg_replace('/[\[\.\]].+/', '', $this->prefix);
+            if(isset($M::$schema['columns'][$p0]['serialize'])) {
+                $serialize = $M::$schema['columns'][$p0]['serialize'];
+            }
+            if($serialize) {
+                $cn = preg_replace('/[\[\]]+/', '.', $this->prefix).$cn;
+            }
+        }
+
         $m = 'validate'.tdz::camelize($fn, true);
         if(method_exists($M, $m)) {
             $newvalue = $M->$m($value);
@@ -515,142 +526,166 @@ class Tecnodesign_Form_Field implements ArrayAccess
             //throw new Tecnodesign_Exception(array(tdz::t($message, 'exception'), $this->getLabel(), $value));
         }
         $valid = true;
-        $R = $this->getValue();
         $M = $this->getModel();
         $schema = $M::schema();
-        if($this->choices && is_string($this->choices) && isset($schema['relations'][$this->choices]) && $schema['relations'][$this->choices]['local']==$this->bind) {
+        $sid = $scope = (!$this->scope)?('subform'):($this->scope);
+
+        if(!isset($schema['relations'][$this->bind]) && $this->choices && is_string($this->choices) && isset($schema['relations'][$this->choices]) && $schema['relations'][$this->choices]['local']==$this->bind) {
             $this->bind = $this->choices;
             $this->choices=null;
         }
-        $rel = $schema['relations'][$this->bind];
-        if(!$R) {
-            $R = $M->getRelation($this->bind, null, null, false);
-            if(!$R) $R=array();
-        }
-        if(is_object($R)) {
-            if($R instanceof Tecnodesign_Collection) {
-                $R = $R->getItems();
-                if(!$R) $R=array();
-            } else if($R instanceof Tecnodesign_Model) {
-                $R = array($R);
-                $M->setRelation($this->bind, $R);
-            }
-        } else if(!$R) {
-            $R=array();
-        }
-        if(count($value)==0 && count($R)==0) {
-            return $value;
-        }
-        $add=array();
-        $sid = $scope = (!$this->scope)?('subform'):($this->scope);
         if($this->bind && isset($schema['relations'][$this->bind])) {
-            if(isset($rel['params'])) {
-                $add = $rel['params'];
+            $rel = $schema['relations'][$this->bind];
+            $R = $this->getValue();
+            if(!$R) {
+                $R = $M->getRelation($this->bind, null, null, false);
+                if(!$R) $R=array();
             }
-            $cn = (isset($rel['className']))?($rel['className']):($this->bind);
-            if ($rel['type']=='one') {
-                $this->size=1;
-            }
-            if(!is_array($rel['foreign'])) {
-                $fk[] = $rel['foreign'];
-                $add[$rel['foreign']] = $M->{$rel['local']};
-            } else {
-                $fk = $rel['foreign'];
-                foreach($rel['foreign'] as $i=>$fn) {
-                    $ln = $rel['local'][$i];
-                    $add[$fn] = $M->{$ln};
+            if(is_object($R)) {
+                if($R instanceof Tecnodesign_Collection) {
+                    $R = $R->getItems();
+                    if(!$R) $R=array();
+                } else if($R instanceof Tecnodesign_Model) {
+                    $R = array($R);
+                    $M->setRelation($this->bind, $R);
                 }
+            } else if(!$R) {
+                $R=array();
             }
-            if(count($add) > 0) {
-                if(is_null($this->toAdd)) {
-                    $this->toAdd=array();
+            if(count($value)==0 && count($R)==0) {
+                return $value;
+            }
+            $add=array();
+            if($this->bind && isset($schema['relations'][$this->bind])) {
+                if(isset($rel['params'])) {
+                    $add = $rel['params'];
                 }
-                $this->toAdd[$this->bind]=$add;
-            }
-            $vcount = count($value);
-        }
-        $new = ($M->isNew())?($rel['foreign']):(false);
-        unset($M, $vcount, $schema);
-        if(!is_array($scope)) $scope = $cn::columns($scope);
-        if(!$scope) $scope = array_keys($cn::$schema['columns']);
-        $bnull = array();
-        foreach($scope as $label=>$fn) {
-            if(is_array($fn)) {
-                if(isset($fn['bind'])) {
-                    $fn = $fn['bind'];
+                $cn = (isset($rel['className']))?($rel['className']):($this->bind);
+                if ($rel['type']=='one') {
+                    $this->size=1;
+                }
+                if(!is_array($rel['foreign'])) {
+                    $fk[] = $rel['foreign'];
+                    $add[$rel['foreign']] = $M->{$rel['local']};
                 } else {
-                    continue;
+                    $fk = $rel['foreign'];
+                    foreach($rel['foreign'] as $i=>$fn) {
+                        $ln = $rel['local'][$i];
+                        $add[$fn] = $M->{$ln};
+                    }
                 }
+                if(count($add) > 0) {
+                    if(is_null($this->toAdd)) {
+                        $this->toAdd=array();
+                    }
+                    $this->toAdd[$this->bind]=$add;
+                }
+                $vcount = count($value);
             }
-            if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
-            if(!isset($add[$fn]) && ((isset($cn::$schema['columns'][$fn]) && !isset($cn::$schema['columns'][$fn]['primary'])) || substr($fn, 0, 1)=='_')) {
-                $bnull[$fn]='';
+            $new = ($M->isNew())?($rel['foreign']):(false);
+            unset($M, $vcount, $schema);
+            if(!is_array($scope)) $scope = $cn::columns($scope);
+            if(!$scope) $scope = array_keys($cn::$schema['columns']);
+            $bnull = array();
+            foreach($scope as $label=>$fn) {
+                if(is_array($fn)) {
+                    if(isset($fn['bind'])) {
+                        $fn = $fn['bind'];
+                    } else {
+                        continue;
+                    }
+                }
+                if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
+                if(!isset($add[$fn]) && ((isset($cn::$schema['columns'][$fn]) && !isset($cn::$schema['columns'][$fn]['primary'])) || substr($fn, 0, 1)=='_')) {
+                    $bnull[$fn]='';
+                }
+                unset($fn);
             }
-            unset($fn);
-        }
 
-        foreach($value as $i=>$v) {
-            $v += $bnull;
-            if(isset($R[$i])) {
-                $O = $R[$i];
-                if(is_array($O)) {
-                    $v += $O;
-                    $O = new $cn($O, false, false);
-                } else {
-                    // check if $pk changed, if it did, remove old record
-                    if($pk = $O->getPk(true)) {
-                        $pkdel = true;
-                        foreach($pk as $pkf=>$pkv) {
-                            if(!($pkv && isset($v[$pkf]) && $v[$pkf]!=$pkv)) {
-                                $pkdel = false;
+            foreach($value as $i=>$v) {
+                $v += $bnull;
+                if(isset($R[$i])) {
+                    $O = $R[$i];
+                    if(is_array($O)) {
+                        $v += $O;
+                        $O = new $cn($O, false, false);
+                    } else {
+                        // check if $pk changed, if it did, remove old record
+                        if($pk = $O->getPk(true)) {
+                            $pkdel = true;
+                            foreach($pk as $pkf=>$pkv) {
+                                if(!($pkv && isset($v[$pkf]) && $v[$pkf]!=$pkv)) {
+                                    $pkdel = false;
+                                    unset($pk[$pkf], $pkf, $pkv);
+                                    break;
+                                }
                                 unset($pk[$pkf], $pkf, $pkv);
-                                break;
                             }
-                            unset($pk[$pkf], $pkf, $pkv);
-                        }
-                        unset($pk);
-                        if($pkdel) {
-                            $R[microtime()]=$O;
-                            unset($O);
-                            $O = new $cn($v, true, false);
+                            unset($pk);
+                            if($pkdel) {
+                                $R[microtime()]=$O;
+                                unset($O);
+                                $O = new $cn($v, true, false);
+                            } else {
+                                $v += $O->asArray();
+                            }
                         } else {
                             $v += $O->asArray();
                         }
-                    } else {
-                        $v += $O->asArray();
                     }
+                    unset($R[$i]);
+                } else {
+                    $v += $add;
+                    $O = new $cn(null, true, false);
                 }
-                unset($R[$i]);
-            } else {
-                $v += $add;
-                $O = new $cn(null, true, false);
+                try {
+                    $F = $O->getForm($sid, true);
+                    $F->prefix = $this->getName().'['.$i.']';
+                    if(is_array($new)) {
+                        foreach($new as $fn) $F[$fn]->disabled=true;
+                    } else if($new) {
+                        if(isset($F[$new]))
+                            $F[$new]->disabled=true;
+                    }
+                    if(!$F->validate($v)) {
+                        $valid = false;
+                    }
+                    $value[$i] = $O;
+                } catch(Exception $e) {
+                    throw new Tecnodesign_Exception(array(tdz::t($message, 'exception').' '.$e->getMessage(), $this->getLabel(), $value));
+                }
+                unset($F, $O, $v);
             }
-            try {
-                $F = $O->getForm($sid, true);
-                $F->prefix = $this->getName().'['.$i.']';
-                if(is_array($new)) {
-                    foreach($new as $fn) $F[$fn]->disabled=true;
-                } else if($new) {
-                    if(isset($F[$new]))
-                        $F[$new]->disabled=true;
-                }
-                if(!$F->validate($v)) {
-                    $valid = false;
-                }
-                $value[$i] = $O;
-            } catch(Exception $e) {
-                throw new Tecnodesign_Exception(array(tdz::t($message, 'exception').' '.$e->getMessage(), $this->getLabel(), $value));
-            }
-            unset($F, $O, $v);
-        }
 
-        unset($bnull);
-        if($R) {
-            foreach($R as $i=>$O) {
-                $O->delete(false);
-                $value[] = $O;
-                unset($O, $R[$i], $i);
+            unset($bnull);
+            if($R) {
+                foreach($R as $i=>$O) {
+                    $O->delete(false);
+                    $value[] = $O;
+                    unset($O, $R[$i], $i);
+                }
             }
+        } else if($this->bind && $this->serialize && ($fo=$this->getSubForm())) {
+            if(!$value) {
+                $value = array();
+            } else if(!is_array($value)) {
+                $value = tdz::unserialize($value, $this->serialize);
+            }
+            $p0 = $fo['prefix'];
+            $fo['prefix'] = $p0;
+            foreach($value as $i=>$o) {
+                unset($value[$i]);
+                $fo['id'] = $p0.'['.$i.']';
+                $F = new Tecnodesign_Form($fo);
+                if(!$F->validate($o)) {
+                    $valid = false; 
+                    break;
+                } else {
+                    $value[$i] = $F->getData();
+                }
+            }
+        } else {
+            $valid = false;
         }
         if(!$valid) {
             $this->setError(sprintf(tdz::t($message, 'exception'), $this->getLabel()));
@@ -1469,6 +1504,29 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     unset($model, $i);
                 }
             }
+        } else if($this->serialize && ($fo=$this->getSubForm())) {
+
+            // input for javascript
+            $form = new Tecnodesign_Form($fo);
+
+            /*
+            if(!$this->size && !$this->multiple) {
+                $this->size = 1;
+            }
+            */
+            $jsinput = '<div class="item">';
+            $fid = $this->getId();
+            $prefix = $this->getName();
+            foreach($form->fields as $fn=>$f) {
+                $id = ($f->bind)?($f->bind):($f->id);
+                $f->prefix = $prefix.'[§]';
+                $jsinput .= $f->render();
+                unset($fn, $f);
+            }
+            $jsinput .= '</div>';
+
+            $value = $this->getValue();
+            // loop for each entry and add to $input
         }
         
         if (!isset($arg['template'])) {
@@ -1504,6 +1562,56 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         //$input = ($input || $jsinput)?('<div class="subform items"'.$jsinput.'>'.$input.'</div>'):('');
         return $input;
+    }
+
+    public function getSubForm($scope=null)
+    {
+        if(!$scope && $this->scope) {
+            $scope = $this->scope;
+        }
+        $M = $this->getModel();
+        if(is_string($scope) && !isset($M::$schema['scope'][$scope])) return null;
+        $columns = $M::columns($scope);
+        foreach($columns as $fn=>$fd) {
+            unset($columns[$fn]);
+            if(!is_array($fd)) {
+                $fd = $M::column($fd);
+                if(!$fd || !is+array($fd)) {
+                    continue;
+                }
+            }
+            if(is_int($fn)) {
+                if(isset($fd['label'])) {
+                    $fn = $fd['label'];
+                } else if(isset($fd['id'])) {
+                    $fn = $M::fieldLabel($fd['id']);
+                } else {
+                    continue;
+                }
+            }
+            if(!isset($fd['bind'])) {
+                if(isset($fd['id'])) {
+                    $fd['bind'] = $fd['id'];
+                } else {
+                    $fd['bind'] = $fn;
+                }
+            }
+            if(!isset($fd['label'])) {
+                $fd['label'] = $M::fieldLabel($fd['bind']);
+            }
+
+
+            $columns[$fn] = $fd;
+        }
+        if(!$columns) return null;
+
+        $fo = array(
+            'fields'=>$columns,
+            'prefix'=>$this->prefix.$this->id,
+            'model'=>$this->getModel(),
+        );
+        return $fo;
+
     }
     
     public function renderEmail(&$arg)

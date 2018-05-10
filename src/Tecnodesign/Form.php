@@ -385,6 +385,10 @@ class Tecnodesign_Form implements ArrayAccess
             }
             $this->model = $id;
             self::$models[$id] = $o;
+        } else {
+            $id = uniqid();
+            $this->model = $id;
+            self::$models[$id] = $o;
         }
         return $this;
     }

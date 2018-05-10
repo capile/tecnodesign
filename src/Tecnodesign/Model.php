@@ -2362,6 +2362,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
                 if(is_string($this->$firstName) && isset(static::$schema['columns'][$firstName]['serialize'])) {
                     $this->$firstName = tdz::unserialize($this->$firstName, static::$schema['columns'][$firstName]['serialize']);
+                } else if(!$this->$firstName) {
+                    $this->$firstName = array();
                 }
 
                 $a =& $this->{$firstName};
@@ -2376,7 +2378,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         unset($n, $p);
                     }
                 }
-                $a[$ref] =& $value;
+                $a[$ref] = $value;
                 unset($a);
             }
         } else if(static::$allowNewProperties || substr($name,0,1)=='_') {
