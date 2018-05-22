@@ -1048,7 +1048,7 @@ Z.selectOption=function(e)
     var o=this.getAttribute('data-original'), val=Z.val(this);
     if(o===null) {
         this.setAttribute('data-original',val);
-        return;
+        if(!e) return;
     } else if(o==val) {
         return;
     } else {

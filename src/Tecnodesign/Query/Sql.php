@@ -756,6 +756,12 @@ class Tecnodesign_Query_Sql
                     return "'{$m[2]}T{$m[3]}'";
                 }
             }
+        } else if(is_array($v)) {
+            if(isset($d['serialize'])) {
+                $v = tdz::serialize($v, $d['serialize']);
+            } else {
+                $v = implode(',',$v);
+            }
         }
 
         return self::escape($v);

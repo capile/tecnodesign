@@ -776,7 +776,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
 
-        if($n && is_null($I->id)) { // must be an id
+        if(!is_null($n) && $n!=='' && is_null($I->id)) { // must be an id
             $n = (string) $n;
 
             if($n!=='') {
@@ -840,41 +840,9 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
 
+
         // breadcrumb
         Tecnodesign_Interface::$urls[$I->link()] = array('title'=>$I->getTitle(),'action'=>$I->action);
-
-        /*
-        if($n && $I->id && isset($I->actions[$n]) && isset($I->actions[$n]['relation'])) {
-            $url = $I->url;
-            $ic = get_called_class();
-            
-            $f = $I->search;
-            $cn = $I->model;
-            $rcn = $cn::relate($I->actions[$n]['relation'], $f);
-
-            $a = array(
-                'interface'=>(isset($I->actions[$n]['interface']))?($I->actions[$n]['interface']):($rcn::$schema['tableName']),
-                'model'=>$rcn,
-                'search'=>$f,
-                'url'=>$I->link($n),
-            );
-            return static::currentInterface($p, new $ic($a, $I));
-        }
-        */
-
-        /*
-        if($n) {
-            if(isset(static::$actionAlias[$n]) && $I->setAction($n, implode('/', $p))) {
-                $a = static::$actionAlias[$n];
-                //$I->url .= '/'.$n;
-                $n = array_shift($p);
-            } else if(isset($I->actions[$n]) && !in_array($n, static::$actionAlias)) {
-                $a = $n;
-                //$I->url .= '/'.$n;
-                $n = array_shift($p);
-            }
-        }
-        */
 
        if($n) {
             if(!isset($I->actions[$I->action]['additional-params']) || !$I->actions[$I->action]['additional-params']) {
@@ -930,14 +898,14 @@ class Tecnodesign_Interface implements ArrayAccess
                         $this->id = $this->model()->getPk();
                     }
                 }
-                if(($this->actions[$a]['identified'] && !$this->id)
-                    || (!$this->actions[$a]['identified'] && $this->id)
+                if(($this->actions[$a]['identified'] && tdz::isempty($this->id))
+                    || (!$this->actions[$a]['identified'] && !tdz::isempty($this->id))
                 ) {
                     return false;
                 }
             }
             $this->action = $a;
-            if(isset($this->actions[$a]['additional-params']) && $q && !$this->actions[$a]['additional-params']) {
+            if(isset($this->actions[$a]['additional-params']) && !tdz::isempty($q) && !$this->actions[$a]['additional-params']) {
                 if(isset($this->actions[$q]['relation']) || isset($this->actions[$q]['interface'])) {
                     return $this->relation($q);
                 }
@@ -1278,7 +1246,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public function getTitle()
     {
         $cn = $this->getModel();
-        if($this->id) {
+        if(!tdz::isempty($this->id)) {
             $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
             if($r) return implode(', ', $r);
         }
@@ -1390,11 +1358,11 @@ class Tecnodesign_Interface implements ArrayAccess
         } else {
             $A = array();
         }
-        if($this->id || $id) {
-            if($id===true || (is_null($id) && isset($A['identified']))) {
+        if(!tdz::isempty($this->id) || !tdz::isempty($id)) {
+            if($id===true || (tdz::isempty($id) && isset($A['identified']))) {
                 $id = $this->id;
             }
-            if($id) $url .= '/'.$id;
+            if(!tdz::isempty($id)) $url .= '/'.$id;
         }
         if($rel) $url .= $rel;
         if($ext) $url .= static::$ext;
@@ -1410,7 +1378,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function isOne()
     {
-        if($this->key) {
+        if(!tdz::isempty($this->key)) {
             if(!is_array($this->key)) {
                 return isset($this->search[$this->key]);
             } else {
@@ -1573,7 +1541,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             if(is_array($action) && count($action)==2) {
                 list($C, $m) = $action;
-                if(is_string($C) && $C==$this->model && $this->id) {
+                if(is_string($C) && $C==$this->model && !tdz::isempty($this->id)) {
                     $C = $this->model();
                 }
                 if(is_string($C)) {
@@ -2008,7 +1976,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 return $this->redirect($this->link(false, false));
             }
         }
-        if($this->id) {
+        if(!tdz::isempty($this->id)) {
             if(is_string($scope)) $ss=$scope;
             else if(count($scope)==1 && isset($scope[0]) && substr($scope[0], 0, 7)=='scope::') $ss=substr($scope[0], 7);
         }
@@ -2148,7 +2116,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $a = array(
                 'interface'=>$this->actions[$n]['interface'],
                 'url'=>$this->link($n, $this->id),
-                'relation'=>($this->id)?($cn.'#'.$this->id):($cn),
+                'relation'=>(!tdz::isempty($this->id))?($cn.'#'.$this->id):($cn),
                 'enable'=>true,
             );
         }
@@ -2236,7 +2204,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $this->options['radio'] = false;
         $sn = $this->url;
         // strip id
-        if($this->id) $sn = substr($sn, 0, strrpos($sn, '/'));
+        if(!tdz::isempty($this->id)) $sn = substr($sn, 0, strrpos($sn, '/'));
         // strip current action, leave only the model
         $sn = substr($sn, 0, strrpos($sn, '/'));
         foreach($this->getActions() as $an=>$action) {
@@ -2267,10 +2235,10 @@ class Tecnodesign_Interface implements ArrayAccess
             $aa = (static::$actionAlias && isset(static::$actionAlias[$an]))?(static::$actionAlias[$an]):($an);
 
             //$href = ($bt||$id)?('data-url="'.$sn.'/'.$aa.'/{id}'.'"'):('href="'.$sn.'/'.$aa.'"');
-            if($id && $this->id) $sid = $this->id;
+            if($id && !tdz::isempty($this->id)) $sid = $this->id;
             else if($id) $sid = '{id}';
             else $sid = false;
-            if(isset($action['attributes']['target']) && (!$id || $this->id)) {
+            if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
                 if(isset($action['query']) && $action['query'] && $qs) {
                     $qs = str_replace(',', '%3A', tdz::xmlEscape($qs));
                 } else {

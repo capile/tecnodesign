@@ -1518,6 +1518,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $jsinput .= '</div>';
 
             $value = $this->getValue();
+            if(!is_array($value)) {
+                $value = tdz::unserialize($value, $serialize);
+            }
             // loop for each entry and add to $input
             if(is_array($value)) {
                 foreach($value as $i=>$o) {
@@ -1525,7 +1528,14 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $form = new Tecnodesign_Form($fo);
                     $input .= '<div class="item '.(($i%2)?('even'):('odd')).'">';
                     foreach($form->fields as $fn=>$f) {
-                        $id = ($f->bind)?($f->bind):($f->id);
+                        if($f->bind) {
+                            $id = $f->bind;
+                            if(substr($id, 0, strlen($this->id)+1)==$this->id.'.') {
+                                $id = substr($id, strlen($this->id)+1);
+                            }
+                        } else {
+                            $id = $F->id;
+                        }
                         if(isset($o[$id])) {
                             $f->setValue($o[$id]);
                         }

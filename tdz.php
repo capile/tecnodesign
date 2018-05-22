@@ -1260,6 +1260,11 @@ class tdz
         return $tdzres;
     }
 
+    public static function isempty($a)
+    {
+        return is_null($a) || $a===false || $a==='' || $a===array();
+    }
+
     public static function fixEncoding($s, $encoding='UTF-8')
     {
         if(tdz::$encoder===false) {

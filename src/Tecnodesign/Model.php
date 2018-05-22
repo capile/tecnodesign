@@ -293,10 +293,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $fd['label']=$label;
                     }
                     $sfo[$fid]=$fd;
+                } else if(isset(static::$schema['columns'][$fn])) {
+                    $fd+=static::$schema['columns'][$fn];
+                    if (!is_int($label)) {
+                        $fd['label']=$label;
+                    }
+                    $sfo[$fid]=$fd;
                 } else if($fd && isset($fd['type'])) {
-                    //$id = (isset($fd['id']))?($fd['id']):($label);
                     $sfo[$fid] = $fd;
-                    //unset($id);
                 } else if(substr($fn, 0, 1)=='_' || (static::$allowNewProperties && substr($fn, 0, 2)!='--')) {
                     $sfo[$fid] = array('type'=>'text','bind'=>$fn, 'label'=>$label);
                 } else if($allowText) {
@@ -1619,15 +1623,20 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public function renderScope($scope=null, $xmlEscape=true, $box=null, $tpl=null, $sep=null, $excludeEmpty=null, $showOriginal=null)
     {
         $id = $scope;
-
-        if(!is_array($scope)) $scope = static::columns($scope, null, false);
-        else $id = static::$schema['tableName'];
+        $s = '';
+        if(!is_array($scope) && method_exists($this, $m='renderScope'.tdz::camelize($scope, true))) {
+            $s = $this->$m();
+            $scope = array();
+        } else if(!is_array($scope)) {
+            $scope = static::columns($scope, null, false);
+        } else {
+            $id = static::$schema['tableName'];
+        }
 
         $nobox = !$box;
         if(!$box) $box = static::$boxTemplate;
         if(!$sep) $sep = static::$headingTemplate;
         if(!$tpl) $tpl = static::$previewTemplate;
-        $s = '';
         $a = '';
         foreach($scope as $label=>$fn) {
             if(is_array($fn)) {
@@ -1897,10 +1906,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
             
             $s .= '<td class="f-'.$fn.'">'
-                . (($uid && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.\tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
-                . (($uid && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
+                . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.\tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
+                . (($uid!==false && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
-            if($uid) $uid=false;
+            if($uid!==false) $uid=false;
             unset($label, $fn);
         }
         $s .= '</tr>';
@@ -2108,7 +2117,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
         if(!isset($schema['type'])) $schema['type']='string';
         if ($schema['type']=='string') {
-            $value = (is_array($value))?(implode(',',$value)):(@(string) $value);
+            if(is_array($value)) {
+                if(isset($schema['serialize'])) {
+                    $value = tdz::serialize($value, $schema['serialize']);
+                } else {
+                    $value = implode(',',$value);
+                }
+            } else {
+                $value = @(string) $value;
+            }
             if (isset($schema['size']) && $schema['size'] && strlen($value) > $schema['size']) {
                 $value = mb_strimwidth($value, 0, (int)$schema['size'], '', 'UTF-8');
             }
@@ -2366,7 +2383,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
                 if(is_string($this->$firstName) && isset(static::$schema['columns'][$firstName]['serialize'])) {
                     $this->$firstName = tdz::unserialize($this->$firstName, static::$schema['columns'][$firstName]['serialize']);
-                } else if(!$this->$firstName) {
+                }
+                if(!$this->$firstName) {
                     $this->$firstName = array();
                 }
 
@@ -2385,6 +2403,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $a[$ref] = $value;
                 unset($a);
             }
+
         } else if(static::$allowNewProperties || substr($name,0,1)=='_') {
             $this->$name=$value;
         } else {
