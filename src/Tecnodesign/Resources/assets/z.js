@@ -1054,15 +1054,22 @@ Z.selectOption=function(e)
     } else {
         this.setAttribute('data-original',val);
     }
-    var F=this.form, i=this.options.length, j, n, v, t;
+    var F=this.form, i=this.options.length, j, n, v, t, q, p;
+    p=this.getAttribute('name');
+    if(p && p.indexOf('[')>-1) {
+        p = p.replace(/\[[^\]]+\]$/, '');
+    } else {
+        p=null;
+    }
     while(i--) {
         if(this.options[i].selected) {
             j=this.options[i].attributes.length;
             while(j--) {
                 n=this.options[i].attributes[j].nodeName;
                 if(n.substr(0,5)=='data-' && (v=this.options[i].getAttribute(n))) {
-                    if(t=F.querySelector('input[name="'+n.substr(5)+'"]')) {
-                        Z.val(t,v);
+                    q = (p)?('input[name="'+p+'['+n.substr(5)+']"]'):('input[name="'+n.substr(5)+'"]');
+                    if(t=F.querySelector(q)) {
+                        Z.val(t,v,true);
                     }
                 }
             }

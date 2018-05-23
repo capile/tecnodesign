@@ -711,6 +711,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             $message = '%s should have at least %s items.';
         } else {
+            if($this->type=='float' || $this->type=='decimal' || $this->type=='number') {
+                $value = (string)(float) $value;
+            } else if($this->type=='int' && abs($value)>0) {
+                $value = (string)(int) $value;
+            }
             $size = (is_array($value))?(count($value)):(mb_strlen($value, 'UTF-8'));
         }
         if (($this->min_size && $size < $this->min_size && $size>0) || ($this->size && $size > $this->size)) {
