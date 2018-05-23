@@ -1090,13 +1090,21 @@ class tdz
 
     public static function meta($s='', $og=false)
     {
+        if(is_array($s)) $s = implode('', $s);
         if (!isset(tdz::$variables['meta'])) {
             tdz::$variables['meta'] = $s;
-        } else if($s) {
-            tdz::$variables['meta'].=$s;
-        } else if(isset(tdz::$variables['variables']['meta'])) {
-            tdz::$variables['meta'].= tdz::$variables['variables']['meta'];
-            unset(tdz::$variables['variables']['meta']);
+        } else {
+            if(is_array(tdz::$variables['meta'])) tdz::$variables['meta'] = implode('',tdz::$variables['meta']);
+            if($s) {
+                tdz::$variables['meta'].=$s;
+            } else if(isset(tdz::$variables['variables']['meta'])) {
+                if(is_array(tdz::$variables['variables']['meta'])) {
+                    tdz::$variables['meta'].= implode('',tdz::$variables['variables']['meta']);
+                } else {
+                    tdz::$variables['meta'].= trim(tdz::$variables['variables']['meta']);
+                }
+                unset(tdz::$variables['variables']['meta']);
+            }
         }
         if($og && !strpos(tdz::$variables['meta'], '<meta property="og:')) tdz::$variables['meta'] .= tdz::openGraph();
         return tdz::$variables['meta'];
@@ -2262,7 +2270,7 @@ class tdz
             } else {
                 if(is_null($salt)) {
                     if(!($salt=Tecnodesign_Cache::get('rnd', 0, true, true))) {
-                        $salt = substr(base64_encode((function_exists('openssl_random_pseudo_bytes'))?(openssl_random_pseudo_bytes(32)):(pack('H*',uniqid(true).uniqid(true).uniqid(true).uniqid(true).uniqid(true)))), 0,32);
+                        $salt = self::salt(32);
                         Tecnodesign_Cache::set('rnd', $salt, 0, true, true);
                     }
                 }
@@ -2279,6 +2287,23 @@ class tdz
             }
         }
         return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
+    }
+
+    public static function salt($length=40, $safe=true)
+    {
+        if(function_exists('openssl_random_pseudo_bytes')) {
+            $rnd = openssl_random_pseudo_bytes($length);
+        } else if(function_exists('random_bytes')) {
+            $rnd = random_bytes($length);
+        } else {
+            $rnd = pack('H*',uniqid(true).uniqid(true).uniqid(true).uniqid(true).uniqid(true));
+        }
+        if($safe) {
+            return substr(rtrim(strtr(base64_encode($rnd), '+/', '-_'), '='),0,$length);
+        } else {
+            return substr(base64_encode($rnd), 0, $length);
+
+        }
     }
 
     /**

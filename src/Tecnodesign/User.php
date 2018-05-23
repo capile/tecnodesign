@@ -11,7 +11,6 @@
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: User.php 1303 2014-01-22 20:16:56Z capile $
  * @link      http://tecnodz.com/
  */
 
@@ -42,6 +41,7 @@ class Tecnodesign_User
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess='lastAccess', // property to use when setting last access, set to false to disable
         $setCookie=true,        // percentage of timeout to set a new cookie
+        $cookieValidation='/^[a-z0-9\-\_]{20,40}$/i',
         $cookieSecure=true,
         $cookieHttpOnly=true,
         $resetCookie=0.5;       // percentage of timeout to set a new cookie
@@ -575,7 +575,7 @@ class Tecnodesign_User
                 break;
             }
             if($setCookie && is_null($this->_cid)) {
-                $this->_cid = tdz::hash(microtime(true), null, 20);
+                $this->_cid = tdz::salt();
                 self::$_cookies[$n][]=$this->_cid;
             }
             if($setCookie) $this->setSessionCookie();
@@ -732,12 +732,17 @@ class Tecnodesign_User
                     }
                     list($cname, $cvalue)=explode('=', $cookie, 2);
                     if(trim($cname)==$cn) {
-                        self::$_cookies[$cn][]=$cvalue;
+                        // filter values
+                        if(!static::$cookieValidation || preg_match(static::$cookieValidation, $cvalue)) {
+                            self::$_cookies[$cn][]=$cvalue;
+                        }
                     }
                 }
             }
             if(count(self::$_cookies[$cn])==0 && isset($_COOKIE[$cn])) {
-                self::$_cookies[$cn][]=$_COOKIE[$cn];
+                if(!static::$cookieValidation || preg_match(static::$cookieValidation, $_COOKIE[$cn])) {
+                    self::$_cookies[$cn][]=$_COOKIE[$cn];
+                }
             }
         }
         return self::$_cookies[$cn];
