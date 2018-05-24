@@ -35,7 +35,7 @@ class Tecnodesign_Cache_File
 
     public static function filename($key)
     {
-        return self::cacheDir().'/'.$key.'.cache';
+        return self::cacheDir().'/'.tdz::slug($key, '/_-', true).'.cache';
     }
 
     public static function cacheDir($s=null)

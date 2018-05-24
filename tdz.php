@@ -2251,7 +2251,7 @@ class tdz
             } else {
                 if(is_null($salt)) {
                     if(!($salt=Tecnodesign_Cache::get('rnd', 0, true, true))) {
-                        $salt = substr(base64_encode((function_exists('openssl_random_pseudo_bytes'))?(openssl_random_pseudo_bytes(32)):(pack('H*',uniqid(true).uniqid(true).uniqid(true).uniqid(true).uniqid(true)))), 0,32);
+                        $salt = self::salt(32);
                         Tecnodesign_Cache::set('rnd', $salt, 0, true, true);
                     }
                 }
@@ -2268,6 +2268,23 @@ class tdz
             }
         }
         return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
+    }
+
+    public static function salt($length=40, $safe=true)
+    {
+        if(function_exists('openssl_random_pseudo_bytes')) {
+            $rnd = openssl_random_pseudo_bytes($length);
+        } else if(function_exists('random_bytes')) {
+            $rnd = random_bytes($length);
+        } else {
+            $rnd = pack('H*',uniqid(true).uniqid(true).uniqid(true).uniqid(true).uniqid(true));
+        }
+        if($safe) {
+            return substr(rtrim(strtr(base64_encode($rnd), '+/', '-_'), '='),0,$length);
+        } else {
+            return substr(base64_encode($rnd), 0, $length);
+
+        }
     }
 
     /**
