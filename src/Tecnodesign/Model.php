@@ -845,6 +845,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $scope = static::columns($scope);
         $f = array();
         foreach($scope as $fn) {
+            if(is_array($fn) && isset($fn['bind'])) $fn = $fn['bind'];
             $p = (strpos($fn, ' ')!==false)?(substr($fn, strrpos($fn, ' ')+1)):($fn);
             if(!isset($this->$p)) {
                 $f[$p] = $fn;
@@ -1401,7 +1402,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(tdz::$perfmon>0) tdz::log('[INFO] '.__METHOD__.': '.tdz::formatNumber(microtime(true)-$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem");
         return true;
     }
-    
+
     /**
      * Class Name labels
      * 

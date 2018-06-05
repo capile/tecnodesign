@@ -19,9 +19,12 @@ class Tecnodesign_Query_Api
         $search='q',
         $fieldnames='fieldnames',
         $limit='limit',
+        $limitCount='0',
+        $limitAbsolute=false,
         $offset='offset',
         $sort='sort',
         $scope='scope',
+        $queryPath,
         $insertPath='/new',
         $insertQuery,
         $insertMethod='POST',
@@ -54,6 +57,7 @@ class Tecnodesign_Query_Api
         $headerCount='x-total-count',
         $headerModified='last-modified',
         $dataAttribute,
+        $countAttribute,
         $enableOffset=true,
         $pagingAttribute,
         $connectionCallback;
@@ -82,9 +86,12 @@ class Tecnodesign_Query_Api
                     }
                     $this->_url = $url.$qs;
                     unset($url);
+                    unset($db['dsn']);
                 }
                 if(isset($db['options'])) {
                     $this->_options = $db['options'];
+                } else if($db) {
+                    $this->_options = $db;
                 }
                 unset($db);
             }
@@ -205,7 +212,7 @@ class Tecnodesign_Query_Api
         $k = (isset($this->_options['limit']))?($this->_options['limit']):(static::$limit);
         if($k) {
             $qs .= (($qs)?('&'):('?'))
-                 . $k.'=0';
+                 . $k.'='.static::$limitCount;
         }
         return $qs;
     }
@@ -236,6 +243,9 @@ class Tecnodesign_Query_Api
             $qs = substr($url, $p);
             $url = substr($url, 0, $p);
         }
+        if(static::$queryPath) {
+            $url .= static::$queryPath;
+        }
         if($this->_where) {
             $qs = $this->buildQueryWhere($qs);
         }
@@ -262,8 +272,12 @@ class Tecnodesign_Query_Api
             if(!is_null($this->_limit)) {
                 $k = (isset($this->_options['limit']))?($this->_options['limit']):(static::$limit);
                 if($k) {
+                    $limit = (int)$this->_limit;
+                    if(static::$limitAbsolute && !is_null($this->_offset)) {
+                        $limit += (int) $this->_offset -1;
+                    }
                     $qs .= ((strpos($qs, '?')!==false)?('&'):('?'))
-                         . $k.'='.((int)$this->_limit);
+                         . $k.'='.$limit;
                 }
                 unset($k);
             }
@@ -377,6 +391,8 @@ class Tecnodesign_Query_Api
             if(is_null($this->response)) {
                 $this->query($this->buildQuery(true));
             }
+        }
+        if(is_null($this->_count)) {
             if(!is_null($r=$this->header('headerCount'))) {
                 $this->_count = (int) $r;
             } else if($this->response) {
@@ -565,6 +581,9 @@ class Tecnodesign_Query_Api
                 curl_setopt($conn, CURLOPT_SSLCERT, TDZ_APP_ROOT.'/'.$this->_options['certificate']);
             }
         }
+        if(isset($this->_options['username']) && isset($this->_options['password'])) {
+            curl_setopt($conn, CURLOPT_USERPWD, $this->_options['username'].':'.$this->_options['password']);
+        }
         $this->_last = $q;
         if(!$this->_method) {
             $this->_method = 'GET';
@@ -691,6 +710,9 @@ class Tecnodesign_Query_Api
             unset($R);
         } else {
             if($this->response && is_array($this->response) && static::$dataAttribute) {
+                if(static::$countAttribute && isset($this->response[static::$countAttribute])) {
+                    $this->_count = $this->response[static::$countAttribute];
+                }
                 if(isset($this->response[static::$dataAttribute])) {
                     $this->response = $this->response[static::$dataAttribute];
                 //} else {

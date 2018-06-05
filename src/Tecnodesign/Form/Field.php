@@ -673,6 +673,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             $p0 = $fo['prefix'];
             $fo['prefix'] = $p0;
+
             foreach($value as $i=>$o) {
                 unset($value[$i]);
                 $fo['id'] = $p0.'['.$i.']';
@@ -1523,9 +1524,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $jsinput .= '</div>';
 
             $value = $this->getValue();
+
             if(!is_array($value)) {
                 $value = tdz::unserialize($value, $serialize);
             }
+
             // loop for each entry and add to $input
             if(is_array($value)) {
                 foreach($value as $i=>$o) {
@@ -1535,7 +1538,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     foreach($form->fields as $fn=>$f) {
                         if($f->bind) {
                             $id = $f->bind;
-                            if(substr($id, 0, strlen($this->id)+1)==$this->id.'.') {
+                            if(strpos($id, '.') && substr(str_replace('.', '_', $id), 0, strlen($this->id)+1)==$this->id.'_') {
                                 $id = substr($id, strlen($this->id)+1);
                             }
                         } else {
