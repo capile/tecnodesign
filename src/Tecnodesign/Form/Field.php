@@ -2188,6 +2188,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
         if(!is_array($ovalue)) {
             $ovalue = ($this->serialize)?(tdz::unserialize($ovalue, $this->serialize)):(preg_split('/\s*\,\s*/', $ovalue));
+            if(!is_array($ovalue)) $ovalue = array($ovalue);
         } else {
             $opk = null;
             foreach($ovalue as $i=>$o) {
