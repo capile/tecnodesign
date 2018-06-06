@@ -583,6 +583,7 @@ class Tecnodesign_Query_Api
         }
         if(isset($this->_options['username']) && isset($this->_options['password'])) {
             curl_setopt($conn, CURLOPT_USERPWD, $this->_options['username'].':'.$this->_options['password']);
+            curl_setopt($conn, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         }
         $this->_last = $q;
         if(!$this->_method) {
@@ -591,7 +592,6 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
         $r = curl_exec($conn);
-
         $msg = '';
         if(!$r) {
             $msg = curl_error($conn);
@@ -749,7 +749,7 @@ class Tecnodesign_Query_Api
                      ;
             }
             if($m) {
-                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg));
+                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg), $this->headers);
             }
             throw new Tecnodesign_Exception($msg);
         } else if(!preg_match(static::$successPattern, $r)) {
@@ -795,7 +795,6 @@ class Tecnodesign_Query_Api
                 */
             }
         } catch(Exception $e) {
-            //tdz::log('Error in '.__METHOD__.":\n  ".$e->getMessage()."\n ".$e);
             return false;
         }
     }
@@ -879,7 +878,7 @@ class Tecnodesign_Query_Api
         if(!$conn) $conn = static::connect($this->schema('database'));
         $H = static::$requestHeaders;
         if(!is_array($H)) $H = array();
-        if(!is_string($data)) {
+        if($data && !is_string($data)) {
             if(static::$postFormat && static::$postFormat=='json') {
                 $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
                 $H[] = 'content-type: application/json';
