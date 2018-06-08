@@ -1197,7 +1197,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $value[$i][$k]=$kv;
                     }
                 } else {
-                    $v->isNew(true);
+                    if(!$pk) $v->isNew(true);
                     $value[$i] = $v;
                 }
                 unset($pk, $v);
