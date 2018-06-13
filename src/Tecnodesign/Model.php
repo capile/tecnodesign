@@ -2382,14 +2382,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(isset(static::$schema['columns'][$firstName]) && !array_key_exists($firstName, $this->_original)) {
                     $this->_original[$firstName] = $this->$firstName;
                 }
-                if(is_string($this->$firstName) && isset(static::$schema['columns'][$firstName]['serialize'])) {
-                    $this->$firstName = tdz::unserialize($this->$firstName, static::$schema['columns'][$firstName]['serialize']);
+                $a0 = $this->$firstName;
+                if(is_string($a0) && isset(static::$schema['columns'][$firstName]['serialize'])) {
+                    $a0 = tdz::unserialize($a0, static::$schema['columns'][$firstName]['serialize']);
                 }
-                if(!$this->$firstName) {
-                    $this->$firstName = array();
+                if(!$a0) {
+                    $a0 = array();
                 }
 
-                $a =& $this->{$firstName};
+                $a =& $a0;
                 if(strpos($ref, '.')) {
                     while($p=strpos($ref, '.')) {
                         $n = substr($ref, 0, $p);
@@ -2402,6 +2403,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                 }
                 $a[$ref] = $value;
+                $this->$firstName = $a0;
                 unset($a);
             }
 
