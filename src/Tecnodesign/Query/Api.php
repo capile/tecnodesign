@@ -47,13 +47,14 @@ class Tecnodesign_Query_Api
             CURLOPT_AUTOREFERER    => true,         // set referer on redirect
             CURLOPT_CONNECTTIMEOUT => 120,          // timeout on connect
             CURLOPT_TIMEOUT        => 120,          // timeout on response
-            CURLOPT_MAXREDIRS      => 2,           // stop after 10 redirects
+            CURLOPT_MAXREDIRS      => 2,            // stop after 10 redirects
             CURLOPT_POST           => false,
             CURLOPT_HTTPHEADER     => array('accept: application/json'),
         ),
         $requestHeaders = array('accept: application/json'),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
         $errorPattern='/HTTP\/[0-9\.]+ +[45][0-9]{2} .*/i',
+        $errorAttribute,
         $headerCount='x-total-count',
         $headerModified='last-modified',
         $dataAttribute,
@@ -595,7 +596,6 @@ class Tecnodesign_Query_Api
         $msg = '';
         if(!$r) {
             $msg = curl_error($conn);
-
         } else {
             if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
                 list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
@@ -728,28 +728,26 @@ class Tecnodesign_Query_Api
 
         $m = null;
         if($msg || preg_match(static::$errorPattern, $this->headers, $m)) {
-            if(isset($this->response['error'])) {
-                if(isset($this->response['error']['message'])) {
-                    $msg = $this->response['error']['message'];
-                } else if(is_array($this->response['error'])) {
-                    $msg = '<p>'.implode('</p><p>', $this->response['error']).'</p>';
-                } else {
-                    $msg = $this->response['error'];
-                }
-                $msg = '<div class="tdz-i-msg tdz-i-error">'
-                     . $msg
-                     . '</div>';
-                if(isset($this->response['message'])) {
-                    $msg .= $this->response['message'];
-                }
-            } else if(!$msg && ($msg=$this->header('x-message'))) {
-                $msg = '<div class="tdz-i-msg tdz-i-error">'
-                     . $msg
-                     . '</div>'
-                     ;
+            if(isset(static::$errorAttribute) && isset($this->response[static::$errorAttribute])) {
+                $msg = $this->response[static::$errorAttribute];
+            } else if(isset($this->response['error']['message'])) {
+                $msg = $this->response['error']['message'];
+            } else if(isset($this->response['error'])) {
+                $msg = $this->response['error'];
+            } else {
+                $msg=$this->header('x-message');
+            }
+            if(is_array($msg)) {
+                $msg = '<p>'.implode('</p><p>', $msg).'</p>';
+            }
+            $msg = '<div class="tdz-i-msg tdz-i-error">'
+                 . $msg
+                 . '</div>';
+            if(isset($this->response['message'])) {
+                $msg .= $this->response['message'];
             }
             if($m) {
-                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg), $this->headers);
+                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg));
             }
             throw new Tecnodesign_Exception($msg);
         } else if(!preg_match(static::$successPattern, $r)) {

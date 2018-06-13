@@ -1351,12 +1351,12 @@ class Tecnodesign_Interface implements ArrayAccess
         } else {
             $url .= '/'.$a;
         }
+        $A = (isset($this->actions[$this->action]))?($this->actions[$this->action]):(array());
+        if(!is_array($A))$A=array();
         if(isset(static::$actionsAvailable[$a])) {
-            $A = static::$actionsAvailable[$a];
+            $A += static::$actionsAvailable[$a];
         } else if(isset(static::$additionalActions[$a])) {
-            $A = static::$additionalActions[$a];
-        } else {
-            $A = array();
+            $A += static::$additionalActions[$a];
         }
         if(!tdz::isempty($this->id) || !tdz::isempty($id)) {
             if($id===true || (tdz::isempty($id) && isset($A['identified']))) {
@@ -2534,10 +2534,11 @@ class Tecnodesign_Interface implements ArrayAccess
         if(!is_array($scope)) $scope = $cn::columns($scope);
         $fns = array();
         $ff=array();
+        $dest = (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])?($this->action):('list');
         $fo=array(
             'class'=>'tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
-            'action'=>$this->link('list', false),
+            'action'=>$this->link($dest, false),
             'buttons'=>array('submit'=>tdz::t('Search', 'interface'),
             'cleanup'=>tdz::t('Cleanup', 'interface')),
             'fields'=>array()
