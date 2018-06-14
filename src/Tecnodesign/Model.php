@@ -1762,6 +1762,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $qsb = '?';
             }
             $qslink = null;
+            $link = preg_replace('/\?.*$/', '', $link);
         } else {
             $qs = Tecnodesign_Ui::$qs;
             $qsb = ($qs)?(substr($qs,1)):('');
