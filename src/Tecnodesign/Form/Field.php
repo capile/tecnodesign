@@ -1526,7 +1526,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $value = $this->getValue();
 
             if(!is_array($value)) {
-                $value = tdz::unserialize($value, $serialize);
+                $value = tdz::unserialize($value, $this->serialize);
             }
 
             // loop for each entry and add to $input

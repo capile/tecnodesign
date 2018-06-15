@@ -292,6 +292,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if(!$a || !is_array($a)) return;
         foreach($a as $sn=>$scope) {
+            if(!is_array($scope)) continue;
             foreach($scope as $fn=>$fd) {
                 if(is_array($fd) && isset($fd['interface']) && isset($fd['bind'])) {
                     $fid = $fd['interface'];
