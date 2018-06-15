@@ -1858,7 +1858,6 @@ class tdz
                 try {
                     throw new Exception(tdz::toString($v));
                 } catch(Exception $e) {
-                    error_log($e->getMessage(), $type, $dest);
                     error_log((string)$e, $type, $dest);
                     unset($e);
                 }
@@ -2977,7 +2976,7 @@ class tdz
         if($f=tdz::classFile($cn)) {
             require_once $f;
             tdz::autoloadParams($cn);
-        } else if(tdz::$log) {
+        } else if(tdz::$log>1) {
             tdz::log(true, '[ERROR] Class '.$cn.' was not found!');
         }
         return false;
