@@ -1160,6 +1160,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
         // let's make it simple, if nothing is changing...
         if($value == $ro) {
+            if($value!==$this->$relation) {
+                $this->$relation = $value;
+            }
             return $ro;
         }
 
@@ -1213,11 +1216,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
             foreach($value as $i=>$v) {
                 // try direct comparison first -- if it's $v is in $ro, there's nothing to do
-                if(in_array($v, $ro)) {
-                    unset($ro[array_search($v, $ro)]);
-                    continue;
-                } 
-
                 if(is_string($v)) {
                     $v = new $cn(array($rfn => $v ),null,false);
                 } else if(is_array($v)) {
@@ -1229,14 +1227,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                 }
                 $pk = implode(',',$v->getPk(true));
-                if($pk && isset($map[$pk]) && $map[$pk]) {
+                if($pk!=='' && isset($map[$pk])) {
                     $value[$i] = $ro[$map[$pk]];
                     unset($ro[$map[$pk]], $map[$pk]);
                     foreach($v->asArray() as $k=>$kv) {
                         $value[$i][$k]=$kv;
                     }
+                } else if(in_array($v, $ro)) {
+                    unset($ro[array_search($v, $ro)]);
+                    continue;
                 } else {
-                    if(!$pk) $v->isNew(true);
+                    if($pk!=='') $v->isNew(true);
                     $value[$i] = $v;
                 }
                 unset($pk, $v);
