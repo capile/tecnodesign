@@ -1415,7 +1415,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             $rc = (isset($schema['relations'][$bind]['className']))?($schema['relations'][$bind]['className']):($bind);
             if($arg['value'] instanceof Tecnodesign_Collection) {
-                $arg['value']->setQuery(false);
+                $arg['value'] = $arg['value']->getItems();
             }
             foreach($arg['value'] as $id=>$value) {
                 if(!is_object($value)) {

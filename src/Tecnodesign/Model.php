@@ -1088,7 +1088,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $search = $this->getRelationQuery($relation, 'where');
             $cn::$relations[$relation][$rk] = $rcn::find($search, $limit, $scope, $asCollection);
             if($cn::$relations[$relation][$rk]===false && $limit==0){
-                $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
+                $cn::$relations[$relation][$rk] = ($asCollection)?(new Tecnodesign_Collection(null, $rcn)):(array());
             }
             
             $this->$relation =& $cn::$relations[$relation][$rk];
@@ -1111,34 +1111,65 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $this->_delete;
     }
     
-    
+    /**
+     * sets a relation (another model linked to this)
+     *
+     * must compare to existing relation, to figure out if there should be elements removed
+     */
     public function setRelation($relation, $value, $raw=false)
     {
         if($raw) {
             $this->$relation = $value;
             return $value;
         }
+ 
+        // gather relation information
+        $rel = static::$schema['relations'][$relation];
+        $local = (is_array($rel['local']))?($rel['local']):(array($rel['local']));
+        $foreign = (is_array($rel['foreign']))?($rel['foreign']):(array($rel['foreign']));
+
+        /**
+         * $ro is the original relation. should be organized as an array of objects
+         */
         $ro = $this->getRelation($relation, null, null, false);
-        if($ro instanceof Tecnodesign_Collection) {
-            $ro = $ro->getItems();
+        if($ro instanceof Tecnodesign_Collection) { // if it's a collection, expand
+            $this->$relation = $ro = $ro->getItems();
             if(!$ro) $ro = array();
+        } else if($rel['type']=='many') {
+            if($ro instanceof Tecnodesign_Model) $ro = array($ro);
+            else if(!$ro) $ro=array();
+            $this->$relation = $ro;
         }
-        if($value instanceof Tecnodesign_Collection) {
-            if($value == $ro) {
-                return $ro;
-            } else {
-                $value = $value->getItems();
-            }
+
+        /**
+         * value is the actual relation to be set, should also be an array of objects
+         */
+        if($value instanceof Tecnodesign_Collection) { // if it's a collection, expand
+            $value = $value->getItems();
         } else if($value instanceof Tecnodesign_Model) {
-            $value = array($value);
+            if($rel['type']=='many') {
+                $value = array($value);
+            }
         } else if(is_object($value)) {
             $value = (array) $value;
         } else if(is_string($value)) {
             $value = explode(',',$value);
+        } else {
+            $value = array_values($value);
         }
-        $rel = static::$schema['relations'][$relation];
-        $local = (is_array($rel['local']))?($rel['local']):(array($rel['local']));
-        $foreign = (is_array($rel['foreign']))?($rel['foreign']):(array($rel['foreign']));
+
+        // let's make it simple, if nothing is changing...
+        if($value == $ro) {
+            return $ro;
+        }
+
+        // past here $this->$relation will be $value
+        // we must ensure that it updates original values
+
+        /**
+         * this is a map of the relation foreign keys (and where they point to)
+         * we must ensure that they are set in each object
+         */
         $lorel = array();
         foreach($local as $i=>$o) {
             $lorel[$o]=$foreign[$i];
@@ -1161,8 +1192,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
             }
             $map = array();
-            if($ro instanceof Tecnodesign_Model) $ro = array($ro);
-            else if(!$ro) $ro=array();
+
+            // loop for each original values, see which aren't in $values
             foreach($ro as $i=>$R) {
                 if(is_string($R)) continue;
                 if($R instanceof Tecnodesign_Model) {
@@ -1175,10 +1206,18 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                 }
                 if(!isset($pk) || !$pk) $pk = implode(',',$R->asArray());
-                $map[$pk] = $i;
+                if(isset($map[$pk])) $map[$pk] = false;
+                else $map[$pk] = $i;
                 unset($i, $R, $pk);
             }
+
             foreach($value as $i=>$v) {
+                // try direct comparison first -- if it's $v is in $ro, there's nothing to do
+                if(in_array($v, $ro)) {
+                    unset($ro[array_search($v, $ro)]);
+                    continue;
+                } 
+
                 if(is_string($v)) {
                     $v = new $cn(array($rfn => $v ),null,false);
                 } else if(is_array($v)) {
@@ -1190,7 +1229,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                 }
                 $pk = implode(',',$v->getPk(true));
-                if($pk && isset($map[$pk])) {
+                if($pk && isset($map[$pk]) && $map[$pk]) {
                     $value[$i] = $ro[$map[$pk]];
                     unset($ro[$map[$pk]], $map[$pk]);
                     foreach($v->asArray() as $k=>$kv) {
@@ -1202,9 +1241,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
                 unset($pk, $v);
             }
+
+            // remove weir keys order
             $value = array_values($value);
+
+            // what was left at $ro should be deleted, which means it needs to be added to $value, with _delete = true
             foreach($ro as $i=>$R) {
-                if(is_object($R) && $R->getPk()) {
+                if(is_object($R) && $R->getPk() && !$R->isNew()) {
                     $R->delete(false);
                     $value[] = $R;
                 }
