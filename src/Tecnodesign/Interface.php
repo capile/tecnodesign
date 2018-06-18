@@ -1352,7 +1352,7 @@ class Tecnodesign_Interface implements ArrayAccess
         } else {
             $url .= '/'.$a;
         }
-        $A = (isset($this->actions[$this->action]))?($this->actions[$this->action]):(array());
+        $A = (isset($this->actions[$a]))?($this->actions[$a]):(array());
         if(!is_array($A))$A=array();
         if(isset(static::$actionsAvailable[$a])) {
             $A += static::$actionsAvailable[$a];
@@ -1360,7 +1360,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $A += static::$additionalActions[$a];
         }
         if(!tdz::isempty($this->id) || !tdz::isempty($id)) {
-            if($id===true || (tdz::isempty($id) && isset($A['identified']))) {
+            if($id===true || (tdz::isempty($id) && isset($A['identified']) && $A['identified'])) {
                 $id = $this->id;
             }
             if(!tdz::isempty($id)) $url .= '/'.$id;
@@ -2247,7 +2247,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 $href = 'href="'.$this->link($an, $sid).$qs.'"';
             } else {
-                $href = 'data-url="'.tdz::xmlEscape($this->link($an, $sid, true, $qs)).'"';
+                $href = 'data-url="'.tdz::xmlEscape($this->link($an, ($id)?($sid):(false), true, $qs)).'"';
                 if(isset($action['query']) && $action['query'] && $qs) {
                     $href .= ' data-qs="'.str_replace(',', '%3A', tdz::xmlEscape($qs)).'"';
                 }
