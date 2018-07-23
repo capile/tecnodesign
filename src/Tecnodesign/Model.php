@@ -1033,11 +1033,18 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $r['where'] = (isset($rel['params']))?($rel['params']):(array());
         if(is_array($rel['local'])) {
             foreach($rel['local'] as $i=>$fn) {
-                $r['where'][$rev.$rel['foreign'][$i]]=$this->$fn;
+                $v = $this->$fn;
+                if($v !== null && $v!==false) {
+                    $r['where'][$rev.$rel['foreign'][$i]]=$v;
+                }
             }
         } else {
-            $r['where'][$rev.$rel['foreign']]=$this->{$rel['local']};
+            $v = $this->{$rel['local']};
+            if($v !== null && $v!==false) {
+                $r['where'][$rev.$rel['foreign']]=$v;
+            }
         }
+
         if($part=='where') return $r['where'];
 
         //@TODO: build whole query object
@@ -1079,8 +1086,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if(!isset($cn::$relations[$relation][$rk])) {
             $search = $this->getRelationQuery($relation, 'where');
-            $cn::$relations[$relation][$rk] = $rcn::find($search, $limit, $scope, $asCollection);
-            if($cn::$relations[$relation][$rk]===false && $limit==0){
+            $cn::$relations[$relation][$rk] = ($search)?($rcn::find($search, $limit, $scope, $asCollection)):(false);
+            if($cn::$relations[$relation][$rk]===false && $limit==0 && $asCollection){
                 $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
             }
             
