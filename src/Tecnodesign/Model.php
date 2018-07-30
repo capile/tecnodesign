@@ -1244,7 +1244,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     unset($ro[array_search($v, $ro)]);
                     continue;
                 } else {
-                    if($pk!=='') $v->isNew(true);
+                    if($pk==='') $v->isNew(true);
                     $value[$i] = $v;
                 }
                 unset($pk, $v);
@@ -1729,6 +1729,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                     $v = false;
                 } else {
+                    if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
                     if(isset($fd)) {
                         $fd1 = static::column($fn,true,true);
                         if($fd1) $fd += $fd1;
@@ -1751,6 +1752,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                             unset($nv);
                             $this->$fn = $v1;
                         }
+                        unset($v0, $v1);
                     }
                     if(isset($fd['class'])) $class = $fd['class'];
                     if(isset($fd['type']) && $fd['type']=='interface') {
