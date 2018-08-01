@@ -1037,7 +1037,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $rel = static::$schema['relations'][$relation];
         $rcn = (isset($rel['className']))?($rel['className']):($relation);
 
-        $r['where'] = (isset($rel['params']))?($rel['params']):(array());
+        $r['where'] = array();
         if(is_array($rel['local'])) {
             foreach($rel['local'] as $i=>$fn) {
                 $v = $this->$fn;
@@ -1051,6 +1051,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $r['where'][$rev.$rel['foreign']]=$v;
             }
         }
+        if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $rel['where'];
 
         if($part=='where') return $r['where'];
 
