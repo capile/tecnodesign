@@ -36,7 +36,10 @@ class Tecnodesign_Cache_Apc
      */
     public static function get($key, $expires=0, $m=null)
     {
-        if(!function_exists('apc_store')) return Tecnodesign_Cache_File::get($key, $expires);
+        if(!function_exists('apc_store')) {
+            tdz::log('No APC installed!');
+            return Tecnodesign_Cache_File::get($key, $expires);
+        }
         $siteKey = Tecnodesign_Cache::siteKey();
         if($siteKey) {
             $key = $siteKey.'/'.$key;
