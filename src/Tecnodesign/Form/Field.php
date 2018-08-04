@@ -717,7 +717,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
             } else if($this->type=='int' && abs($value)>0) {
                 $value = (string)(int) $value;
             }
-            $size = (is_array($value))?(count($value)):(mb_strlen($value, 'UTF-8'));
+            if(is_array($value)) {
+                $size = count($value);
+            } else if(function_exists('mb_strlen')) {
+                $size = mb_strlen($value, 'UTF-8');
+            } else {
+                $size = strlen($value);
+            }
         }
         if (($this->min_size && $size < $this->min_size && $size>0) || ($this->size && $size > $this->size)) {
             if(is_array($message)) {

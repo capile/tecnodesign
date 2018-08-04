@@ -192,16 +192,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $update = !$array;
         }
         if(!$array && isset($schema['scope']['uid'])) {
-            return $schema['scope']['uid'];
-        }
-        $pk=array();
-        foreach($schema['columns'] as $fn=>$fd) {
-            if (isset($fd['increment']) && $fd['increment']=='auto') {
-                $pk[] = $fn;
-            } else if(isset($fd['primary']) && $fd['primary']) {
-                $pk[]=$fn;
-            } else {
-                break;
+            $pk = (is_array($schema['scope']['uid']))?($schema['scope']['uid']):(array($schema['scope']['uid']));
+        } else {
+            $pk=array();
+            foreach($schema['columns'] as $fn=>$fd) {
+                if (isset($fd['increment']) && $fd['increment']=='auto') {
+                    $pk[] = $fn;
+                } else if(isset($fd['primary']) && $fd['primary']) {
+                    $pk[]=$fn;
+                } else {
+                    break;
+                }
             }
         }
         if($array) return $pk;
