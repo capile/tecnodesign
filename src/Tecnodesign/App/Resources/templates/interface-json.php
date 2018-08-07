@@ -66,6 +66,10 @@ if(isset($list) && is_array($list)) {
         $S = array();
         $M = array();
         foreach($options['scope'] as $label=>$fn) {
+            if(is_array($fn)) {
+                if(isset($fn['bind'])) $fn = $fn['bind'];
+                else continue;
+            }
             if(strpos($label, ':') || (substr($fn, 0, 2)=='--' && substr($fn, 0, -2)=='--')) continue;
             if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
             if(is_int($label)) $label = $fn;
@@ -137,6 +141,20 @@ if(isset($error) && $error) {
     }
     $R += $r;
     $r = $R;
+}
+
+if($Interface::$schema) {
+    if(is_string($Interface::$schema)) {
+        $schema=tdz::buildUrl($Interface::$schema);
+    } else {
+        $qs = null;
+        if($p=Tecnodesign_App::request('get', $Interface::REQ_ENVELOPE)) {
+            $qs = '?'.$Interface::REQ_ENVELOPE.'='.var_export((bool)$Interface::$envelope, true);
+        }
+        $schema=tdz::buildUrl($Interface->link('schema')).$qs; // add scope/action to link
+    }
+    header('link: <'.$schema.'> rel=describedBy');
+    $ret = $add + $ret;
 }
 
 $m = 'to'.ucfirst($Interface::format());

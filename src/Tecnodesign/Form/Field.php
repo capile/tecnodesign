@@ -960,7 +960,48 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $value;
     }
 
+    public function checkDns($value, $message='')
+    {
+        $value = trim($value);
+        if($value && !tdz::checkDomain($value, array('SOA'), false)) {
+            $message = tdz::t('This is not a valid domain.', 'exception');
+            $this->error[$message]=$message;
+        }
+        return $value;
+    }
 
+    public function checkIp($value, $message='')
+    {
+        $value = trim($value);
+        if($value && !filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)) {
+            $message = tdz::t('This is not a IP address.', 'exception');
+            $this->error[$message]=$message;
+        }
+        return $value;
+    }
+
+    public function checkIpBlock($value, $message='')
+    {
+        static $err = 'This is not a valid IP block.';
+        $ip = trim($value);
+        if($ip) {
+            $mask = null;
+            if($p=strpos($ip, '/')) {
+                $ip = substr($ip, 0, $p);
+                $mask = substr($ip, $p+1);
+            }
+            if(!filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)) {
+                $ip = false;
+            } else if(!is_numeric($mask)) {
+                $ip = false;
+            }
+        }
+        if($value && !filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)) {
+            $message = tdz::t('This is not a IP address.', 'exception');
+            $this->error[$message]=$message;
+        }
+        return $value;
+    }
 
     public function checkEmail($value, $message='')
     {
@@ -1650,6 +1691,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         $arg['type']=self::$urlInputType;
         $arg['data-type']='url';
+        return $this->renderText($arg);
+    }
+
+    public function renderDns(&$arg)
+    {
+        $arg['type']='text';
+        $arg['data-type']='dns';
         return $this->renderText($arg);
     }
 

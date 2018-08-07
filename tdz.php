@@ -2614,9 +2614,9 @@ class tdz
         return $isValid;
     }
 
-    public static function checkDomain($domain, $records=array('MX', 'A'))
+    public static function checkDomain($domain, $records=array('MX', 'A'), $cache=true)
     {
-        if(!($R=Tecnodesign_Cache::get('dnscheck/'.$domain, 600))) {
+        if(!$cache || !($R=Tecnodesign_Cache::get('dnscheck/'.$domain, 600))) {
             $r = false;
             foreach($records as $k=>$v) {
                 if(checkdnsrr($domain,$v)) {
