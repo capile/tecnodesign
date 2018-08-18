@@ -1098,8 +1098,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $cn::$relations[$relation][$rk] = ($search)?($rcn::find($search, $limit, $scope, $asCollection)):(false);
             if($cn::$relations[$relation][$rk]===false && $limit==0 && $asCollection){
                 $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
+            } else if(!$cn::$relations[$relation][$rk] && !is_array($cn::$relations[$relation][$rk])) {
+                $cn::$relations[$relation][$rk] = array();
             }
-            
             $this->$relation =& $cn::$relations[$relation][$rk];
         }
         if(!is_null($fn) && $fn) {

@@ -95,6 +95,8 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
                 }
             } else if(!is_int($o)) {
                 $fns = array(preg_replace('/\s+(asc|desc)/', '', $o));
+            } else {
+                $fns = null;
             }
             if($fns) {
                 foreach($fns as $i=>$o) {
