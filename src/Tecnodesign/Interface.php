@@ -308,6 +308,11 @@ class Tecnodesign_Interface implements ArrayAccess
         }
     }
 
+    public static function base()
+    {
+        return static::$base;
+    }
+
     public static function app()
     {
         if(($r=Tecnodesign_App::response('route')) && isset($r['url'])) tdz::scriptName($r['url']);
@@ -431,13 +436,14 @@ class Tecnodesign_Interface implements ArrayAccess
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($s);
         }
+        $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):($this->link(''));
+        $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
+
         if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
             Tecnodesign_App::end($s);
             //exit($s);
         }
 
-        $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):(tdz::scriptName());
-        $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
 
         return $s;
     }
@@ -1249,7 +1255,19 @@ class Tecnodesign_Interface implements ArrayAccess
         $cn = $this->getModel();
         if(!tdz::isempty($this->id)) {
             $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
-            if($r) return implode(', ', $r);
+            if($r) {
+                if(method_exists($cn, 'renderTitle')) {
+                    $s = '';
+                    foreach($r as $i=>$o) {
+                        $s .= (($s)?(', '):(''))
+                            . $o->renderTitle();
+                        unset($r[$i], $i, $o);
+                    }
+                    return $s;
+                } else {
+                    return implode(', ', $r);
+                }
+            }
         }
         if(!isset($this->text['title'])) {
             $this->text['title'] = $cn::label();

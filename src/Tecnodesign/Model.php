@@ -192,16 +192,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $update = !$array;
         }
         if(!$array && isset($schema['scope']['uid'])) {
-            return $schema['scope']['uid'];
-        }
-        $pk=array();
-        foreach($schema['columns'] as $fn=>$fd) {
-            if (isset($fd['increment']) && $fd['increment']=='auto') {
-                $pk[] = $fn;
-            } else if(isset($fd['primary']) && $fd['primary']) {
-                $pk[]=$fn;
-            } else {
-                break;
+            $pk = (is_array($schema['scope']['uid']))?($schema['scope']['uid']):(array($schema['scope']['uid']));
+        } else {
+            $pk=array();
+            foreach($schema['columns'] as $fn=>$fd) {
+                if (isset($fd['increment']) && $fd['increment']=='auto') {
+                    $pk[] = $fn;
+                } else if(isset($fd['primary']) && $fd['primary']) {
+                    $pk[]=$fn;
+                } else {
+                    break;
+                }
             }
         }
         if($array) return $pk;
@@ -1051,7 +1052,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $r['where'][$rev.$rel['foreign']]=$v;
             }
         }
-        if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $rel['where'];
+        if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $r['where'];
 
         if($part=='where') return $r['where'];
 
@@ -1097,8 +1098,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $cn::$relations[$relation][$rk] = ($search)?($rcn::find($search, $limit, $scope, $asCollection)):(false);
             if($cn::$relations[$relation][$rk]===false && $limit==0 && $asCollection){
                 $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
+            } else if(!$cn::$relations[$relation][$rk] && !is_array($cn::$relations[$relation][$rk])) {
+                $cn::$relations[$relation][$rk] = array();
             }
-            
             $this->$relation =& $cn::$relations[$relation][$rk];
         }
         if(!is_null($fn) && $fn) {
@@ -2337,10 +2339,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $dot = strpos($name, '.');
         if($dot!==false) {
             @list($firstName,$ref)=explode('.', $name, 2);
+        } else {
+            $firstName = $name;
         }
         if (method_exists($this, $m)) {
             $ret = $this->$m();
-        } else if(strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
+        } else if(!isset(static::$schema['columns'][$firstName]) && strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
             if($dot && isset($this->$firstName)) {
                 return $this->$firstName->$ref;
             } else if($dot && isset(static::$schema['relations'][$firstName])) {
