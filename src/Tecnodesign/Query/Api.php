@@ -569,10 +569,12 @@ class Tecnodesign_Query_Api
         $conn = static::connect($n);
         curl_setopt($conn, CURLOPT_URL, $q);
 
+        if(!is_array($headers)) $headers = array();
+
         if($data && !is_string($data)) {
             if(static::$postFormat && static::$postFormat=='json') {
                 $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-                //$H[] = 'content-type: application/json';
+                //$headers[] = 'content-type: application/json';
             } else {
                 $data = http_build_query($data);
             }
@@ -581,7 +583,6 @@ class Tecnodesign_Query_Api
         if($data) {
             curl_setopt($conn, CURLOPT_POST, true);
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
-            //curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
         }
 
         if($method && $method!='GET') {
@@ -663,7 +664,6 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
         $r = curl_exec($conn);
-        \tdz::log($r);
         $msg = '';
         if(!$r) {
             $msg = curl_error($conn);
