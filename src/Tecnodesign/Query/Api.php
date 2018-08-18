@@ -123,7 +123,7 @@ class Tecnodesign_Query_Api
             curl_setopt_array(self::$C[$n], $O);
             curl_setopt(self::$C[$n], CURLOPT_HTTPHEADER, static::$requestHeaders);
             if(static::$connectionCallback) {
-                self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n]);
+                self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
             }
         }
         return self::$C[$n];
@@ -564,8 +564,78 @@ class Tecnodesign_Query_Api
         return $f;
     }
 
-    public static function runStatic($n, $q)
+    public static function runStatic($q, $n='', $data=null, $method=null, $headers=null, $callback='json')
     {
+        $conn = static::connect($n);
+        curl_setopt($conn, CURLOPT_URL, $q);
+
+        if($data && !is_string($data)) {
+            if(static::$postFormat && static::$postFormat=='json') {
+                $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+                //$H[] = 'content-type: application/json';
+            } else {
+                $data = http_build_query($data);
+            }
+        }
+
+        if($data) {
+            curl_setopt($conn, CURLOPT_POST, true);
+            curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+            //curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
+        }
+
+        if($method && $method!='GET') {
+            curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $method);
+        }
+
+        if($headers) {
+            curl_setopt($conn, CURLOPT_HTTPHEADER, $headers); 
+        }
+        $r = curl_exec($conn);
+        $msg = '';
+        if(!$r) {
+            tdz::log('[ERROR] Curl error: '.curl_error($conn));
+            return false;
+        }
+        if($callback && $callback=='json') { 
+            if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
+                list($headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
+                while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
+                    list($headers, $body) = preg_split('/\r?\n\r?\n/', $body, 2);
+                }
+                $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
+                $r = json_decode($body, true);
+                if($r===null) {
+                    $err = json_last_error();
+                    if($err) {
+                        $errs = array (
+                          0 => 'JSON_ERROR_NONE',
+                          1 => 'JSON_ERROR_DEPTH',
+                          2 => 'JSON_ERROR_STATE_MISMATCH',
+                          3 => 'JSON_ERROR_CTRL_CHAR',
+                          4 => 'JSON_ERROR_SYNTAX',
+                          5 => 'JSON_ERROR_UTF8',
+                          6 => 'JSON_ERROR_RECURSION',
+                          7 => 'JSON_ERROR_INF_OR_NAN',
+                          8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
+                          9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
+                          10 => 'JSON_ERROR_UTF16',
+                        );
+                        if(isset($errs[$err])) {
+                            tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
+                        } else {
+                            tdz::log('[ERROR] JSON unknown error: '.$err);
+                        }
+                    }
+                }
+                unset($body);
+            } else {
+                $r = json_decode($r, true);
+            }
+        } else if($callback) {
+            return call_user_func($callback, $r);
+        }
+        return $r;
     }
 
     public function run($q, $conn=null, $enablePaging=true, $keepAlive=null, $cn=null, $defaults=null, $callback=null, $args=array())
@@ -593,6 +663,7 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
         $r = curl_exec($conn);
+        \tdz::log($r);
         $msg = '';
         if(!$r) {
             $msg = curl_error($conn);
@@ -649,9 +720,13 @@ class Tecnodesign_Query_Api
             if($this->response && static::$dataAttribute) {
                 $dataAttribute = static::$dataAttribute;
                 static::$dataAttribute = null;
+                $R = $this->_getResponseAttribute($dataAttribute);
+                if(!$R && !is_array($R)) $R=array();
+                /*
                 if(isset($this->response[$dataAttribute])) {
                     $R = $this->response[$dataAttribute];
                 }
+                */
             } else {
                 $R = $this->response;
                 unset($R[static::$pagingAttribute]);
@@ -677,10 +752,14 @@ class Tecnodesign_Query_Api
 
                 if($this->response) {
                     if($dataAttribute) {
+                        $M = $this->_getResponseAttribute($dataAttribute);
+                        $count += count($M);
+                        /*
                         if(isset($this->response[$dataAttribute])) {
                             $count += count($this->response[$dataAttribute]);
                             $M = $this->response[$dataAttribute];
                         }
+                        */
                     } else {
                         unset($this->response[static::$pagingAttribute]);
                         $count += count($this->response);
@@ -709,6 +788,13 @@ class Tecnodesign_Query_Api
             $this->response = $R;
             unset($R);
         } else {
+            if(static::$dataAttribute) {
+                if(static::$countAttribute) {
+                    $this->_count = $this->_getResponseAttribute(static::$countAttribute);
+                }
+                $this->response = $this->_getResponseAttribute(static::$dataAttribute);
+            }
+            /*
             if($this->response && is_array($this->response) && static::$dataAttribute) {
                 if(static::$countAttribute && isset($this->response[static::$countAttribute])) {
                     $this->_count = $this->response[static::$countAttribute];
@@ -719,6 +805,7 @@ class Tecnodesign_Query_Api
                 //    $this->response = array();
                 }
             }
+            */
         }
 
         if(!$keepAlive) {
@@ -768,6 +855,35 @@ class Tecnodesign_Query_Api
 
         unset($r);
         return $this;
+    }
+
+    protected function _getResponseAttribute($dataAttribute=null)
+    {
+        if(is_null($dataAttribute)) $dataAttribute = static::$dataAttribute;
+        if(!$dataAttribute) return $this->response;
+
+        $R = null;
+        if($this->response && is_array($this->response)) {
+            if(isset($this->response[$dataAttribute])) {
+                $R = $this->response[$dataAttribute];
+            } else if(strpos($dataAttribute, '.') || strpos($dataAttribute, '{$')!==false) {
+                $p = explode('.', $dataAttribute);
+                $R = $this->response;
+                while($n=array_shift($p)) {
+                    if(preg_match('/\{\$([a-zA-Z0-9\-\_]+)\}/', $dataAttribute, $m)) {
+                        $prop=$this->schema($m[1]);
+                        $n = str_replace($m[0], $prop, $n);
+                    }
+                    if(isset($R[$n])) {
+                        $R = $R[$n];
+                    } else {
+                        $R = null;
+                        break;
+                    }
+                }
+            }
+        }
+        return $R;
     }
 
 

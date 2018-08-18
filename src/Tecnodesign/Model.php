@@ -2338,10 +2338,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $dot = strpos($name, '.');
         if($dot!==false) {
             @list($firstName,$ref)=explode('.', $name, 2);
+        } else {
+            $firstName = $name;
         }
         if (method_exists($this, $m)) {
             $ret = $this->$m();
-        } else if(strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
+        } else if(!isset(static::$schema['columns'][$firstName]) && strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
             if($dot && isset($this->$firstName)) {
                 return $this->$firstName->$ref;
             } else if($dot && isset(static::$schema['relations'][$firstName])) {
