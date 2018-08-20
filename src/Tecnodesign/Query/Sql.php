@@ -69,6 +69,30 @@ class Tecnodesign_Query_Sql
         return static::$conn[$n];
     }
 
+    public static function disconnect($n='')
+    {
+        if(isset(static::$conn[$n]) && static::$conn[$n]) {
+            static::$conn[$n] = null;
+            unset(static::$conn[$n]);
+        }
+    }
+
+    public function reset()
+    {
+        $this->_select = null;
+        $this->_distinct = null;
+        $this->_selectDistinct = null;
+        $this->_scope = null;
+        $this->_from = null;
+        $this->_where = null;
+        $this->_orderBy = null;
+        $this->_limit = null;
+        $this->_offset = null;
+        $this->_alias = null;
+        $this->_transaction = null;
+        $this->_last = null;
+    }
+
     public function schema($prop=null)
     {
         $cn = $this->_schema;
@@ -84,6 +108,16 @@ class Tecnodesign_Query_Sql
         $cn = ($sc && isset($sc['className']))?($sc['className']):($this->_schema);
         if($o==='uid') return $cn::pk(null, true);
         return $cn::scope($o);
+    }
+
+    public function getDatabaseName($n=null)
+    {
+        if(!$n) $n = $this->schema('database');
+        $db = Tecnodesign_Query::database($n);
+        if($db && isset($db['dsn']) && preg_match('/(^|;)dbname=([^\;]+)/', $db['dsn'], $m)) {
+            $n = $m[2];
+        }
+        return $n;
     }
 
     /*
@@ -362,7 +396,7 @@ class Tecnodesign_Query_Sql
             }
             return str_replace($s, $r, $fn);
         } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc))) {
-            return str_replace($m[1], $r, $m[0]);
+            return $r.substr($m[0], strlen($m[1]));
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
         } else if(substr($f, 0, 1)=='_' && !isset($this->schema('columns')[$f])) {
@@ -429,7 +463,14 @@ class Tecnodesign_Query_Sql
                         if($sc['relations'][$rn]['type']!='one') {
                             $this->_distinct = ' distinct';
                         }
-                        $jtn = (isset($rsc['view']))?('('.$rsc['view'].')'):($rsc['tableName']);
+
+                        if(isset($rsc['view'])) {
+                            $jtn = '('.$rsc['view'].')';
+                        } else if(isset($rsc['database']) && $rsc['database']!=$this->schema('database')) {
+                            $jtn = $this->getDatabaseName($rsc['database']).'.'.$rsc['tableName'];
+                        } else {
+                            $jtn = $rsc['tableName'];
+                        }
                         if(!is_array($sc['relations'][$rn]['foreign'])) {
                             $this->_from .= " left outer join {$jtn} as {$an} on {$an}.{$sc['relations'][$rn]['foreign']}={$ta}.{$sc['relations'][$rn]['local']}";
                         } else {

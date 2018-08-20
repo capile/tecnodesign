@@ -312,6 +312,11 @@ class Tecnodesign_Interface implements ArrayAccess
         }
     }
 
+    public static function base()
+    {
+        return static::$base;
+    }
+
     public static function app()
     {
         if(($r=Tecnodesign_App::response('route')) && isset($r['url'])) tdz::scriptName($r['url']);
@@ -435,13 +440,14 @@ class Tecnodesign_Interface implements ArrayAccess
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($s);
         }
+        $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):($this->link(''));
+        $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
+
         if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
             Tecnodesign_App::end($s);
             //exit($s);
         }
 
-        $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):(tdz::scriptName());
-        $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
 
         return $s;
     }
@@ -1214,7 +1220,19 @@ class Tecnodesign_Interface implements ArrayAccess
         $cn = $this->getModel();
         if(!tdz::isempty($this->id)) {
             $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
-            if($r) return implode(', ', $r);
+            if($r) {
+                if(method_exists($cn, 'renderTitle')) {
+                    $s = '';
+                    foreach($r as $i=>$o) {
+                        $s .= (($s)?(', '):(''))
+                            . $o->renderTitle();
+                        unset($r[$i], $i, $o);
+                    }
+                    return $s;
+                } else {
+                    return implode(', ', $r);
+                }
+            }
         }
         if(!isset($this->text['title'])) {
             $this->text['title'] = $cn::label();
@@ -2401,7 +2419,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         static::$headers[static::H_TOTAL_COUNT] = $count;
         $this->options['link'] = ($this->hasAction(static::$listAction))?($this->link(static::$listAction, false, false)):(false);
-        $this->text['listLimit'] = static::$hitsPerPage;
+        $this->text['listLimit'] = (isset($this->options['list-limit']) && is_numeric($this->options['list-limit']))?($this->options['list-limit']):(static::$hitsPerPage);
         $p=Tecnodesign_App::request('get', static::REQ_LIMIT);
         if($p!==null && is_numeric($p) && $p >= 0) {
             $p = (int) $p;
@@ -2817,7 +2835,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $type = substr($ff[$k], 0, 4);
                 }
 
-                if($F[$k0]->multiple && !is_array($v)) {
+                if(isset($F[$k0]) && $F[$k0]->multiple && !is_array($v)) {
                     $v = explode(',', $v);
                 } else if($type=='date' && preg_match('/[\<\>=]+$/', $fns[$k])) {
                     $ff[$k] = $type = 'choices';
