@@ -1036,15 +1036,32 @@ th > input[type=checkbox], td > input[type=checkbox]{
 .tdz-i-body .tdz-i-standalone .tdz-i-footer a:hover span {display:none;}
 .tdz-i-label-key{
   text-transform:lowercase;
-  &:after{content:': ';display:inline-block;white-space:pre;}
+  &:after{
+    content:': ';
+    display:inline-block;
+    white-space:pre;
+  }
 }
 .tdz-i-label-id{
-  &:before{content:'#';display:inline-block;color:@colorSummaryText;opacity:0.6;}
+  &:before{
+    content:'#';
+    display:inline-block;
+    color:@colorSummaryText;
+    opacity:0.6;
+  }
 }
 .tdz-i-label-title{
-  color:@colorSummaryText;opacity:0.6;
-  &:before{content:' (';display:inline-block;white-space:pre;}
-  &:after{content:')';display:inline-block;}
+  color:@colorSummaryText;
+  opacity:0.6;
+  &:before{
+    content:' (';
+    display:inline-block;
+    white-space:pre;
+  }
+  &:after{
+    content:')';
+    display:inline-block;
+  }
 }
 
 .tdz-i-list {
@@ -1086,9 +1103,14 @@ th > input[type=checkbox], td > input[type=checkbox]{
     }
     &.ui-order-asc a.asc, &.ui-order-desc a.desc {color:@colorHighlight !important;}
   }
+  tbody th {
+    background:@colorTab;
+  }
   td, th {
     vertical-align:top;text-align:left;padding:0.325em;border:none;
+    line-height:1.5em;
   }
+  a, .tdz-i-a {line-height: 1.5em;}
   td:first-child {
     text-indent:-1.25em;padding-left:1.615em;
     & > * {text-indent:0;}

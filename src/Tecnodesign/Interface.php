@@ -2349,7 +2349,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         static::$headers[static::H_TOTAL_COUNT] = $count;
         $this->options['link'] = ($this->hasAction(static::$listAction))?($this->link(static::$listAction, false, false)):(false);
-        $this->text['listLimit'] = static::$hitsPerPage;
+        $this->text['listLimit'] = (isset($this->options['list-limit']) && is_numeric($this->options['list-limit']))?($this->options['list-limit']):(static::$hitsPerPage);
         $p=Tecnodesign_App::request('get', static::REQ_LIMIT);
         if($p!==null && is_numeric($p) && $p >= 0) {
             $p = (int) $p;
@@ -2765,7 +2765,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $type = substr($ff[$k], 0, 4);
                 }
 
-                if($F[$k0]->multiple && !is_array($v)) {
+                if(isset($F[$k0]) && $F[$k0]->multiple && !is_array($v)) {
                     $v = explode(',', $v);
                 } else if($type=='date' && preg_match('/[\<\>=]+$/', $fns[$k])) {
                     $ff[$k] = $type = 'choices';

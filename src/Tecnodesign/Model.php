@@ -1384,9 +1384,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
             }
 
-            // @DEBUG
-            //\tdz::log(get_called_class()."\n  ". $this->_query->lastQuery()); //, var_Export($this, true)
-
             if ($m==='delete' && !$this->_delete) {
                 $m = 'update';
             }
@@ -1783,6 +1780,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     
     public function renderUi($o=array())
     {
+        static $group;
         $s = '';
         $cn = get_called_class();
         $schema = $cn::$schema;
@@ -1852,10 +1850,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $tattr .= ' id="'.$tid.'"';
         }
         $ba = array();
+        $groupBy = $groupClass=null;
         foreach($labels as $label=>$fn) {
             if(substr($label, 0, 2)=='a:') {
                 $fn = ($p=strrpos($fn, ' '))?(substr($fn, $p+1)):($fn);
                 $ba[substr($label,2)] = $this->$fn;
+                unset($labels[$label], $p);
+            } else if(substr($label, 0, 2)=='g:') {
+                $fn = ($p=strrpos($fn, ' '))?(substr($fn, $p+1)):($fn);
+                $groupBy = $fn;
+                $groupClass = substr($label, 2);
                 unset($labels[$label], $p);
             }
             unset($label, $fn);
@@ -1864,6 +1868,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $ext = (isset($o['extension']))?($o['extension']):('');
 
         if($i==$start) {
+            if($groupBy && $group) $group=null;
             $s .= '<table class="app-list"'.$tattr.'><thead><tr>';
             $first = true;
             $so = 1;
@@ -1893,6 +1898,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             $s .= '</tr></thead><tbody>';
         }
+        if($groupBy && ($gv=$this->renderField($groupBy, null, true)) && $gv!=$group) {
+            $group = $gv;
+            if($i>$start) {
+                $s .= '</tbody><tbody>';
+            }
+            $s .= '<tr><th colspan="'.count($labels).'" class="'.$groupClass.'">'.$gv.'</th></tr>';
+        }
         if(!is_array($link)) {
             if($link!==false || $checkbox) {
                 $uid = $this->getPk();//str_replace('-', ',', $this->getPk());
@@ -1915,6 +1927,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($p=strrpos($fn, ' ')) {
                 $fn = substr($fn, $p+1);
             }
+            $value = $this->renderField($fn, null, true);
+            /*
             $dm = 'preview'.tdz::camelize(ucfirst($fn));
             $m = 'get'.tdz::camelize(ucfirst($fn));
             $display=false;
@@ -1953,6 +1967,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(isset($schema['form'][$fn]['html_labels']) && $schema['form'][$fn]['html_labels']) $display = true;
             }
             if(!$display) $value = tdz::xml($value);
+            */
             if(is_array($link)) {
                 if(isset($link[$fn])) {
                     if(!isset($replace)) {
@@ -1965,8 +1980,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
             
-            $s .= '<td class="f-'.$fn.'">'
-                . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.\tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
+            $s .= '<td class="f-'.$fn.' '.(($checkbox)?(' tdz-check'):('')).'">'
+                . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
                 . (($uid!==false && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
             if($uid!==false) $uid=false;
@@ -2000,6 +2015,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($xmlEscape) $xmlEscape = false;
         } else if(method_exists($this, $m)) {
             $v = $this->$m();
+            $getRef = true;
         } else if(isset($fd['type']) && $fd['type']=='interface' && isset($fd['interface']) && isset($fd['bind']) && isset(static::$schema['relations'][$fd['bind']])) {
             $icn = Tecnodesign_Interface::$className;
             $I = new $icn($fd['interface']);
@@ -2023,7 +2039,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(isset($fd['multiple']) && $fd['multiple'] && is_string($v) && strpos($v, ',')!==false) {
                 $v = preg_split('/\,/', $v, null, PREG_SPLIT_NO_EMPTY);
             }
-
             if(isset($fd['choices'])) {
                 $choices=$fd['choices'];
                 if(is_string($choices)) {
@@ -2171,7 +2186,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public function validate($schema, $value, $name=null)
     {
         $ovalue = $value;
-        if (!is_null($name) && method_exists($this, $m='validate'.\tdz::camelize($name, true))) {
+        if (!is_null($name) && method_exists($this, $m='validate'.tdz::camelize($name, true))) {
             $value = $this->$m($value);
         }
 
