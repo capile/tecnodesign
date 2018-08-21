@@ -1766,7 +1766,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 } else if($v!==false && !($excludeEmpty && !$v)) {
                     if(strpos($fn, ' ')) $fn = substr($fn, strrpos($fn, ' ')+1);
                     if(is_array($v)) {
-                        $v = implode(', ', array_map('implode', $v));
+                        $v = tdz::implode($v, ', ');
                     }
                     $s .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
                 }
@@ -2035,7 +2035,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else if($v instanceof Tecnodesign_Collection) {
             $v = $v->getItems();
             if($v) $v=implode(', ', $v);
-        } else if($v!==false && !is_null($v)) {
+        } else if(!tdz::isempty($v)) {
             if(isset($fd['multiple']) && $fd['multiple'] && is_string($v) && strpos($v, ',')!==false) {
                 $v = preg_split('/\,/', $v, null, PREG_SPLIT_NO_EMPTY);
             }

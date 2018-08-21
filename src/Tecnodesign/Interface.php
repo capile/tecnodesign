@@ -1230,7 +1230,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     }
                     return $s;
                 } else {
-                    return implode(', ', $r);
+                    return tdz::xml(implode(', ', $r));
                 }
             }
         }

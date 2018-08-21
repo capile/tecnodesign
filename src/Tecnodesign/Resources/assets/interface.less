@@ -267,18 +267,16 @@ input.tdz-i-switch{
   }
 }
 
-.subform {
-  border-bottom:1px solid @colorTab + #666;
+.input.items, .subform.items {
   .item {
-    border-top:1px solid @colorTab + #666;
     position:relative;
     padding-right:1.5em;
     > .tdz-buttons {
       position:absolute;
       right:0;
       bottom:0;
-      line-height:1.5em;
-      width:1.5em;
+      line-height:0.75em;
+      width:0.75em;
     }
     &::after {
       content:' ';
@@ -286,6 +284,18 @@ input.tdz-i-switch{
       display:block;
       height:0;
       width:0;
+    }
+  }
+  .item + .item {margin-top:0.75em;}
+}
+
+.subform {
+  border-bottom:1px solid @colorTab + #666;
+  .item {
+    border-top:1px solid @colorTab + #666;
+    > .tdz-buttons {
+      line-height:1.5em;
+      width:1.5em;
     }
   }
 }

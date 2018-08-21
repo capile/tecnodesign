@@ -860,6 +860,20 @@ class tdz
         }
     }
 
+    public static function implode($v, $del=',')
+    {
+        if(is_array($v)) {
+            $r = '';
+            foreach($v as $a) {
+                $r .= (($r)?($del):('')).\tdz::implode($a, $del);
+                unset($a);
+            }
+            return $r;
+        } else {
+            return (string) $v;
+        }
+    }
+
     
     public static function requestUri($arg=array())
     {

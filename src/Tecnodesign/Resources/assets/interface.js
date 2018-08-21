@@ -472,7 +472,7 @@
                         _reload[ih.getAttribute('data-url')]=true;
                     }
                 } else {
-                    t = t.replace(/\?(.*)$/, '')+'?'+Z.formData(this);
+                    t = t.replace(/\?(.*)$/, '')+'?'+Z.formData(this, false);
                 }
                 urls.push(t);
             } else {

@@ -32,7 +32,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $rangeInputType='range',
         $urlInputType='url',
         $searchInputType='search',
-        $phoneInputType='phone'
+        $phoneInputType='phone',
+        $enableMultipleText=true
         ;
     
     /**
@@ -1164,7 +1165,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(is_array($value) && $this->type=='file') {
             $value = $this->checkFile($value);
         }
-        if($this->multiple && $this->type!='form') {
+        if($this->multiple && $this->type!='form' && !$this->multiple) {
             if(is_array($value)) {
                 $value = implode(',', $value);
             } else if($value===false) {
@@ -2065,8 +2066,41 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $this->renderText($arg, $enableChoices);
     }
     
-    public function renderText(&$arg, $enableChoices=true)
+    public function renderText(&$arg, $enableChoices=true, $enableMultiple=null)
     {
+        if($this->multiple && ($enableMultiple || (is_null($enableMultiple) && static::$enableMultipleText))) {
+            $v0 = $value = $arg['value'];
+            if(!is_array($value) && $value) {
+                if($this->serialize && ($nv=\tdz::unserialize($value))) {
+                    $value = $nv;
+                    unset($nv);
+                } else {
+                    $value = preg_split('/\s*\,\s*/', $value, null, PREG_SPLIT_NO_EMPTY);
+                }
+            } else if(!$value) {
+                $value = array();
+            }
+            $s = '';
+            foreach($value as $i=>$o) {
+                $arg['value'] = $o;
+                $s .= '<div class="item">'.$this->renderText($arg, $enableChoices, false).'</div>';
+                unset($value[$i], $i, $o);
+            }
+
+            $arg['value']='';
+            $jsinput = '<div class="item">'.$this->renderText($arg, $enableChoices, false).'</div>';
+
+            $s = '<div class="input items" data-template="'.htmlspecialchars($jsinput, ENT_QUOTES, 'UTF-8', true).'" data-prefix=""'
+                . (($this->min_size)?(' data-min="'.$this->min_size.'"'):(''))
+                . (($this->size)?(' data-max="'.$this->size.'"'):(''))
+                . '>'
+                . $s
+                . '</div>'
+                ;
+
+            $arg['value'] = $v0;
+            return $s;
+        }
         $a = array('type'=>(isset($arg['type']))?($arg['type']):('text'), 'id'=>$arg['id'], 'name'=>$arg['name'], 'value'=>(string)$arg['value']);
         if($this->size && !isset($this->attributes['maxlength'])) {
             $this->attributes['maxlength']=$this->size;
