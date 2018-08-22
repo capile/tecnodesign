@@ -1872,7 +1872,20 @@ class tdz
                 try {
                     throw new Exception(tdz::toString($v));
                 } catch(Exception $e) {
-                    error_log((string)$e, $type, $dest);
+                    $v = (string)$e;
+                    if(isset($logs['syslog'])) {
+                        $l = LOG_INFO;
+                        if(substr($v, 0, 4)=='[ERR') $l = LOG_ERR;
+                        else if(substr($v, 0, 5)=='[WARN') $l = LOG_WARNING;
+                        else $l = LOG_INFO;
+                        syslog($l, $v);
+                    }
+                    if(isset($logs[3])) {
+                        error_log($v, 3, $logs[3]);
+                    }
+                    if(isset($logs[0])) {
+                        error_log($v, 0);
+                    }
                     unset($e);
                 }
             }

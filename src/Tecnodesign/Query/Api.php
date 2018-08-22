@@ -25,6 +25,7 @@ class Tecnodesign_Query_Api
         $sort='sort',
         $scope='scope',
         $queryPath,
+        $queryTableName=true,
         $insertPath='/new',
         $insertQuery,
         $insertMethod='POST',
@@ -82,7 +83,7 @@ class Tecnodesign_Query_Api
                         $qs = substr($url, $p);
                         $url = substr($url, 0, $p);
                     }
-                    if(isset($s::$schema['tableName'])) {
+                    if(static::$queryTableName && isset($s::$schema['tableName'])) {
                         $url .= '/'.$s::$schema['tableName'];
                     }
                     $this->_url = $url.$qs;
