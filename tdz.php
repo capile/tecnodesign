@@ -1956,6 +1956,25 @@ class tdz
         return $r;
     }
 
+    public static function numberToLetter($i) { return tdz::letter($i); }
+    public static function letter($i)
+    {
+        $n='';
+        if(!is_int($i)) $i=(int)$i;
+        if($i<0) $i=0;
+        while($i>25) {
+            $ni=floor($i/26) -1;
+            $i=$i%26;
+            if($ni>25) {
+                $i = $i + (26 * floor($ni/26));
+                $ni = $ni%26;
+            }
+            $n.=chr(97+$ni);
+        }
+        $n .= chr(97+$i);
+        return $n;
+    }
+
     /**
      * Format bytes for humans
      *

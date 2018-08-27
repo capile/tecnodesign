@@ -2765,7 +2765,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $type = substr($ff[$k], 0, 4);
                 }
 
-                if(isset($F[$k0]) && $F[$k0]->multiple && !is_array($v)) {
+                if(is_object($F[$k0]) && $F[$k0]->multiple && !is_array($v)) {
                     $v = explode(',', $v);
                 } else if($type=='date' && preg_match('/[\<\>=]+$/', $fns[$k])) {
                     $ff[$k] = $type = 'choices';
@@ -2797,7 +2797,7 @@ class Tecnodesign_Interface implements ArrayAccess
                                     . '<span class="'.static::$attrTermClass.'">'.(($c1)?(tdz::t('Yes', 'interface')):(tdz::t('No', 'interface'))).'</span>';
                     }
                 } else if($ff[$k]=='choices') {
-                    if(!$v) continue;
+                    if(!$v || !is_object($F[$k0])) continue;
                     $this->search[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '

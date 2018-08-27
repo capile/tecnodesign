@@ -63,6 +63,7 @@ class Tecnodesign_Excel
     private $excel;
     private $sheet;
     private $sheetNum=0;
+    protected $x, $y;
     public static $headerFooter=array('OddHeader', 'OddFooter', 'EvenHeader', 'EvenFooter', 'FirstHeader', 'FirstFooter');
     
     public function __construct($config=array())
@@ -255,11 +256,12 @@ class Tecnodesign_Excel
 
     public static function cell($c, $to=null)
     {
-        if(is_array($c)) $c = PHPExcel_Cell::stringFromColumnIndex($c[0]) . ($c[1]+1);
-        else if(!preg_match('/^[a-z]{1,2}[0-9]*(:[a-z]{1,2}[0-9]*)?$/i', $c)) {
+        if(is_array($c)) {
+            if($c[1]<0)$c[1]=0;
+            $c = strtoupper(tdz::letter($c[0])) . ($c[1]+1);
+        } else if(!preg_match('/^[a-z]{1,2}[0-9]*(:[a-z]{1,2}[0-9]*)?$/i', $c)) {
             return false;
         }
-        //$this->sheet->setCellValueExplicitByColumnAndRow($c[0], $c[1]+1, $v, $t);
         if($to) $c .= ':'.self::cell($to);
         return $c;
     }
@@ -724,7 +726,6 @@ class Tecnodesign_Excel
         return str_replace(array_keys($this->r), array_values($this->r), $s);
     }
 
-    protected $x, $y;
     public function pos($p=null)
     {
         $P=array($this->x, $this->y);
@@ -948,7 +949,6 @@ class Tecnodesign_Excel
                 $this->addContent($c);
             }
         } 
-
     }
 
     public function addCollection($c, $scope='report')
