@@ -2208,7 +2208,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if (!is_numeric($value) && $value!='') {
                 throw new Tecnodesign_Exception(tdz::t('This is not a valid value.', 'exception').' '.tdz::t('An integer number is expected.', 'exception'));
             }
-            if($value!=='' && !is_null($value)) $value = (int) $value;
+            if(!tdz::isempty($value)) $value = (int) $value;
             if (isset($schema['min']) && $value < $schema['min']) {
                 throw new Tecnodesign_Exception(array(tdz::t('%s is less than the expected minimum %s', 'exception'), $value, $schema['min']));
             }

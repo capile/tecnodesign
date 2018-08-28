@@ -13,9 +13,31 @@
 class Tecnodesign_Query_Sql
 {
     const TYPE='sql';
-    public static $microseconds=6, $enableOffset=true, $textToVarchar;
-    protected static $options, $conn=array(), $tableDefault;
-    protected $_schema, $_scope, $_select, $_distinct, $_selectDistinct, $_from, $_where, $_groupBy, $_orderBy, $_limit, $_offset, $_alias, $_transaction, $_last;
+    public static 
+        $microseconds=6,
+        $enableOffset=true,
+        $textToVarchar,
+        $connectionCallback,
+        $errorCallback;
+    protected static 
+        $options, 
+        $conn=array(), 
+        $tableDefault;
+    protected 
+        $_schema, 
+        $_scope, 
+        $_select, 
+        $_distinct, 
+        $_selectDistinct, 
+        $_from, 
+        $_where, 
+        $_groupBy, 
+        $_orderBy, 
+        $_limit, 
+        $_offset, 
+        $_alias, 
+        $_transaction, 
+        $_last;
 
     public function __construct($s=null)
     {
@@ -65,6 +87,9 @@ class Tecnodesign_Query_Sql
                     throw new Exception('Could not connect to '.$n);
                 }
             }
+        }
+        if(static::$connectionCallback) {
+            static::$conn[$n] = call_user_func(static::$connectionCallback, static::$conn[$n], $n);
         }
         return static::$conn[$n];
     }
@@ -141,7 +166,7 @@ class Tecnodesign_Query_Sql
         $sc = $this->schema();
         $this->_alias = array($sc['className']=>'a');
         if(isset($sc['view'])) {
-            $this->_from = '('.$sc['view'].') as a';
+            $this->_from = ((strpos($sc['view'], ' ')!==false))?('('.$sc['view'].') as a'):($sc['view'].' as a');
         } else {
             $this->_from = $sc['tableName'].' as a';
         }
@@ -455,7 +480,9 @@ class Tecnodesign_Query_Sql
                     $rcn = (isset($sc['relations'][$rn]['className']))?($sc['relations'][$rn]['className']):($rn);
                     $rsc = $rcn::$schema;
                     if(!isset($this->_alias[$rnf])) {
-                        $an = chr(97+count($this->_alias));
+                        $chpos=($this->_alias)?(ceil(count($this->_alias)/2)):(0);
+                        while(in_array($an=tdz::letter($chpos), $this->_alias)) $chpos++;
+
                         $this->_alias[$rnf]=$an;
                         if($rcn != $rnf) {
                             $this->_alias[$rcn]=$an;
@@ -465,7 +492,7 @@ class Tecnodesign_Query_Sql
                         }
 
                         if(isset($rsc['view'])) {
-                            $jtn = '('.$rsc['view'].')';
+                            $jtn = (strpos($rsc['view'], ' '))?('('.$rsc['view'].')'):($rsc['view']);
                         } else if(isset($rsc['database']) && $rsc['database']!=$this->schema('database')) {
                             $jtn = $this->getDatabaseName($rsc['database']).'.'.$rsc['tableName'];
                         } else {
@@ -726,10 +753,10 @@ class Tecnodesign_Query_Sql
     public function run($q)
     {
         $this->_last = $q;
-        return self::runStatic($this->schema('database'), $q);
+        return self::runStatic($q, $this->schema('database'));
     }
 
-    public static function runStatic($n, $q)
+    public static function runStatic($q, $n='')
     {
         static $stmt;
         if($stmt) {
@@ -754,6 +781,9 @@ class Tecnodesign_Query_Sql
                 return call_user_func_array(array($this->run($q), 'fetchAll'), $arg);
             }
         } catch(Exception $e) {
+            if(isset($this::$errorCallback) && $this::$errorCallback) {
+                return call_user_func($this::$errorCallback, $e, func_get_args(), $this);
+            }
             tdz::log('Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n ".$this);
             return false;
         }

@@ -755,7 +755,7 @@ select, input {
 }
 
 .i-inline-label {
-  > .input, > dt {display:inline-block;}
+  > .input, > dt, > .label {display:inline-block;}
 }
 
 .i-check-label input[data-check-label] {
@@ -802,6 +802,12 @@ select, input {
   dd, .input {
     white-space: pre-wrap;
   }
+}
+
+.tdz-i-preview {
+.i-auto { width: auto; input, select, textarea { width: auto; } }
+.i-small { width: 25%; }
+.i-medium { width: 50%; }
 }
 
 @media only screen and (min-width: @mobileBreakPoint) {

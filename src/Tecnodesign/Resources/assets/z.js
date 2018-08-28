@@ -898,15 +898,21 @@ Z.initCallback=function(o)
 
     if(!C) return;
     o.removeAttribute('data-callback');
+    var f;
 
     if(noe && ((nn=='input' && o.type!='radio' && o.type!='checkbox' && o.type!='button')||nn=='textarea'||nn=='select')) {
-        Z.bind(o, 'change', C);
+        e='change';
+        f=Z.val(o);
     } else {
-        Z.bind(o, e, C);
         if(nn=='input' && o.checked) {
-            Z.fire(o, e);
+            f=true;
         }
     }
+    Z.bind(o, e, C);
+    if(f) {
+        Z.fire(o, e);
+    }
+
 };
 
 function button(e)
@@ -1135,6 +1141,22 @@ function enableField(on)
     if(cn!=this.className) this.className = cn;
 }
 
+function displayField(on)
+{
+    if(arguments.length==0) on=true;
+    var cn = this.className,an='readonly';
+    if(on) {
+        if(cn.search(/\bi-hidden\b/)>-1) cn=cn.replace(/\s*\bi-hidden\b/g, '');
+        var L=this.querySelectorAll('input['+an+'],select['+an+'],textarea['+an+']'), i=L.length;
+        while(i--) L[i].removeAttribute(an);
+    } else {
+        if(cn.search(/\bi-hidden\b/)<0) cn+=' i-hidden';
+        var L=this.querySelectorAll('input:not(['+an+']),select:not(['+an+']),textarea:not(['+an+'])'), i=L.length;
+        while(i--) L[i].setAttribute(an, an);
+    }
+    cn=cn.trim();
+    if(cn!=this.className) this.className = cn;
+}
 
 function formFilters(e)
 {
@@ -1146,18 +1168,31 @@ function formFilters(e)
     if(reset) this.className += ' tdz-a-filters';
 
     var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'), 
-      tn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk, n;
+      tn, ltn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk, n;
+    if(v && this.getAttribute('data-filter-value')) {
+        var av=this.getAttribute('data-filter-value').split(/\s*\,\s*/g), avi=av.length,avf;
+        while(avi--) {
+            if(v==av[avi]) {
+                avf=v;
+                break;
+            }
+        }
+        if(!avf) v=null;
+    }
     if(nn.indexOf('[')>-1) {
         nn=nn.replace(/.*\[([^\[]+)\]$/, '$1');
         tp = this.id.substr(0, this.id.length - nn.length);
     }
     while(i--) {
         tn = tp+t[i];
+        ltn = (tn.search(/\[[^\]]+/i)>-1)?(tn.replace(/^.*\[([^\]]+)\](\[\])?$/, '$1')+' '):(tn);
         fk = fid+tn;
         if(fa) {
-            if((T=this.form.querySelector('#f__'+tn.replace(/-/g, '_')+',.tdz-i-field.if--'+tn))) {
+            if((T=this.form.querySelector('#f__'+tn.replace(/[\[\]\-]+/g, '_')+',.if--'+ltn))) {
                 if(fa=='enable' || fa=='disable') {
                     enableField.call(T, (fa=='enable')?(v):(!v));
+                } if(fa=='show' || fa=='display' || fa=='hide') {
+                    displayField.call(T, (fa!='hide')?(v):(!v));
                 }
             }
         } else if((T=this.form.querySelector('select#'+tn))) {
