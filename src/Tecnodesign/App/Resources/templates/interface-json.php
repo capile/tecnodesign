@@ -154,7 +154,7 @@ if($Interface::$schema) {
         $schema=tdz::buildUrl($Interface->link('schema')).$qs; // add scope/action to link
     }
     header('link: <'.$schema.'> rel=describedBy');
-    $ret = $add + $ret;
+    if(isset($ret) && isset($add)) $ret = $add + $ret;
 }
 
 $m = 'to'.ucfirst($Interface::format());
