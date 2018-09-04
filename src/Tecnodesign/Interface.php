@@ -84,7 +84,7 @@ class Tecnodesign_Interface implements ArrayAccess
                                 'preview'   => array('position'=>30, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderPreview',),
                                 'update'    => array('position'=>40, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderUpdate', 'next'=>'preview'),
                                 'delete'    => array('position'=>50, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderDelete', 'next'=>'list'),
-                                'schema'    => array('position'=>60, 'identified'=>false, 'batch'=>true,  'query'=>false, 'additional-params'=>true,  'renderer'=>'renderSchema', 'next'=>'list'),
+                                'schema'    => array('position'=>false, 'identified'=>false, 'batch'=>true,  'query'=>false, 'additional-params'=>true,  'renderer'=>'renderSchema', 'next'=>'list'),
                             ),
         $relationAction     =                  array('position'=>60,    'action' => 'executeInterface','identified'=>true,  'batch'=>false, 'query'=>false, 'renderer'=>'renderInterface'),
         $additionalActions  = array(),

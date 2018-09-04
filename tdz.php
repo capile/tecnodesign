@@ -1,49 +1,18 @@
 <?php
-
 /**
  * Tecnodesign Framework shortcuts and multi-purpose utils
  *
- * PHP version 5.2
+ * PHP version 5.4
  *
  * @category  Core
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: tdz.php 1306 2014-03-19 18:53:20Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Framework shortcuts and multi-purpose utils
- *
- * @category  Core
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @copyright 2018 Tecnodesign
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
 class tdz
 {
-    protected static $slugReplacements = array(
-        'Š' => 'S', 'š' => 's', 'Đ' => 'Dj', 'đ' => 'dj', 'Ž' => 'Z',
-        'ž' => 'z', 'Č' => 'C', 'č' => 'c', 'Ć' => 'C', 'ć' => 'c',
-        'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A',
-        'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
-        'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I',
-        'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O',
-        'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U',
-        'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss',
-        'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a',
-        'å' => 'a', 'æ' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e',
-        'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i',
-        'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o',
-        'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u',
-        'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'ý' => 'y', 'þ' => 'b',
-        'ÿ' => 'y', 'Ŕ' => 'R', 'ŕ' => 'r',
-    );
-
     protected static
     $_app = null,
     $_env = null,
@@ -1717,25 +1686,24 @@ class tdz
         return $img->render();
     }
 
-    public static function validUrl($str='')
+    public static function validUrl($s='')
     {
-        $str = trim($str);
-        if ($str != '') {
-            if (substr($str, 0, 1) != '/')
-                $str = "/{$str}";
-            $str = preg_replace('#\.\.+#', '.', $str);
-            $str = preg_replace('#\.+([^a-z0-9-_])#i', '$1', $str);
-            $str = strtr($str, tdz::$slugReplacements);
-            //$str = strtolower(trim($str));
-            $str = preg_replace('/[^a-z0-9-_\.\/]+/i', '-', $str);
-            $str = preg_replace('/-?\/-?/', '/', $str);
-            $str = preg_replace('#//+#', '/', $str);
-            $str = preg_replace('/-+/', '-', $str);
-            $str = preg_replace('/^-|-$/', '', $str);
-            $str = preg_replace('/([^\/])\/+$/', '$1', $str);
-            return $str;
+        $s = trim($s);
+        if($s != '') {
+            if (substr($s, 0, 1) != '/') $s = "/{$s}";
+            $s = preg_replace('#\.\.+#', '.', $s);
+            $s = preg_replace('#\.+([^a-z0-9-_])#i', '$1', $s);
+            $s = tdz::slug($s, '_./', true);
+            //$s = html_entity_decode(preg_replace('/&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);/i', '$1', htmlentities($s, ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
+            //$s = preg_replace('/[^a-z0-9-_\.\/]+/i', '-', $s);
+            $s = preg_replace('/-?\/-?/', '/', $s);
+            $s = preg_replace('#//+#', '/', $s);
+            $s = preg_replace('/-+/', '-', $s);
+            $s = preg_replace('/^-|-$/', '', $s);
+            $s = preg_replace('/([^\/])\/+$/', '$1', $s);
+            return $s;
         }
-        return $str;
+        return $s;
     }
 
     public static function uploadDir($d=null)
@@ -1955,20 +1923,17 @@ class tdz
      *
      * @return string slug
      */
-    public static function slug($str, $accept='', $anycase=null)
+    public static function slug($s, $accept='_', $anycase=null)
     {
-        $str = strtr($str, tdz::$slugReplacements);
+        $s = html_entity_decode(preg_replace('/&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);/i', '$1', htmlentities($s, ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
         if($accept) {
             $accept = preg_replace('/([^a-z0-9])/i', '\\\$1', $accept);
-        } else {
-            $accept = '_';
         }
-        $str = ($anycase)?(trim($str)):(strtolower(trim($str)));
-        $str = preg_replace('/[^a-z0-9-'.$accept.']+/'.(($anycase)?('i'):('')), '-', $str);
-        $str = preg_replace('/-+/', '-', $str);
-        $str = preg_replace('/^-|-$/', '', $str);
-        return $str;
+        $s = trim(preg_replace('/[^0-9a-z'.$accept.']+/i', '-', $s), '-');
+
+        return ($anycase)?($s):(strtolower($s));
     }
+
     public static function textToSlug($str, $accept=''){return tdz::slug($str, $accept);}
     
     public static function timeToNumber($t)

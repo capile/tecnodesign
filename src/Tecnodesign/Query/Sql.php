@@ -351,7 +351,7 @@ class Tecnodesign_Query_Sql
             if(preg_match('/\s+[\_\-a-z0-9]+\s*$/i', $o, $m)) {
                 $o = substr($o, 0, strlen($o)-strlen($m[0]));
             }
-            $fn = (!is_int($o))?($this->getAlias($o)):($o);
+            $fn = (!is_int($o))?($this->getAlias($o, null, true)):($o);
             if($fn && strpos($fn, $this->_orderBy)===false) {
                 if($sort!='asc' && $sort!='desc') $sort='';
                 $this->_orderBy .= ($this->_orderBy)?(", {$fn} {$sort}"):(" {$fn} {$sort}");
@@ -369,7 +369,7 @@ class Tecnodesign_Query_Sql
                 unset($s);
             }
         } else {
-            $fn = $this->getAlias($o);
+            $fn = $this->getAlias($o, null, true);
             if($fn && strpos($fn, $this->_groupBy)===false) {
                 $this->_groupBy .= ($this->_groupBy)?(", {$fn}"):(" {$fn}");
             }
@@ -407,7 +407,7 @@ class Tecnodesign_Query_Sql
         return 'ifnull(max('.$this->getAlias($fn).'),0)+1';
     }
 
-    protected function getAlias($f, $sc=null)
+    protected function getAlias($f, $sc=null, $noalias=null)
     {
         $ofn = $fn = $f;
         if(substr($f, 0, 1)=='-' && substr($f,-1)=='-') {
@@ -416,11 +416,11 @@ class Tecnodesign_Query_Sql
             $r = $s = array();
             foreach($m[1] as $i=>$nfn) {
                 $s[]=$m[0][$i];
-                $r[]=$this->getAlias($nfn, $sc);
+                $r[]=$this->getAlias($nfn, $sc, true);
                 unset($i, $nfn);
             }
             return str_replace($s, $r, $fn);
-        } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc))) {
+        } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc, true))) {
             return $r.substr($m[0], strlen($m[1]));
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
@@ -453,7 +453,11 @@ class Tecnodesign_Query_Sql
         if (isset($sc['columns'][$fn])) {
             $found = true;
             if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
-                $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sql($fn);
+                if(strpos($sc['columns'][$fn]['alias'], '`')!==false) {
+                    $fn = $this->getAlias($sc['columns'][$fn]['alias'], $sc, true).((!$noalias)?(' '.tdz::sql($fn)):(''));
+                } else {
+                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
+                }
             } else {
                 if(isset($sc['columns'][$fn]['type']) && $sc['columns'][$fn]['type']=='string' && isset($sc['columns'][$fn]['size']) && $this::$textToVarchar && $this::$textToVarchar<=$sc['columns'][$fn]['size']) {
                     if(!$this->_selectDistinct) $this->_selectDistinct=array();
@@ -471,7 +475,7 @@ class Tecnodesign_Query_Sql
                 if($rn==$rnf && isset($sc['columns'][$rn]['serialize'])) {
                     $found = true;
                     if(isset($sc['columns'][$rn]['alias']) && $sc['columns'][$rn]['alias']) {
-                        $fn = $ta.'.'.$sc['columns'][$rn]['alias'].' '.tdz::sql($rn);
+                        $fn = $ta.'.'.$sc['columns'][$rn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
                     } else {
                         $fn = $ta.'.'.$rn;
                     }
@@ -499,11 +503,15 @@ class Tecnodesign_Query_Sql
                             $jtn = $rsc['tableName'];
                         }
                         if(!is_array($sc['relations'][$rn]['foreign'])) {
-                            $this->_from .= " left outer join {$jtn} as {$an} on {$an}.{$sc['relations'][$rn]['foreign']}={$ta}.{$sc['relations'][$rn]['local']}";
+                            $rfn = $this->getAlias($sc['relations'][$rn]['foreign'], $rsc, true);
+                            $lfn = $this->getAlias($sc['relations'][$rn]['local'], $sc, true);
+                            $this->_from .= " left outer join {$jtn} as `{$an}` on {$lfn}={$rfn}";
                         } else {
-                            $this->_from .= " left outer join {$jtn} as {$an} on";
+                            $this->_from .= " left outer join {$jtn} as `{$an}` on";
                             foreach($sc['relations'][$rn]['foreign'] as $rk=>$rv) {
-                                $this->_from .= (($rk>0)?(' and'):(''))." {$an}.{$rv}={$ta}.{$sc['relations'][$rn]['local'][$rk]}";
+                                $rfn = $this->getAlias($rv, $rsc, true);
+                                $lfn = $this->getAlias($sc['relations'][$rn]['local'][$rk], $sc, true);
+                                $this->_from .= (($rk>0)?(' and'):(''))." {$lfn}={$rfn}";
                             }
                         }
                         if(isset($sc['relations'][$rn]['on'])) {
@@ -513,7 +521,7 @@ class Tecnodesign_Query_Sql
                                 if(substr($rfn,0,strlen($rn))==$rn) {
                                     $this->_from .= " and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
                                 } else {
-                                    $this->_from .= ' and '.$this->getAlias($rfn, $rsc).' '.$fnc;
+                                    $this->_from .= ' and '.$this->getAlias($rfn, $rsc, true).' '.$fnc;
                                 }
                                 unset($rfn, $fnc);
                             }
@@ -525,7 +533,7 @@ class Tecnodesign_Query_Sql
                             if(is_array($ar)) {
                                 foreach($ar as $r=>$v) {
                                     if(is_int($r)) {
-                                        $this->_from .= ' and '.$this->getAlias($v, $rsc);
+                                        $this->_from .= ' and '.$this->getAlias($v, $rsc, $noalias);
                                     } else {
                                         $this->_from .= ' and '.$this->getWhere(array($r=>$v), 'and', $rsc);
                                     }
@@ -533,16 +541,15 @@ class Tecnodesign_Query_Sql
                                 }
                             } else {
                                 if(strpos($ar, '`')!==false || strpos($ar, '[')!==false) {
-                                    $this->_from .= ' and '.$this->getAlias($ar, $rsc);
+                                    $this->_from .= ' and '.$this->getAlias($ar, $rsc, $noalias);
                                 } else if(preg_match('/^([a-z0-9\_]+)[\s\<\>\!\=]/', $ar, $m)) {
-                                    $this->_from .= ' and '.$this->getAlias($m[1], $rsc).substr($ar, strlen($m[1]));
+                                    $this->_from .= ' and '.$this->getAlias($m[1], $rsc, $noalias).substr($ar, strlen($m[1]));
                                 } else {
                                     $this->_from .= ' and '.$ar;
                                 }
                             }
                             unset($ar);
                         }
-
                     } else {
                         $an = $this->_alias[$rnf];
                     }
@@ -550,7 +557,8 @@ class Tecnodesign_Query_Sql
                     $sc = $rsc;
                     unset($rsc);
                     $ta=$an;
-                    $fn = $an.'.'.$fn;
+                    $fn = $this->getAlias($fn, $sc, $noalias);
+                    //$fn = $an.'.'.$fn;
                     $found = true;
                 } else {
                     $found = false;
@@ -569,7 +577,7 @@ class Tecnodesign_Query_Sql
             } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
-                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sql($fn);
+                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
                 } else {
                     $fn = $ta.'.'.$fn;
                 }
@@ -598,7 +606,7 @@ class Tecnodesign_Query_Sql
                 $add=$e['active-records'];
             } else {
                 if(strpos($e['active-records'], '`')!==false || strpos($e['active-records'], '[')!==false) {
-                    $ar = $this->getAlias($e['active-records'], $sc);
+                    $ar = $this->getAlias($e['active-records'], $sc, true);
                 } else {
                     $ar = $e['active-records'];
                 }
@@ -675,7 +683,7 @@ class Tecnodesign_Query_Sql
                         $cop = '=';
                     }
                 }
-                $fn = $this->getAlias($k, $sc);
+                $fn = $this->getAlias($k, $sc, true);
                 if($fn) {
                     $cn = (isset($sc['className']))?($sc['className']):($this->_schema);
                     if($cn && $cn::$prepareWhere && method_exists($cn, $m='prepareWhere'.tdz::camelize(substr($fn, 2),true))) {
@@ -943,6 +951,7 @@ class Tecnodesign_Query_Sql
             if(isset($fv['increment']) && $fv['increment']=='auto' && !isset($odata[$fn])) {
                 continue;
             }
+            if(isset($fv['alias'])) continue;
             if(!isset($odata[$fn]) && isset($fv['default']) &&  $M->getOriginal($fn, false, true)===false) {
                 $odata[$fn] = $fv['default'];
             }
@@ -1002,6 +1011,7 @@ class Tecnodesign_Query_Sql
                 $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
                 continue;
             }
+            if(isset($fv['alias'])) continue;
             if(!is_array($fv)) $fv=array('null'=>true);
 
             if (!isset($odata[$fn]) && $original===false) {

@@ -1381,7 +1381,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $r = false;
             }
             if($r===false) {
-                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
+                throw new Tecnodesign_Exception(array(tdz::t('Could not '.$m.' record at %s.', 'exception'), $cn::label()));
             }
 
             if ($m==='delete' && !$this->_delete) {
@@ -1428,7 +1428,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             if($trans) {
                 if(!$cn::commitTransaction($trans, $conn, $this->_query)) {
-                    throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label().'...'));
+                    throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
                 }
                 self::$transaction=$defaultTransaction;
             }
@@ -1568,98 +1568,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         else return Tecnodesign_Query::handler($cn);
     }
 
-    protected static function resolveAlias($fn, &$alias, &$join, &$distinct, $unique=false)
-    {
-        $ofn=$fn;
-        if(preg_match_all('#`([^`]*)`#', $fn, $m)) {
-            $r = $s = array();
-            foreach($m[1] as $i=>$nfn) {
-                $s[]=$m[0][$i];
-                $r[]=($nfn)?(self::resolveAlias($nfn, $alias, $join, $distinct, $unique)):('');
-            }
-            return str_replace($s, $r, $fn);
-        }
-
-        if(strpos($fn, '[')!==false && preg_match('/\[([^\]]+)\]/', $fn, $fnt)) {
-            $fn = $fnt[1];
-            $fnt = $fnt[0];
-            $fn0 = $ofn;
-            $ofn = $fn;
-        }
-        $cn = get_called_class();
-        $sc = $cn::$schema;
-        $ta='t';
-        $found=false;
-        if ($fn=='*') {
-            $found = true;
-        } else if (isset($sc['columns'][$fn])) {
-            $found = true;
-            $fn = $ta.'.'.$fn;
-        } else if(!$found) {
-            $rnf = '';
-            while(strpos($ofn, '.')) {
-                @list($rn, $fn) = explode('.', $ofn,2);
-                $ofn=$fn;
-                $rn = ucfirst(tdz::camelize($rn));
-                $rnf .= ($rnf)?('.'.$rn):($rn);
-                if(isset($sc['relations'][$rn])) {
-                    $rcn = (isset($sc['relations'][$rn]['className']))?($sc['relations'][$rn]['className']):($rn);
-                    if(!isset($alias[$rnf])) {
-                        $an = 't'.count($alias);
-                        $alias[$rnf]=$an;
-                        if($sc['relations'][$rn]['type']!='one') {
-                            $distinct = 'distinct ';
-                        }
-                        $jtn = (isset($rcn::$schema['view']))?('('.$rcn::$schema['view'].')'):($rcn::$schema['tableName']);
-                        if(!is_array($sc['relations'][$rn]['foreign'])) {
-                            $join[$an] = "left outer join {$jtn} as {$an} on {$an}.{$sc['relations'][$rn]['foreign']}={$ta}.{$sc['relations'][$rn]['local']} ";
-                        } else {
-                            $join[$an] = "left outer join {$jtn} as {$an} on ";
-                            foreach($sc['relations'][$rn]['foreign'] as $rk=>$rv) {
-                                $join[$an] .= (($rk>0)?('and '):(''))."{$an}.{$rv}={$ta}.{$sc['relations'][$rn]['local'][$rk]} ";
-                            }
-                        }
-                        if(isset($sc['relations'][$rn]['on'])) {
-                            if(!is_array($sc['relations'][$rn]['on'])) $sc['relations'][$rn]['on']=array($sc['relations'][$rn]['on']); 
-                            foreach($sc['relations'][$rn]['on'] as $rfn) {
-                                list($rfn,$fnc)=explode(' ', $rfn, 2);
-                                if(substr($rfn,0,strlen($rn))==$rn) $join[$an] .=  "and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
-                                else $join[$an] .= 'and '.$cn::resolveAlias($rfn, $alias, $join, $distinct).' '.$fnc.' ';
-                                unset($rfn, $fnc);
-                            }
-                        }
-                    } else {
-                        $an = $alias[$rnf];
-                    }
-                    $sc = $rcn::$schema;
-                    $ta=$an;
-                    $fn = $an.'.'.$fn;
-                    $found = true;
-                } else {
-                    $found = false;
-                    break;
-                }
-            }
-        }
-        if(!$found) {
-            if (isset($sc['relations'][$fn])) {
-                $found = true;
-                $fn = $ta.'.'.$sc['relations'][$fn]['local'];
-            } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
-                $found = true;
-                $fn = $ta.'.'.$fn;
-            } else if (($p=strrpos($fn, ' ')) && (substr($fn, $p+1, 1)=='_' || property_exists($cn, substr($fn, $p+1)))) {
-                $found = true;
-            } else {
-                throw new Exception("Cannot find by [{$fn}] at [{$sc['tableName']}]");
-            }
-        }
-        if(isset($fnt) && $fnt) {
-            $fn = str_replace($fnt, $fn, $fn0);
-        }
-        return $fn;
-    }
-    
     public function setCollection($c)
     {
         if($c instanceof Tecnodesign_Collection) {
@@ -2432,6 +2340,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     {
         if($name=='ROWSTAT') return $this;
         $mn=tdz::camelize($name, true);
+        if(substr($name,0, 1)=='`' && substr($name, -1)=='`') $name = substr($name, 1, strlen($name)-2);
         if(isset(static::$schema['columns'][$name]) && !array_key_exists($name, $this->_original)) {
             $this->_original[$name] = $this->$name;
         }

@@ -46,6 +46,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $type='text',           // field type, must have a corresponding function render$Type
         $form,                  // form instance id
         $bind,                  // model this field is conected to, accepts relations
+        $alias,                 // supports bind from the model side
         $attributes=array(),    // element attributes, usually class names and data-*
         $placeholder=false,     // placeholder text
         $scope=false,           // scope to be used in references and sub forms
