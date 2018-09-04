@@ -30,6 +30,8 @@ if($error) {
     $err = '';
 }
 
+$class .= ' i-subform';
+
 echo 
     $before,
     str_replace(

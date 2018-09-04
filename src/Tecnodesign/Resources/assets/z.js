@@ -540,8 +540,10 @@ Z.delay = function (fn, ms, uid) {
 
 Z.toggleInput=function()
 {
-    var f;
-    if(this.parentNode) {
+    var f, t=(Z.isNode(this))?(this.getAttribute('data-target')):(null);
+    if(t && this.form) {
+        f=this.form.querySelectorAll(t+' input[type="checkbox"],input[type="checkbox"]'+t);
+    } else if(this.parentNode) {
         if(this.parentNode.nodeName.toLowerCase()=='th') {
             f=Z.parentNode(this,'table').querySelectorAll('td > input[type="checkbox"]');
         } else {

@@ -1602,7 +1602,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(is_array($fn)) {
                 $fd = $fn;
                 if(isset($fd['bind'])) $fn=$fd['bind'];
-                else $fn=''; 
+                else $fn='';
+                if(isset($fd['label']) && is_int($label)) $label = $fd['label'];
             }
             if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
                 $class = $label;
@@ -1888,7 +1889,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
             
-            $s .= '<td class="f-'.$fn.' '.(($checkbox)?(' tdz-check'):('')).'">'
+            $s .= '<td class="f-'.$fn.' '.(($uid!==false && $checkbox)?(' tdz-check'):('')).'">'
                 . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
                 . (($uid!==false && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
@@ -1941,8 +1942,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if(!$getRef) {
         } else if($v instanceof Tecnodesign_Collection) {
-            $v = $v->getItems();
-            if($v) $v=implode(', ', $v);
+            return $this->renderRelation($v, $fn, $fd, $xmlEscape);
         } else if(!tdz::isempty($v)) {
             if(isset($fd['multiple']) && $fd['multiple'] && is_string($v) && strpos($v, ',')!==false) {
                 $v = preg_split('/\,/', $v, null, PREG_SPLIT_NO_EMPTY);
@@ -1957,8 +1957,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                             if(is_array($pk)) $pk =array_shift($pk);
                             $v=array($pk=>$v);
                         }
-                        $v = $choices::find($v,$multiple,'choices',false);
-                        if(!$multiple && $v) $v = implode('; ', $v);
+                        return $this->renderRelation($choices::find($v,$multiple,'choices',false), $choices, $fd, $xmlEscape);
                     } else {
                         $choices = @eval('return '.$choices.';');
                     }
@@ -1987,12 +1986,25 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         } else if(isset($fd['local']) && isset($fd['foreign'])) {
             // relation
-            $v = (string) $this->getRelation($fn);
+            $scope = (is_array($fd) && isset($fd['scope']))?($fd['scope']):(null);
+            return $this->renderRelation($this->getRelation($rn, $fn, $scope, false, $xmlEscape));
         }
         if($xmlEscape) {
-            $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xmlEscape($v));
+            $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));
         }
         
+        return $v;
+    }
+
+    public function renderRelation($v, $rn=null, $rd=null, $xmlEscape=false)
+    {
+        if(!$v) return;
+        if(is_object($v) && ($v instanceof Tecnodesign_Collection)) $v=$v->getItems();
+        if(is_array($v)) $v=implode(', ', $v);
+        else $v=(string)$v;
+        if($xmlEscape) {
+            return str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));
+        }
         return $v;
     }
     
