@@ -145,14 +145,6 @@ class Tecnodesign_Query_Sql
         return $n;
     }
 
-    /*
-    public function getSchema($tn, $schema=array())
-    {
-        $cn = 'Birds\\Data\\'.ucfirst($this->engine).'Schema';
-        return $cn::load($this, $tn, $schema);
-    }
-    */
-
     public static function getTables($n='')
     {
         if(is_string($n)) $n = self::connect($n);
