@@ -32,8 +32,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $rangeInputType='range',
         $urlInputType='url',
         $searchInputType='search',
-        $phoneInputType='phone',
-        $enableMultipleText=true
+        $phoneInputType='tel',
+        $enableMultipleText=true,
+        $allowedProperties=array('on')
         ;
     
     /**
@@ -355,9 +356,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     } else {
                         $value = $tg::$fn($value, $message);
                     }
-                } else {
-                    \tdz::log('[DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
-                    @eval("\$value = {$m};");
+                //} else {
+                //    \tdz::log('[DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
+                //    @eval("\$value = {$m};");
                 }
                 unset($tg, $fn);
                 if($value===false && $outputError) {
@@ -1166,7 +1167,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(is_array($value) && $this->type=='file') {
             $value = $this->checkFile($value);
         }
-        if($this->multiple && $this->type!='form' && !$this->multiple) {
+        if($this->multiple) {
+            if(is_array($value)) $value = array_filter($value);
+            if(!$value) $value = null;
+        } else if($this->type!='form') {
             if(is_array($value)) {
                 $value = implode(',', $value);
             } else if($value===false) {
@@ -2082,6 +2086,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $value = array();
             }
             $s = '';
+            if($this->min_size && $this->min_size > count($value)) {
+                $value = array_fill(count($value) -1, $this->min_size - count($value), '');
+            }
             foreach($value as $i=>$o) {
                 $arg['value'] = $o;
                 $s .= '<div class="item">'.$this->renderText($arg, $enableChoices, false).'</div>';
@@ -2748,6 +2755,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $this->$m($value);
         } else if(property_exists($this,$name)) {
             $this->$name=$value;
+        } else if(static::$allowedProperties && (static::$allowedProperties===true || in_array($name, static::$allowedProperties))) {
+            $this->$name = $value;
         } else {
             throw new Tecnodesign_Exception(array('Method or property not available: "%s"', $name));
         }

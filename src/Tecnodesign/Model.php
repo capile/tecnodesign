@@ -477,6 +477,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if (!isset($this->_forms[$hash]) || !($F=Tecnodesign_Form::getInstance($this->_forms[$hash]))) {
             $cn = get_called_class();
             $fo = array('fields'=>static::formFields($scope, true), 'model'=>$this);
+            foreach($fo['fields'] as $fn=>$fd) {
+                if(is_array($fd) && isset($fd['on']) && !$this->checkObjectProperties($fd['on'])) {
+                    unset($fo['fields'][$fn]);
+                }
+            }
             if($pk) {
                 $pk = static::pk();
                 if(is_array($pk)) {
@@ -1019,31 +1024,43 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $rrn.'.'.$k;
     }
 
-    public function getRelationQuery($relation, $part=null)
+    public function getRelationQuery($relation, $part=null, $scope=null)
     {
         $r = array();
         $rev = '';
 
         //enable multiple, dotted queries
-        if($p=strpos($relation, '.')) {
-            //@TODO: get final classname for the query object
-            $rev = implode('.', array_reverse(explode('.', substr($relation, $p+1)))).'.';
-            $relation = substr($relation, 0, $p);
+        $sc = static::$schema;
+        $rn = $relation;
+        $rev = '';
+        while($rn) {
+            if($p=strpos($rn, '.')) {
+                $reln = substr($rn, 0, $p);
+                $rn = substr($rn, $p+1);
+                $rev = ($rev)?($reln.'.'.$rev):($reln.'.');
+            } else {
+                $reln = $rn;
+                $rn = '';
+            }
+            if(!isset($rcn)) {
+                $relation = $reln;
+            }
+            if(!isset($sc['relations'][$reln])) {
+                throw new Tecnodesign_Exception(array(tdz::t('Relation "%s" is not available at %s.','exception'), $reln, $rcn));
+            }
+            $rel = $sc['relations'][$reln];
+            $rcn = (isset($rel['className']))?($rel['className']):($reln);
+            $sc = $rcn::$schema;
             unset($p);
         }
 
-        if (!isset(static::$schema['relations'][$relation])) {
-            throw new Tecnodesign_Exception(array(tdz::t('Relation "%s" is not available at %s.','exception'), $relation, $cn));
-        }
         $rel = static::$schema['relations'][$relation];
-        $rcn = (isset($rel['className']))?($rel['className']):($relation);
-
-        $r['where'] = array();
+        $r = array('where'=>array());
         if(is_array($rel['local'])) {
             foreach($rel['local'] as $i=>$fn) {
                 $v = $this->$fn;
                 if($v !== null && $v!==false) {
-                    $r['where'][$rev.$rel['foreign'][$i]]=$v;
+                    $q['where'][$rev.$rel['foreign'][$i]]=$v;
                 }
             }
         } else {
@@ -1053,11 +1070,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         }
         if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $r['where'];
+        if($scope) $r['select']=$scope;
 
-        if($part=='where') return $r['where'];
+        if($part) {
+            if(isset($r['part'])) return $r['part'];
+            return;
+        }
 
-        //@TODO: build whole query object
-        return $r;
+        return $rcn::query($r, $rcn);
     }
     
     public function getRelation($relation, $fn=null, $scope=null, $asCollection=true)
@@ -1065,10 +1085,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         static $insert=0;
         $cn = get_called_class();
         $schema = $cn::$schema;
-        if(is_null($fn) && ($p=strpos($relation, '.'))) {
-            $fn = substr($relation, $p+1);
+        if($p=strpos($relation, '.')) {
+            $fn0 = $fn;
+            if(is_null($fn)) $fn = substr($relation, $p+1);
+            else $fn = substr($relation, $p+1).'.'.$fn;
             $relation = substr($relation, 0, $p);
-            unset($p);
         }
         if (!isset($schema['relations'][$relation])) {
             throw new Tecnodesign_Exception(array(tdz::t('Relation "%s" is not available at %s.','exception'), $relation, $cn));
@@ -1093,15 +1114,37 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(is_null($cn::$relations)) {
             $cn::$relations = array();
         }
+
+        if($p && !isset($rcn::$schema['columns'][$fn])) {
+            $relation .= '.'.$fn;
+            $fn = $fn0;
+        }
+
+
         if(!isset($cn::$relations[$relation][$rk])) {
-            $search = $this->getRelationQuery($relation, 'where');
+            $Q = $this->getRelationQuery($relation, null, $scope);
+            if(!$Q) {
+                $cn::$relations[$relation][$rk] = false;
+            } else if($asCollection) {
+                $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $Q->schema('className'), $Q, null);
+            } else {
+                $cn::$relations[$relation][$rk] = $Q->fetch(0, $limit);
+                if(!$cn::$relations[$relation][$rk] && !is_array($cn::$relations[$relation][$rk])) {
+                    $cn::$relations[$relation][$rk] = array();
+                }
+            }
+
+            $this->$relation = $cn::$relations[$relation][$rk];
+
+            /*
+            $search = $this->getRelationQuery($relation, null, $scope);
             $cn::$relations[$relation][$rk] = ($search)?($rcn::find($search, $limit, $scope, $asCollection)):(false);
             if($cn::$relations[$relation][$rk]===false && $limit==0 && $asCollection){
                 $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
             } else if(!$cn::$relations[$relation][$rk] && !is_array($cn::$relations[$relation][$rk])) {
                 $cn::$relations[$relation][$rk] = array();
             }
-            $this->$relation =& $cn::$relations[$relation][$rk];
+            */
         }
         if(!is_null($fn) && $fn) {
             if($cn::$relations[$relation][$rk])
@@ -1164,8 +1207,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $value = (array) $value;
         } else if(is_string($value)) {
             $value = explode(',',$value);
-        } else {
+        } else if(is_array($value)) {
             $value = array_values($value);
+        } else {
+            $value = null;
         }
 
         // let's make it simple, if nothing is changing...
@@ -1224,6 +1269,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 unset($i, $R, $pk);
             }
 
+            if(!is_array($value)) $value = array();
             foreach($value as $i=>$v) {
                 // try direct comparison first -- if it's $v is in $ro, there's nothing to do
                 if(is_string($v)) {
@@ -1247,7 +1293,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     unset($ro[array_search($v, $ro)]);
                     continue;
                 } else {
-                    if($pk==='') $v->isNew(true);
+                    if($pk==='' || (strpos($pk, ',')!==false && is_null($v->_new))) $v->isNew(true);
                     $value[$i] = $v;
                 }
                 unset($pk, $v);
@@ -1545,7 +1591,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!is_null($groupBy) && !is_bool($groupBy)) $q['groupBy'] = $groupBy;
         else if(isset(static::$schema['group-by'])) $q['groupBy'] = static::$schema['group-by'];
         $q['limit'] = $limit;
-        $Q = Tecnodesign_Query::handler(get_called_class(), true)->find($q);
+        $Q = static::query($q);
         if(!$Q) {
             return false;
         } else if($limit==1) {
@@ -1646,6 +1692,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     } else {
                         $fd=static::column($fn,true,true);
                     }
+                    if(isset($fd['on']) && !$this->checkObjectProperties($fd['on'])) {
+                        continue;
+                    }
                     $v = $this->renderField($fn, $fd, $xmlEscape);
                     if($showOriginal && array_key_exists($fn, $this->_original)) {
                         $v0 = (isset($this->_original[$fn]))?($this->_original[$fn]):(null);
@@ -1685,6 +1734,40 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($nobox) return $s;
         $s = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR', '$ATTR'), array((strpos($box, '$LABEL')!==false)?(static::label()):(''), $id, $s, '', '', $a), $box);
         return $s;
+    }
+
+    public function checkObjectProperties($a)
+    {
+        if(!is_array($a)) return true;
+
+        $keys = array();
+        $rels = array();
+        foreach($a as $fn=>$v) {
+            if(strpos($fn, '.')) {
+                $rels[$fn] = $v;
+                unset($a[$fn]);
+            } else if(!isset($this->$fn)) {
+                $keys[] = $fn;
+            }
+        }
+
+        if($keys) $this->refresh($keys);
+        foreach($a as $fn=>$check) {
+            $v = $this->$fn;
+            if(!tdz::isempty($check)) {
+                if(is_array($check) && !in_array($v, $check)) return false;
+                else if(!is_array($check) && $check!=$v) return false;
+            } else if(!tdz::isempty($v)) {
+                return false;
+            }
+        }
+        if($rels) {
+            $rels += $this->getPk(true);
+            $ret = (($C=$this::find($rels,0,null,true)) && $C->count()>0);
+            unset($C);
+            return $ret;
+        }
+        return true;
     }
     
     public function renderUi($o=array())
@@ -1987,7 +2070,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else if(isset($fd['local']) && isset($fd['foreign'])) {
             // relation
             $scope = (is_array($fd) && isset($fd['scope']))?($fd['scope']):(null);
-            return $this->renderRelation($this->getRelation($rn, $fn, $scope, false, $xmlEscape));
+            return $this->renderRelation($this->getRelation($fn, null, $scope, false, $xmlEscape), $fn, $fd, $xmlEscape);
         }
         if($xmlEscape) {
             $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));

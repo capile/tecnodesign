@@ -560,12 +560,16 @@ class Tecnodesign_Query_Sql
         }
         if(!$found) {
             if (isset($sc['relations'][$fn])) {
+                // ignore relations, this should be set on preview
+                /*
                 $found = true;
                 if(is_array($sc['relations'][$fn]['local'])) {
-                    $fn = $ta.'.'.array_pop($sc['relations'][$fn]['local']);
+                    $fn = $ta.'.'.array_pop($sc['relations'][$fn]['local']).' \''.$fn.'\'';
                 } else {
-                    $fn = $ta.'.'.$sc['relations'][$fn]['local'];
+                    $fn = $ta.'.'.$sc['relations'][$fn]['local'].' \''.$fn.'\'';
                 }
+                */
+                return;
             } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {

@@ -2661,8 +2661,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 if(is_int($label)) $label = $cn::fieldLabel($fn);
                 $fd = $cn::column($fn, true, true);
-                if(!isset($fd['type'])) $fd['type']=null;
-
                 if(!$fd) {
                     if(isset($fd0)) {
                         $fd = $fd0;
@@ -2674,6 +2672,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $fd = array_merge($fd, $fd0);
                     unset($fd0);
                 }
+                if(!isset($fd['type'])) $fd['type']='text';
                 $slug=tdz::slug($label);
                 $fns[$slug]=$fn;
 
@@ -2736,7 +2735,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         'class'=>'tdz-search-input tdz-'.$type.'-input',
                     );
                     if(isset($post[$slug])) $active=true;
-                } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && $fdo['type']=='bool'))) {
+                } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
                     if(!isset($cb))
                         $cb=array('1'=>tdz::t('Yes', 'interface'), '-1'=>tdz::t('No', 'interface'));
                     $fo['fields'][$slug]=array(
