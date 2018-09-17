@@ -397,10 +397,8 @@ class Tecnodesign_Interface implements ArrayAccess
 
             if(!$I) return false;
 
-            tdz::$variables['variables']['script'][700] = tdz::minify(tdz::$assetsUrl.'/studio/interface.js', TDZ_DOCUMENT_ROOT, true, true, false, tdz::$assetsUrl.'/interface.js');
-            tdz::$variables['variables']['style'][700] = tdz::minify(tdz::$assetsUrl.'/studio/interface.less', TDZ_DOCUMENT_ROOT, true, true, false, tdz::$assetsUrl.'/interface.css');
-
-            //Tecnodesign_App::response(array('script'=>array(700=>tdz::$assetsUrl.'/tecnodesign/js/interface.js')));
+            Tecnodesign_App::$assets[] = 'Z.Interface';
+            Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
 
@@ -2134,7 +2132,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         $fo = $o->getForm($d);
         $fo->id = $this->text['interface'].'--'.(($o->isNew())?('n'):(@implode('-',$o->getPk(true))));
-        $fo->attributes['class']='tdz-auto';
+        $fo->attributes['class']='z-form';
         if(isset($ss)) {
             $fo->buttons['button']=array(
                 'label'=>'*Close',

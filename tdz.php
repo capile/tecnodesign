@@ -644,6 +644,7 @@ class tdz
         }
         $s0=$s;
         $sa = '';
+        $components=array();
         if(is_array($s)) {
             $f=$s;
             $s='';
@@ -659,23 +660,27 @@ class tdz
                     $sa .= $url;
                     continue;
                 }
+                $type = (substr($url, -5)=='.less' || substr($url, -4)=='.css' || strpos($url, '.css?')!==false)?('css'):('js');
                 if(substr($url, 0, 1)!='/' && strpos($url, ':')===false) {
                     $url = tdz::$assetsUrl.'/'.$url;
+                } else if($output && is_string($output) && file_exists($url)) {
+                    $components[$type][$url]=filemtime($url);
+                    $url = $output;
+                    continue;
                 }
-                if(substr($url, -5)=='.less' || substr($url, -4)=='.css' || strpos($url, '.css?')!==false){
+                if($type=='css'){
                     $tpl = $types['css']['tpl'];
                 } else {
                     $tpl = $types['js']['tpl'];
                 }
-                $s .= str_replace('[[url]]', tdz::xmlEscape($url), $tpl);
+                $s .= str_replace('[[url]]', tdz::xml($url), $tpl);
             }
         }
-
         if($compress && !file_exists(tdz::$paths['java'])) {
             $compress = false;
         }
         foreach($types as $type=>$o) {
-            $files=array();
+            $files=(isset($components[$type]))?($components[$type]):(array());
             if($raw) {
                 $ext = '.'.$type;
                 foreach($f as $i=>$url){
@@ -693,29 +698,6 @@ class tdz
                     foreach($m[1] as $i=>$url) {
                         if(file_exists($root.$url)) {
                             $css=$root.$url;
-                            if(substr($url, -5)=='.less') {
-                                $less = $url;
-                                $css = $root.$url.'.css';
-                                if(!file_exists($css)) $css = TDZ_VAR.'/'.basename($url).'.css';
-                                if(!file_exists($css) || filemtime($css) < filemtime($root.$less)) {
-                                    // compile less
-                                    if(!$lc && class_exists('lessc')) {
-                                        $lc = new lessc();
-                                        $lc->setVariables(array('assets-url'=>'"'.self::$assetsUrl.'"'));
-                                        $imp = array(dirname($root.$less).'/',$root);
-                                        if($root!=TDZ_DOCUMENT_ROOT && is_dir($d=TDZ_DOCUMENT_ROOT.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d); 
-                                        if(is_dir($d=$root.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d);
-                                        $lc->setImportDir($imp);
-                                        $lc->registerFunction('dechex', function($a){
-                                            return dechex($a[1]);
-                                        });
-                                    }
-                                    $lc->checkedCompile($root.$less, $css);
-                                }
-                                if(file_exists($css)) {
-                                    $url = $css;
-                                }
-                            }
                             $files[$url]=filemtime($css);
                             $s = str_replace($m[0][$i], '', $s);
                         }
@@ -740,8 +722,34 @@ class tdz
                 $time = max($files);
                 $build = (!file_exists($file) || filemtime($file) < $time);
                 $fs=array_keys($files);
-                foreach($fs as $fk=>$fv)
-                    if(substr($fv, 0, strlen(self::$assetsUrl))==self::$assetsUrl || file_exists($root.$fv)) $fs[$fk]=$root.$fv;
+                foreach($fs as $fk=>$fv) {
+                    if(substr($fv, 0, strlen(self::$assetsUrl))==self::$assetsUrl || file_exists($root.$fv)) {
+                        $fv = $fs[$fk]=$root.$fv;
+                    }
+
+                    if(substr($fv, -5)=='.less') {
+                        $css = $fv.'.css';
+                        if(!file_exists($css)) $css = TDZ_VAR.'/min-'.md5($fv).'-'.basename($fv);
+                        if(!file_exists($css) || filemtime($css) < filemtime($fv)) {
+                            // compile less
+                            if(!$lc && class_exists('lessc')) {
+                                $lc = new lessc();
+                                $lc->setVariables(array('assets-url'=>'"'.self::$assetsUrl.'"'));
+                                $imp = array(dirname($fv).'/',$root);
+                                if($root!=TDZ_DOCUMENT_ROOT && is_dir($d=TDZ_DOCUMENT_ROOT.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d);
+                                if(is_dir($d=$root.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d);
+                                $lc->setImportDir($imp);
+                                $lc->registerFunction('dechex', function($a){
+                                    return dechex($a[1]);
+                                });
+                            }
+                            $lc->checkedCompile($fv, $css);
+                        }
+                        if(file_exists($css)) {
+                            $fs[$fk] = $css;
+                        }
+                    }
+                }
                 if($compress && $build){
                     // try yui compressor
                     $dir = dirname($file);
@@ -755,13 +763,15 @@ class tdz
                         $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --nomunge --type '.$type.' -o '.$tempnam;
                     }
                     exec($cmd, $cmdoutput, $ret);
-                    unset($cmdoutput, $ret);
-                    if(file_exists($tempnam)) {
+                    if(file_exists($tempnam) && filesize($tempnam)>0) {
                         $build = false;
                         rename($tempnam, $file);
                         chmod($file, 0666);
                         unset($tempnam);
+                    } else {
+                        tdz::log('[WARN] Minifying script failed: '.$cmd, $cmdoutput);
                     }
+                    unset($cmdoutput, $ret);
                 }
                 if($output===true) {
                     return (file_exists($output) && filemtime($output) > $time);

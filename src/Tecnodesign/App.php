@@ -36,7 +36,9 @@ class Tecnodesign_App
     protected $_vars=array();
     public $addons=array();
     public $start=null;
-    public static $beforeRun=array(), $afterRun=array(),
+    public static 
+        $beforeRun=array(),
+        $afterRun=array(),
         $defaultController = array(
             'class'=>false,
             'cache'=>false,
@@ -48,6 +50,7 @@ class Tecnodesign_App
             'layout'=>false,
             'credentials'=>false,
         ),
+        $assets=array('Z'),
         $result,
         $http2push=false,
         $link;
@@ -453,12 +456,91 @@ class Tecnodesign_App
     public function runTemplate($tpl, $variables, $cache=false)
     {
         if($tpl && strpos($tpl, '<')!==false) return $tpl;
+        if(static::$assets) {
+            foreach(static::$assets as $i=>$n) {
+                static::asset($n);
+                unset(static::$assets[$i], $i, $n);
+            }
+        }
         $result = false;
         $exec = array('variables'=>$variables, 'script'=>tdz::templateFile($tpl));
         if($exec['script']) {
             $result=tdz::exec($exec);
         }
         return $result;
+    }
+
+    /**
+     * All loaded assets should be built into TDZ_DOCUMENT_ROOT.tdz::$assetsUrl (if assetUrl is set)
+     *
+     * Currently they are loaded from TDZ_ROOT/src/Tecnodesign/Resources/assets but this should be evolved to a modular structure directly under src
+     * and external components should also be loaded (example: font-awesome, d3 etc)
+     */
+    public function asset($component)
+    {
+        if(is_null(tdz::$assetsUrl)) return;
+
+        if(substr($component, 0, 1)=='!') {
+            $component = substr($component, 1);
+            $output = false;
+        } else {
+            $output = true;
+        }
+
+        static $types=array('js'=>'js','less'=>'css');
+        static $destination=array('js'=>'script','css'=>'style');
+
+        foreach($types as $from=>$to) {
+            // first look for assets
+            if(!isset(tdz::$variables['variables'][$destination[$to]])) tdz::$variables['variables'][$destination[$to]]=array();
+
+            $t = null;
+            $src=preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
+            $fmod = 0;
+            foreach($src as $i=>$n) {
+                if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from) 
+                   || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                ) {
+                    $src[$i]=$f;
+                    if($t===null) {
+                        $t =  tdz::$assetsUrl.'/'.tdz::slug($n).'.'.$to;
+                        $tf =  TDZ_DOCUMENT_ROOT.$t;
+                        if(in_array($t, tdz::$variables['variables'][$destination[$to]])) {
+                            $t = null;
+                            break;
+                        }
+                    }
+                    if(($mod=filemtime($f)) && $mod > $fmod) $fmod = $mod;
+                    unset($mod);
+                } else {
+                    unset($src[$i]);
+                }
+                unset($f);
+            }
+
+            if($t) { // check and build
+                if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
+                if($src) {
+                    tdz::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
+                    if(!file_exists($tf)) {// && !copy($f, $tf)
+                        tdz::log('[ERROR] Could not build component '.$component.': '.$tf.' from ', $src);
+                    }
+                }
+
+                if($output) {
+                    if($tf) $t .= '?'.date('YmdHis', filemtime($tf));
+
+                    if(isset(tdz::$variables['variables'][$destination[$to]][700])) {
+                        tdz::$variables['variables'][$destination[$to]][] = $t;
+                    } else {
+                        tdz::$variables['variables'][$destination[$to]][700] = $t;
+                    }
+                }
+            }
+            unset($t, $tf, $from, $to);
+        }
     }
     
     

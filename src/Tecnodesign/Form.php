@@ -30,9 +30,11 @@
 class Tecnodesign_Form implements ArrayAccess
 {
     protected $id=null, $method='post', $action='', $fields=null, $model=null, $err=null, $prefix='';
-    public $buttons=array('submit'=>'*Send'), $attributes=array();
+    public $buttons=array('submit'=>'*Send'), $attributes=array('class'=>'z-form');
     private static $_instances=null;
-    public static $enableStyles=false;
+    public static $enableStyles=false, // deprecated, use Tecnodesign_App::$assets instead
+        $assets='Z.Form,moment,pikaday'
+        ;
     private $_uid;
 
 
@@ -112,6 +114,7 @@ class Tecnodesign_Form implements ArrayAccess
                 $this->attributes[$an]=$av;
             }
         }
+        Tecnodesign_App::$assets[] = static::$assets;
     }
 
     /**

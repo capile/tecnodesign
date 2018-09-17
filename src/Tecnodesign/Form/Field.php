@@ -1850,9 +1850,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             $arg['value'] = date(self::$dateInputFormat, $t);
         }
+        /*
         if(Tecnodesign_Form::$enableStyles) {
             tdz::$variables['style'][Tecnodesign_Form::$enableStyles]=tdz::$assetsUrl.'/tecnodesign/css/datepicker.less';
         }
+        */
         return $this->renderText($arg);
     }
 
@@ -2046,9 +2048,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $arg['value'] = date('Y-m-d\TH:i:s', $t);
             }
         }
+        /*
         if(Tecnodesign_Form::$enableStyles) {
             tdz::$variables['style'][Tecnodesign_Form::$enableStyles]=tdz::$assetsUrl.'/tecnodesign/css/datepicker.less';
         }
+        */
         return $this->renderText($arg);
     }
     
@@ -2493,20 +2497,22 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $a += $this->attributes;
         $choices = $this->choices;
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='choices') {
+        if(Tecnodesign_App::request('headers', 'z-action')=='choices') {
             $m=false;
+            $tg = urldecode(Tecnodesign_App::request('headers', 'z-target'));
             if(strpos($arg['id'], '§')!==false) {
                 $p = '/^'.str_replace('§', '[0-9]+', $arg['id']).'$/';
-                $m = preg_match($p, $_SERVER['HTTP_TDZ_TARGET']);
+                $m = preg_match($p, $tg);
                 unset($p);
-            } else {
-                $m = $_SERVER['HTTP_TDZ_TARGET']==$arg['id']; 
+            } else if($tg==$arg['id']) {
+                $m = true; 
             }
             if($m) {
-                unset($m);
+                unset($m, $tg);
                 tdz::cacheControl('no-cache',0);
-                tdz::output($this->ajaxChoices((isset($_SERVER['HTTP_TDZ_TERM']))?($_SERVER['HTTP_TDZ_TERM']):('')), 'json');
+                tdz::output($this->ajaxChoices(urldecode(Tecnodesign_App::request('headers', 'z-term'))), 'json');
             }
+            unset($m, $tg);
         }
         if(isset($this->attributes['data-datalist-api']) || $this->countChoices() > self::$maxOptions) {
             if(isset($this->attributes['data-datalist-api']) && $this->attributes['data-datalist-api']) {
