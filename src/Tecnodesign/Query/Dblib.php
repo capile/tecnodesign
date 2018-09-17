@@ -39,7 +39,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
             $s = ' count(*)';
             $cc = '';
             $pk = $this->scope('uid');
-            if($this->_groupBy && !$pk) {
+            if($this->_groupBy) {
                 $cc = preg_replace('/\s*\,\s*/', "+'-'+", trim($this->_groupBy));
             } else if($pk && $this->_from && strpos($this->_from, ' left outer join ')) {
                 $cc = static::concat($pk,'a.');
