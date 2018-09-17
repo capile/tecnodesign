@@ -1071,6 +1071,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $r['where'];
         if($scope) $r['select']=$scope;
+        if(isset($sc['order'])) $r['orderBy'] = $sc['order'];
+        unset($sc, $rel);
 
         if($part) {
             if(isset($r['part'])) return $r['part'];
@@ -1175,7 +1177,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $this->$relation = $value;
             return $value;
         }
- 
+
         // gather relation information
         $rel = static::$schema['relations'][$relation];
         $local = (is_array($rel['local']))?($rel['local']):(array($rel['local']));
@@ -1287,7 +1289,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $value[$i] = $ro[$map[$pk]];
                     unset($ro[$map[$pk]], $map[$pk]);
                     foreach($v->asArray() as $k=>$kv) {
-                        $value[$i][$k]=$kv;
+                        if($value[$i][$k]!=$kv) $value[$i][$k]=$kv;
+                    }
+                    if(is_object($value[$i])) {
+                        if($v->isNew() && !$value[$i]->isNew()) $value[$i]->isNew(true);
+                        if($v->isDeleted() && !$value[$i]->isDeleted()) $value[$i]->isDeleted(true);
                     }
                 } else if(in_array($v, $ro)) {
                     unset($ro[array_search($v, $ro)]);
