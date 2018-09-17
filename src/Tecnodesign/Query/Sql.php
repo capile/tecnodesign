@@ -421,7 +421,7 @@ class Tecnodesign_Query_Sql
             }
             return str_replace($s, $r, $fn);
         } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc))) {
-            return $r.substr($m[0], strlen($m[1]));
+            return $r.' '.tdz::sql($m[3]);
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
         } else if(substr($f, 0, 1)=='_' && !isset($this->schema('columns')[$f])) {
