@@ -1957,7 +1957,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if($o && isset($this->options['scope'][$o]) && substr($o, 0, 1)!='_') {
                 $scope = $this->scope($o);
             } else if(($o=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$o]) && !isset(static::$actionsAvailable[$o]) && substr($o, 0, 1)!='_') {
-                $scope = $this->scope($rs, false, false, true);
+                $scope = $this->scope($o, false, false, true);
                 unset($rs);
             } else if(isset($this->options['scope'][$this->action])) {
                 $scope = $this->scope($this->action);
@@ -2049,8 +2049,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $S['properties']=$P;
             $S['required']=$R;
         }
-
-        return $this->toJson($S);
+        tdz::output($this->toJson($S), 'application/schema+json');
     }
 
     protected function getForm($o, $scope=null)
