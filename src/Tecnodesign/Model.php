@@ -40,6 +40,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     protected static $_conn=null;
     protected static $_typesChoices = array('select','checkbox','radio');
     protected $_new = false;
+    protected $_update = null;
     protected $_delete = null;
     protected $_original = array();
     protected $_query = null;
@@ -838,6 +839,25 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $this->_new;
     }
 
+    public function isUpdated($update=null)
+    {
+        if (!is_null($update)) {
+            $this->_update = $delete;
+        }
+        if(is_null($this->_update)) {
+            $update = false;
+            foreach($this->_original as $fn=>$fv) {
+                if($fv!=$this->$fn) {
+                    $update = true;
+                    break;
+                }
+                unset($fn, $fv);
+            }
+            return $update;
+        }
+        return $this->_delete;
+    }
+
     public function isDeleted($delete=null)
     {
         if (!is_null($delete)) {
@@ -1070,7 +1090,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         }
         if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $r['where'];
-        if($scope) $r['select']=$scope;
+        if($scope) {
+            $r['select']=$rcn::columns($scope);
+        }
         if(isset($sc['order'])) $r['orderBy'] = $sc['order'];
         unset($sc, $rel);
 
