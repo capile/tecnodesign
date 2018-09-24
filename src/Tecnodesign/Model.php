@@ -34,33 +34,37 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $transaction=true,
         $formAsLabels,
         $keySeparator='-',
-        $queryAllowedChars='@.-_';
-    protected static $found=array();
-    protected static $relations=null, $relationDepth=3;
-    protected static $_conn=null;
-    protected static $_typesChoices = array('select','checkbox','radio');
-    protected $_new = false;
-    protected $_update = null;
-    protected $_delete = null;
-    protected $_original = array();
-    protected $_query = null;
-    protected $_p = 0;
-    protected $_forms=null;
-    private $_collection=null;
-    // for MSSQL-based objects
-    protected $rowstat=null;
-    protected $ROWSTAT=null;
-    public static 
+        $queryAllowedChars='@.-_',
+        $relationDepth=3,
         $boxTemplate     = '<div$ATTR>$INPUT</div>',
         $headingTemplate = '<hr /><h3>$LABEL</h3>',
         $previewTemplate = '<dl><dt>$LABEL</dt><dd>$INPUT</dd></dl>';
+    protected static $found=array();
+    protected static $_conn=null;
+    protected static $_typesChoices = array('select','checkbox','radio');
+    protected 
+        $_original = array(),
+        $_new = false,
+        $_update,
+        $_delete,
+        $_relation,
+        $_query,
+        $_connected,
+        $_p = 0,
+        $_forms,
+        // for MSSQL-based objects
+        $rowstat,
+        $ROWSTAT;
+    private $_collection;
 
-    
+    protected static $stats=array();
     /**
      * Class constructor: you can create a new instance based on an associative array with the values
      */
     public function __construct($vars=array(), $insert=null, $save=null)
     {
+        if(!isset(self::$stats[get_class($this)])) self::$stats[get_class($this)]=1;
+        else self::$stats[get_class($this)]++;
         $checkNew = false;
         if (is_array($vars)) {
             foreach($vars as $k=>$v) {
@@ -86,16 +90,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public function __destruct()
     {
         unset($this->_collection, $this->_forms, $this->_query);
-        foreach(static::$schema['relations'] as $rn=>$rd) {
-            if(isset($this->$rn)) {
-                if(is_array($this->$rn)) {
-                    foreach($this->$rn as $i=>$o) {
-                        unset($this->$rn[$i], $i, $o);
-                    }
-                }
-                unset($this->$rn);
-            }
+        foreach(static::$schema['relations'] as $rn=>$rel) {
+            $this->unsetRelation($rn);
+            unset($rn, $rel);
         }
+        self::$stats[get_class($this)]--;
     }
 
     /**
@@ -561,7 +560,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $dbtype = preg_replace('/\:.*/', '', $dbo['dsn']);
         $scn = 'Tecnodesign_Model_'.ucfirst($dbtype);
         if(!class_exists($scn)) {
-            tdz::debug('Don\'t know how to update this schema, sorry...');
+            throw new Tecnodesign_Exception('Don\'t know how to update this schema, sorry...');
         }
         $code = $scn::updateSchema($schema, $this);
         $code = str_replace("\n", "\n    ", $code);
@@ -1085,7 +1084,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             foreach($rel['local'] as $i=>$fn) {
                 $v = $this->$fn;
                 if($v !== null && $v!==false) {
-                    $q['where'][$rev.$rel['foreign'][$i]]=$v;
+                    $r['where'][$rev.$rel['foreign'][$i]]=$v;
                 }
             }
         } else {
@@ -1104,6 +1103,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($part) {
             if(isset($r['part'])) return $r['part'];
             return;
+        } else if(!$r['where']) {
+            return; // should not return a full query if there's no fk
         }
 
         return $rcn::query($r, $rcn);
@@ -1111,19 +1112,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     
     public function getRelation($relation, $fn=null, $scope=null, $asCollection=true)
     {
-        static $insert=0;
-        $cn = get_called_class();
-        $schema = $cn::$schema;
         if($p=strpos($relation, '.')) {
             $fn0 = $fn;
             if(is_null($fn)) $fn = substr($relation, $p+1);
             else $fn = substr($relation, $p+1).'.'.$fn;
             $relation = substr($relation, 0, $p);
         }
-        if (!isset($schema['relations'][$relation])) {
-            throw new Tecnodesign_Exception(array(tdz::t('Relation "%s" is not available at %s.','exception'), $relation, $cn));
+        if (!isset(static::$schema['relations'][$relation])) {
+            throw new Tecnodesign_Exception(array(tdz::t('Relation "%s" is not available at %s.','exception'), $relation, get_called_class()));
         }
-        $rel = $schema['relations'][$relation];
+        $rel = static::$schema['relations'][$relation];
         $rcn = (isset($rel['className']))?($rel['className']):($relation);
         if (!class_exists($rcn)) {
             throw new Tecnodesign_Exception(array(tdz::t('Class "%s" does not exist.','exception'), $rcn));
@@ -1131,7 +1129,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $limit = (int)($rel['type']=='one');
         $local = $rel['local'];
         if($this->isNew()) {
-            $rk = 'insert'.($insert++);
+            $rk = 'insert';
         } else if(is_array($local)) {
             $rk = $this->getPk();
             foreach($local as $l) {
@@ -1140,48 +1138,39 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else {
             $rk = $this->getPk().'/'.$this->$local;
         }
-        if(is_null($cn::$relations)) {
-            $cn::$relations = array();
-        }
 
         if($p && !isset($rcn::$schema['columns'][$fn])) {
             $relation .= '.'.$fn;
             $fn = $fn0;
         }
 
+        if(!$this->_relation) $this->_relation = array();
 
-        if(!isset($cn::$relations[$relation][$rk])) {
+        if(!isset($this->$relation) || !isset($this->_relation[$relation]) || $this->_relation[$relation]!=$rk) {
+            $this->unsetRelation($relation);
+            $this->_relation[$relation]=$rk;
             $Q = $this->getRelationQuery($relation, null, $scope);
             if(!$Q) {
-                $cn::$relations[$relation][$rk] = false;
+                $this->$relation = false;
             } else if($asCollection) {
-                $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $Q->schema('className'), $Q, null);
+                $this->$relation = new Tecnodesign_Collection(null, $Q->schema('className'), $Q, null);
             } else {
-                $cn::$relations[$relation][$rk] = $Q->fetch(0, $limit);
-                if(!$cn::$relations[$relation][$rk] && !is_array($cn::$relations[$relation][$rk])) {
-                    $cn::$relations[$relation][$rk] = array();
+                $this->$relation = $Q->fetch(0, $limit);
+                if(!$this->$relation && !is_array($this->$relation)) {
+                    $this->$relation = array();
                 }
             }
-
-            $this->$relation = $cn::$relations[$relation][$rk];
-
-            /*
-            $search = $this->getRelationQuery($relation, null, $scope);
-            $cn::$relations[$relation][$rk] = ($search)?($rcn::find($search, $limit, $scope, $asCollection)):(false);
-            if($cn::$relations[$relation][$rk]===false && $limit==0 && $asCollection){
-                $cn::$relations[$relation][$rk] = new Tecnodesign_Collection(null, $rcn);
-            } else if(!$cn::$relations[$relation][$rk] && !is_array($cn::$relations[$relation][$rk])) {
-                $cn::$relations[$relation][$rk] = array();
+            unset($Q);
+        }
+        if($fn) {
+            if(isset($this->$relation)) {
+              return $this->$relation[$fn];
             }
-            */
-        }
-        if(!is_null($fn) && $fn) {
-            if($cn::$relations[$relation][$rk])
-              return $cn::$relations[$relation][$rk][$fn];
+        } else if(!$asCollection && is_object($this->$relation) && $this->$relation instanceof Tecnodesign_Collection) {
+            return $this->$relation->getItems();
         } else {
-            return $cn::$relations[$relation][$rk];
+            return $this->$relation;
         }
-        return false;
     }
 
     public function delete($save=true)
@@ -1211,18 +1200,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $foreign = (is_array($rel['foreign']))?($rel['foreign']):(array($rel['foreign']));
 
         /**
-         * $ro is the original relation. should be organized as an array of objects
+         * fetch the original relation. should be organized as an array of objects
          */
-        $ro = $this->getRelation($relation, null, null, false);
-        if($ro instanceof Tecnodesign_Collection) { // if it's a collection, expand
-            $this->$relation = $ro->getItems();
-            unset($ro);
-            $ro = $this->$relation;
-            if(!$ro) $ro = array();
+        $this->getRelation($relation, null, null, false);
+        if($this->$relation instanceof Tecnodesign_Collection) { // if it's a collection, expand
+            $this->$relation = $this->$relation->getItems();
+            if(!$this->$relation) $this->$relation = array();
         } else if($rel['type']=='many') {
-            if($ro instanceof Tecnodesign_Model) $ro = array($ro);
-            else if(!$ro) $ro=array();
-            $this->$relation = $ro;
+            if($this->$relation instanceof Tecnodesign_Model) $this->$relation = array($this->$relation);
+            else if(!$this->$relation) $this->$relation=array();
         }
 
         /**
@@ -1245,15 +1231,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
 
         // let's make it simple, if nothing is changing...
-        if($value == $ro) {
-            if($value!==$this->$relation) {
-                $this->$relation = $value;
-            }
-            return $value;
+        if($value == $this->$relation) {
+            unset($value);
+            return $this->$relation;
         }
 
         // past here $this->$relation will be $value
         // we must ensure that it updates original values
+        $O = $this->$relation;
+        $this->$relation = null;
 
         /**
          * this is a map of the relation foreign keys (and where they point to)
@@ -1281,20 +1267,23 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
             }
             $map = array();
+            $oks = array();
 
             // loop for each original values, see which aren't in $values
-            foreach($ro as $i=>$R) {
+            foreach($O as $i=>$R) {
                 if(is_string($R)) continue;
+                $oks[$i] = $i;
+                $pk = null;
                 if($R instanceof Tecnodesign_Model) {
                     $pk = implode(',',$R->getPk(true));
+                    if(!$pk) $pk = implode(',',$R->asArray());
                 } else {
-                    $pk = null;
                     foreach($rpk as $j=>$n) {
                         $pk .= (is_null($pk))?($R[$n]):(','.$R[$n]);
                         unset($j, $n);
                     }
+                    if(!$pk) $pk = implode(',',$R);
                 }
-                if(!isset($pk) || !$pk) $pk = implode(',',$R->asArray());
                 if(isset($map[$pk])) $map[$pk] = false;
                 else $map[$pk] = $i;
                 unset($i, $R, $pk);
@@ -1304,66 +1293,85 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             foreach($value as $i=>$v) {
                 // try direct comparison first -- if it's $v is in $ro, there's nothing to do
                 if(is_string($v)) {
-                    $v = new $cn(array($rfn => $v ),null,false);
+                    $v = new $cn(array($rfn=>$v), null, false);
                 } else if(is_array($v)) {
-                    $v = new $cn($v,null,false);
+                    $v = new $cn($v, null, false);
                 }
                 foreach($lorel as $ln=>$rn) {
                     if(isset($this->$ln) && !isset($v[$rn])) {
                         $v[$rn] = $this->$ln;
                     }
                 }
-                $pk = implode(',',$v->getPk(true));
+                $pk = implode(',', $v->getPk(true));
+                $k = null;
                 if($pk!=='' && isset($map[$pk])) {
-                    $value[$i] = $ro[$map[$pk]];
-                    unset($ro[$map[$pk]], $map[$pk]);
-                    foreach($v->asArray() as $k=>$kv) {
-                        if($value[$i][$k]!=$kv) $value[$i][$k]=$kv;
-                    }
-                    if(is_object($value[$i])) {
-                        if($v->isNew() && !$value[$i]->isNew()) $value[$i]->isNew(true);
-                        if($v->isDeleted() && !$value[$i]->isDeleted()) $value[$i]->isDeleted(true);
-                    }
-                } else if(in_array($v, $ro)) {
-                    unset($ro[array_search($v, $ro)]);
-                    continue;
+                    $k = $map[$pk];
+                    unset($map[$pk]);
+                } else if(in_array($v, $O)) {
+                    $k = array_search($v, $O);
                 } else {
                     if($pk==='' || (strpos($pk, ',')!==false && is_null($v->_new))) $v->isNew(true);
-                    $value[$i] = $v;
+                    $O[] = $v;
                 }
-                unset($pk, $v);
-            }
 
-            // remove weir keys order
-            $value = array_values($value);
+                if(!is_null($k)) {
+                    $R = $O[$k];
+                    unset($oks[$k]);
+                    if(!is_object($R)) {
+                        $d = $R;
+                        $R = $v;
+                        $O[$k]=$v;
+                        $checkp=false;
+                    } else {
+                        $d = $v->asArray();
+                        $checkp=true;
+                    }
+                    foreach($d as $fn=>$fv) {
+                        if(!isset($R->$fn) || $R->$fn!=$fv) $R[$fn]=$fv;
+                        unset($d[$fn], $fn, $fv);
+                    }
+                    if($checkp) {
+                        if($v->isNew() && !$R->isNew()) $R->isNew(true);
+                        if($v->isDeleted() && !$R->isDeleted()) $R->isDeleted(true);
+                    }
+                    unset($checkp, $R);
+                }
+                unset($value[$i], $i, $pk, $v);
+            }
 
             // what was left at $ro should be deleted, which means it needs to be added to $value, with _delete = true
-            foreach($ro as $i=>$R) {
-                if(is_object($R) && $R->getPk() && !$R->isNew()) {
+            foreach($oks as $i=>$k) {
+                $R = $O[$k];
+                if($R && is_object($R) && $R->getPk() && !$R->isNew()) {
                     $R->delete(false);
-                    $value[] = $R;
                 }
-                unset($ro[$i], $i, $R);
+                unset($oks[$i], $i, $k, $R);
             }
-            unset($ro);
+            unset($value);
         } else {
-            if(!$ro || !($ro instanceof Tecnodesign_Model)) {
-                $ro = new $cn($ro);
+            if(!$O || !($O instanceof Tecnodesign_Model)) {
+                $O = new $cn($O);
             }
             foreach($value as $k=>$v){
-                $ro[$k] = $v;
-            }
-            $value = $ro;
-            unset($ro);
-        }
-        if(is_array($this->$relation)) {
-            foreach ($this->$relation as $i => $o) {
-                unset($this->$relation[$i], $i, $o);
+                $O[$k] = $v;
             }
         }
-        $this->$relation = null;
-        $this->$relation = $value;
-        return $value;
+        $this->$relation = $O;
+        unset($O);
+        return $this->$relation;
+    }
+
+    public function unsetRelation($rn)
+    {
+        if($this->_relation && isset($this->_relation[$rn])) unset($this->_relation[$rn]);
+        if(isset($this->$rn)) {
+            if(is_array($this->$rn)) {
+                foreach($this->$rn as $i=>$o) {
+                    unset($this->$rn[$i], $i, $o);
+                }
+            }
+            $this->$rn = null;
+        }
     }
 
     public static function queryHandler()
