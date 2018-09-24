@@ -162,6 +162,18 @@ class Tecnodesign_Query_Api
     {
     }
 
+    public function cleanup()
+    {
+        if($this->response) {
+            if(is_array($this->response)) {
+                foreach($this->response as $i=>$o) {
+                    unset($this->response[$i], $i, $o);
+                }
+            }
+            $this->response = null;
+        }
+    }
+
     public function reset()
     {
         $this->_select = null;
@@ -664,6 +676,7 @@ class Tecnodesign_Query_Api
         } else if($this->_method!='GET' && $this->_method!='POST') {
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
+        $this->cleanup();
         $r = curl_exec($conn);
         $msg = '';
         if(!$r) {

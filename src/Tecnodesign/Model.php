@@ -85,12 +85,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
     public function __destruct()
     {
-        if(!is_null($this->relations) && $this->relations) {
-            foreach($this->relations as $rid=>$r) {
-                unset($this->relations[$rid], $r, $rid);
+        unset($this->_collection, $this->_forms, $this->_query);
+        foreach(static::$schema['relations'] as $rn=>$rd) {
+            if(isset($this->$rn)) {
+                if(is_array($this->$rn)) {
+                    foreach($this->$rn as $i=>$o) {
+                        unset($this->$rn[$i], $i, $o);
+                    }
+                }
+                unset($this->$rn);
             }
         }
-        unset($this->_collection, $this->_forms);
     }
 
     /**
@@ -1210,7 +1215,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
          */
         $ro = $this->getRelation($relation, null, null, false);
         if($ro instanceof Tecnodesign_Collection) { // if it's a collection, expand
-            $this->$relation = $ro = $ro->getItems();
+            $this->$relation = $ro->getItems();
+            unset($ro);
+            $ro = $this->$relation;
             if(!$ro) $ro = array();
         } else if($rel['type']=='many') {
             if($ro instanceof Tecnodesign_Model) $ro = array($ro);
@@ -1242,7 +1249,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($value!==$this->$relation) {
                 $this->$relation = $value;
             }
-            return $ro;
+            return $value;
         }
 
         // past here $this->$relation will be $value
@@ -1349,6 +1356,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $value = $ro;
             unset($ro);
         }
+        if(is_array($this->$relation)) {
+            foreach ($this->$relation as $i => $o) {
+                unset($this->$relation[$i], $i, $o);
+            }
+        }
+        $this->$relation = null;
         $this->$relation = $value;
         return $value;
     }
@@ -1489,14 +1502,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                             if($rel instanceof self) {
                                 $rel=array($rel);
                             }
-                            foreach($rel as $relo) {
+                            foreach($rel as $relk=>$relo) {
                                 if(!is_object($relo) || !($relo instanceof self)) continue;
                                 foreach($rv as $fn=>$fv) {
                                     $relo[$fn]=$fv;
                                 }
                                 $relo->save(false, $relations, $conn);
+                                unset($rel[$relk], $relk, $relo);
                             }
                         }
+                        unset($rel, $rv, $lfn, $rfn);
                     }
                 }
             }
@@ -1624,8 +1639,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return false;
         } else if($limit==1) {
             $r = $Q->fetch(0, $limit);
+            unset($Q);
             return ($r)?(array_shift($r)):(false);
         } else if(!($c=$Q->count())) {
+            unset($Q);
             return false;
         } else if(!$collection) {
             if(!$limit) return $Q->fetch(0, $c);
