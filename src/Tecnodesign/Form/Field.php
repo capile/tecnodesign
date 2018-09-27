@@ -486,7 +486,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             return false;
         }
         if($this->type=='form') return $value;
-        if(!$value && !$this->required){
+        if(tdz::isempty($value) && !$this->required){
             $value=null;
             return $value;
         }
@@ -495,24 +495,24 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(!is_array($value)) {
                 $value = explode(',', $value);
                 $join = true;
-                $count=0;
-                foreach($value as $k=>$v) {
-                    if($v) {
-                        if(!$this->checkChoices($v, $message)) {
-                            return false;
-                        } else {
-                            $count++;
-                        }
+            }
+            $count=0;
+            foreach($value as $k=>$v) {
+                if(!tdz::isempty($v)) {
+                    if(!$this->checkChoices($v, $message)) {
+                        return false;
+                    } else {
+                        $count++;
                     }
                 }
-                if($count==0 && $this->required) {
-                    return false;
-                } else {
-                    if($join) {
-                        $value = implode(',', $value);
-                    }
-                    return $value;
+            }
+            if($count==0 && $this->required) {
+                return false;
+            } else {
+                if($join) {
+                    $value = implode(',', $value);
                 }
+                return $value;
             }
         } else {
             if (!$this->getChoices($value)) {
@@ -1169,7 +1169,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         if($this->multiple) {
             if(is_array($value)) $value = array_filter($value);
-            if(!$value) $value = null;
+            if(tdz::isempty($value)) $value = null;
         } else if($this->type!='form') {
             if(is_array($value)) {
                 $value = implode(',', $value);

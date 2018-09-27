@@ -273,8 +273,8 @@ input.tdz-i-switch{
     padding-right:1.5em;
     > .tdz-buttons {
       position:absolute;
-      right:0;
-      bottom:0;
+      right:1em;
+      bottom:0.5em;
       line-height:0.75em;
       width:0.75em;
     }
@@ -289,10 +289,21 @@ input.tdz-i-switch{
   .item + .item {margin-top:0.75em;}
 }
 
-.subform {
-  border-bottom:1px solid @colorTab + #666;
+.input.items {
+  padding-right:0 !important;
   .item {
-    border-top:1px solid @colorTab + #666;
+    padding-right:1.5em;
+    > .tdz-buttons {
+      right:0.5em;
+      bottom:0;
+    }
+  }
+}
+.subform {
+  border-bottom:1px solid @colorTab + #999;
+  margin:0 -0.5em;
+  .item {
+    border-top:1px solid @colorTab + #999;
     > .tdz-buttons {
       line-height:1.5em;
       width:1.5em;
