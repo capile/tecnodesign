@@ -191,7 +191,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $schema = static::$schema;
             $update = !$array;
         }
-        if(!$array && isset($schema['scope']['uid'])) {
+        if(isset($schema['scope']['uid'])) {
             $pk = (is_array($schema['scope']['uid']))?($schema['scope']['uid']):(array($schema['scope']['uid']));
         } else {
             $pk=array();
