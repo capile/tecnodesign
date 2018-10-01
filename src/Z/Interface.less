@@ -331,6 +331,26 @@ input.tdz-i-switch{
       margin:0;
     }
   }
+  fieldset {
+    font-size:1em;
+    border:none;
+    padding:0;
+    margin:0;
+    text-indent:0;
+    legend {
+      font-size:1em;
+      line-height:1em;
+      width:100%;
+      margin:0 !important;
+      padding:0.375em 0 !important;
+      display:block;
+      &:before {
+        content:' ';
+        display:inline-block;
+        width:0.5em;
+      }
+    }
+  }
   .tdz-i-button {
     position:absolute;
     z-index:10;
@@ -348,12 +368,18 @@ input.tdz-i-switch{
     top:0;
     right:0;
   }
+  h3 ~ .tdz-i-button, form ~ .tdz-i-button {
+    color: @colorTabText;
+    top: -0.125em;
+  }
   .ui-buttons{
     padding:0.5em;
     clear:both;
   }
 }
-.tdz-i-preview > div, .tdz-i-body .tdz-i-standalone {
+
+
+.tdz-i-preview > div, .tdz-i-preview .tdz-i-scope-block, .tdz-i-body .tdz-i-standalone {
   & > hr, & > form > hr {
     clear:both;
     border:0;
@@ -363,7 +389,9 @@ input.tdz-i-switch{
     background:none;
     border-bottom: 1px solid @colorTab + #666;
   }
-  & > h3, & > form > h3 {
+  & > h3, & > form > h3, & > form fieldset legend {
+    display:block;
+    text-indent:0;
     font-weight:normal;
     font-size:1em;
     color:@colorTabText;
@@ -371,6 +399,14 @@ input.tdz-i-switch{
     margin: 0 -0.5em;
     padding:0.375em 0.5em;
     text-shadow:none;
+  }
+}
+.tdz-i-preview .tdz-i-scope-block {
+  & > hr, & > form > hr {
+    margin: 0;
+  }
+  & > h3, & > form > h3 {
+    margin: 0;
   }
 }
 .tdz-i-body .tdz-i-standalone {

@@ -196,7 +196,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $schema = static::$schema;
             $update = !$array;
         }
-        if(!$array && isset($schema['scope']['uid'])) {
+        if(isset($schema['scope']['uid'])) {
             $pk = (is_array($schema['scope']['uid']))?($schema['scope']['uid']):(array($schema['scope']['uid']));
         } else {
             $pk=array();
@@ -1697,19 +1697,35 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!$sep) $sep = static::$headingTemplate;
         if(!$tpl) $tpl = static::$previewTemplate;
         $a = '';
+        $fs = array(); // split into fieldsets
         foreach($scope as $label=>$fn) {
+            $fsn='';
             if(is_array($fn)) {
                 $fd = $fn;
                 if(isset($fd['bind'])) $fn=$fd['bind'];
                 else $fn='';
                 if(isset($fd['label']) && is_int($label)) $label = $fd['label'];
+                if(isset($fd['fieldset'])) {
+                    $fsn = $fd['fieldset'];
+                }
             }
             if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
-                $class = $label;
+                $class = (!is_int($label))?($label):('');
                 $label = substr($fn, 2, strlen($fn)-4);
-                $s .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $label, $class, ''), $sep);
+                $fsn = $label;
+                if(!isset($fs[$fsn])) $fs[$fsn]='';
+                $fs[$fsn] .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $label, $class, ''), $sep);
                 unset($class);
             } else {
+                if(!isset($fs[$fsn])) {
+                    if($fsn) {
+                        $class = (!is_int($label))?(tdz::slug($label)):('');
+                        $fs[$fsn] = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($fsn, $fn, $fsn, $class, ''), $sep);
+                    } else {
+                        $fs[$fsn]='';
+                    }
+                }
+
                 $class='';
                 if(is_integer($label)) $label = static::fieldLabel($fn, false);
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
@@ -1719,7 +1735,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         }
                     }
                     if($m[1]=='scope') {
-                        $s .= $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep, $excludeEmpty, $showOriginal);
+                        $fs[$fsn] .= $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep, $excludeEmpty, $showOriginal);
                     } else if($m[1]=='sub') {
                         $class = $fn = $m[2];
                         $class .= ($class)?(' sub'):('sub');
@@ -1728,7 +1744,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                             array($label, $fn, $label, $class, ''),
                             $sep);
 
-                        $s .= str_replace(
+                        $fs[$fsn] .= str_replace(
                             array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR', '$ATTR'), 
                             array($label, $fn, $input, $class, '', ''),
                             $box);
@@ -1767,7 +1783,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                     if(isset($fd['class'])) $class = $fd['class'];
                     if(isset($fd['type']) && $fd['type']=='interface') {
-                        $s .= $v;
+                        $fs[$fsn] .= $v;
                         continue;
                     }
                 }
@@ -1779,11 +1795,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     if(is_array($v)) {
                         $v = tdz::implode($v, ', ');
                     }
-                    $s .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
+                    $fs[$fsn] .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
                 }
                 unset($scope[$label], $label, $fn, $v, $m, $class, $fd);
             }
         }
+        $s .= implode('', $fs);
+        unset($fs);
         if($nobox) return $s;
         $s = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR', '$ATTR'), array((strpos($box, '$LABEL')!==false)?(static::label()):(''), $id, $s, '', '', $a), $box);
         return $s;

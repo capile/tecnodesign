@@ -131,7 +131,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $className='Tecnodesign_Interface';
 
 
-    protected $uid, $model, $action, $id, $search, $groupBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source;
+    protected $uid, $model, $action, $id, $search, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source;
     protected static 
         $instances=array(), 
         $is=0,
@@ -399,6 +399,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
             Tecnodesign_App::$assets[] = 'Z.Interface';
             Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
+            //Tecnodesign_App::$assets[] = '!Z.Graph,Chart';
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
 
@@ -2400,6 +2401,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(strpos($fn, ' ')!==false) $fn = preg_replace('/(\s+as)?\s+[^\s]+$/', '', $fn);
                 $order=array($fn=>($m[1])?('desc'):('asc'));
                 unset($m, $fn);
+            } else if(isset($this->orderBy)) {
+                $order=$this->orderBy;
             } else if(isset($this->options['order'])) {
                 $order=$this->options['order'];
             } else {
@@ -2473,6 +2476,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $order = null;
         if(isset($req['o']) && preg_match('/^[a-z0-9\.\_]+$/i', $req['o'])) {
             $order=array($req['o']=>(isset($req['d']) && $req['d']=='desc')?('desc'):('asc'));
+        } else if(isset($this->orderBy)) {
+            $order=$this->orderBy;
         } else if(isset($this->options['order'])) {
             $order=$this->options['order'];
         }
@@ -2518,6 +2523,32 @@ class Tecnodesign_Interface implements ArrayAccess
         if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && substr($rs, 0, 1)!='_' && is_array($this->scope)) {
             if(in_array('scope::'.$rs, $this->scope) || in_array('sub::'.$rs, $this->scope)) {
                 $scope = array('scope::'.$rs);
+            }
+        }
+        if(is_array($this->scope)) {
+            static $propMap=array(
+                'groupBy'=>true,
+                'orderBy'=>true,
+                'search'=>true,
+                'format'=>false,
+                'hitsPerPage'=>false,
+            );
+            foreach($this->scope as $k=>$v) {
+                if(substr($k, 0, 10)=='Interface:') {
+                    $p = substr($k, 10);
+                    if(isset($propMap[$p])) {
+                        if($propMap[$p]) {
+                            if(is_array($this->$p) && is_array($v)) {
+                                $this->$p = array_merge($this->$p, $v);
+                            } else {
+                                $this->$p = $v;
+                            }
+                        } else {
+                            $this::$$p = $v;
+                        }
+                    }
+                    unset($this->scope[$k], $p, $k, $v);
+                }
             }
         }
         if($pk && $this->groupBy) {

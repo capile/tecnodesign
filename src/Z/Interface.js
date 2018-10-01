@@ -2,7 +2,7 @@
 (function()
 {
     "use strict";
-    var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _reload={}, _loading={}, _ids={}, _q=[], _last, _reStandalone=/\btdz-i-standalone\b/, _msgs=[];
+    var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _reload={}, _loading={}, _ids={}, _prop={}, _q=[], _last, _reStandalone=/\btdz-i-standalone\b/, _msgs=[];
 
     function startup(I)
     {
@@ -76,12 +76,19 @@
 
         // bind other actions
         var S=I.querySelectorAll('*[data-action-schema]');
+        if(S.length==0 && I.getAttribute('data-action-schema')) S=[I];
 
         var iurl = I.getAttribute('data-action');
         iurl = (!iurl)?(''):('&next='+encodeURIComponent(iurl));
         i=S.length;
         while(i-- > 0) {
-            var M = S[i].querySelectorAll('*[data-action-scope]'),j=M.length, N, k=S[i].getAttribute('data-action-schema'),u=S[i].getAttribute('data-action-url'), bt, bu;
+            var M = S[i].querySelectorAll('*[data-action-scope]'),
+                j=M.length, 
+                N, 
+                k=S[i].getAttribute('data-action-schema'), 
+                u=S[i].getAttribute('data-action-url'), 
+                bt, 
+                bu;
             while(j-- > 0) {
                 bu=M[j].getAttribute('data-action-scope');
                 if(M[j].querySelector('.tdz-i') || !bu || bu.substr(0, 1)=='_') continue;
@@ -90,7 +97,7 @@
                     M[j].setAttribute('data-url', u+'?scope='+bu+iurl);
                     M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'tdz-i--close';
                     Z.bind(M[j], 'click', loadAction);
-                    bt = M[j].form.parentNode.parentNode;
+                    bt = M[j].form.parentNode;
                 } else {
                     bt= M[j];
                 }
@@ -194,6 +201,10 @@
         }
         _last = new Date().getTime();
         reHash();
+
+        if(I.getAttribute('data-ui') || (I.getAttribute('data-url') in _props)) {
+            metaInterface(I);
+        }
     }
 
     var _Ht, _Hd=300;
@@ -529,7 +540,8 @@
                 t=this;
                 u=this.children[this.children.length -1].getAttribute('href');
             } else {
-                t=this.parentNode;
+                t=Z.node(Z.parentNode(this.parentNode, '.tdz-i-scope-block'), this.parentNode);
+                while(t && t.parentNode.className.search(/\btdz-i-scope-block\b/)>-1) t=t.parentNode;
                 u=this.getAttribute('href');
             }
             var a=new Date().getTime();
@@ -545,13 +557,22 @@
             if(!I) I = f.querySelector('.tdz-i[data-url] .tdz-i-container');
             if(!I) I = f.querySelector('.tdz-i[data-url]');
             // get tdz-i only
-            t=this.parentNode.insertBefore(document.createElement('div'), this);
-            t.className='tdz-i-scope-block';
-            this.parentNode.removeChild(this);
-            var i=0;
-            while(i<I.children.length) {
-                t.appendChild(I.children[i]);
-                i++;
+            if(I.children.length==1) {
+                t=I.children[0];
+                if(t.className.search(/\btdz-i-scope-block\b/)<0) {
+                    t.className=((this.className)?(this.className+' '):(''))+'tdz-i-scope-block';
+                }
+                this.parentNode.replaceChild(t, this);
+            } else {
+                t=this.parentNode.insertBefore(document.createElement('div'), this);
+                t.className='tdz-i-scope-block';
+                this.parentNode.removeChild(this);
+                var i=0;
+                while(i<I.children.length) {
+                    t.appendChild(I.children[i]);
+                    i++;
+                }
+
             }
             startup(t);
             Z.focus(t);
@@ -925,6 +946,32 @@
             }
         }
     }
+
+    function metaInterface(I)
+    {
+        var u=I.getAttribute('data-url'), s, p;
+        if(!u) return;
+
+        if((s=I.getAttribute('data-ui'))) {
+            I.deleteAttribute('data-ui');
+            if((p=JSON.parse(btoa(s)))) {
+                _props[u]=p;
+            }
+        }
+        if(!p) {
+            if(u in _props) p=_props[u];
+            else return removeDashboard();// clean up dashboard?
+        }
+
+
+
+    }
+
+    function removeDashboard()
+    {
+
+    }
+
 
     //startup();
     window['Z.Interface.startup']=startup;

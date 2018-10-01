@@ -498,10 +498,14 @@ class Tecnodesign_App
             $src=preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
             $fmod = 0;
             foreach($src as $i=>$n) {
+                $n0 = preg_replace('#[\.\/].*#', '', $n);
                 if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from) 
                    || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
                 ) {
                     $src[$i]=$f;
                     if($t===null) {
