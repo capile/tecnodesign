@@ -1698,8 +1698,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!$tpl) $tpl = static::$previewTemplate;
         $a = '';
         $fs = array(); // split into fieldsets
+        $fsn='';
         foreach($scope as $label=>$fn) {
-            $fsn='';
             if(is_array($fn)) {
                 $fd = $fn;
                 if(isset($fd['bind'])) $fn=$fd['bind'];

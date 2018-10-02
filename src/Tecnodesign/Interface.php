@@ -2790,6 +2790,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         'fieldset'=>$fieldset,
                         'class'=>'tdz-search-input'
                     );
+                    if(isset($fd['multiple']) && $fd['multiple']) $fo['fields'][$slug]['multiple']=true;
                     if(isset($post[$slug])) $active = true;
                 } else {
                     $ff['q'][$slug]=$label;

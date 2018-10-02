@@ -202,7 +202,7 @@
         _last = new Date().getTime();
         reHash();
 
-        if(I.getAttribute('data-ui') || (I.getAttribute('data-url') in _props)) {
+        if(I.getAttribute('data-ui') || (I.getAttribute('data-url') in _prop)) {
             metaInterface(I);
         }
     }
