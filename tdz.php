@@ -1858,7 +1858,12 @@ class tdz
                 try {
                     throw new Exception(tdz::toString($v));
                 } catch(Exception $e) {
-                    error_log((string)$e, $type, $dest);
+                    if(isset($logs[3])) {
+                        error_log((string)$e, 3, $logs[3]);
+                    } 
+                    if(isset($logs[0])) {
+                        error_log((string)$e, 0);
+                    }
                     unset($e);
                 }
             }
