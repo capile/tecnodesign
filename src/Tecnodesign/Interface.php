@@ -2839,7 +2839,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 if($v==='' || is_null($v)) continue;
                 if($k=='q') {
                     if(!$v) continue;
-                    $w = (isset($d['w']))?(explode(',',$d['w'])):(array_keys($ff['q']));
+                    $w = (isset($d['w']))?($d['w']):(array_keys($ff['q']));
+                    if(!is_array($w)) $w = preg_split('/\,/', $w, null, PREG_SPLIT_NO_EMPTY);
                     $ps = $this->search;
                     $this->search = array();
                     foreach($w as $slug) {
