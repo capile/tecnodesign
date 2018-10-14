@@ -36,8 +36,8 @@ class Tecnodesign_Cache_Apc
      */
     public static function get($key, $expires=0, $m=null)
     {
-        if(!function_exists('apc_store')) {
-            tdz::log('No APC installed!');
+        if(!function_exists($fn='apc_fetch') && !function_exists($fn='apcu_fetch')) {
+            tdz::log('[ERROR] No APC installed! It shouldn\'t be selected.');
             return Tecnodesign_Cache_File::get($key, $expires);
         }
         $siteKey = Tecnodesign_Cache::siteKey();
@@ -52,7 +52,7 @@ class Tecnodesign_Cache_Apc
             } else {
                 $expired = ($expires>time())?(0):($expires);
             }
-            $meta = apc_fetch($key.'.meta');
+            $meta = $fn($key.'.meta');
             if($meta) list($lmod,$size)=explode(',',$meta);
             if($expired) {
                 if(!$meta || !$lmod || $lmod < (int) $expired) {
@@ -70,7 +70,7 @@ class Tecnodesign_Cache_Apc
             }
             unset($meta);
         }
-        return apc_fetch($key);
+        return $fn($key);
     }
 
     /**
@@ -83,7 +83,10 @@ class Tecnodesign_Cache_Apc
      */
     public static function set($key, $value, $expires=0)
     {
-        if(!function_exists('apc_store')) return Tecnodesign_Cache_File::set($key, $value, $expires);
+        if(!function_exists($fn='apc_store') && !function_exists($fn='apcu_store')) {
+            tdz::log('[ERROR] No APC installed! It shouldn\'t be selected.');
+            return Tecnodesign_Cache_File::set($key, $value, $expires);
+        }
         $ttl = (int)($expires)?($expires - time()):($expires);
         if($ttl<0) {// a timestamp should be supplied, not the seconds to expire?
             $ttl = $expires;
@@ -95,7 +98,7 @@ class Tecnodesign_Cache_Apc
             if($siteKey) {
                 $k = $siteKey.'/'.$k;
             }
-            if(!@apc_store($k.'.meta', $meta, $ttl) || !@apc_store($k, $value, $ttl)) {
+            if(!@$fn($k.'.meta', $meta, $ttl) || !@$fn($k, $value, $ttl)) {
                 unset($ttl, $siteKey, $k, $meta);
                 return false;
             }
@@ -107,13 +110,15 @@ class Tecnodesign_Cache_Apc
 
     public static function delete($key)
     {
-        if(!function_exists('apc_store')) return Tecnodesign_Cache_File::delete($key);
-
+        if(!function_exists($fn='apc_delete') && !function_exists($fn='apcu_delete')) {
+            tdz::log('[ERROR] No APC installed! It shouldn\'t be selected.');
+            return Tecnodesign_Cache_File::delete($key);
+        }
         $siteKey = Tecnodesign_Cache::siteKey();
         if($siteKey) {
             $key = $siteKey.'/'.$key;
         }
-        if(@apc_delete($key.'.meta') && @apc_delete($key)) {
+        if(@$fn($key.'.meta') && @$fn($key)) {
             return true;
         } else {
             return false;
