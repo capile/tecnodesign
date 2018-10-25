@@ -333,6 +333,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             unset($S, $f);
         }
 
+        $base = array();
+
         if(!is_array($scope)) {
             if($scope=='uid') {
                 $scope = static::pk();
@@ -349,15 +351,37 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     static::$schema['scope'][$scope] = $labels;
                     unset($labels);
                 }
+                if(isset(static::$schema['scope'][$scope]['__default'])) {
+                    $base = static::$schema['scope'][$scope]['__default'];
+                    unset(static::$schema['scope'][$scope]['__default']);
+                    foreach(static::$schema['scope'][$scope] as $label=>$fn) {
+                        if(is_string($fn) && preg_match('/^(scope::|--)/', $fn)) continue;
+                        if(!is_array($fn)) $fn = array('bind'=>$fn);
+                        $fn += $base;
+                        static::$schema['scope'][$scope][$label] = $fn;
+                        unset($fn, $label);
+                    }
+                }
                 $scope = static::$schema['scope'][$scope];
             }
+        } else if(isset($scope['__default'])) {
+            $base = $scope['__default'];
+            unset($scope['__default']);
+            foreach($scope as $label=>$fn) {
+                if(is_string($fn) && preg_match('/^(scope::|--)/', $fn)) continue;
+                if(!is_array($fn)) $fn = array('bind'=>$fn);
+                $fn += $base;
+                $scope[$label] = $fn;
+                unset($fn, $label);
+            }
+
         }
         if($type && $scope) {
             if(!is_array($type)) $type=array($type);
             foreach($scope as $k=>$fn) {
-                $fd = array();
+                $fd = $base;
                 if(is_array($fn)) {
-                    $fd = $fn;
+                    $fd = $fn + $fd;
                     if(isset($fn['bind'])) {
                         $fn=$fn['bind'];
                     } else if(!isset($fd['type']) || !in_array($fd['type'],$type)) {
@@ -384,7 +408,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             foreach($scope as $k=>$fn) {
                 if(is_array($fn)) {
                     if(isset($fn['bind'])) {
-                        $fd = $fn;
+                        $fd = $fn + $base;
                         $fn=$fn['bind'];
                     } else {
                         unset($scope[$k], $fn, $k, $fd);
@@ -395,15 +419,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $fn0 = $fn;
                     $fn = substr($fn, strrpos($fn, ' ')+1);
                     if(isset(static::$schema['columns'][$fn])) {
-                        if(!isset($fd)) $fd = array();
+                        if(!isset($fd)) $fd = $base;
                         $fd += static::$schema['columns'][$fn];
                     }
                     if(isset(static::$schema['form'][$fn])) {
-                        if(!isset($fd)) $fd = array();
+                        if(!isset($fd)) $fd = $base;
                         $fd += static::$schema['form'][$fn];
                     }
 
-                    if(isset($fd)) $fd['bind'] = $fn0; 
+                    if(isset($fd)) $fd['bind'] = $fn0;
                     $fn = $fn0;
 
                 }
@@ -417,6 +441,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $r = array_merge($r, static::columns($m[2], $type, $expand));
                     }
                 } else {
+                    if(!isset($fd) && $base) {
+                        $fd = array('bind'=>$fn)+$base;
+                    }
                     $r[$k] = (!$clean && isset($fd))?($fd):($fn);
                 }
                 unset($scope[$k], $fn, $k, $fd);
@@ -430,6 +457,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $scope[$i]=$fn['bind'];
                 } else if(is_array($fn) || (substr($fn, 0, 2)=='--' && substr($fn, -2)=='--')) {
                     unset($scope[$i]);
+                } else if($base) {
+                    $scope[$i] = array('bind'=>$fn) + $base;
                 }
             }
         }
@@ -1149,7 +1178,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!isset($this->$relation) || !isset($this->_relation[$relation]) || $this->_relation[$relation]!=$rk) {
             $this->unsetRelation($relation);
             $this->_relation[$relation]=$rk;
-            $Q = $this->getRelationQuery($relation, null, $scope);
+            $Q = null;
+            if($fn && !isset($rcn::$schema['columns'][$fn])) {
+                $Q = $this->getRelationQuery($relation.'.'.$fn, null, $scope);
+                if($Q) {
+                    $fn = null;
+                    $relation .= '.'.$fn;
+                }
+            }
+            if(!$Q) $Q = $this->getRelationQuery($relation, null, $scope);
             if(!$Q) {
                 $this->$relation = false;
             } else if($asCollection) {

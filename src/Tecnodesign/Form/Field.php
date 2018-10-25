@@ -1012,11 +1012,23 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $value;
     }
 
-    public function checkEmail($value, $message='')
+    public function checkEmail($value, $message=null)
     {
+        if(is_array($value)) {
+            if($this->multiple && $value) {
+                foreach($value as $i=>$o) {
+                    $value[$i] = $this->checkEmail($o, $message);
+                    unset($i, $o);
+                }
+                return $value;
+            }
+            $value = implode(',', $value);
+        }
         $value = trim($value);
         if($value && !tdz::checkEmail($value, false)) {
-            $message = tdz::t('This is not a valid e-mail address.', 'exception');
+            if(!$message) {
+                $message = tdz::t('This is not a valid e-mail address.', 'exception');
+            }
             $this->error[$message]=$message;
         }
         return $value;
