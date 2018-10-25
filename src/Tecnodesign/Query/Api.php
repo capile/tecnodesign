@@ -417,7 +417,12 @@ class Tecnodesign_Query_Api
             $h .= ':';
             if($p=stripos($this->headers, $h)) {
                 $p += strlen($h);
-                return trim(substr($this->headers, $p, stripos($this->headers, "\n", $p)-$p));
+                $r = trim(substr($this->headers, $p));
+                if($p=strpos($r, "\n")) {
+                    $r = substr($r, 0, $p);
+                }
+                unset($p);
+                return trim($r);
             }
             return null;
         } else if(!$n) {
