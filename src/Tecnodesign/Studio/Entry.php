@@ -25,6 +25,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             'footer'=>null,
         ),
         $slot='body',
+        $slotElements = array('header', 'nav', 'footer'),
         $types = array(
             'page'=>'Page',
             'feed'=>'Newsfeed',
@@ -264,7 +265,10 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $slots['meta'][] = '<meta http-equiv="last-modified" content="'. gmdate('D, d M Y H:i:s',$this->modified) . ' GMT" />';
 
         $merge = array();
-        $slotelements = array('header'=>true,'footer'=>true,'nav'=>true);
+        $slotelements = array();
+        foreach(static::$slotElements as $n) {
+            if(is_string($n)) $slotelements[$n] = true;
+        }
         $addbr='';
         $layout = '<'."?php\n"
             .(($this->dynamic)?("//dynamic\n"):("//static\n"));
