@@ -256,6 +256,8 @@ class Tecnodesign_Query_Sql
         $prop = array('_new'=>false);
         if($this->_scope) $prop['_scope'] = $this->_scope;
         if($o || $l) {
+            if($o && !is_numeric($o)) $o=null;
+            if($l && !is_numeric($l)) $l=null;
             $this->_offset = $o;
             $this->_limit = $l;
         }
@@ -265,6 +267,8 @@ class Tecnodesign_Query_Sql
     public function fetchArray($o=null, $l=null)
     {
         if($o || $l) {
+            if($o && !is_numeric($o)) $o=null;
+            if($l && !is_numeric($l)) $l=null;
             $this->_offset = $o;
             $this->_limit = $l;
         }
