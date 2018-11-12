@@ -1551,11 +1551,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         } else if($limit==1) {
             $r = $Q->fetch(0, $limit);
             return ($r)?(array_shift($r)):(false);
-        } else if(!($c=$Q->count())) {
-            return false;
         } else if(!$collection) {
-            if(!$limit) return $Q->fetch(0, $c);
+            if(!$limit) return $Q->fetch();
             return $Q->fetch(0, $limit);
+        } else if(!$Q->count()) {
+            return false;
         } else {
             return new Tecnodesign_Collection(null, get_called_class(), $Q, null);
         }
