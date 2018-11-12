@@ -40,7 +40,8 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
             $cc = '';
             $pk = $this->scope('uid');
             if($this->_groupBy) {
-                $cc = preg_replace('/\s*\,\s*/', "+'-'+", trim($this->_groupBy));
+                if(strpos($this->_groupBy, ',')) $cc = 'checksum('.trim($this->_groupBy).')';
+                else $cc = trim($this->_groupBy);
             } else if($pk && $this->_from && strpos($this->_from, ' left outer join ')) {
                 $cc = static::concat($pk,'a.');
             }
@@ -77,7 +78,6 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
                 $q .= ' fetch next '.$this->_limit.' rows only';
             }
         }
-
 
         return $q;
     }
