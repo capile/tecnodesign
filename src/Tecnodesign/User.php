@@ -1063,13 +1063,13 @@ class Tecnodesign_User
 
         $att = $this->getAttribute('attempts');
         if(!$att || !is_array($att)) $att=array();
-        else if(count($att)>static::MAX_ATTEMPTS) {
+        else if((count($att)-1)>static::MAX_ATTEMPTS) {
             $t = time() - static::MAX_ATTEMPTS_TIMEOUT;
             foreach($att as $i=>$o) {
                 if($o < $t) unset($att[$i]);
                 unset($i, $o);
             }
-            if(count($att)>static::MAX_ATTEMPTS) {
+            if((count($att)-1)>static::MAX_ATTEMPTS) {
                 $msg = (isset($o['max-attempts']))?($o['max-attempts']):(tdz::t('You have reached the number of maximum attempts (%s), please wait a little until you try again.', 'user'));
                 return '<div class="tdz-msg error">'.sprintf($msg, static::MAX_ATTEMPTS).'</div>';
             }
