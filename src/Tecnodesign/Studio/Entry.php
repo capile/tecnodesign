@@ -17,7 +17,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
      * This is only available for customizing Studio, please use the tdzEntry class
      * within your lib folder (not TDZ_ROOT!) or .ini files
      */
-    public static 
+    public static
         $layout='layout',                               // default layout
         $slots=array(                                   // default slots
             'header'=>null,
@@ -26,6 +26,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         ),
         $slot='body',
         $slotElements = array('header', 'nav', 'footer'),
+        $slotTemplates = null,
         $types = array(
             'page'=>'Page',
             'feed'=>'Newsfeed',
@@ -102,7 +103,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
     );
     protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Content, $Permission, $Child, $Parent, $Relation, $Children;
     //--tdz-schema-end--
-    
+
     protected $dynamic=false, $wrapper, $modified, $credential;
 
     public function render()
@@ -207,7 +208,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         }
 
         array_unshift(
-            $slots['meta'], 
+            $slots['meta'],
             '<meta name="generator" content="Tecnodesign Studio - https://tecnodz.com" />'
             . $langs
         );
@@ -294,11 +295,11 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                     } else {
                         $layout .= "\n    .";
                     }
-        
+
                     if(is_array($v) && isset($v['before'])) {
                         $layout .= var_export($v['before'],true).'.';
                     }
-        
+
                     if(is_array($v) && isset($v['export'])) {
                         $layout .= $v['export'];
                     } else if(is_array($v)) {
@@ -318,7 +319,11 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
                 $layout .= "\n\${$slotname} = '<{$slotname}><div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></{$slotname}>{$addbr}';";
             } else if($slotname!='meta' && $slotname!='title') {
-                $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
+                if (isset(static::$slotTemplates[$slotname])) {
+                    $layout .= str_replace(array('[[slotname]]','[[addbr]]'), array($slotname,$addbr), static::$slotTemplates[$slotname]);
+                } else {
+                    $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
+                }
             }
         }
         $layout .= "\n\$meta.=tdz::meta();";
@@ -335,7 +340,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                             $mrg[$idx] .= '.'.$slotname;
                         }
                     } else {
-                        $mrg[$i] = $slotname; 
+                        $mrg[$i] = $slotname;
                     }
                 }
                 if(!is_null($idx)) {
@@ -387,7 +392,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             Tecnodesign_Studio::error(404);
             return false;
         }
-    
+
         $link = $this->link;
         if(!$link) $link = tdz::scriptName();
         $fname = basename($link);
@@ -455,7 +460,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $template = Tecnodesign_Studio::templateFile($template, $tpl);
         return $this->renderEntry(substr($template, 0, strlen($template)-4), $args);
     }
-    
+
 
     public static function feedPreview($o)
     {
@@ -493,8 +498,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         if(!is_null($this->credential)) {
             if(!is_array($this->credential)) return $this->credential;
             else if(isset($this->credential[$role])) return $this->credential[$role];
-            else if(isset($this->credential['default'])) return $this->credential['default']; 
-            else if(isset($this->credential['auth'])) return $this->credential['auth']; 
+            else if(isset($this->credential['default'])) return $this->credential['default'];
+            else if(isset($this->credential['auth'])) return $this->credential['auth'];
         }
         if($this->id && Tecnodesign_Studio::$connection) {
             $P = tdzPermission::find(array('entry'=>$this->id,'role'=>'previewPublished'),1,array('credentials'));
@@ -630,7 +635,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             $r = array_unique($r);
         }
         return $r;
-    }   
+    }
 
     protected static function _checkPage($page, $url, $multiview=false)
     {

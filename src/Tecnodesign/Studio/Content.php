@@ -18,7 +18,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
      * within your lib folder (not TDZ_ROOT!) or .ini files
      */
 
-    public static 
+    public static
         $contentType = array(
             'html'=>'HTML',
             'md'=>'Markdown',
@@ -29,7 +29,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         $widgets = array(
         ),
         $multiviewContentType=array('widget','php','md'), // which entry types can be previewed
-        $disableExtensions=array();                  // disable the preview of selected extensions
+        $disableExtensions=array(),                  // disable the preview of selected extensions
+        $wrapper = true; //enable content wrapper
 
     /**
      * Tecnodesign_Model schema
@@ -139,12 +140,12 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             return Tecnodesign_Studio::t($this->slot, ucfirst($this->slot));
         }
 
-    } 
+    }
 
 
     public static function find($q=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
-        if((is_string($q) && ($page=tdz::decrypt($q, null, 'uuid'))) 
+        if((is_string($q) && ($page=tdz::decrypt($q, null, 'uuid')))
             || (isset($q['id']) && is_string($q['id'])&& ($page=tdz::decrypt($q['id'], null, 'uuid')))) {
             $C = Tecnodesign_Studio::content(TDZ_VAR.'/'.$page, false);
             if($limit==1) return $C;
@@ -158,7 +159,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         return parent::find($q, $limit, $scope, $collection, $orderBy, $groupBy);
     }
 
-    
+
     public static function preview($c)
     {
         if(!($c instanceof self)) {
@@ -466,7 +467,9 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             }
             unset($r);
             if($this->slot=='meta') return $result;
-            $result = "<div{$a}>{$result}</div>";
+            if (static::$wrapper) {
+                $result = "<div{$a}>{$result}</div>";
+            };
             return $result;
         }
         if(is_array($r)) {
@@ -602,5 +605,5 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         return tdz::exec($o);
         //return array('export'=>'tdz::exec('.var_export($o,true).')');
     }
-    
+
 }
