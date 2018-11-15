@@ -141,6 +141,10 @@ while($list || $worksheet) {
                 $fd = $fn;
                 if(isset($fd['bind'])) $fn=$fd['bind'];
                 else continue;
+                if(isset($fd['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                }
                 unset($fd['bind']);
                 if(isset($fd['label'])) $label = $fd['label'];
             }

@@ -67,8 +67,15 @@ if(isset($list) && is_array($list)) {
         $M = array();
         foreach($options['scope'] as $label=>$fn) {
             if(is_array($fn)) {
+                $fd = $fn;
                 if(isset($fn['bind'])) $fn = $fn['bind'];
                 else continue;
+                if(isset($fd['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                }
+            } else {
+                $fd = null;
             }
             if(strpos($label, ':') || (substr($fn, 0, 2)=='--' && substr($fn, 0, -2)=='--')) continue;
             if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);

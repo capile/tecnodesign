@@ -277,6 +277,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     if(isset($fd['bind'])) $fn=$fd['bind'];
                     else $fn=$label;
                 }
+                if(isset($fd['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                    unset($fd['credential']);
+                }
                 if(preg_match('/^`?([a-z0-9\_\.]+)`?( +as)? ([a-z0-9\_]+)$/i', $fn, $m)) {
                     $fn = $m[3];
                     if(!isset(static::$schema['form'][$fn])) {
@@ -406,6 +411,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $r = array();
             if(!is_array($scope)) $scope = array($scope);
             foreach($scope as $k=>$fn) {
+                $fd = $base;
                 if(is_array($fn)) {
                     if(isset($fn['bind'])) {
                         $fd = $fn + $base;
@@ -431,9 +437,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $fn = $fn0;
 
                 }
+
+                if(isset($fd['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                }
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
-                        if(!(tdz::getUser()->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY),false))) {
+                        if(!isset($U)) $U=tdz::getUser();
+                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY),false)) {
                             continue;
                         }
                     }
@@ -1746,7 +1758,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(isset($fd['fieldset'])) {
                     $fsn = $fd['fieldset'];
                 }
-            }
+                if(isset($fd['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                }
+             }
             if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
                 $class = (!is_int($label))?($label):('');
                 $label = substr($fn, 2, strlen($fn)-4);
@@ -1768,7 +1784,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(is_integer($label)) $label = static::fieldLabel($fn, false);
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
-                        if(!(tdz::getUser()->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY), false))) {
+                        if(!isset($U)) $U=tdz::getUser();
+                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY), false)) {
                             continue;
                         }
                     }
@@ -1974,6 +1991,18 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $first = true;
             $so = 1;
             foreach($labels as $label=>$fn) {
+                if(is_array($fn)) {
+                    $fd = $fn;
+                    if(isset($fd['bind'])) $fn=$fd['bind'];
+                    else $fn=$label;
+                    if(isset($fd['credential'])) {
+                        if(!isset($U)) $U=tdz::getUser();
+                        if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                        unset($fd['credential']);
+                    }
+                } else {
+                    $fd = null;
+                }
                 $sort = !preg_match('/\.[A-Z]/', $fn);
                 $fid = (preg_match('/\s+_?([\_a-z0-9]+)$/i', $fn, $m))?($m[1]):(str_replace(array('`', '[', ']'), '', $fn));
                 if(is_numeric($label)) $label = tdz::t(ucwords(str_replace('_', ' ', $fid)), 'model-'.$model);
@@ -2024,51 +2053,25 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $s .= '>';
         $first = true;
         foreach($labels as $label=>$fn) {
+            if(is_array($fn)) {
+                $fd = $fn;
+                if(isset($fd['bind'])) $fn=$fd['bind'];
+                else $fn=$label;
+                if(isset($fd['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
+                    unset($fd['credential']);
+                }
+            } else {
+                $fd = null;
+            }
+
             $fn = trim($fn);
             if($p=strrpos($fn, ' ')) {
                 $fn = substr($fn, $p+1);
             }
-            $value = $this->renderField($fn, null, true);
-            /*
-            $dm = 'preview'.tdz::camelize(ucfirst($fn));
-            $m = 'get'.tdz::camelize(ucfirst($fn));
-            $display=false;
-            if(method_exists($this, $dm)) {
-                $value = $this->$dm();
-                $display=true;
-            } else if(method_exists($this, $m)) {
-                $value = $this->$m();
-            } else if(strpos($fn, '.')!==false || isset($cn::$schema['relations'][$fn])) {
-                $value = (string) $this->getRelation($fn);
-            } else {
-                $value = $this[$fn];
-            }
-            $fd=false;
-            if(!$display && isset($schema['columns'][$fn])) {
-                $fd=$schema['columns'][$fn]+array('type'=>'string');
-                if($fd['type']=='datetime' || $fd['type']=='date') {
-                    if($value && $t=strtotime($value)) {
-                        $df = ($fd['type']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
-                        $value = date($df, $t);
-                    }
-                } else {
-                    if(isset($schema['form'][$fn]['choices'])) {
-                        $ffd = $schema['form'][$fn];
-                        $co=false;
-                        if(is_array($ffd['choices'])) {
-                            $co = $ffd['choices'];
-                        } else {
-                            // make Tecnodesign_Form_Field::getChoices available
-                        }
-                        if(is_array($co) && isset($co[$value])) {
-                            $value = $co[$value];
-                        }
-                    }
-                }
-                if(isset($schema['form'][$fn]['html_labels']) && $schema['form'][$fn]['html_labels']) $display = true;
-            }
-            if(!$display) $value = tdz::xml($value);
-            */
+            $value = $this->renderField($fn, $fd, true);
+
             if(is_array($link)) {
                 if(isset($link[$fn])) {
                     if(!isset($replace)) {
@@ -2107,6 +2110,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if(strpos($fn, ' ')!==false) {
             $fn = substr($fn, strrpos($fn, ' ')+1);
+        }
+
+        if(isset($fd['credential'])) {
+            if(!($U=tdz::getUser()) || !$U->hasCredentials($fd['credential'], false)) return;
+            unset($fd['credential']);
         }
         $pm='preview'.ucfirst(tdz::camelize($fn));
         $m='get'.ucfirst(tdz::camelize($fn));

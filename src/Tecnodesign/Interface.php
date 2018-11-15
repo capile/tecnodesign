@@ -2541,6 +2541,10 @@ class Tecnodesign_Interface implements ArrayAccess
                 'hitsPerPage'=>false,
             );
             foreach($this->scope as $k=>$v) {
+                if(is_array($v) && isset($v['credential'])) {
+                    if(!isset($U)) $U=tdz::getUser();
+                    if(!$U || !$U->hasCredentials($v['credential'], false)) continue;
+                }
                 if(substr($k, 0, 10)=='Interface:') {
                     $p = substr($k, 10);
                     if(isset($propMap[$p])) {
@@ -2576,10 +2580,8 @@ class Tecnodesign_Interface implements ArrayAccess
                     if(strpos($v, ':')) {
                         $c = preg_split('/[\s\,\:]+/', substr($v, strpos($v, ':')+1), null, PREG_SPLIT_NO_EMPTY);
                         $v = substr($v, 0, strpos($v, ':'));
-                        if(!isset($U)) {
-                            $U = tdz::getUser();
-                        }
-                        if($c && !$U->hasCredential($c, false)) continue;
+                        if(!isset($U)) $U = tdz::getUser();
+                        if($c && (!$U || !$U->hasCredential($c, false))) continue;
                     }
                     if(isset($this->options['scope'][$v])) {
                         $r += $this->options['scope'][$v];
