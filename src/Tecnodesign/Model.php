@@ -411,7 +411,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $r = array();
             if(!is_array($scope)) $scope = array($scope);
             foreach($scope as $k=>$fn) {
-                $fd = $base;
                 if(is_array($fn)) {
                     if(isset($fn['bind'])) {
                         $fd = $fn + $base;
@@ -438,10 +437,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
                 }
 
-                if(isset($fd['credential'])) {
-                    if(!isset($U)) $U=tdz::getUser();
-                    if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
-                }
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=tdz::getUser();
@@ -455,6 +450,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 } else {
                     if(!isset($fd) && $base) {
                         $fd = array('bind'=>$fn)+$base;
+                    } else if(isset($fd) && isset($fd['credential'])) {
+                        if(!isset($U)) $U=tdz::getUser();
+                        if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
                     }
                     $r[$k] = (!$clean && isset($fd))?($fd):($fn);
                 }
@@ -916,7 +914,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $scope = static::columns($scope);
         $f = array();
         foreach($scope as $fn) {
-            if(is_array($fn) && isset($fn['bind'])) $fn = $fn['bind'];
+            if(is_array($fn)) {
+                if(isset($fn['bind'])) $fn = $fn['bind'];
+                else continue;
+            }
             $p = (strpos($fn, ' ')!==false)?(substr($fn, strrpos($fn, ' ')+1)):($fn);
             if(!isset($this->$p)) {
                 $f[$p] = $fn;
