@@ -513,7 +513,7 @@ class Tecnodesign_Query_Sql
                         if(isset($sc['relations'][$rn]['on'])) {
                             if(!is_array($sc['relations'][$rn]['on'])) $sc['relations'][$rn]['on']=array($sc['relations'][$rn]['on']); 
                             foreach($sc['relations'][$rn]['on'] as $rfn) {
-                                list($rfn,$fnc)=explode(' ', $rfn, 2);
+                                @list($rfn,$fnc)=explode(' ', $rfn, 2);
                                 if(substr($rfn,0,strlen($rn))==$rn) {
                                     $this->_from .= " and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
                                 } else {

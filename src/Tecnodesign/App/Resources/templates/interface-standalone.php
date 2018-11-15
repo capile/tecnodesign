@@ -15,7 +15,8 @@ $id = tdz::slug($url);
 $link = $url;
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
-Tecnodesign_App::response('title', $title);
+
+if($title) Tecnodesign_App::response('title', $title);
 
 // .tdz-i
 ?><div class="tdz-i tdz-i-standalone" data-base-url="<?php echo $Interface->getUrl(); ?>" data-url="<?php echo $url ?>"<?php 
@@ -23,7 +24,7 @@ Tecnodesign_App::response('title', $title);
     if($Interface['id']) echo ' data-id="',tdz::xmlEscape($Interface['id']),'"';
     ?>><?php
 
-    if($Interface::$breadcrumbs) {
+    if($title && $Interface::$breadcrumbs) {
         $urls = Tecnodesign_Interface::$urls;
         if(!$urls) {
             $urls = array(array('title'=>$title));

@@ -1110,6 +1110,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $rel = static::$schema['relations'][$relation];
         $r = array('where'=>array());
         if(is_array($rel['local'])) {
+            $this->refresh($rel['local']);
             foreach($rel['local'] as $i=>$fn) {
                 $v = $this->$fn;
                 if($v !== null && $v!==false) {
@@ -1117,6 +1118,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
             }
         } else {
+            $this->refresh(array($rel['local']));
             $v = $this->{$rel['local']};
             if($v !== null && $v!==false) {
                 $r['where'][$rev.$rel['foreign']]=$v;
@@ -1130,7 +1132,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         unset($sc, $rel);
 
         if($part) {
-            if(isset($r['part'])) return $r['part'];
+            if(isset($r[$part])) return $r[$part];
             return;
         } else if(!$r['where']) {
             return; // should not return a full query if there's no fk
@@ -2116,12 +2118,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $v = $this->$m();
             $getRef = true;
         } else if(isset($fd['type']) && $fd['type']=='interface' && isset($fd['interface']) && isset($fd['bind']) && isset(static::$schema['relations'][$fd['bind']])) {
-            $icn = Tecnodesign_Interface::$className;
-            $I = new $icn($fd['interface']);
+            $cI=Tecnodesign_Interface::current();
+            $icn = ($cI)?(get_class($cI)):(Tecnodesign_Interface::$className);
+            $I = new $icn($fd['interface'], $cI);
             $I->setSearch($this->getRelationQuery($fd['bind'], 'where'));
             if(isset($fd['action'])) $a = $fd['action'];
             else if(static::$schema['relations'][$fd['bind']]['type']=='one') $a = 'preview';
             else $a = 'list';
+            if($cI) $I->setTitle(null);
             $I->setAction($a); 
             $I->setUrl(tdz::scriptName(true).'/'.$fd['interface']);
             $v = $I->preview();

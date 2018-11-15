@@ -1239,6 +1239,11 @@ class Tecnodesign_Interface implements ArrayAccess
         return $this->text['title'];
     }
 
+    public function setTitle($title)
+    {
+        $this->text['title'] = $title;
+    }
+
     public function getSearch($relation=null)
     {
         if($relation) {
@@ -1283,8 +1288,10 @@ class Tecnodesign_Interface implements ArrayAccess
     public function addSearch($arr)
     {
         if(!is_array($this->search)) $this->search = array();
-        foreach($arr as $fn=>$fv) {
-            $this->search[$fn] = $fv;
+        if(is_array($arr)) {
+            foreach($arr as $fn=>$fv) {
+                $this->search[$fn] = $fv;
+            }
         }
         return $this;
     }
@@ -1414,7 +1421,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $cn::$schema['scope'] = $this->options['scope'] + $cn::$schema['scope'];
         }
 
-        if($uid=Tecnodesign_App::request('get', '_uid')) {
+        if(is_null($this->parent) && ($uid=Tecnodesign_App::request('get', '_uid'))) {
             if(!$this->search) $this->search=array();
             $pk = $cn::pk();
             $rq = explode(',', $uid);
