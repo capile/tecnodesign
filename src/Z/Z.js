@@ -916,7 +916,11 @@ Z.selectOption=function(e)
                 if(n.substr(0,5)=='data-' && (v=this.options[i].getAttribute(n))) {
                     q = (p)?('input[name="'+p+'['+n.substr(5)+']"]'):('input[name="'+n.substr(5)+'"]');
                     if((t=F.querySelector(q))) {
-                        Z.val(t,v,true);
+                        var dtp=t.getAttribute('data-datalist-preserve');
+                        if(dtp && (dtp=='0'||dtp=='false'||dtp=='off')) dtp=null;
+                        if(!dtp || !Z.val(t)) {
+                            Z.val(t,v,true);
+                        }
                     }
                 }
             }

@@ -259,7 +259,12 @@ function datalistVal(o, v, fire)
         v = si.join(s)+s;
         a = si.pop();
     }
-    if(arguments.length>1) Z.val(o, v, fire);
+    if(arguments.length>1) {
+        var dtp=o.getAttribute('data-datalist-preserve');
+        if(dtp && (dtp=='0'||dtp=='false'||dtp=='off')) dtp=null;
+        else if(dtp && Z.val(o)) return a;
+        Z.val(o, v, fire);
+    }
     return a;
 }
 
