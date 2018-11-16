@@ -1216,25 +1216,27 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function getTitle()
     {
-        $cn = $this->getModel();
-        if(!tdz::isempty($this->id)) {
-            $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
-            if($r) {
-                if(method_exists($cn, 'renderTitle')) {
-                    $s = '';
-                    foreach($r as $i=>$o) {
-                        $s .= (($s)?(', '):(''))
-                            . $o->renderTitle();
-                        unset($r[$i], $i, $o);
+        if(!isset($this->text['title'])) {
+            $cn = $this->getModel();
+            if(!tdz::isempty($this->id)) {
+                $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
+                if($r) {
+                    if(method_exists($cn, 'renderTitle')) {
+                        $s = '';
+                        foreach($r as $i=>$o) {
+                            $s .= (($s)?(', '):(''))
+                                . $o->renderTitle();
+                            unset($r[$i], $i, $o);
+                        }
+                        return $s;
+                    } else {
+                        return tdz::xml(implode(', ', $r));
                     }
-                    return $s;
-                } else {
-                    return tdz::xml(implode(', ', $r));
                 }
             }
-        }
-        if(!isset($this->text['title'])) {
-            $this->text['title'] = $cn::label();
+            if(!isset($this->text['title'])) {
+                $this->text['title'] = $cn::label();
+            }
         }
         return $this->text['title'];
     }
@@ -1359,7 +1361,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if($rel) $url .= $rel;
         if($ext) $url .= static::$ext;
         if(isset($A['query']) && $A['query']) {
-            if(is_null($qs)) $qs = static::qs();
+            if(is_null($qs)) $qs = $this->qs();
             if($qs) {
                 $url .= '?'.str_replace(',', '%2C', $qs);
             }
@@ -1421,7 +1423,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $cn::$schema['scope'] = $this->options['scope'] + $cn::$schema['scope'];
         }
 
-        if(is_null($this->parent) && ($uid=Tecnodesign_App::request('get', '_uid'))) {
+        if(is_null($this->parent) && $this->action!='list' && ($uid=Tecnodesign_App::request('get', '_uid'))) {
             if(!$this->search) $this->search=array();
             $pk = $cn::pk();
             $rq = explode(',', $uid);
@@ -2302,7 +2304,7 @@ class Tecnodesign_Interface implements ArrayAccess
         // strip current action, leave only the model
         $sn = substr($sn, 0, strrpos($sn, '/'));
         foreach($this->getActions() as $an=>$action) {
-            $qs=static::qs();
+            $qs=$this->qs();
             if(!isset($action['position']) || (!$action['position'] && $action['position']!==0)) continue;
             if(!$this->auth($an)) {
                 unset($action, $an);
@@ -2371,10 +2373,14 @@ class Tecnodesign_Interface implements ArrayAccess
         unset($s, $sn);
     }
 
-    public static function qs()
+    public function qs()
     {
-        static $qs;
-        if(is_null($qs)) $qs = preg_replace('/\&?\b(ajax|_uid)(=[^\&]*)?/', '', Tecnodesign_App::request('query-string'));
+        if($this->action!='list') {
+            $rm = 'ajax';
+        } else {
+            $rm = 'ajax|_uid';
+        }
+        return preg_replace('/\&?\b('.$rm.')(=[^\&]*)?/', '', Tecnodesign_App::request('query-string'));
         return $qs;
     }
 
