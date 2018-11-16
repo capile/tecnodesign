@@ -468,7 +468,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             unset($r);
             if($this->slot=='meta') return $result;
             if (static::$wrapper) {
-                $result = "<div{$a}>{$result}</div>";
+                $result = "<span{$a}>{$result}</span>";
             };
             return $result;
         }

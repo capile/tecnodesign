@@ -322,7 +322,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
                 if (isset(static::$slotTemplates[$slotname])) {
                     $layout .= str_replace(array('[[slotname]]','[[addbr]]'), array($slotname,$addbr), static::$slotTemplates[$slotname]);
                 } else {
-                    $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
+                    $layout .= "\n\${$slotname} = '<span id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</span>{$addbr}';";
                 }
             }
         }
