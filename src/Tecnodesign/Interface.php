@@ -786,7 +786,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 unset($a, $A);
             }
         }
-        if(!$A) {
+        if(!isset($A) || !$A) {
             return static::error(404, static::t('errorNotFound'));
         } else if(is_object($A) && $A instanceof Tecnodesign_Interface) {
             Tecnodesign_Interface::$urls[$A->link()] = array('title'=>$A->getTitle(),'action'=>$A->action);
@@ -1216,27 +1216,25 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function getTitle()
     {
-        if(!isset($this->text['title'])) {
-            $cn = $this->getModel();
-            if(!tdz::isempty($this->id)) {
-                $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
-                if($r) {
-                    if(method_exists($cn, 'renderTitle')) {
-                        $s = '';
-                        foreach($r as $i=>$o) {
-                            $s .= (($s)?(', '):(''))
-                                . $o->renderTitle();
-                            unset($r[$i], $i, $o);
-                        }
-                        return $s;
-                    } else {
-                        return tdz::xml(implode(', ', $r));
+        $cn = $this->getModel();
+        if(!tdz::isempty($this->id)) {
+            $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
+            if($r) {
+                if(method_exists($cn, 'renderTitle')) {
+                    $s = '';
+                    foreach($r as $i=>$o) {
+                        $s .= (($s)?(', '):(''))
+                            . $o->renderTitle();
+                        unset($r[$i], $i, $o);
                     }
+                    return $s;
+                } else {
+                    return tdz::xml(implode(', ', $r));
                 }
             }
-            if(!isset($this->text['title'])) {
-                $this->text['title'] = $cn::label();
-            }
+        }
+        if(!isset($this->text['title'])) {
+            return $cn::label();
         }
         return $this->text['title'];
     }

@@ -119,7 +119,7 @@ class Tecnodesign_Mail
                 foreach($header as $h) {
                     $this->addHeader($h, $hint);
                 }
-				return true;
+                return true;
             } else {
                 $header = $header[0];
             }
@@ -139,16 +139,16 @@ class Tecnodesign_Mail
             $this->error(sprintf(tdz::t('Could not add mail header %s.', 'mail'), $header));
             return false;
         }
-		if(method_exists($this, 'set'.$hint)) {
-			$m = 'set'.$hint;
-			$this->$m($header);
-		} else if(method_exists($this, 'add'.$hint)) {
-			if(!isset($this->headers[$hint])) {
-				$this->headers[$hint]=array();
-			}
-			$m = 'add'.$hint;
-			$this->$m($header);
-		} else if(isset($this->headers[$hint])) {
+        if(method_exists($this, 'set'.$hint)) {
+            $m = 'set'.$hint;
+            $this->$m($header);
+        } else if(method_exists($this, 'add'.$hint)) {
+            if(!isset($this->headers[$hint])) {
+                $this->headers[$hint]=array();
+            }
+            $m = 'add'.$hint;
+            $this->$m($header);
+        } else if(isset($this->headers[$hint])) {
             $this->headers[$hint][]=$header;
         } else {
             $this->headers[$hint]=array($header);
@@ -210,39 +210,55 @@ class Tecnodesign_Mail
 
     
     public function setEmailHeader($email, $name=false, $hint, $replace=false)
-	{
+    {
         if($replace) {
             if(isset($this->headers[$hint])) {
                 $this->headers[$hint]=array();
             }
         }
-		$ep = '[_a-z0-9-]+[\._a-z0-9-\+]*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z0-9\-]+)';
-        if (is_array($email)) {
-            if(count($email)!=2 || !isset($email[1]) || !preg_match("/{$ep}/i", $email[1])) {
-                foreach($email as $e) {
-                    $this->setEmailHeader($e, $name, $hint);
+        if($L = static::checkEmail($email)) {
+            foreach($L as $e=>$n) {
+                if(!$n && $name) $n=$name;
+                if(!$n) {
+                    $this->headers[$hint][$e] = $e;
+                } else {
+                    $this->headers[$hint][$e] = array($e, $n);
                 }
-                return true;
             }
-            $name = $email[1];
-            $email = $email[0];
+            return true;
         }
-		if (!preg_match("/^({$ep})\$/i", $email)) {
-			// email contains $name, or invalid characters
-			if (preg_match_all("/([^\@\<\>]+\s+)?\<?[\"']?({$ep})[\"']?\>?[\s\,]*/i", $email, $m)) {
-                foreach($m[2] as $k=>$e) {
-                    $this->setEmailHeader($e, $m[1][$k], $hint);
+    }
+
+    public static function checkEmail($email)
+    {
+        $r = array();
+        if (is_array($email)) {
+            if(count($email)==2 && isset($email[0]) && isset($email[1]) && tdz::checkEmail($email[1], false) && !tdz::checkEmail($email[0], false)) {
+                $r[$email[1]]=$email[0];
+            } else {
+                foreach($email as $k=>$e) {
+                    if(!is_int($k)) {
+                        if(tdz::checkEmail($k, false)) {
+                            $r[$k] = $e;
+                        } else if(tdz::checkEmail($e, false)) {
+                            $r[$e] = $k;
+                        }
+                    }
                 }
-                return true;
-			}
-		}
-		if(!$name) {
-            $this->headers[$hint][$email] = $email;
-		} else {
-            $this->headers[$hint][$email] = array($email, $name);
-		}
-	}
-	
+            }
+        } else if(tdz::checkEmail($email, false)) {
+            $r[$email]='';
+        } else if (preg_match_all("/([^\@\<\>]+\s+)?\<?[\"']?([_a-z0-9-]+[\._a-z0-9-\+\=]*@[a-z0-9\-\.]+)[\"']?\>?[\s\,]*/i", $email, $m)) {
+            foreach($m[2] as $k=>$e) {
+                if(tdz::checkEmail($e, false)) {
+                    $r[$e] = $m[1][$k];
+                }
+            }
+        }    
+        return $r;
+    }
+
+    
     /**
      * Add a sender
      * @param string $email sender valid e-mail
@@ -250,7 +266,7 @@ class Tecnodesign_Mail
      */
     public function addFrom ($email, $name = '') 
     {
-    	return $this->setEmailHeader($email, $name, 'From', true);
+        return $this->setEmailHeader($email, $name, 'From', true);
     }
     
     /**
@@ -260,7 +276,7 @@ class Tecnodesign_Mail
      */
     public function addTo ($email, $name = '') 
     {
-    	return $this->setEmailHeader($email, $name, 'To');
+        return $this->setEmailHeader($email, $name, 'To');
     }
     
     /**
@@ -270,7 +286,7 @@ class Tecnodesign_Mail
      */
     public function addCc ($email, $name = '') 
     {
-    	return $this->setEmailHeader($email, $name, 'Cc');
+        return $this->setEmailHeader($email, $name, 'Cc');
     }
     
     /**
@@ -280,7 +296,7 @@ class Tecnodesign_Mail
      */
     public function addBcc ($email, $name = '') 
     {
-    	return $this->setEmailHeader($email, $name, 'Bcc');
+        return $this->setEmailHeader($email, $name, 'Bcc');
     }    
     
     
@@ -302,7 +318,7 @@ class Tecnodesign_Mail
      */
     public function setReplyTo ($email, $name = '') 
     {
-    	return $this->setEmailHeader($email, $name, 'ReplyTo');
+        return $this->setEmailHeader($email, $name, 'ReplyTo');
     }
     
     /**
@@ -369,19 +385,19 @@ class Tecnodesign_Mail
      */
     public function send()
     {
-    	// configure mailer
-    	if (is_null(self::$config)) {
+        // configure mailer
+        if (is_null(self::$config)) {
             $config = false;
-    		$app = tdz::getApp();
-			if ($app) {
-				$config = $app->mail;
+            $app = tdz::getApp();
+            if ($app) {
+                $config = $app->mail;
                 if($config){
                     Tecnodesign_Mail::$config=$config;
                     if(isset($config['mailer'])) {
                         Tecnodesign_Mail::$mailer = $config['mailer'];
                     }
                 }
-			}
+            }
             if (!$config) {
                 Tecnodesign_Mail::$config = array(
                     'transport'=>'smtp',
@@ -392,11 +408,11 @@ class Tecnodesign_Mail
                     'password'=>false,
                 );
             }
-    	}
+        }
         if (self::$mailer == 'swiftMailer') {
             return $this->sendSwiftMailer();
         }
-		
+        
     }
     
     protected function sendSwiftMailer() 
@@ -493,8 +509,8 @@ class Tecnodesign_Mail
                     $msg->setBody($v['content'],$k);
                 }
             } else if(preg_match('/^[a-z]+\/[a-z\-0-9]+/',$k)) {
-				$msg->setEncoder(Swift_Encoding::get8BitEncoding());
-            	$msg->addPart($v['content'],$k);
+                $msg->setEncoder(Swift_Encoding::get8BitEncoding());
+                $msg->addPart($v['content'],$k);
             } else if(substr($k, 0, 4)=='cid:') {
                 $replace[$k]=$msg->embed(Swift_Image::fromPath($v['content']));
             } else {
@@ -503,7 +519,7 @@ class Tecnodesign_Mail
                 } else {
                     $att = Swift_Attachment::newInstance($v['content'], $k);
                 }
-				$msg->attach($att);
+                $msg->attach($att);
             }
             if(count($replace)>0) {
                 $msg->setBody(str_replace(array_keys($replace), array_values($replace), $msg->getBody()));

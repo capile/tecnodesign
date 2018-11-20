@@ -2595,7 +2595,7 @@ class tdz
     {
         $isValid = true;
         $atIndex = strrpos($email, '@');
-        if (is_bool($atIndex) && !$atIndex){
+        if ($atIndex===false){
            $isValid = false;
         } else {
             $domain = substr($email, $atIndex+1);

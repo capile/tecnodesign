@@ -472,11 +472,9 @@ Z.bind=Z.addEvent;
 Z.removeEvent=function(o, tg, fn) {
     if (o.addEventListener) {
         o.removeEventListener(tg, fn, false);
-    }
-    if (o.detachEvent) {
+    } else if (o.detachEvent) {
         o.detachEvent('on'+tg, fn);
-    }
-    if('on'+tg in o) {
+    } else if('on'+tg in o) {
         o['on'+tg] = null;
         if('removeAttribute' in o)
             o.removeAttribute('on'+tg);

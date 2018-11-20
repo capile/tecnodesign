@@ -331,6 +331,9 @@ input.tdz-i-switch{
       margin:0;
     }
   }
+  .tdz-i-block {
+    margin: 0.5em;
+  }
   fieldset {
     font-size:1em;
     border:none;
@@ -669,6 +672,9 @@ select, input {
   margin:-0.25em 0 0 0;
   padding:0.25em 0.5em;
   .tdz-msg, .tdz-i-msg {border:none;margin:0;padding:0;}
+
+  p {margin:0.25em 0;padding:0;}
+  li {margin:0;padding:0;}
 }
 
 .tdz-i-error {
@@ -1149,6 +1155,9 @@ th > input[type=checkbox], td > input[type=checkbox]{
       }
     }
   }
+  thead {
+    background:@colorTabActive;
+  }
   th {
     background:@colorTabActive;
     color:@colorTabText;
@@ -1183,6 +1192,23 @@ th > input[type=checkbox], td > input[type=checkbox]{
     text-indent:-1.625em;padding-left:1.625em;
     input {width:0.75em;position:relative;display:inline-block;left:0.25em;}
     & > * {text-indent:0;}
+  }
+
+  &.z-scrollable-table table, .z-scrollable-table table {
+    tbody {
+      display:block;
+      max-height:24em;
+      overflow-y:auto;
+      overflow-x:none;
+    }
+    thead tr, tbody tr {
+      display:table;
+      width:100%;
+      table-layout:fixed;/* even columns width , fix width of table too*/
+    }
+    thead tr {
+      width: calc( 100% - 1em )/* scrollbar is average 1em/16px width, remove it from thead width */
+    }
   }
 }
 

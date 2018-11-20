@@ -142,6 +142,9 @@ function datalistKeypress(e)
 
     var m=0,t=false;
 
+    var o=Z.node(this);
+    if(!o && e && ('target' in e)) o=Z.node(e.target);
+
     if (e.keyCode == '38' || e.keyCode == '37') {
         // up arrow or left arrow
         m=-1;
@@ -154,13 +157,13 @@ function datalistKeypress(e)
     } else if(e.keyCode=='27') {
         // escape
         e.preventDefault();
-        return datalistClear.apply(this);
+        return datalistClear.apply(o);
     } else {
-        return datalistQueryTimeout.call(this);
+        return datalistQueryTimeout.call(o);
     }
-    var c=this.parentNode.querySelector('ul.tdz-datalist'), s=c.querySelector('.tdz-selected');
+    var c=o.parentNode.querySelector('ul.tdz-datalist'), s=(c)?(c.querySelector('.tdz-selected')):(null);
     if(!s) {
-        if(c.children.length==0) return;
+        if(!c || c.children.length==0) return;
         s = c.children[0];
         m=0;
     } else {
