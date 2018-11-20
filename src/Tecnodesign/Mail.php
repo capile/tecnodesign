@@ -24,15 +24,19 @@
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
 
-
-//TODO: Criar os get
 class Tecnodesign_Mail
 {
-    public static $config=null, $mailer='swiftMailer', $haltOnError=false;
+    public static 
+        $config=null,
+        $mailer='swiftMailer',
+        $haltOnError=false,
+        $dependencies=array(
+          'Swift_SmtpTransport'=>'lib/vendor/Swift-src/lib/swift_required.php',
+        );
     protected static $_headers=array(
         'Id'=>false,
         'ReturnPath'=>false,
@@ -49,7 +53,7 @@ class Tecnodesign_Mail
     );
     public $headers=null, $contents=null;
     public $sent=false, $saved=false, $errors=null;
-    
+
     public function __construct($headers=array(), $body=array(), $options=array())
     {
         $this->headers=array();
@@ -67,7 +71,7 @@ class Tecnodesign_Mail
             $this->addPart($content, $hint);
         }
     }
-    
+
     public function addPart($content, $hint=false, $cid=null)
     {
         $ct=strtolower($hint);
@@ -94,12 +98,12 @@ class Tecnodesign_Mail
         $id = (!isset($meta['id']))?($meta['content-type']):($meta['id']);
         $this->contents[$id]=$meta;
     }
-    
+
     /**
      * Adds headers to the message, can receive arrays or hinted values
      *
      * @param type $header
-     * @param type $hint 
+     * @param type $hint
      */
     public function addHeader($header, $hint=false)
     {
@@ -154,27 +158,27 @@ class Tecnodesign_Mail
             $this->headers[$hint]=array($header);
         }
     }
-    
+
     /**
-     * Set text/plain body 
+     * Set text/plain body
      *
-     * @param string $body 
+     * @param string $body
      */
-    public function setTextBody($content) 
-    {        
+    public function setTextBody($content)
+    {
         if (!isset($this->headers['Content-Type'])) {
             $this->headers['Content-Type'] = 'text/plain';
         }
         $this->addPart($content, 'text/plain');
     }
-    
+
 
     /**
-     * Set text/html body 
+     * Set text/html body
      *
-     * @param string $body 
+     * @param string $body
      */
-    public function setHtmlBody($content, $replaceAttachments=null) 
+    public function setHtmlBody($content, $replaceAttachments=null)
     {
         $this->headers['Content-Type'] = 'text/html';
         if(!is_null($replaceAttachments)) {
@@ -208,7 +212,7 @@ class Tecnodesign_Mail
         return $content;
     }
 
-    
+
     public function setEmailHeader($email, $name=false, $hint, $replace=false)
     {
         if($replace) {
@@ -254,104 +258,101 @@ class Tecnodesign_Mail
                     $r[$e] = $m[1][$k];
                 }
             }
-        }    
+        }
         return $r;
     }
 
-    
     /**
      * Add a sender
      * @param string $email sender valid e-mail
      * @param string $name sender name
      */
-    public function addFrom ($email, $name = '') 
+    public function addFrom ($email, $name = '')
     {
         return $this->setEmailHeader($email, $name, 'From', true);
     }
-    
+
     /**
      * Add a receiver
      * @param string $email receiver valid e-mail
      * @param string $name receiver name
      */
-    public function addTo ($email, $name = '') 
+    public function addTo ($email, $name = '')
     {
         return $this->setEmailHeader($email, $name, 'To');
     }
-    
+
     /**
      * Add a Carbon Copy (Cc)
      * @param string $email Cc valid e-mail
      * @param string $name Cc name
      */
-    public function addCc ($email, $name = '') 
+    public function addCc ($email, $name = '')
     {
         return $this->setEmailHeader($email, $name, 'Cc');
     }
-    
+
     /**
      * Add a Blind Carbon Copy (Bcc)
      * @param string $email Bcc valid e-mail
      * @param string $name Bcc name
      */
-    public function addBcc ($email, $name = '') 
+    public function addBcc ($email, $name = '')
     {
         return $this->setEmailHeader($email, $name, 'Bcc');
-    }    
-    
-    
+    }
+
     /**
      * Set subject
      * @param string $subject
      */
-    public function setSubject ($subject) 
+    public function setSubject ($subject)
     {
         unset($this->headers['Subject']);
         $this->headers['Subject'] = $subject;
-        
     }
-    
+
     /**
      * Set the Reply receiver -- must be unique
      * @param string $email reply receiver valid e-mail
      * @param string $name reply receiver name
      */
-    public function setReplyTo ($email, $name = '') 
+    public function setReplyTo ($email, $name = '')
     {
         return $this->setEmailHeader($email, $name, 'ReplyTo');
     }
-    
+
     /**
-     * Set the Sender headers -- must be unique 
+     * Set the Sender headers -- must be unique
      * @param string $email sneder valid e-mail
      */
-    public function setSender ($email) 
+    public function setSender ($email)
     {
         unset($this->headers['Sender']);
         $this->headers['Sender'] = $email;
     }
-    
+
     /**
-     * Set the return-path -- must be unique 
+     * Set the return-path -- must be unique
      * @param string $email valid e-mail
      * @param string $name name
      */
-    public function setReturnPath ($email) 
+    public function setReturnPath ($email)
     {
         unset($this->headers['ReturnPath']);
         $this->headers['ReturnPath'] = $email;
     }
-    
+
     /**
      * Set charset
-     * @param string $charset 
+     * @param string $charset
      */
-    public function setCharset ($charset) 
+    public function setCharset ($charset)
     {
         unset($this->headers['charset']);
         $this->headers['charset'] = $charset;
     }
-    
+
     public function save($id=false)
     {
         if(!$id && isset($this->headers['Id'])){
@@ -367,7 +368,7 @@ class Tecnodesign_Mail
         if($this->sent){
             if(file_exists($dir.'unsent/'.$id)) {
                 unlink($dir.'unsent/'.$id);
-            }            
+            }
             $dir .= date('Ymd').'/';
         } else {
             $dir .= 'unsent/';
@@ -379,7 +380,7 @@ class Tecnodesign_Mail
         }
         return $this->saved;
     }
-    
+
     /**
      * Send
      */
@@ -412,10 +413,9 @@ class Tecnodesign_Mail
         if (self::$mailer == 'swiftMailer') {
             return $this->sendSwiftMailer();
         }
-        
     }
-    
-    protected function sendSwiftMailer() 
+
+    protected function sendSwiftMailer()
     {
         /**
          * Load swiftMailer mailer class if is not loaded
@@ -423,7 +423,10 @@ class Tecnodesign_Mail
          */
         if (!class_exists('Swift_SmtpTransport')) {
             try {
-                require_once TDZ_APP_ROOT.'/lib/vendor/Swift-src/lib/swift_required.php';
+                foreach(static::$dependencies as $src) {
+                    if(substr($src, 0, 1)!='/') require_once TDZ_APP_ROOT.'/'.$src;
+                    else require_once $src;
+                }
             } catch (Exception $e) {
                 $this->error($e);
             }
@@ -432,7 +435,7 @@ class Tecnodesign_Mail
         $config = self::$config;
         if(isset($config['transport']) && $config['transport']=='smtp') {
             $ssl = (isset($config['encryption']) && $config['encryption'])?('ssl'):(null);
-            $transport = Swift_SmtpTransport::newInstance($config['server'], $config['port'], $ssl);
+            $transport = new Swift_SmtpTransport($config['server'], $config['port'], $ssl);
             if(isset($config['encryption']) && $config['encryption']) {
                 $transport->setEncryption($config['encryption']);
             }
@@ -443,17 +446,17 @@ class Tecnodesign_Mail
                 $transport->setPassword($config['password']);
             }
         } else if(isset($config['transport'])) {
-            $transport = Swift_SendmailTransport::newInstance($config['transport']);
+            $transport = new Swift_SendmailTransport($config['transport']);
         } else {
-            $transport = Swift_MailTransport::newInstance();            
+            $transport = new Swift_MailTransport();
         }
 
         //Create a mailer
-        $mailer = Swift_Mailer::newInstance($transport);
+        $mailer = new Swift_Mailer($transport);
 
         //Create a message
-        $msg = Swift_Message::newInstance();
-        
+        $msg = new Swift_Message();
+
         //Add Subject
         $msg->setSubject($this->headers['Subject']);
 
@@ -476,31 +479,31 @@ class Tecnodesign_Mail
                 }
             }
         }
-        
+
         //Add Cc
         if(isset($this->headers['Cc'])) {
             foreach ($this->headers['Cc'] as $k => $v) {
-                if (is_array($v)) {                
+                if (is_array($v)) {
                     $msg->addCc($v[0],$v[1]);
                 } else {
                     $msg->addCc($v);
                 }
             }
         }
-        
+
         //Add Bcc
         if(isset($this->headers['Bcc'])) {
             foreach ($this->headers['Bcc'] as $k => $v) {
-                if (is_array($v)) {                
+                if (is_array($v)) {
                     $msg->addBcc($v[0],$v[1]);
                 } else {
                     $msg->addBcc($v);
                 }
             }
         }
-        
+
         $replace=array();
-    
+
         foreach($this->contents as $k => $v) {
             if (in_array($k, array('text/plain', 'text/html'))) {
                 if ($msg->getBody()) {
@@ -517,21 +520,15 @@ class Tecnodesign_Mail
                 if(strlen($v['content'])<500 && file_exists($v['content'])) {
                     $att = Swift_Attachment::fromPath($v['content'], $k);
                 } else {
-                    $att = Swift_Attachment::newInstance($v['content'], $k);
+                    $att = new Swift_Attachment($v['content'], $k);
                 }
                 $msg->attach($att);
             }
             if(count($replace)>0) {
                 $msg->setBody(str_replace(array_keys($replace), array_values($replace), $msg->getBody()));
             }
-
-            //TODO: adicionar attachment 
-            //TODO: Adicionar embded
-            //TODO: Setar o chartset
-            //TODO: Possibilidade de adicionar style como part???
         }
-        
-        
+
         //Send the message
         try {
             if ($mailer->send($msg)) {
@@ -541,9 +538,8 @@ class Tecnodesign_Mail
             $this->error($e->getMessage());
         }
         return true;
-        
     }
-    
+
     protected function error($m)
     {
         if(is_null($this->errors)) {
@@ -555,8 +551,7 @@ class Tecnodesign_Mail
             throw new Tecnodesign_Exception($m);
         }
     }
-    
-    
+
     public function getError()
     {
         if(is_null($this->errors)) {
@@ -565,14 +560,4 @@ class Tecnodesign_Mail
             return implode("\n", $this->errors);
         }
     }
-    /**
-     * TODO
-     * protect function emailCheck($email) 
-     */
-    /*{
-                        
-        if(eregi("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$", $email)) {
-
-    }*/
-                        
 }
