@@ -1619,6 +1619,16 @@ class Tecnodesign_Interface implements ArrayAccess
     }
 
     protected static $proc, $procTimeout=180;
+    public static function workerProcess($proc=null)
+    {
+        if($proc) {
+            self::$proc = $proc;
+        } else if($proc===false && self::$proc) {
+            Tecnodesign_Cache::delete(self::$proc);
+            self::$proc = null;
+        }
+        return self::$proc;
+    }
     public static function worker($msg=false, $f=false)
     {
         static $s;
@@ -1637,46 +1647,58 @@ class Tecnodesign_Interface implements ArrayAccess
         return $s;
     }
 
-
-    public function renderReport($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
+    public function backgroundWorker($m, $prefix='w/', $download=true)
     {
-        // send report status to session variable, and redirect to 
-        // list interface (where the request probably came from)
-        //$this->redirect($this->link('list'));
         if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
             $uri = $this->link();
-            $msg = '<a data-action="redirect" data-url="'.tdz::xmlEscape($uri).'"></a>';
+            $msg = '<a data-action="redirect" data-url="'.tdz::xml($uri).'"></a>';
             if(!isset($_SERVER['HTTP_TDZ_PARAM'])) {
                 $end = false;
                 // send a status check variable
                 $uid = tdz::compress64(uniqid(md5($uri)));
-                self::$proc = 'irs/'.$uid;
-                $st = self::worker($m=tdz::t('Building report...','interface'));
+                static::workerProcess($prefix.$uid);
+                $r = $prefix.$uid;
+                $st = static::worker($m);
                 if($st) {
                     ignore_user_abort(true);
-                    $msg = '<a data-action="status" data-url="'.tdz::xmlEscape($uri).'" data-message="'.tdz::xmlEscape($m).'" data-status="'.$uid.'"></a>';
+                    $msg = '<a data-action="status" data-url="'.tdz::xml($uri).'" data-message="'.tdz::xml($m).'" data-status="'.$uid.'"></a>';
                 }
-            } else if(($uid=$_SERVER['HTTP_TDZ_PARAM']) && ($st=Tecnodesign_Cache::get('irs/'.$uid))) {
+            } else if(($uid=$_SERVER['HTTP_TDZ_PARAM']) && ($st=Tecnodesign_Cache::get($prefix.$uid))) {
                 $end = true;
-                self::$proc = 'irs/'.$uid;
+                static::workerProcess($prefix.$uid);
                 if(isset($st['f'])) {
-                    $uri .= ((strpos($uri, '?')!==false)?('&'):('?'))
-                         .  '-bgd='.$uid;
-                    $msg = '<a data-action="redirect" data-url="'.tdz::xmlEscape($uri).'" data-message="'.tdz::xmlEscape($st['m']).'"></a>';
+                    if($download) {
+                        $uri .= ((strpos($uri, '?')!==false)?('&'):('?'))
+                             .  '-bgd='.$uid;
+                        $a = 'redirect';
+                    } else {
+                        $a = 'message';
+                    }
+                    $msg = '<a data-action="'.$a.'" data-url="'.tdz::xml($uri).'" data-message="'.tdz::xml($st['m']).'"></a>';
+                    // process has ended
+                    Tecnodesign_Cache::delete('sync-qbo/'.$uid);
                 } else {
-                    $msg = '<a data-action="status" data-url="'.tdz::xmlEscape($uri).'" data-message="'.tdz::xmlEscape($st['m']).'" data-status="'.$uid.'"></a>';
+                    $msg = '<a data-action="status" data-url="'.tdz::xml($uri).'" data-message="'.tdz::xml($st['m']).'" data-status="'.$uid.'"></a>';
                 }
             } else {
                 $end = true;
-                $msg = '<a data-action="error" data-message="'.tdz::xmlEscape(tdz::t('There was an error while processing your request. Please try again or contact support.','interface')).'"></a>';
+                $msg = '<a data-action="error" data-message="'.tdz::xml(tdz::t('There was an error while processing your request. Please try again or contact support.', 'interface')).'"></a>';
             }
             tdz::output($msg, 'text/html; charset=utf8', $end);
-        } else if(($uid=Tecnodesign_App::request('get', '-bgd')) && ($st=Tecnodesign_Cache::get('irs/'.$uid)) && isset($st['f'])) {
-            Tecnodesign_Cache::delete('irs/'.$uid);
+            return $r;
+        } else if($download && ($uid=Tecnodesign_App::request('get', '-bgd')) && ($st=Tecnodesign_Cache::get($prefix.$uid)) && isset($st['f'])) {
+            Tecnodesign_Cache::delete($prefix.$uid);
             tdz::download($st['f'], null, preg_replace('/^[0-9]+\.[0-9]+\-/', '', basename($st['f'])), 0, true, false, false);
             unlink($st['f']);
-            exit($st['f']);
+            exit();
         }
+    }
+
+
+    public function renderReport($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
+    {
+        $pid = $this->backgroundWorker(tdz::t('Building report...','interface'), 'irs/', true);
+
         unset($this->text['searchForm']);
         $r=array();
         foreach($this->text as $k=>$v) {

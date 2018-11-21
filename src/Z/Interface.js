@@ -806,6 +806,18 @@
             Z.delay(msg, 5000, 'msg');
             Z.delay(checkBkg, 2000, 'checkBkg');
         },
+        message:function(o) {
+            if(o.getAttribute('data-message')) {
+                msg(o.getAttribute('data-message'), 'tdz-i-message');
+                Z.delay(msg, 5000, 'msg');
+            }
+        },
+        success:function(o) {
+            if(o.getAttribute('data-message')) {
+                msg(o.getAttribute('data-message'), 'tdz-i-success');
+                Z.delay(msg, 5000, 'msg');
+            }
+        },
         error:function(o) {
             if(o.getAttribute('data-message')) {
                 msg(o.getAttribute('data-message'), 'tdz-i-error');
