@@ -884,6 +884,8 @@ Z.initCallback=function(o)
     if(noe && ((nn=='input' && o.type!='radio' && o.type!='checkbox' && o.type!='button')||nn=='textarea'||nn=='select')) {
         e='change';
         f=Z.val(o);
+    } else if(noe && nn=='form') {
+        e='submit';
     } else {
         if(nn=='input' && o.checked) {
             f=true;
