@@ -673,7 +673,7 @@ class Tecnodesign_Query_Sql
                     $r = ' ('.trim($r).')';
                 }
                 unset($c1);
-                if(preg_match('/(\~|\<\>|[\<\>\^\$\*\!\%]?\=?|[\>\<])$/', $k, $m) && $m[1]) {
+                if(preg_match('/(\~|\!\~|\<\>|[\<\>\^\$\*\!\%]?\=?|[\>\<])$/', $k, $m) && $m[1]) {
                     // operators: <=  >= < > ^= $=
                     $cop = (!in_array($m[1], $cops))?(substr($m[1], 0, 1)):($m[1]);
                     $k = trim(substr($k, 0, strlen($k) - strlen($m[0])));
@@ -693,10 +693,10 @@ class Tecnodesign_Query_Sql
                     if(is_array($v) && count($v)==1) {
                         $v = array_shift($v);
                     }
-                    if($cop=='~') {
+                    if($cop=='~' || $cop=='!~') {
                         // between
                         if(is_array($v) && count($v)==2) {
-                            $r .= " {$fn} between ".self::escape($v[0])." and ".self::escape($v[1]);
+                            $r .= " {$fn} ".(($cop=='!~')?('not '):(''))."between ".self::escape($v[0])." and ".self::escape($v[1]);
                         }
                     } else if (is_array($v) && ($cop=='=' || $cop=='!=' || $cop=='!' || $cop=='<>')) {
                         foreach ($v as $vk=>$vs) {
