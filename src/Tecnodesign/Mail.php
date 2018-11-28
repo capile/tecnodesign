@@ -247,6 +247,8 @@ class Tecnodesign_Mail
                         } else if(tdz::checkEmail($e, false)) {
                             $r[$e] = $k;
                         }
+                    } else if($r2=static::checkEmail($e)) {
+                        $r += $r2;
                     }
                 }
             }
