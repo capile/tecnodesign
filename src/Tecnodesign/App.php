@@ -52,7 +52,7 @@ class Tecnodesign_App
         $http2push=false,
         $link;
     protected $_o=null;
-    
+
     public function __construct($s, $siteMemKey=false, $env='prod')
     {
         if ($siteMemKey) {
@@ -135,11 +135,11 @@ class Tecnodesign_App
             $this->cache();
         }
     }
-    
+
     public static function getInstance($name=false, $env='prod', $expires=0)
     {
         $instance="{$name}/{$env}";
-        $ckey="app/{$env}";
+        $ckey="app/".$instance;
         $app = false;
         if (!defined('TDZ_ENV')) {
             define('TDZ_ENV', $env);
@@ -181,7 +181,7 @@ class Tecnodesign_App
     {
         $this->start();
     }
-    
+
     /**
      * Class initialization
      */
@@ -216,7 +216,7 @@ class Tecnodesign_App
             tdz::$database = $this->_vars['database'];
         }
     }
-    
+
     public static function end($output='', $status=200)
     {
         throw new Tecnodesign_App_End($output, $status);
@@ -243,11 +243,11 @@ class Tecnodesign_App
             }
         }
     }
-    
-    
+
+
     /**
      * Stores current application config in memory
-     * 
+     *
      * @return bool true on success, false on error
      */
     public function cache()
@@ -256,14 +256,14 @@ class Tecnodesign_App
             return false;
         }
         $instance="{$this->_name}/{$this->_env}";
-        $ckey="app/{$this->_env}";
+        $ckey="app/".$instance;
         if(is_null(Tecnodesign_App::$_instances)) {
             Tecnodesign_App::$_instances = array();
         }
         Tecnodesign_App::$_instances[$instance]=$this;
         return Tecnodesign_Cache::set($ckey, $this, $this->_timeout);
     }
-    
+
     public function run()
     {
         // run internals first...
@@ -359,7 +359,7 @@ class Tecnodesign_App
         Tecnodesign_App::afterRun();
         //exit();
     }
-    
+
     public static function afterRun($exec=null, $next=false)
     {
         if($exec && $next) {
@@ -416,7 +416,7 @@ class Tecnodesign_App
         @header($proto.' '.$code.' '.$status[$code], true);
         return $code.' '.$status[$code];
     }
-    
+
     public function runError($error, $layout=null)
     {
         @ob_clean();
@@ -449,7 +449,7 @@ class Tecnodesign_App
         tdz::flush();
         exit();
     }
-    
+
     public function runTemplate($tpl, $variables, $cache=false)
     {
         if($tpl && strpos($tpl, '<')!==false) return $tpl;
@@ -460,8 +460,8 @@ class Tecnodesign_App
         }
         return $result;
     }
-    
-    
+
+
     public function runRoute($url)
     {
         if(is_array($url) && isset($url['url'])) {
@@ -578,7 +578,7 @@ class Tecnodesign_App
                 return false;
             }
         }
-        
+
         self::$_request['action-name']="$class::$method";
         self::$_response['found']=true;
         self::$_response['route']=$options;
@@ -626,12 +626,12 @@ class Tecnodesign_App
         }
         return true;
     }
-    
+
     /**
      * Object loader
-     * 
+     *
      * Loads controller classes and stores them in memory.
-     * 
+     *
      * @param type $class
      * @return object
      */
@@ -650,7 +650,7 @@ class Tecnodesign_App
         }
         return $this->_o[$class];
     }
-    
+
     public function getRouteConfig($route)
     {
         if(!is_array($route)) {
@@ -659,12 +659,12 @@ class Tecnodesign_App
         $route += $this->_vars['tecnodesign']['controller-options'];
         return $route;
     }
-    
+
     /**
      * Request builder
-     * 
+     *
      * Might be replaced afterwards for a proper Tecnodesign_Request object
-     * 
+     *
      * @return array request directives
      */
     public static function request($q=null, $sub=null)
@@ -778,9 +778,9 @@ class Tecnodesign_App
 
     /**
      * Response updater
-     * 
+     *
      * Retrieves/Updates the response object.
-     * 
+     *
      * @return bool
      */
     public static function response()
@@ -815,7 +815,7 @@ class Tecnodesign_App
 
     /**
      * Magic terminator. Returns the page contents, ready for output.
-     * 
+     *
      * @return string page output
      */
     function __toString()
@@ -846,7 +846,7 @@ class Tecnodesign_App
      * $_vars.
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return mixed the stored value, or method results
      */
     public function  __get($name)
