@@ -892,21 +892,25 @@ class tdz
         return tdz::requestUri($arg);
     }
 
-    public static function getUrlParams($url=false)
+    public static function getUrlParams($url=false, $unescape=false)
     {
-        return tdz::urlParams($url);
+        return tdz::urlParams($url, $unescape);
     }
 
-    public static function urlParams($url=false)
+    public static function urlParams($url=false, $unescape=false)
     {
-        if($url===false) $url = tdz::scriptName();
+        if($url===false || is_null($url)) $url = tdz::scriptName();
         if($url=='/') $url='';
         $fullurl = tdz::scriptName(true);
         $urlp = array();
-        if ($fullurl!='/' && $url != $fullurl 
-            && substr($fullurl, 0, strlen($url) + 1) == $url . '/'
-        ) {
+        if ($fullurl!='/' && $url != $fullurl && substr($fullurl, 0, strlen($url) + 1) == $url . '/') {
             $urlp = explode('/', substr($fullurl, strlen($url) + 1));
+        }
+        if($unescape) {
+            foreach($urlp as $i=>$v) {
+                $urlp[$i] = urldecode($v);
+                unset($i, $v);
+            }
         }
         return $urlp;
     }

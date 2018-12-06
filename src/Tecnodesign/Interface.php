@@ -281,11 +281,16 @@ class Tecnodesign_Interface implements ArrayAccess
         if($actions !== false) $this->setActions($actions, $expand);
         unset($actions);
 
+        static $boolopt=array('envelope', 'pretty');
+
         if(isset($d['options']) && is_array($d['options'])) {
             $this->options = $d['options'];
             if(isset($this->options['headers'])) static::$headers += $this->options['headers'];
             if(isset($d['options']['scope'])) {
                 $this->checkScope($d['options']['scope']);
+            }
+            foreach($boolopt as $opt) {
+                if(isset($this->options[$opt]) && $this->options[$opt]!=static::$$opt) static::$$opt = (bool) $this->options[$opt];
             }
             unset($d['options']);
         }
@@ -351,7 +356,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(!is_null($url)) tdz::scriptName($url);
             else if(($route=Tecnodesign_App::response('route')) && isset($route['url']) && strpos($route['url'], '*')===false) tdz::scriptName($route['url']);
             static::$request = tdz::requestUri();
-            $p = tdz::urlParams();
+            $p = tdz::urlParams(null, true);
             $l = count($p) -1;
 
             // load extension first, then only check formats after the interface was loaded
@@ -715,7 +720,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $p0 = $p;
                 $n = array_shift($p);// find a file
                 while(!file_exists($f=static::configFile($n)) && $p) {
-                    $n .= '/'.array_shift($p);
+                    $n .= '/'.rawurlencode(array_shift($p));
                     $f = null;
                 }
             }
@@ -838,7 +843,6 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($this->actions[$a]['identified']) && $this->actions[$a]['identified']) {
                 if(!isset($this->id) && $p) {
                     $n = array_shift($p);
-
                     if($n!=='') {
                         if(is_array($this->key)) {
                             $nc = explode(Tecnodesign_Model::$keySeparator, $n, count($this->key));
@@ -1505,7 +1509,7 @@ class Tecnodesign_Interface implements ArrayAccess
         tdz::$variables['Interface'] = $this;
         if(!$this->action) {
             foreach(static::$actionsDefault as $a) {
-                if($this->setAction($a, tdz::urlParams())) {
+                if($this->setAction($a, tdz::urlParams(null, true))) {
                     break;
                 }
                 unset($a);
