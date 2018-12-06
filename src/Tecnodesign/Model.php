@@ -27,7 +27,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         'events'=>array(
         ),
     );
-    public static 
+    public static
         $allowNewProperties = false,
         $prepareWhere,
         $keepCollection = false,
@@ -42,7 +42,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     protected static $found=array();
     protected static $_conn=null;
     protected static $_typesChoices = array('select','checkbox','radio');
-    protected 
+    protected
         $_original = array(),
         $_new = false,
         $_update,
@@ -94,7 +94,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $this->unsetRelation($rn);
             unset($rn, $rel);
         }
-        self::$stats[get_class($this)]--;
+
+        @self::$stats[get_class($this)]--;
     }
 
     /**
@@ -104,7 +105,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     {
         return static::queryHandler()->timestamp($tns);
     }
-    
+
     public function __sleep()
     {
         if(!is_null($this->_collection)) {
@@ -127,8 +128,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             }
         }
     }
-    
-    
+
+
     public function initialize()
     {
         if($this->_connected) return false;
@@ -138,7 +139,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         */
     }
-        
+
     /**
      * Schema loader & builder
      *
@@ -216,10 +217,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($update) static::$schema['scope']['uid']=$pk;
         return $pk;
     }
-    
+
     /**
      * Retrieves values listed for the primary key in this object
-     * Unless $array evals to true this will return the PK(s) as 
+     * Unless $array evals to true this will return the PK(s) as
      * a string (associative array otherwise)
      */
     public function getPk($array=null)
@@ -234,7 +235,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($array) return $r;
         return implode(static::$keySeparator, $r);
     }
-    
+
     public static function formFields($scope=false, $allowText=false)
     {
         $cn = get_called_class();
@@ -320,7 +321,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $label = substr($fn, 2, strlen($fn)-4);
                         $fn = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $label, $class, ''), static::$headingTemplate);
                         unset($class);
-                    } 
+                    }
                     $sfo[] = $fn;
                 }
                 unset($label, $fn, $fd, $fid);
@@ -329,7 +330,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $fo;
     }
-    
+
     public static function columns($scope='default', $type=null, $expand=3, $clean=false)
     {
         if(!$scope) $scope = 'default';
@@ -501,10 +502,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $d;
     }
-    
+
     /**
      * Tecnodesign_Form renderer
-     * 
+     *
      * @param string $scope the self::$schema scope to select which fields should be available.
      *
      * @return Tecnodesign_Form instance
@@ -541,20 +542,20 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $this->_forms[$hash] = $F->uid;
         }
         return $F;
-        
+
     }
-    
+
 
     public function lastQuery()
     {
         if(isset($this->_query)) return $this->_query->lastQuery();
     }
-    
+
     /**
      * Model schema auto-updates
-     * 
+     *
      * This method updates the schema definitions ot the Models indicated by $f
-     * 
+     *
      * @param string $f file name to update
      *
      * @return bool  whether the class was updated.
@@ -565,7 +566,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return false;
         }
         $schema = $this->schema();
-        
+
         $classCode = file_get_contents($f);
         $start = strpos($classCode, '//--tdz-schema-start--');
         $end = strpos($classCode, '//--tdz-schema-end--');
@@ -606,13 +607,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $code = substr($classCode, 0, $start).$code.substr($classCode, $end);
         return tdz::save($f, $code);
     }
-    
+
     /**
      * Events are triggers to be run once each action is done
-     * 
+     *
      * @param string $e event name, can be (before|after)-(save|insert|update|select)
-     * 
-     * @return bool 
+     *
+     * @return bool
      */
     public function runEvent($e, $conn=null)
     {
@@ -656,7 +657,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return true;
     }
-    
+
     /**
      * Auto-increment Behavior
      */
@@ -706,7 +707,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return true;
     }
-    
+
     /**
      * Versionable Behavior
      */
@@ -761,7 +762,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
     /**
      * Make New Behavior
-     * 
+     *
      * Makes all updates a new entry
      */
     public function insertableTrigger($fields, $conn=null)
@@ -799,7 +800,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(count($w)>0) {
                     $sql .= ' where '.implode(' and ', $w);
                 }
-                $next = tdz::query($sql); 
+                $next = tdz::query($sql);
                 if($next) {
                     $cn::$increment[$fn.'-'.$ik]=$next[0]['next'];
                 }
@@ -809,7 +810,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return true;
     }
-    
+
     /**
      * Soft Delete Behavior
      */
@@ -831,8 +832,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
     /**
      * Implementing behaviors
-     * 
-     * @return type 
+     *
+     * @return type
      */
     public function actAs($e, $conn=null)
     {
@@ -853,7 +854,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         unset($behavior);
         return true;
     }
-    
+
     public function isNew($new=null)
     {
         if (!is_null($new)) {
@@ -939,7 +940,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $this;
     }
-    
+
     public function asArray($scope=null, $keyFormat=null, $valueFormat=null, $serialize=null)
     {
         $noscope = (is_null($scope));
@@ -990,7 +991,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $result;
     }
-    
+
     public static function relate($r, &$f=null, $addRef=false, $rp='')
     {
         $cn = get_called_class();
@@ -1153,7 +1154,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
         return $rcn::query($r, $rcn);
     }
-    
+
     public function getRelation($relation, $fn=null, $scope=null, $asCollection=true)
     {
         if($p=strpos($relation, '.')) {
@@ -1233,7 +1234,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $this->_delete;
     }
-    
+
     /**
      * sets a relation (another model linked to this)
      *
@@ -1450,7 +1451,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return $Q->transaction(null, $conn);
         }
     }
-    
+
     public static function commitTransaction($trans, $conn=null, $Q=null)
     {
         if(is_null($Q)) $Q = static::queryHandler();
@@ -1537,7 +1538,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!$this->runEvent('after-'.$m, $conn)) {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not '.$m.' record at %s.', 'exception'), $cn::label()));
             }
-           
+
             // Run dependencies
             if($relations) {
                 $relations--;
@@ -1605,11 +1606,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
     /**
      * Class Name labels
-     * 
+     *
      * Uses translation to get proper table name
-     * 
+     *
      * @param string $translate trasnlation table to use, or false to prevent translation
-     * 
+     *
      * @return string Class label
      */
     public static function label($translate='ui-labels')
@@ -1631,14 +1632,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $cn::$schema['label']=$label;
         return $cn::$schema['label'];
     }
-    
+
     /**
      * Column Name labels
-     * 
+     *
      * Uses translation to get proper table name
-     * 
+     *
      * @param string|bool $translate trasnlation table to use, or false to prevent translation
-     * 
+     *
      * @return string Column name label
      */
     public static function fieldLabel($fn, $translate=true)
@@ -1664,7 +1665,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $cn::$schema['form'][$fn]['label'];
     }
-    
+
     public static function find($s=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
         $q=array();
@@ -1796,12 +1797,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $class = $fn = $m[2];
                         $class .= ($class)?(' sub'):('sub');
                         $input = str_replace(
-                            array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), 
+                            array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'),
                             array($label, $fn, $label, $class, ''),
                             $sep);
 
                         $fs[$fsn] .= str_replace(
-                            array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR', '$ATTR'), 
+                            array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR', '$ATTR'),
                             array($label, $fn, $input, $class, '', ''),
                             $box);
 
@@ -1896,7 +1897,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return true;
     }
-    
+
     public function renderUi($o=array())
     {
         static $group;
@@ -2084,7 +2085,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 }
             }
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
-            
+
             $s .= '<td class="f-'.$fn.' '.(($uid!==false && $checkbox)?(' tdz-check'):('')).'">'
                 . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
                 . (($uid!==false && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
@@ -2096,10 +2097,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($i+1>=$max) {
             $s .='</tbody></table>';
         }
-        
+
         return $s;
     }
-     
+
     public function renderField($fn, $fd=null, $xmlEscape=false)
     {
         $cn=get_class($this);
@@ -2135,7 +2136,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             else if(static::$schema['relations'][$fd['bind']]['type']=='one') $a = 'preview';
             else $a = 'list';
             if($cI) $I->setTitle(null);
-            $I->setAction($a); 
+            $I->setAction($a);
             $I->setUrl(tdz::scriptName(true).'/'.$fd['interface']);
             $v = $I->preview();
             $xmlEscape = false;
@@ -2195,7 +2196,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($xmlEscape) {
             $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));
         }
-        
+
         return $v;
     }
 
@@ -2210,7 +2211,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         return $v;
     }
-    
+
     public static function renderAs($val, $fn, $fd=null)
     {
         $cn=get_called_class();
@@ -2280,12 +2281,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         unset($fd, $cn);
         return $val;
-    }  
+    }
 
 
     /**
      * Magic terminator. Returns the page contents, ready for output.
-     * 
+     *
      * @return string page output
      */
     public function __toString()
@@ -2429,8 +2430,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return static::find($args, 0);
         }
     }
-    
-    
+
+
     public function getOriginal($fn, $fallback=true, $serialize=null)
     {
         if(!array_key_exists($fn, $this->_original)) {
@@ -2461,13 +2462,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return false;
         }
     }
-    
+
     /**
      * Magic getter. Searches for a get$Name method, or gets the stored value in
      * $_vars.
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return mixed the stored value, or method results
      */
     public function __get($name)
@@ -2619,7 +2620,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      *
      * @param string $name  parameter name, should start with lowercase
      * @param mixed  $value value to be set
-     * 
+     *
      * @return void
      * @see __set()
      */
@@ -2649,7 +2650,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      * to the PDF classes — only unsets values stored in $_vars
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return void
      */
     public function __unset($name)
@@ -2661,8 +2662,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $this->__unset($name);
     }
 
-    
-    
+
+
     /**
      * Iterator
      */
@@ -2685,9 +2686,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public function valid() {
         return ($this->_p > 0 && $this->_p < $this->count());
     }
-    
+
     public function count() {
         return count(self::$schema['columns']);
     }
-    
+
 }
