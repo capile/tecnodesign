@@ -718,7 +718,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $rn = null;
             if($p) {
                 $p0 = $p;
-                $n = array_shift($p);// find a file
+                $n = preg_replace('#[^a-z0-9\-\_\@]#i', '', array_shift($p));// find a file
                 while(!file_exists($f=static::configFile($n)) && $p) {
                     $n .= '/'.rawurlencode(array_shift($p));
                     $f = null;
@@ -730,7 +730,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $n = 'index';
                     $rn = 'index';
                 } else if($p) {
-                    $n = array_shift($p);
+                    $n = preg_replace('#[^a-z0-9\-\_\@]#i', '', array_shift($p));
                     $rn = '/index';
                     while(!file_exists($f=static::configFile($n.'/index')) && $p) {
                         $n .= '/'.array_shift($p);
