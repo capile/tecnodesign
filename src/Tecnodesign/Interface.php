@@ -90,6 +90,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $additionalActions  = array(),
         $listAction         = 'preview',
         $actionsDefault     = array( 'preview', 'list' ),
+        $share              = null,
         $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
         $headingTemplate    = '<hr /><h3>$LABEL</h3>',
         $previewTemplate    = '<dl class="if--$ID tdz-i-field $CLASS"><dt>$LABEL$ERROR</dt><dd data-action-item="$ID">$INPUT</dd></dl>',
@@ -377,6 +378,11 @@ class Tecnodesign_Interface implements ArrayAccess
                     static::$base = substr(static::$base, 0, strlen(static::$base) - strlen($n) -1);
                 }
             } else if(static::$base=='/') static::$base='';
+
+            if(static::$share) {
+                $sf = (static::$share===true || static::$share===1)?('interface-shared'):(tdz::slug(static::$share, '_', true));
+                if(!in_array($sf, static::$dir)) static::$dir[] = $sf;
+            }
 
             $I = static::currentInterface($p);
             if($ext && !in_array($ext, static::$formats)) {
@@ -680,6 +686,14 @@ class Tecnodesign_Interface implements ArrayAccess
                 return true;
             } else {
                 return false;
+            }
+        }
+        if(isset($c['user']) && is_array($c['user'])) {
+            if(is_null($U)) {
+                $U = tdz::getUser();
+            }
+            if($U->isAuthenticated() && ($uid=$U->getPk())) {
+                if(in_array($uid, $c['user'])) return true;
             }
         }
         if(isset($c['host']) && is_array($c['host'])) {
