@@ -301,13 +301,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 
                 if(isset(static::$schema['form'][$fn])) {
                     $fd+=static::$schema['form'][$fn];
-                    if (!is_int($label)) {
+                    if (!isset($fd['label']) && !is_int($label)) {
                         $fd['label']=$label;
                     }
                     $sfo[$fid]=$fd;
                 } else if(isset(static::$schema['columns'][$fn])) {
                     $fd+=static::$schema['columns'][$fn];
-                    if (!is_int($label)) {
+                    if (!isset($fd['label']) && !is_int($label)) {
                         $fd['label']=$label;
                     }
                     $sfo[$fid]=$fd;
