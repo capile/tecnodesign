@@ -1607,7 +1607,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             unset($columns[$fn]);
             if(!is_array($fd)) {
                 $fd = $M::column($fd);
-                if(!$fd || !is+array($fd)) {
+                if(!$fd || !is_array($fd)) {
                     continue;
                 }
             }
