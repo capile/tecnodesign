@@ -24,17 +24,18 @@ class Tecnodesign_Query_Api
         $offset='offset',
         $sort='sort',
         $scope='scope',
-        $queryPath,
-        $queryTableName=true,
-        $insertPath='/new',
+        $queryPath='/%s',
+        $queryTableName, // deprecated, use $queryPath instead
+        $insertPath='/%s/new',
         $insertQuery,
         $insertMethod='POST',
-        $updatePath='/update/%s',
+        $updatePath='/%s/update/%s',
         $updateQuery,
         $updateMethod='POST',
-        $deletePath='/delete/%s',
+        $deletePath='/%s/delete/%s',
         $deleteQuery,
         $deleteMethod='POST',
+        $saveToModel,
         $postFormat='json',
         $curlOptions=array(
             CURLOPT_HEADER=>1,
@@ -50,7 +51,6 @@ class Tecnodesign_Query_Api
             CURLOPT_TIMEOUT        => 120,          // timeout on response
             CURLOPT_MAXREDIRS      => 2,            // stop after 10 redirects
             CURLOPT_POST           => false,
-            CURLOPT_HTTPHEADER     => array('accept: application/json'),
         ),
         $requestHeaders = array('accept: application/json'),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
@@ -62,6 +62,7 @@ class Tecnodesign_Query_Api
         $countAttribute,
         $enableOffset=true,
         $pagingAttribute,
+        $cookieJar,
         $connectionCallback;
     protected static $options, $conn=array();
     protected $_schema, $_method, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $_count, $_unique, $headers, $response;
@@ -109,6 +110,10 @@ class Tecnodesign_Query_Api
     // move this to curl requests?
     public static function disconnect($n='')
     {
+        if(static::$cookieJar && is_string(static::$cookieJar)) {
+            if(file_exists(static::$cookieJar)) @unlink(static::$cookieJar);
+            static::$cookieJar = true;
+        } 
         if(isset(self::$C[$n])) {
             curl_close(self::$C[$n]);
             unset(self::$C[$n]);
@@ -123,9 +128,16 @@ class Tecnodesign_Query_Api
             $O = static::$curlOptions;
             curl_setopt_array(self::$C[$n], $O);
             curl_setopt(self::$C[$n], CURLOPT_HTTPHEADER, static::$requestHeaders);
-            if(static::$connectionCallback) {
-                self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
+        }
+        if(static::$cookieJar) {
+            if(!is_string(static::$cookieJar)) {
+                static::$cookieJar = tempnam(Tecnodesign_Cache::cacheDir(), 'cookie');
             }
+            curl_setopt(self::$C[$n], CURLOPT_COOKIEFILE, static::$cookieJar);
+            curl_setopt(self::$C[$n], CURLOPT_COOKIEJAR, static::$cookieJar);
+        }
+        if(static::$connectionCallback) {
+            self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
         }
         return self::$C[$n];
     }
@@ -258,7 +270,7 @@ class Tecnodesign_Query_Api
             $url = substr($url, 0, $p);
         }
         if(static::$queryPath) {
-            $url .= static::$queryPath;
+            $url .= sprintf(static::$queryPath, $this->schema('tableName'), null);
         }
         if($this->_where) {
             $qs = $this->buildQueryWhere($qs);
@@ -881,6 +893,17 @@ class Tecnodesign_Query_Api
         if(is_null($dataAttribute)) $dataAttribute = static::$dataAttribute;
         if(!$dataAttribute) return $this->response;
 
+        if(strpos($dataAttribute, '|')!==false) {
+            $da = explode('|', $dataAttribute);
+            foreach($da as $i=>$o) {
+                if($R=$this->_getResponseAttribute($o)) {
+                    return $R;
+                }
+                unset($da[$i], $i, $o);
+            }
+            return null;
+        }
+
         $R = null;
         if($this->response && is_array($this->response)) {
             if(isset($this->response[$dataAttribute])) {
@@ -1006,7 +1029,7 @@ class Tecnodesign_Query_Api
         if($qs) $url .= '?'.$qs;
 
         if($data && is_object($data)) {
-            $data = $data->asArray('save');
+            $data = $data->asArray('save', null, false, false);
         }
         if(!$conn) $conn = static::connect($this->schema('database'));
         $H = static::$requestHeaders;
@@ -1036,15 +1059,30 @@ class Tecnodesign_Query_Api
 
     public function insert($M, $conn=null)
     {
-        $action = static::$insertPath;
-        if(static::$insertQuery) $action .= '?'.sprintf(static::$insertQuery, $pk);
+        $pk = $M->pk;
+        if(is_array($pk)) $pk = array_shift($pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$insertPath, $tn, $pk);
+        if(static::$insertQuery) $action .= '?'.sprintf(static::$insertQuery, $tn, $pk);
         try {
-            $R = $this->runAction($action, $M->asArray('save'), static::$insertMethod);
-            $pk = $M::pk(null, true);
-            if($R && $pk && is_array($d=$R->response)) {
-                foreach($pk as $fn) {
-                    if(isset($d[$fn])) {
-                        $M->$fn = $d[$fn];
+            $R = $this->runAction($action, $M, static::$insertMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                foreach($R->response as $fn=>$v) {
+                    if(is_int($fn)) {
+                        break;
+                    }
+                    if($v && $v!=$M->$fn) {
+                        $M->$fn = $v;
+                    }
+                }
+            } else {
+                $pk = $M::pk(null, true);
+                if($R && $pk && is_array($d=$R->response)) {
+                    foreach($pk as $fn) {
+                        if(isset($d[$fn])) {
+                            $M->$fn = $d[$fn];
+                        }
                     }
                 }
             }
@@ -1062,10 +1100,23 @@ class Tecnodesign_Query_Api
     {
         $pk = $M->pk;
         if(is_array($pk)) $pk = array_shift($pk);
-        $action = (static::$updatePath)?(sprintf(static::$updatePath, $pk)):('');
-        if(static::$updateQuery) $action .= '?'.sprintf(static::$updateQuery, $pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$updatePath, $tn, $pk);
+        if(static::$updateQuery) $action .= '?'.sprintf(static::$updateQuery, $tn, $pk);
         try {
-            return $this->runAction($action, $M->asArray('save'), static::$updateMethod);
+            $R = $this->runAction($action, $M, static::$updateMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                foreach($R->response as $fn=>$v) {
+                    if(is_int($fn)) {
+                        break;
+                    }
+                    if($v && $v!=$M->$fn) {
+                        $M->$fn = $v;
+                    }
+                }
+            }
+            return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
@@ -1079,10 +1130,23 @@ class Tecnodesign_Query_Api
     {
         $pk = $M->pk;
         if(is_array($pk)) $pk = array_shift($pk);
-        $action = (static::$deletePath)?(sprintf(static::$deletePath, $pk)):('');
-        if(static::$deleteQuery) $action .= '?'.sprintf(static::$deleteQuery, $pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$deletePath, $tn, $pk);
+        if(static::$deleteQuery) $action .= '?'.sprintf(static::$deleteQuery, $tn, $pk);
         try {
-            return $this->runAction($action, $M->getPk(null, true), static::$deleteMethod);
+            $R = $this->runAction($action, $M->getPk(null, true), static::$deleteMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                foreach($R->response as $fn=>$v) {
+                    if(is_int($fn)) {
+                        break;
+                    }
+                    if($v && $v!=$M->$fn) {
+                        $M->$fn = $v;
+                    }
+                }
+            }
+            return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {

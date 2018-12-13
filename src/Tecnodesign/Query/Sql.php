@@ -67,7 +67,7 @@ class Tecnodesign_Query_Sql
                 $level = 'connect';
                 static::$conn[$n] = new \PDO($db['dsn'], $db['username'], $db['password'], $db['options']);
                 if(!static::$conn[$n]) {
-                    tdz::log('Connection to '.$n.' failed, retrying... '.$tries);
+                    tdz::log('[INFO] Connection to '.$n.' failed, retrying... '.$tries);
                     $tries--;
                     if(!$tries) return false;
                     return static::connect($n, $exception, $tries);
@@ -77,7 +77,7 @@ class Tecnodesign_Query_Sql
                     static::$conn[$n]->exec($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND]);
                 }
             } catch(Exception $e) {
-                tdz::log('Could not '.$level.' to '.$n.":\n  {$e->getMessage()}\n".$e);
+                tdz::log('[INFO] Could not '.$level.' to '.$n.":\n  {$e->getMessage()}\n".$e);
                 if($tries) {
                     $tries--;
                     if(isset(static::$conn[$n])) static::$conn[$n]=null;
@@ -582,7 +582,7 @@ class Tecnodesign_Query_Sql
                     $fn = $ta.'.'.$fn;
                 }
             } else if(strtolower($fn)!=='null') {
-                tdz::log("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
+                tdz::log("[INFO] Cannot find by [{$ofn}] at [{$sc['tableName']}]");
                 throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
             }
         }
@@ -792,7 +792,7 @@ class Tecnodesign_Query_Sql
             if(isset($this::$errorCallback) && $this::$errorCallback) {
                 return call_user_func($this::$errorCallback, $e, func_get_args(), $this);
             }
-            tdz::log('Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n ".$this);
+            tdz::log('[INFO] Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n ".$this);
             return false;
         }
     }
@@ -1203,10 +1203,9 @@ class Tecnodesign_Query_Sql
         }
         catch(PDOException $e)
         {
-            tdz::log(__METHOD__.': '.$e->getMessage());
+            tdz::log('[WARNING] timestamp exception: in '.__METHOD__.': '.$e->getMessage());
             return false;
         }
-        if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage()).' mem: '.tdz::$variables['timestamp'][$cn]);
         return tdz::$variables['timestamp'][$cn];
     }
 }

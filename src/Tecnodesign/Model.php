@@ -838,7 +838,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public function actAs($e, $conn=null)
     {
         if(!isset(static::$schema['actAs'][$e])) {
-            return false;
+            return true;
         }
         $behavior = static::$schema['actAs'][$e];
         foreach($behavior as $bn=>$fields) {
@@ -977,13 +977,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     } else {
                         $k = $fn;
                     }
-                    if(is_array($v) && $serialize) {
-                        if(isset($schema['columns'][$fn]['serialize'])) {
-                            $serialize = $schema['columns'][$fn]['serialize'];
-                        }
-                        $v = tdz::serialize($v, $serialize);
+                    if(is_array($v) && $serialize && isset($schema['columns'][$fn]['serialize'])) {
+                        $v = tdz::serialize($v, $schema['columns'][$fn]['serialize']);
+                    } else if($serialize===false && is_string($v) && isset($schema['columns'][$fn]['serialize'])) {
+                        $v = tdz::unserialize($v, $schema['columns'][$fn]['serialize']);
                     }
-                    $result[$k] = $v;
+                    if(!tdz::isempty($v) || $valueFormat!==false) {
+                        $result[$k] = $v;
+                    }
                     unset($k, $v);
                 }
                 unset($fn, $fv);
@@ -2182,10 +2183,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     }
                 }
                 unset($choices);
-            } else if(isset($fd['type']) && substr($fd['type'],0,4)=='date') {
-                if($t=strtotime($v)) {
-                    $df = ($fd['type']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
-                    $v = date($df, $t);
+            } else if(isset($fd['type'])) {
+                if(substr($fd['type'],0,4)=='date') {
+                    if($t=strtotime($v)) {
+                        $df = ($fd['type']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
+                        $v = date($df, $t);
+                    }
+                } else if(substr($fd['type'], 0, 3)=='int') {
+                    if(is_numeric($v)) $v = (int)$v;
+                } else if($fd['type']=='float' || $fd['type']=='decimal') {
+                    if(preg_match('/^[^0-9]*(\.[0-9]+)?$/', $v)) $v = (float)$v;
                 }
             }
         } else if(isset($fd['local']) && isset($fd['foreign'])) {
@@ -2194,7 +2201,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return $this->renderRelation($this->getRelation($fn, null, $scope, false, $xmlEscape), $fn, $fd, $xmlEscape);
         }
         if($xmlEscape) {
-            $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));
+            if(!is_int($v) && !is_float($v)) { 
+                $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));
+            }
         }
 
         return $v;
