@@ -803,30 +803,42 @@ function initSubform(o)
     /*jshint validthis: true */
     if(!o || !Z.node(o)) o=this;
     var btns=[{e:'a',a:{title:'-','class':'tdz-button-del'},t:{click:subformDel}},{e:'a',a:{title:'+','class':'tdz-button-add'},t:{click:subformAdd}}];
-    var b=o.parentNode.parentNode.querySelector('div.tdz-subform-buttons');
-    if(!b) b = Z.element({e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]}, o.parentNode);
 
     // items
     var L=o.querySelectorAll('.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max'), cb;
-    // buttons: add, add(contextual), remove(contextual)
-    while(i-- > 0) {
-        if(fmax && i > fmax) {
-            Z.deleteNode(L[i]);
-        } else if(!(cb=L[i].querySelector('.tdz-buttons')) || cb.parentNode!=L[i]) {
-            if(cb) {
-                // might be sub-subforms, check if there's the button
-                var cL=L[i].querySelectorAll('.tdz-buttons'), ci=cL.length;
-                cb=null;
-                while(ci--) {
-                    if(cL[ci].parentNode==L[i]) {
-                        cb=cL[ci];
-                        break;
-                    }
-                }
-                if(cb) continue;
-            }
 
-            var xx=Z.element.call(L[i], {e:'div',p:{className:'tdz-buttons'},c:btns});
+    // add minimum fields
+    if(fmin && i < fmin) {
+        while(i++ < fmin) {
+            subformAdd(o);
+        }
+        L=o.querySelectorAll('.item');
+        i=L.length;
+    }
+
+    // buttons: add, add(contextual), remove(contextual)
+    if(!fmax || fmax!=i) {
+        var b=o.parentNode.parentNode.querySelector('div.tdz-subform-buttons');
+        if(!b) b = Z.element({e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]}, o.parentNode);
+        while(i-- > 0) {
+            if(fmax && i > fmax) {
+                Z.deleteNode(L[i]);
+            } else if(!(cb=L[i].querySelector('.tdz-buttons')) || cb.parentNode!=L[i]) {
+                if(cb) {
+                    // might be sub-subforms, check if there's the button
+                    var cL=L[i].querySelectorAll('.tdz-buttons'), ci=cL.length;
+                    cb=null;
+                    while(ci--) {
+                        if(cL[ci].parentNode==L[i]) {
+                            cb=cL[ci];
+                            break;
+                        }
+                    }
+                    if(cb) continue;
+                }
+
+                var xx=Z.element.call(L[i], {e:'div',p:{className:'tdz-buttons'},c:btns});
+            }
         }
     }
 
@@ -836,20 +848,25 @@ function initSubform(o)
     else if(fmin && sf.length>fmin && bdel.hasClass('disabled')) bdel.removeClass('disabled');
     */
 }
-    
+
 var _subformPos='§';
 function subformAdd(e)
 {
     /*jshint validthis: true */
-    Z.stopEvent(e);
-    Z.tg = this;
-
     var el, o;
-    if(this.parentNode.parentNode.className.search(/\bitem\b/)>-1) {
-        el=this.parentNode.parentNode;
-        o=el.parentNode;
+
+    if((o=Z.node(e))) {
+        if(arguments.length>1) el=Z.node(arguments[1]);
     } else {
-        o = this.parentNode.nextSibling.childNodes[0];
+        Z.stopEvent(e);
+        Z.tg = this;
+
+        if(this.parentNode.parentNode.className.search(/\bitem\b/)>-1) {
+            el=this.parentNode.parentNode;
+            o=el.parentNode;
+        } else {
+            o = this.parentNode.nextSibling.childNodes[0];
+        }
     }
     if(!o) return false;
     var tpl=o.getAttribute('data-template'), prefix=o.getAttribute('data-prefix'), sf=o.querySelectorAll('.item'),i=sf.length, fmax=o.getAttribute('data-max'), n, re;
