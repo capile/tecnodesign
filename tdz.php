@@ -3000,8 +3000,8 @@ class tdz
         if($f=tdz::classFile($cn)) {
             require_once $f;
             tdz::autoloadParams($cn);
-        } else if(tdz::$log>1) {
-            tdz::log(true, '[ERROR] Class '.$cn.' was not found!');
+        } else if(tdz::$log>10) {
+            tdz::log(true, '[INFO] Class '.$cn.' was not found!');
         }
         return false;
     }

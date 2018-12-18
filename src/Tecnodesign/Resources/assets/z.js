@@ -996,7 +996,13 @@ function subformAdd(e)
         }
     }
     if(!o) return false;
-    var tpl=o.getAttribute('data-template'), prefix=o.getAttribute('data-prefix'), sf=o.querySelectorAll('.item'),i=sf.length, fmax=o.getAttribute('data-max'), n;
+    var tpl=o.getAttribute('data-template'), 
+        prefix=o.getAttribute('data-prefix'),
+        _prefix=prefix.replace(/[\[\]\_]+/g, '_').replace(/_+$/, ''),
+        sf=o.querySelectorAll('.item'),
+        i=sf.length, 
+        fmax=o.getAttribute('data-max'), 
+        n;
 
     if(!(fmax && sf.length>=fmax)) {
         if(i>0){
@@ -1015,9 +1021,9 @@ function subformAdd(e)
             }
         }
         var re=new RegExp((prefix+'\[§\]').replace(/([^a-z0-9])/gi, '\\\$1'), 'gi');
-        var ri=new RegExp((prefix+'_§_').replace(/([^a-z0-9])/gi, '\\\$1'), 'gi');
+        var ri=new RegExp((_prefix+'_§_').replace(/([^a-z0-9])/gi, '\\\$1'), 'gi');
         var c=document.createElement('div');
-        c.innerHTML = tpl.replace(re, prefix+'['+i+']').replace(ri, prefix+'_'+i+'_');
+        c.innerHTML = tpl.replace(re, prefix+'['+i+']').replace(ri, _prefix+'_'+i+'_');
         c=c.children[0];
         if(el) {
             if(el.nextSibling) {
