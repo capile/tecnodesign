@@ -934,19 +934,23 @@ Z.initSubform=function(o)
     var btns=[{e:'a',a:{title:'-','class':'tdz-button-del'},t:{click:subformDel}},{e:'a',a:{title:'+','class':'tdz-button-add'},t:{click:subformAdd}}];
 
     // items
-    var L=o.querySelectorAll('.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max'), cb;
-
+    var id=o.getAttribute('id');
+    if(!id) {
+        id='_n'+(_got++);
+        o.setAttribute('id', id);
+    }
+    var L=document.querySelectorAll('#'+id+'>.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max'), cb;
     // add minimum fields
     if(fmin && i < fmin) {
         while(i++ < fmin) {
             subformAdd(o);
         }
-        L=o.querySelectorAll('.item');
+        L=o.querySelectorAll('#'+id+'>.item');
         i=L.length;
     }
 
     // buttons: add, add(contextual), remove(contextual)
-    if(!fmax || fmax!=i) {
+    if(!fmax || fmax!=i || fmax!=fmin) {
         var b=o.parentNode.parentNode.querySelector('div.tdz-subform-buttons');
         if(!b) b = Z.element({e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]}, o.parentNode);
         while(i-- > 0) {
@@ -1588,10 +1592,56 @@ function preUpload(e)
     if(this.getAttribute('data-status')!='ready') return;
     this.setAttribute('data-status','uploading');
     var i=this.files.length, U={target:this,size:0,loaded:0,url:this.form.action,id:'upl'+((new Date()).getTime())};
+
     U.progress = this.parentNode.querySelector('.tdz-i-progress');
     if(!U.progress) U.progress = Z.element({e:'div',p:{className:'tdz-i-progress'},c:[{e:'div',p:{className:'tdz-i-progress-bar'}}]}, null, this);
+    var s=this.getAttribute('data-size'),a=this.getAttribute('accept'),ff, err=[], valid;
+    if(a) a=','+a+',';
+    clearMsg(this.parentNode);
+    while(i--) {
+        // check file size and accepted formats
+        if(s && s<this.files[i].size) {
+            err.push(Z.t('UploadSize')+' ');
+        }
+        if(a) {
+            valid = false;
+            ff = this.files[i].type;
+            if(ff) {
+                if(a.indexOf(','+ff+',')>-1) {
+                    valid=true;
+                } else if(ff.indexOf('/')>-1 && a.indexOf(','+ff.replace(/\/.*/, '/*')+',')>-1) {
+                    valid = true;
+                }
+            }
+            if(!valid && (ff=this.files[i].name.replace(/.*(\.[^\.]+$)/, '$1')) && a.indexOf(','+ff+',')>-1) {
+                valid = true;
+            }
+            if(!valid) {
+                err.push(Z.t('UploadInvalidFormat')+' ');
+            }
+        }
+    }
+    if(err.length>0) {
+        errorMsg(this.parentNode, err);
+        this.setAttribute('data-status','ready');
+        return false;
+    }
+    i=this.files.length;
     while(i--) {
         uploadFile(this.files[i], U);
+    }
+}
+
+function errorMsg(o, m)
+{
+    return Z.element.call(o, {e:'div',p:{className:'tdz-i-msg tdz-i-error'},c:m});
+}
+
+function clearMsg(o)
+{
+    var L=o.querySelectorAll('.tdz-i-msg'), i=L.length;
+    while(i--) {
+        L[i].parentNode.removeChild(L[i]);
     }
 }
 
@@ -1720,6 +1770,8 @@ Z.l.pt.Nothing='Nenhuma opção foi encontrada para esta consulta.';
 Z.l.pt.Error='Houve um erro ao processar esta informação. Por favor tente novamente ou entre em contato com o suporte.';
 Z.l.pt.moreRecord="É necessário selecionar mais de um registro para essa operação.";
 Z.l.pt.noRecordSelected='Nenhum registro foi selecionado para essa operação.';
+Z.l.pt.UploadSize='O arquivo é maior que o permitido.';
+Z.l.pt.UploadInvalidFormat='O formato do arquivo não é suportado.';
 Z.l.pt.decimalSeparator = ',';
 Z.l.pt.thousandSeparator = '.';
 
@@ -1728,6 +1780,8 @@ Z.l.en.add='Insert';
 Z.l.en.del='Remove';
 Z.l.en.Nothing='No options was selected for this query.';
 Z.l.en.Error='There was an error while processing this request. Please try again or contact support.';
+Z.l.en.UploadSize='File size is bigger than allowed.';
+Z.l.en.UploadInvalidFormat='File format is not supported.';
 Z.l.en.moreRecord="You need to select more than one record for this action."
 Z.l.en.noRecordSelected='No record was selected for this action.';
 Z.l.en.decimalSeparator = '.';
