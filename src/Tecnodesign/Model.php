@@ -941,6 +941,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return $this;
     }
 
+    public function asHtml($preview=null)
+    {
+        return tdz::xml((string)$this);
+    }
+
     public function asArray($scope=null, $keyFormat=null, $valueFormat=null, $serialize=null)
     {
         $noscope = (is_null($scope));

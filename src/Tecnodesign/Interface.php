@@ -2098,7 +2098,8 @@ class Tecnodesign_Interface implements ArrayAccess
             $S['properties']=$P;
             $S['required']=$R;
         }
-        tdz::output($this->toJson($S), 'application/schema+json');
+        tdz::output($this->toJson($S), 'application/schema+json', false);
+        Tecnodesign_App::end();
     }
 
     protected function getForm($o, $scope=null)

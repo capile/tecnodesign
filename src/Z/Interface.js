@@ -802,31 +802,31 @@
             var pid = o.getAttribute('data-status');
             if(!pid) return;
             _bkg[pid] = {u:o.getAttribute('data-url'),m:o.getAttribute('data-message')};
-            msg(_bkg[pid].m);
+            msg(_bkg[pid].m, null, true);
             Z.delay(msg, 5000, 'msg');
             Z.delay(checkBkg, 2000, 'checkBkg');
         },
         message:function(o) {
             if(o.getAttribute('data-message')) {
-                msg(o.getAttribute('data-message'), 'tdz-i-message');
-                Z.delay(msg, 5000, 'msg');
+                msg(o.getAttribute('data-message'), 'tdz-i-message', true);
+                Z.delay(msg, 10000, 'msg');
             }
         },
         success:function(o) {
             if(o.getAttribute('data-message')) {
-                msg(o.getAttribute('data-message'), 'tdz-i-success');
+                msg(o.getAttribute('data-message'), 'tdz-i-success', true);
                 Z.delay(msg, 5000, 'msg');
             }
         },
         error:function(o) {
             if(o.getAttribute('data-message')) {
-                msg(o.getAttribute('data-message'), 'tdz-i-error');
+                msg(o.getAttribute('data-message'), 'tdz-i-error', true);
                 Z.delay(msg, 5000, 'msg');
             }
         },
         download:function(o) {
             if(o.getAttribute('data-message')) {
-                msg(o.getAttribute('data-message'));
+                msg(o.getAttribute('data-message'), null, true);
                 Z.delay(msg, 5000, 'msg');
             }
             var u = o.getAttribute('data-url') || o.getAttribute('href');
@@ -844,7 +844,7 @@
         },
         redirect:function(o) {
             if(o.getAttribute('data-message')) {
-                msg(o.getAttribute('data-message'));
+                msg(o.getAttribute('data-message'), null, true);
                 Z.delay(msg, 5000, 'msg');
             }
             var u = o.getAttribute('data-url') || o.getAttribute('href');
@@ -858,7 +858,7 @@
         }
     };
 
-    function msg(s, c)
+    function msg(s, c, html)
     {
         var M=document.querySelector('.tdz-i.tdz-i-active .tdz-i-msg');
         if(!M) {
@@ -878,7 +878,11 @@
             c+=' tdz-m-inactive';
         }
         if(M.className!=c)M.className=c;
-        M.textContent=s;
+        if(arguments.length>2 && html) {
+            M.innerHTML=s;
+        } else {
+            M.textContent=s;
+        }
         //Z.element.call(M, {c:s});
     }
 

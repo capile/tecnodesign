@@ -809,7 +809,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             fwrite($fp, base64_decode($data), $size);
             fclose($fp);
 
-            $R = array('size'=>$size, 'total'=>$u['wrote']);
+            $R = array('size'=>$size, 'total'=>$u['wrote'], 'expects'=>$u['size']);
             if($u['wrote']>=$u['size']) {
                 $R['id'] = $upload['id'];
                 $R['value'] = 'ajax:'.$fname.'|'.$upload['file'];
