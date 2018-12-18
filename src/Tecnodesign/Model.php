@@ -2180,8 +2180,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                             $v = $choices[$v];
                             if(is_array($v)) $v = array_shift($v);
                             if($v) $r[] = $v;
+                            unset($v);
                         }
-                        $v = implode(', ', $v);
+                        $v = implode(', ', $r);
                     } else {
                         $v = (isset($choices[$v]))?($choices[$v]):('');
                         if(is_array($v)) $v = array_shift($v);
