@@ -128,9 +128,9 @@ if(isset($error) && $error) {
     $R = array('error'=>$error);
     if(isset($errorMessage)) {
         $R['message'] = $errorMessage;
-    }
-    if(!$Interface::$envelope) {
-        $Interface::$headers[$Interface::H_MESSAGE] = $errorMessage;
+        if(!$Interface::$envelope) {
+            $Interface::$headers[$Interface::H_MESSAGE] = $errorMessage;
+        }
     }
     $R += $r;
     $Interface::error(422, $R);
