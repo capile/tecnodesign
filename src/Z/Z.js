@@ -939,6 +939,8 @@ Z.l.pt.moreRecord="É necessário selecionar mais de um registro para essa opera
 Z.l.pt.noRecordSelected='Nenhum registro foi selecionado para essa operação.';
 Z.l.pt.decimalSeparator = ',';
 Z.l.pt.thousandSeparator = '.';
+Z.l.pt.UploadSize='O arquivo é maior que o permitido.';
+Z.l.pt.UploadInvalidFormat='O formato do arquivo não é suportado.';
 
 
 Z.l.en.add='Insert';
@@ -949,6 +951,8 @@ Z.l.en.moreRecord="You need to select more than one record for this action.";
 Z.l.en.noRecordSelected='No record was selected for this action.';
 Z.l.en.decimalSeparator = '.';
 Z.l.en.thousandSeparator = ',';
+Z.l.en.UploadSize='File size is bigger than allowed.';
+Z.l.en.UploadInvalidFormat='File format is not supported.';
 
 // for timepickers
 Z.l.en.previousMonth = 'Previous Month';

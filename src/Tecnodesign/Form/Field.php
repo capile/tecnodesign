@@ -1744,26 +1744,32 @@ class Tecnodesign_Form_Field implements ArrayAccess
             //$arg['name'].='[]';
         }
         $s='';
-        if($this->accept && is_array($this->accept) && isset($this->accept['uploader'])) {
-            $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(\tdz::requestUri()):($this->accept['uploader']);
-        }
-        if($this->accept && is_array($this->accept) && isset($this->accept['type'])) {
-            $type = $this->accept['type'];
-            if($type && !is_array($type)) {
-                $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
+        if($this->accept && is_array($this->accept)) {
+            if(isset($this->accept['uploader'])) {
+                $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(\tdz::requestUri()):($this->accept['uploader']);
             }
-            if($type && isset($type[0])) {
-                $aa = array();
-                foreach($type as $ts) {
-                    if(substr($ts, -1)=='*') {
-                        $aa[] = $ts;
-                    } else if(substr($ts, -1)=='/') {
-                        $aa[]= $ts.'*';
-                    } else {
-                        $aa[]='.'.$ts;
-                    }
+            if(isset($this->accept['type'])) {
+                $type = $this->accept['type'];
+                if($type && !is_array($type)) {
+                    $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
                 }
-                $this->attributes['accept'] = implode(',',$aa);
+                if($type && isset($type[0])) {
+                    $aa = array();
+                    foreach($type as $ts) {
+                        if(substr($ts, -1)=='*') {
+                            $aa[] = $ts;
+                        } else if(substr($ts, -1)=='/') {
+                            $aa[]= $ts.'*';
+                        } else {
+                            $aa[]='.'.$ts;
+                        }
+                    }
+                    $this->attributes['accept'] = implode(',',$aa);
+                }
+                unset($type);
+            }
+            if(isset($this->accept['size']) && is_numeric($this->accept['size'])) {
+                $this->attributes['data-size'] = $this->accept['size'];
             }
         }
 

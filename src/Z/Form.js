@@ -471,10 +471,56 @@ function preUpload(e)
     if(this.getAttribute('data-status')!='ready') return;
     this.setAttribute('data-status','uploading');
     var i=this.files.length, U={target:this,size:0,loaded:0,url:this.form.action,id:'upl'+((new Date()).getTime())};
+
     U.progress = this.parentNode.querySelector('.tdz-i-progress');
     if(!U.progress) U.progress = Z.element({e:'div',p:{className:'tdz-i-progress'},c:[{e:'div',p:{className:'tdz-i-progress-bar'}}]}, null, this);
+    var s=this.getAttribute('data-size'),a=this.getAttribute('accept'),ff, err=[], valid;
+    if(a) a=','+a+',';
+    clearMsg(this.parentNode);
+    while(i--) {
+        // check file size and accepted formats
+        if(s && s<this.files[i].size) {
+            err.push(Z.t('UploadSize')+' ');
+        }
+        if(a) {
+            valid = false;
+            ff = this.files[i].type;
+            if(ff) {
+                if(a.indexOf(','+ff+',')>-1) {
+                    valid=true;
+                } else if(ff.indexOf('/')>-1 && a.indexOf(','+ff.replace(/\/.*/, '/*')+',')>-1) {
+                    valid = true;
+                }
+            }
+            if(!valid && (ff=this.files[i].name.replace(/.*(\.[^\.]+$)/, '$1')) && a.indexOf(','+ff+',')>-1) {
+                valid = true;
+            }
+            if(!valid) {
+                err.push(Z.t('UploadInvalidFormat')+' ');
+            }
+        }
+    }
+    if(err.length>0) {
+        errorMsg(this.parentNode, err);
+        this.setAttribute('data-status','ready');
+        return false;
+    }
+    i=this.files.length;
     while(i--) {
         uploadFile(this.files[i], U);
+    }
+}
+
+function errorMsg(o, m)
+{
+    return Z.element.call(o, {e:'div',p:{className:'tdz-i-msg tdz-i-error'},c:m});
+}
+
+function clearMsg(o)
+{
+    var L=o.querySelectorAll('.tdz-i-msg'), i=L.length;
+    while(i--) {
+        L[i].parentNode.removeChild(L[i]);
     }
 }
 
