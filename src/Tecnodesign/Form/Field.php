@@ -781,12 +781,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         // check ajax uploader
         if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
+            static $timeout = 60;
             // check id
-            $fname = 'upload-'.tdz::slug($upload['uid']);
             $U=tdz::getUser();
+            $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$U->getSessionId().':'.preg_replace('/(ajax|_index)=[0-9]+/', '', tdz::requestUri()));
             $size = $upload['end'] - $upload['start'];
-            if(!($u=$U->getAttribute($fname))) {
-                $f = tempnam('/tmp', $fname);
+            if(!($u=Tecnodesign_Cache::get($ckey, $timeout))) {
+                $f = tempnam('/tmp', $ckey);
                 $u = array(
                     'id'=>$upload['id'],
                     'name'=>$upload['file'],
@@ -794,10 +795,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     'size'=>$upload['total'],
                     'wrote'=>$size,
                 );
-                $U->setAttribute($fname, $u);
+                Tecnodesign_Cache::set($ckey, $u, $timeout);
             } else {
                 $u['wrote'] += $size;
-                $U->setAttribute($fname, $u);
+                Tecnodesign_Cache::set($ckey, $u, $timeout);
             }
 
             $data = $upload['data'];
@@ -806,16 +807,18 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(strpos($data, ',')!==false) $data = substr($data, strpos($data, ',')+1);
             $fp=fopen($u['file'],"r+");
             fseek($fp, $upload['start']);
-            fwrite($fp, base64_decode($data), $size);
+            $r = fwrite($fp, base64_decode($data), $size);
             fclose($fp);
+            if(!$r || $r!=$size) {
+                tdz::log('[INFO] Problem writing '.$u['file'].'. Expected to write '.$size.' bytes, but wrote '.$r);
+            }
 
             $R = array('size'=>$size, 'total'=>$u['wrote'], 'expects'=>$u['size']);
             if($u['wrote']>=$u['size']) {
                 $R['id'] = $upload['id'];
-                $R['value'] = 'ajax:'.$fname.'|'.$upload['file'];
+                $R['value'] = 'ajax:'.$ckey.'|'.$upload['file'];
                 $R['file'] = $upload['file'];
             }
-            //if(rand(0,3)==3) Tecnodesign_App::error(500);
             tdz::output($R, 'json');
         }
 
@@ -897,7 +900,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                                 if(!$upload['type']) $upload['type'] = tdz::fileFormat($u['file']);
                                 $upload['ajax'] = true;
                             }
-                            $U->setAttribute($uid, null);
+                            Tecnodesign_Cache::delete($uid);
                         }
                         unset($U);
                     }
@@ -1744,6 +1747,26 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($this->accept && is_array($this->accept) && isset($this->accept['uploader'])) {
             $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(\tdz::requestUri()):($this->accept['uploader']);
         }
+        if($this->accept && is_array($this->accept) && isset($this->accept['type'])) {
+            $type = $this->accept['type'];
+            if($type && !is_array($type)) {
+                $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
+            }
+            if($type && isset($type[0])) {
+                $aa = array();
+                foreach($type as $ts) {
+                    if(substr($ts, -1)=='*') {
+                        $aa[] = $ts;
+                    } else if(substr($ts, -1)=='/') {
+                        $aa[]= $ts.'*';
+                    } else {
+                        $aa[]='.'.$ts;
+                    }
+                }
+                $this->attributes['accept'] = implode(',',$aa);
+            }
+        }
+
         if(strpos($arg['class'], 'app-file-preview')!==false) {
             if($arg['value']) {
                 $s .= '<span class="text tdz-f-file">'.$this->filePreview($arg['id']).'</span>';

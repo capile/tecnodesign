@@ -4,7 +4,7 @@
 
 "use strict";
 
-var _Tl,_L=[];
+var _Tl,_L=[], _eids=0;
 function checkLabel(e)
 {
     /*jshint validthis: true */
@@ -805,19 +805,23 @@ function initSubform(o)
     var btns=[{e:'a',a:{title:'-','class':'tdz-button-del'},t:{click:subformDel}},{e:'a',a:{title:'+','class':'tdz-button-add'},t:{click:subformAdd}}];
 
     // items
-    var L=o.querySelectorAll('.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max'), cb;
-
+    var id=o.getAttribute('id');
+    if(!id) {
+        id='_zidf'+(_eids++);
+        o.setAttribute('id', id);
+    }
+    var L=document.querySelectorAll('#'+id+'>.item'), i=L.length, fmin=o.getAttribute('data-min'), fmax=o.getAttribute('data-max'), cb;
     // add minimum fields
     if(fmin && i < fmin) {
         while(i++ < fmin) {
             subformAdd(o);
         }
-        L=o.querySelectorAll('.item');
+        L=o.querySelectorAll('#'+id+'>.item');
         i=L.length;
     }
 
     // buttons: add, add(contextual), remove(contextual)
-    if(!fmax || fmax!=i) {
+    if(!fmax || fmax!=i || fmax!=fmin) {
         var b=o.parentNode.parentNode.querySelector('div.tdz-subform-buttons');
         if(!b) b = Z.element({e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]}, o.parentNode);
         while(i-- > 0) {
@@ -841,7 +845,6 @@ function initSubform(o)
             }
         }
     }
-
     // minimun
     /*
     if(fmin && sf.length<=fmin && !bdel.hasClass('disabled')) bdel.addClass('disabled');
@@ -869,7 +872,14 @@ function subformAdd(e)
         }
     }
     if(!o) return false;
-    var tpl=o.getAttribute('data-template'), prefix=o.getAttribute('data-prefix'), sf=o.querySelectorAll('.item'),i=sf.length, fmax=o.getAttribute('data-max'), n, re;
+    var tpl=o.getAttribute('data-template'), 
+        prefix=o.getAttribute('data-prefix'),
+        _prefix=prefix.replace(/[\[\]\_]+/g, '_').replace(/_+$/, ''),
+        sf=o.querySelectorAll('.item'),
+        i=sf.length, 
+        fmax=o.getAttribute('data-max'), 
+        n,
+        re;
 
     if(!(fmax && sf.length>=fmax)) {
         if(i>0){
@@ -888,9 +898,9 @@ function subformAdd(e)
             }
         }
         re=new RegExp((prefix+'\[§\]').replace(/([^a-z0-9])/gi, '\\\$1'), 'gi');
-        var ri=new RegExp((prefix+'_§_').replace(/([^a-z0-9])/gi, '\\\$1'), 'gi');
+        var ri=new RegExp((_prefix+'_§_').replace(/([^a-z0-9])/gi, '\\\$1'), 'gi');
         var c=document.createElement('div');
-        c.innerHTML = tpl.replace(re, prefix+'['+i+']').replace(ri, prefix+'_'+i+'_');
+        c.innerHTML = tpl.replace(re, prefix+'['+i+']').replace(ri, _prefix+'_'+i+'_');
         c=c.children[0];
         if(el) {
             if(el.nextSibling) {

@@ -87,7 +87,9 @@ class tdz
             'm3u' => 'video/quicktime',
             'js'  => 'application/javascript',
             'css' => 'text/css',
+            'txt' => 'text/plain',
             'htc' => 'text/plain',
+            'md'  => 'text/plain',
             'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -3002,7 +3004,7 @@ class tdz
         if($f=tdz::classFile($cn)) {
             require_once $f;
             tdz::autoloadParams($cn);
-        } else if(tdz::$log>1) {
+        } else if(tdz::$log>10) {
             tdz::log(true, '[ERROR] Class '.$cn.' was not found!');
         }
         return false;

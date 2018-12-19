@@ -56,7 +56,7 @@
             active = true;
             l=L.querySelectorAll('input[type=checkbox][value],.tdz-i-list input[type=radio][value]');
             i=l.length;
-            while(i-- > 0) Z.bind(l[i], 'change', updateInterfaceDelayed);
+            while(i-- > 0) if(!l[i].getAttribute('data-no-callback')) Z.bind(l[i], 'change', updateInterfaceDelayed);
             l=null;
         }
 
