@@ -29,6 +29,9 @@ class Tecnodesign_Query_Api
         $insertPath='/%s/new',
         $insertQuery,
         $insertMethod='POST',
+        $previewPath='/%s/preview/%s',
+        $previewQuery,
+        $previewMethod='GET',
         $updatePath='/%s/update/%s',
         $updateQuery,
         $updateMethod='POST',
@@ -138,6 +141,11 @@ class Tecnodesign_Query_Api
         }
         if(static::$connectionCallback) {
             self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
+        }
+
+        if(!self::$C[$n]) {
+            tdz::log('[INFO] Failed connection to '.$n);
+            if($exception) throw new Tecnodesign_Exception(array(tdz::t('Could not connect to %s.', 'exception'), $n));
         }
         return self::$C[$n];
     }
@@ -671,7 +679,7 @@ class Tecnodesign_Query_Api
 
     public function run($q, $conn=null, $enablePaging=true, $keepAlive=null, $cn=null, $defaults=null, $callback=null, $args=array())
     {
-        if(tdz::$log) tdz::log("API call to $q\n  Memory: ".ceil(memory_get_peak_usage() * 0.000001)."M\n  Time: ".substr((microtime(true) - TDZ_TIME), 0, 5));
+        if(tdz::$log) tdz::log("[INFO] API call to $q (".ceil(memory_get_peak_usage() * 0.000001).'M, '.substr((microtime(true) - TDZ_TIME), 0, 5).'s)');
         if(!$conn) $conn = static::connect($this->schema('database'));
         curl_setopt($conn, CURLOPT_URL, $q);
         if(isset($this->_options['certificate']) && $this->_options['certificate']) {
@@ -1048,6 +1056,7 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
             curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
             $this->_method = 'POST';
+            \tdz::log(__METHOD__.', '.__LINE__, $data);
         }
         if($method) {
             $this->_method = $method;
@@ -1091,6 +1100,29 @@ class Tecnodesign_Query_Api
             $msg = $e->getMessage();
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
                 $msg = array(tdz::t('Could not save %s.', 'exception'), $M::label());
+            }
+            throw new Tecnodesign_Exception($msg);
+        }
+    }
+
+    public function preview($pk, $conn=null)
+    {
+        if(is_array($pk)) $pk = array_shift($pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$previewPath, $tn, $pk);
+        if(static::$previewQuery) $action .= '?'.sprintf(static::$previewQuery, $tn, $pk);
+        try {
+            $R = $this->runAction($action, $M, static::$previewMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                $cn = $this->schema('className');
+                return new $cn($R->response, false, false);
+            }
+            return $R;
+        } catch(Exception $e) {
+            $msg = $e->getMessage();
+            if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
+                $msg = array(tdz::t('Could not fetch %s.', 'exception'), $M::label());
             }
             throw new Tecnodesign_Exception($msg);
         }
