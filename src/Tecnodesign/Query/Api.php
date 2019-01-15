@@ -1056,7 +1056,6 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
             curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
             $this->_method = 'POST';
-            \tdz::log(__METHOD__.', '.__LINE__, $data);
         }
         if($method) {
             $this->_method = $method;
