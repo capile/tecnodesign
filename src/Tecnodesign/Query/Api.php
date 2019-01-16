@@ -873,7 +873,8 @@ class Tecnodesign_Query_Api
                 $msg .= $this->response['message'];
             }
             if($m) {
-                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg));
+                tdz::log("[INFO] Bad response for {$q}: \n{$this->headers}\n  ".strip_tags($msg));
+                if(tdz::$log>2) tdz::log($this->response);
             }
             throw new Tecnodesign_Exception($msg);
         } else if(!preg_match(static::$successPattern, $r)) {
