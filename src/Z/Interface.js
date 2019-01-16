@@ -883,6 +883,7 @@
         } else {
             M.textContent=s;
         }
+        Z.init(M);
         //Z.element.call(M, {c:s});
     }
 
