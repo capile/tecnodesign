@@ -315,19 +315,13 @@ class Tecnodesign_Query_Api
         if(!$this->_schema) return false;
         $prop = array('_new'=>false);
         if($this->_scope) $prop['_scope'] = $this->_scope;
-        if($o || $l) {
-            $this->_offset = $o;
-            $this->_limit = $l;
-        }
+        $this->_offset = $o;
+        $this->_limit = $l;
         return $this->query($this->buildQuery(), 'class', $this->schema('className'), $prop, $callback, $args);
     }
 
     public function fetchArray($i=null)
     {
-        if($o || $l) {
-            $this->_offset = $o;
-            $this->_limit = $l;
-        }
         return $this->query($this->buildQuery(), 'array');
     }
 
