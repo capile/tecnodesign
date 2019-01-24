@@ -846,7 +846,7 @@ class tdz
         if(is_array($v)) {
             $r = '';
             foreach($v as $a) {
-                $r .= (($r)?($del):('')).\tdz::implode($a, $del);
+                $r .= (($r)?($del):('')).tdz::implode($a, $del);
                 unset($a);
             }
             return $r;
@@ -855,6 +855,24 @@ class tdz
         }
     }
 
+    public static function xmlImplode($v, $element='span', $printElement=true)
+    {
+        if(is_array($v)) {
+            $r = '';
+            foreach($v as $e=>$a) {
+                if(!is_numeric($e) && $printElement) {
+                    $r .= '<'.$element.'>'.tdz::xml($e).': ';
+                } else {
+                    $r .= '<'.$element.((!is_numeric($e))?(' data-element="'.tdz::xml($e).'"'):('')).'>';
+                }
+                $r .= tdz::xmlImplode($a, $element, $printElement).'</'.$element.'>';
+                unset($a, $e);
+            }
+            return $r;
+        } else {
+            return tdz::xml((string)$v);
+        }
+    }
     
     public static function requestUri($arg=array())
     {

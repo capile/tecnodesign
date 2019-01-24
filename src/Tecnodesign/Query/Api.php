@@ -13,8 +13,8 @@
 class Tecnodesign_Query_Api
 {
     const TYPE='api';
-    public static 
-        $microseconds=6, 
+    public static
+        $microseconds=6,
         $envelope,
         $search='q',
         $fieldnames='fieldnames',
@@ -58,7 +58,7 @@ class Tecnodesign_Query_Api
         $requestHeaders = array('accept: application/json'),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
         $errorPattern='/HTTP\/[0-9\.]+ +[45][0-9]{2} .*/i',
-        $errorAttribute,
+        $errorAttribute='error.message|error',
         $headerCount='x-total-count',
         $headerModified='last-modified',
         $dataAttribute,
@@ -116,7 +116,7 @@ class Tecnodesign_Query_Api
         if(static::$cookieJar && is_string(static::$cookieJar)) {
             if(file_exists(static::$cookieJar)) @unlink(static::$cookieJar);
             static::$cookieJar = true;
-        } 
+        }
         if(isset(self::$C[$n])) {
             curl_close(self::$C[$n]);
             unset(self::$C[$n]);
@@ -238,7 +238,7 @@ class Tecnodesign_Query_Api
     public function buildQueryWhere($qs='')
     {
         return $qs.(($qs)?('&'):('?')).http_build_query($this->_where);
-    } 
+    }
 
 
     public function buildQueryCount($qs='')
@@ -266,7 +266,7 @@ class Tecnodesign_Query_Api
         }
         unset($k);
         return $qs;
-    } 
+    }
 
 
     public function buildQuery($count=false)
@@ -348,19 +348,13 @@ class Tecnodesign_Query_Api
         if(!$this->_schema) return false;
         $prop = array('_new'=>false);
         if($this->_scope) $prop['_scope'] = $this->_scope;
-        if($o || $l) {
-            $this->_offset = $o;
-            $this->_limit = $l;
-        }
+        $this->_offset = $o;
+        $this->_limit = $l;
         return $this->query($this->buildQuery(), 'class', $this->schema('className'), $prop, $callback, $args);
     }
 
     public function fetchArray($i=null)
     {
-        if($o || $l) {
-            $this->_offset = $o;
-            $this->_limit = $l;
-        }
         return $this->query($this->buildQuery(), 'array');
     }
 
@@ -628,7 +622,7 @@ class Tecnodesign_Query_Api
         }
 
         if($headers) {
-            curl_setopt($conn, CURLOPT_HTTPHEADER, $headers); 
+            curl_setopt($conn, CURLOPT_HTTPHEADER, $headers);
         }
         $r = curl_exec($conn);
         $msg = '';
@@ -636,7 +630,7 @@ class Tecnodesign_Query_Api
             tdz::log('[ERROR] Curl error: '.curl_error($conn));
             return false;
         }
-        if($callback && $callback=='json') { 
+        if($callback && $callback=='json') {
             if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
                 list($headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
                 while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
@@ -704,6 +698,7 @@ class Tecnodesign_Query_Api
         $this->cleanup();
         $r = curl_exec($conn);
         $msg = '';
+        $body = null;
         if(!$r) {
             $msg = curl_error($conn);
         } else {
@@ -712,41 +707,41 @@ class Tecnodesign_Query_Api
                 while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
                     list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $body, 2);
                 }
-                $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
-                if($this->headers && strpos($this->header('content-type'), 'json')===false) {
-                    $this->response = $body;
-                } else {
-                    $this->response = json_decode($body, true);
-                    if($this->response===null) {
-                        $err = json_last_error();
-                        if($err) {
-                            $errs = array (
-                              0 => 'JSON_ERROR_NONE',
-                              1 => 'JSON_ERROR_DEPTH',
-                              2 => 'JSON_ERROR_STATE_MISMATCH',
-                              3 => 'JSON_ERROR_CTRL_CHAR',
-                              4 => 'JSON_ERROR_SYNTAX',
-                              5 => 'JSON_ERROR_UTF8',
-                              6 => 'JSON_ERROR_RECURSION',
-                              7 => 'JSON_ERROR_INF_OR_NAN',
-                              8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
-                              9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
-                              10 => 'JSON_ERROR_UTF16',
-                            );
-                            if(isset($errs[$err])) {
-                                tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
-                            } else {
-                                tdz::log('[ERROR] JSON unknown error: '.$err);
-                            }
+            } else {
+                $this->headers = null;
+                $body = $r;
+            }
+            $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
+            if($this->headers && strpos($this->header('content-type'), 'json')===false) {
+                $this->response = $body;
+            } else {
+                $this->response = json_decode($body, true);
+                if($this->response===null) {
+                    $err = json_last_error();
+                    if($err) {
+                        $errs = array (
+                          0 => 'JSON_ERROR_NONE',
+                          1 => 'JSON_ERROR_DEPTH',
+                          2 => 'JSON_ERROR_STATE_MISMATCH',
+                          3 => 'JSON_ERROR_CTRL_CHAR',
+                          4 => 'JSON_ERROR_SYNTAX',
+                          5 => 'JSON_ERROR_UTF8',
+                          6 => 'JSON_ERROR_RECURSION',
+                          7 => 'JSON_ERROR_INF_OR_NAN',
+                          8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
+                          9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
+                          10 => 'JSON_ERROR_UTF16',
+                        );
+                        if(isset($errs[$err])) {
+                            tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
+                        } else {
+                            tdz::log('[ERROR] JSON unknown error: '.$err);
                         }
                     }
                 }
-                unset($body);
-            } else {
-                $this->headers = null;
-                $this->response = json_decode($body, true);
             }
         }
+        unset($r);
 
         if($this->response && is_array($this->response) && $this->_unique) {
             $this->response = array($this->response);
@@ -831,7 +826,13 @@ class Tecnodesign_Query_Api
                 if(static::$countAttribute) {
                     $this->_count = $this->_getResponseAttribute(static::$countAttribute);
                 }
-                $this->response = $this->_getResponseAttribute(static::$dataAttribute);
+                if($R=$this->_getResponseAttribute(static::$dataAttribute)) {
+                    $this->response = $R;
+                } else if($cn) {
+                    $cn = null;
+                    //$this->response = null;
+                }
+                unset($R);
             }
             /*
             if($this->response && is_array($this->response) && static::$dataAttribute) {
@@ -854,17 +855,11 @@ class Tecnodesign_Query_Api
 
         $m = null;
         if($msg || preg_match(static::$errorPattern, $this->headers, $m)) {
-            if(isset(static::$errorAttribute) && isset($this->response[static::$errorAttribute])) {
-                $msg = $this->response[static::$errorAttribute];
-            } else if(isset($this->response['error']['message'])) {
-                $msg = $this->response['error']['message'];
-            } else if(isset($this->response['error'])) {
-                $msg = $this->response['error'];
-            } else {
+            if(!$msg && (!static::$errorAttribute || !($msg=$this->_getResponseAttribute(static::$errorAttribute)))) {
                 $msg=$this->header('x-message');
             }
             if(is_array($msg)) {
-                $msg = '<p>'.implode('</p><p>', $msg).'</p>';
+                $msg = tdz::xmlImplode($msg);
             }
             $msg = '<div class="tdz-i-msg tdz-i-error">'
                  . $msg
@@ -874,13 +869,13 @@ class Tecnodesign_Query_Api
             }
             if($m) {
                 tdz::log("[INFO] Bad response for {$q}: \n{$this->headers}\n  ".strip_tags($msg));
-                if(tdz::$log>2) tdz::log($this->response);
+                if(tdz::$log>2) tdz::log($body);
             }
             throw new Tecnodesign_Exception($msg);
-        } else if(!preg_match(static::$successPattern, $r)) {
-            $this->headers = $r;
+        } else if(!preg_match(static::$successPattern, $this->headers)) {
             $this->response = false;
         }
+        unset($body);
 
         if($cn && $this->response) {
             foreach($this->response as $i=>$o) {
@@ -1013,7 +1008,7 @@ class Tecnodesign_Query_Api
     public function transaction($id=null)
     {
     }
-    
+
     public function commit($id=null)
     {
     }
