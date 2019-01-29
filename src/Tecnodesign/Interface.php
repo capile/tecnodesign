@@ -2666,7 +2666,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 if($Q::TYPE!='sql') {
                     $sql = false;
                 }
-                unset($Q);
             }
             if($sql) {
                 $pk = $cn::pk();
