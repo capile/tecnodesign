@@ -34,7 +34,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $searchInputType='search',
         $phoneInputType='tel',
         $enableMultipleText=true,
-        $allowedProperties=array('on')
+        $allowedProperties=array('on'),
+        $tmpDir='/tmp'
         ;
     
     /**
@@ -787,7 +788,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$U->getSessionId().':'.preg_replace('/(ajax|_index)=[0-9]+/', '', tdz::requestUri()));
             $size = $upload['end'] - $upload['start'];
             if(!($u=Tecnodesign_Cache::get($ckey, $timeout))) {
-                $f = tempnam('/tmp', $ckey);
+                $f = tempnam(self::$tmpDir, $ckey);
                 $u = array(
                     'id'=>$upload['id'],
                     'name'=>$upload['file'],
@@ -816,7 +817,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $R = array('size'=>$size, 'total'=>$u['wrote'], 'expects'=>$u['size']);
             if($u['wrote']>=$u['size']) {
                 $R['id'] = $upload['id'];
-                $R['value'] = 'ajax:'.$ckey.'|'.$upload['file'];
+                $R['value'] = 'ajax:'.basename($u['file']).'|'.$upload['file'];
                 $R['file'] = $upload['file'];
             }
             tdz::output($R, 'json');
@@ -1799,7 +1800,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $uploadDir = tdz::uploadDir();
         $fpart = explode('|', $s);
         $fname = array_pop($fpart);
-        if(count($fpart)>=1 && file_exists($f=$uploadDir.'/'.$fpart[0])) {
+        if(count($fpart)>=1 && ($ftmp=preg_replace('/(^ajax:)|[^a-zA-Z0-9\-\_\.]+/', '', $fpart[0])) && (file_exists($f=$uploadDir.'/'.$ftmp) || (file_exists($f=self::$tmpDir.'/'.$ftmp)))) {
             if($array) return array('name'=>$fname, 'file'=>$f);
             return $f;
         } else if(file_exists($f=$uploadDir.'/'.$fname)) {
