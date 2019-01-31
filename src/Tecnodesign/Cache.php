@@ -54,24 +54,20 @@ class Tecnodesign_Cache
 
     public static function storage($method = null)
     {
-        if (!is_null($method) && is_string($method)) {
-            if (in_array($method, array('file', 'apc', 'memcache', 'memcached'))) {
-                return $method;
-            }
+        if ($method !== null && is_string($method)
+            && in_array($method, array('file', 'apc', 'memcache', 'memcached'))) {
+            return $method;
         }
-        if (is_null(self::$storage)) {
+
+        if (self::$storage === null) {
             if (self::$memcachedServers && ini_get('memcached.serializer') && Tecnodesign_Cache_Memcached::memcached()) {
                 self::$storage = 'memcached';
+            } elseif (self::$memcachedServers && function_exists('memcache_debug') && Tecnodesign_Cache_Memcache::memcache()) {
+                self::$storage = 'memcache';
+            } elseif (function_exists('apc_fetch')) {
+                self::$storage = 'apc';
             } else {
-                if (self::$memcachedServers && function_exists('memcache_debug') && Tecnodesign_Cache_Memcache::memcache()) {
-                    self::$storage = 'memcache';
-                } else {
-                    if (function_exists('apc_fetch')) {
-                        self::$storage = 'apc';
-                    } else {
-                        self::$storage = 'file';
-                    }
-                }
+                self::$storage = 'file';
             }
         }
         return self::$storage;
@@ -99,51 +95,54 @@ class Tecnodesign_Cache
                 }
                 unset($ckey, $ret);
             }
+
             if (!isset($ret)) {
                 $ret = false;
             }
+
         } else {
             $ret = $cn::get($key, $expires);
         }
-        if ($fileFallback && $ret === false && $method != 'file' && !$expires) {
+
+        if ($fileFallback && $ret === false && $method !== 'file' && !$expires) {
             $ret = Tecnodesign_Cache_File::get($key);
             if ($ret) {
                 self::set($key, $ret);
             }
         }
-        unset($cn, $key, $expires, $method);
         return $ret;
     }
 
     /**
      * Sets currently stored key-pair value
      *
-     * @param $key     mixed  key(s) to be stored
-     * @param $value   mixed  value to be stored
-     * @param $expires int    timestamp to be set as expiration date.
-     * @param $method  mixed  Storage method to be used. Should be either a key or a value in self::$_methods
+     * @param mixed $key key(s) to be stored
+     * @param mixed $value value to be stored
+     * @param int|float $expires timestamp to be set as expiration date.
+     * @param mixed $method Storage method to be used. Should be either a key or a value in self::$_methods
+     *
+     * @return bool
      */
     public static function set($key, $value, $expires = 0, $method = null, $fileFallback = false)
     {
-        $cn = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
+        $className = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
         if ($expires && $expires < 2592000) {
             $expires = microtime(true) + (float)$expires;
         }
-        $ret = $cn::set($key, $value, $expires);
+        $ret = $className::set($key, $value, $expires);
         if ($fileFallback && $method != 'file' && !$expires) {
             $ret = Tecnodesign_Cache_File::set($key, $value);
         }
-        unset($cn, $key, $value, $expires, $method);
         return $ret;
     }
 
     public static function delete($key, $method = null, $fileFallback = false)
     {
-        $cn = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
-        if ($fileFallback && $method != 'file') {
+        $className = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
+        if ($fileFallback && $method !== 'file') {
             Tecnodesign_Cache_File::delete($key);
         }
-        return $cn::delete($key);
+        return $className::delete($key);
     }
 
     public static function size($key, $expires = 0, $method = null, $fileFallback = false)
@@ -153,7 +152,7 @@ class Tecnodesign_Cache
             $expires = microtime(true) + (float)$expires;
         }
         $ret = $className::size($key, $expires = 0);
-        if ($fileFallback && $ret === false && $method != 'file') {
+        if ($fileFallback && $ret === false && $method !== 'file') {
             $ret = Tecnodesign_Cache_File::size($key);
         }
         return $ret;
@@ -171,6 +170,7 @@ class Tecnodesign_Cache
         } elseif (self::$_siteKey === null) {
             self::$_siteKey = false;
         }
+
         return self::$_siteKey;
     }
 
