@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Variable Caching and retieving
  *
@@ -16,27 +17,27 @@
  */
 class Tecnodesign_Cache
 {
-    public static $expires=0, $memcachedServers=array(), $storage;//array('localhost:11211');
+    public static $expires = 0, $memcachedServers = array(), $storage;//array('localhost:11211');
     /**
-     * Cache key used for storing this site information in memory, must be a 
+     * Cache key used for storing this site information in memory, must be a
      * unique string.
-     * 
+     *
      * @var string
      */
-    private static $_siteKey=null;
+    private static $_siteKey = null;
 
-    public static function getLastModified($key, $expires=0, $method=true)
+    public static function getLastModified($key, $expires = 0, $method = true)
     {
         return self::lastModified($key, $expires, $method);
     }
 
-    public static function lastModified($key, $expires=0, $method=null)
+    public static function lastModified($key, $expires = 0, $method = null)
     {
-        $cn = 'Tecnodesign_Cache_'.ucfirst(self::storage($method));
-        if(is_array($key) && $key) {
-            foreach($key as $ckey) {
+        $cn = 'Tecnodesign_Cache_' . ucfirst(self::storage($method));
+        if (is_array($key) && $key) {
+            foreach ($key as $ckey) {
                 $ret2 = $cn::lastModified($ckey, $expires);
-                if ($ret2>$ret) {
+                if ($ret2 > $ret) {
                     $ret = $ret2;
                 }
                 unset($ckey, $ret2);
@@ -45,20 +46,33 @@ class Tecnodesign_Cache
             $ret = $cn::lastModified($key, $expires);
         }
         unset($fn, $key, $expires, $method);
-        if($ret) $ret = (int) $ret;
+        if ($ret) {
+            $ret = (int)$ret;
+        }
         return $ret;
     }
 
-    public static function storage($method=null)
+    public static function storage($method = null)
     {
-        if(!is_null($method) && is_string($method)) {
-            if(in_array($method, array('file', 'apc', 'memcache', 'memcached'))) return $method;
+        if (!is_null($method) && is_string($method)) {
+            if (in_array($method, array('file', 'apc', 'memcache', 'memcached'))) {
+                return $method;
+            }
         }
-        if(is_null(self::$storage)) {
-            if(self::$memcachedServers && ini_get('memcached.serializer') && Tecnodesign_Cache_Memcached::memcached()) self::$storage='memcached';
-            else if(self::$memcachedServers && function_exists('memcache_debug') && Tecnodesign_Cache_Memcache::memcache()) self::$storage='memcache';
-            else if(function_exists('apc_fetch')) self::$storage='apc';
-            else self::$storage='file';
+        if (is_null(self::$storage)) {
+            if (self::$memcachedServers && ini_get('memcached.serializer') && Tecnodesign_Cache_Memcached::memcached()) {
+                self::$storage = 'memcached';
+            } else {
+                if (self::$memcachedServers && function_exists('memcache_debug') && Tecnodesign_Cache_Memcache::memcache()) {
+                    self::$storage = 'memcache';
+                } else {
+                    if (function_exists('apc_fetch')) {
+                        self::$storage = 'apc';
+                    } else {
+                        self::$storage = 'file';
+                    }
+                }
+            }
         }
         return self::$storage;
     }
@@ -70,31 +84,35 @@ class Tecnodesign_Cache
      * @param $expires int    timestamp to be compared. If timestamp is newer than cached key, false is returned.
      * @param $method  mixed  Storage method to be used. Should be either a key or a value in self::$_methods
      */
-    public static function get($key, $expires=0, $method=null, $fileFallback=false)
+    public static function get($key, $expires = 0, $method = null, $fileFallback = false)
     {
-        $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($expires && $expires<2592000) $expires = microtime(true)-(float)$expires;
-        if(is_array($key)) {
-            foreach($key as $ckey) {
+        $cn = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
+        if ($expires && $expires < 2592000) {
+            $expires = microtime(true) - (float)$expires;
+        }
+        if (is_array($key)) {
+            foreach ($key as $ckey) {
                 $ret = $cn::get($ckey, $expires);
                 if ($ret) {
                     unset($ckey);
                     break;
                 }
-                unset($ckey,$ret);
+                unset($ckey, $ret);
             }
-            if(!isset($ret)) $ret=false;
+            if (!isset($ret)) {
+                $ret = false;
+            }
         } else {
             $ret = $cn::get($key, $expires);
         }
-        if($fileFallback && $ret===false && $method!='file' && !$expires) {
+        if ($fileFallback && $ret === false && $method != 'file' && !$expires) {
             $ret = Tecnodesign_Cache_File::get($key);
-            if($ret) {
+            if ($ret) {
                 self::set($key, $ret);
             }
         }
         unset($cn, $key, $expires, $method);
-        return $ret; 
+        return $ret;
     }
 
     /**
@@ -105,33 +123,37 @@ class Tecnodesign_Cache
      * @param $expires int    timestamp to be set as expiration date.
      * @param $method  mixed  Storage method to be used. Should be either a key or a value in self::$_methods
      */
-    public static function set($key, $value, $expires=0, $method=null, $fileFallback=false)
+    public static function set($key, $value, $expires = 0, $method = null, $fileFallback = false)
     {
-        $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($expires && $expires<2592000) $expires = microtime(true)+(float)$expires;
+        $cn = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
+        if ($expires && $expires < 2592000) {
+            $expires = microtime(true) + (float)$expires;
+        }
         $ret = $cn::set($key, $value, $expires);
-        if($fileFallback && $method!='file' && !$expires) {
+        if ($fileFallback && $method != 'file' && !$expires) {
             $ret = Tecnodesign_Cache_File::set($key, $value);
         }
-        unset($cn,$key,$value,$expires,$method);
+        unset($cn, $key, $value, $expires, $method);
         return $ret;
     }
 
-    public static function delete($key, $method=null, $fileFallback=false)
+    public static function delete($key, $method = null, $fileFallback = false)
     {
-        $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($fileFallback && $method!='file') {
+        $cn = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
+        if ($fileFallback && $method != 'file') {
             Tecnodesign_Cache_File::delete($key);
         }
         return $cn::delete($key);
     }
 
-    public static function size($key, $expires=0, $method=null, $fileFallback=false)
+    public static function size($key, $expires = 0, $method = null, $fileFallback = false)
     {
-        $cn = 'Tecnodesign_Cache_'.ucfirst($method=self::storage($method));
-        if($expires && $expires<2592000) $expires = microtime(true)+(float)$expires;
-        $ret = $cn::size($key, $expires=0);
-        if($fileFallback && $ret===false && $method!='file') {
+        $className = 'Tecnodesign_Cache_' . ucfirst($method = self::storage($method));
+        if ($expires && $expires < 2592000) {
+            $expires = microtime(true) + (float)$expires;
+        }
+        $ret = $className::size($key, $expires = 0);
+        if ($fileFallback && $ret === false && $method != 'file') {
             $ret = Tecnodesign_Cache_File::size($key);
         }
         return $ret;
@@ -139,15 +161,16 @@ class Tecnodesign_Cache
 
     /**
      * Defines a scope for this server cache space
+     * @param string $siteKey
+     * @return bool|string|null
      */
-    public static function siteKey($s=null)
+    public static function siteKey($siteKey = null)
     {
-        if (!is_null($s)) {
-            self::$_siteKey = $s;
-        } else if (is_null(self::$_siteKey)) {
+        if ($siteKey !== null) {
+            self::$_siteKey = $siteKey;
+        } elseif (self::$_siteKey === null) {
             self::$_siteKey = false;
         }
-        unset($s);
         return self::$_siteKey;
     }
 
@@ -156,7 +179,7 @@ class Tecnodesign_Cache
         return Tecnodesign_Cache_File::filename($key);
     }
 
-    public static function cacheDir($s=null)
+    public static function cacheDir($s = null)
     {
         return Tecnodesign_Cache_File::cacheDir($s);
     }

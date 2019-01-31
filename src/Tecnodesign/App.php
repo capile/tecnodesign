@@ -29,104 +29,110 @@
  */
 class Tecnodesign_App
 {
-    protected static $_instances = null, $_current=null, $_request=null, $_response=array();
-    protected $_name=null;
-    protected $_env=null;
-    protected $_timeout=3600;
-    protected $_vars=array();
-    public $addons=array();
-    public $start=null;
+    protected static $_instances = null, $_current = null, $_request = null, $_response = array();
+    protected $_name = null;
+    protected $_env = null;
+    protected $_timeout = 3600;
+    protected $_vars = array();
+    public $addons = array();
+    public $start = null;
     public static
-        $beforeRun=array(),
-        $afterRun=array(),
+        $beforeRun = array(),
+        $afterRun = array(),
         $defaultController = array(
-            'class'=>false,
-            'cache'=>false,
-            'method'=>false,
-            'additional-params'=>false,
-            'params'=>false,
-            'format'=>false,
-            'template'=>false,
-            'layout'=>false,
-            'credentials'=>false,
-        ),
-        $assets=array('Z'),
+        'class' => false,
+        'cache' => false,
+        'method' => false,
+        'additional-params' => false,
+        'params' => false,
+        'format' => false,
+        'template' => false,
+        'layout' => false,
+        'credentials' => false,
+    ),
+        $assets = array('Z'),
         $result,
-        $http2push=false,
+        $http2push = false,
         $link;
-    protected $_o=null;
+    protected $_o = null;
 
-    public function __construct($s, $siteMemKey=false, $env='prod')
+    public function __construct($s, $siteMemKey = false, $env = 'prod')
     {
         if ($siteMemKey) {
             Tecnodesign_Cache::siteKey($siteMemKey);
             $this->_name = $siteMemKey;
         }
-        $this->start=time();
+        $this->start = time();
         if (!defined('TDZ_ENV')) {
             define('TDZ_ENV', $env);
         } else {
             $env = TDZ_ENV;
         }
         $this->_env = $env;
-        if(is_array($s)) {
+        if (is_array($s)) {
             array_unshift($s, $env);
             $this->_vars = tdz::staticCall('tdz', 'config', $s);
         } else {
             $this->_vars = tdz::config($s, $env);
         }
-        unset($s);
         $base = $this->_vars['tecnodesign']['apps-dir'];
-        if (!$base || $base == '.') {
+        if (!$base || $base === '.') {
             $base = substr(TDZ_ROOT, 0, strpos(TDZ_ROOT, '/lib/'));
             $this->_vars['tecnodesign']['apps-dir'] = $base;
         }
-        if(!isset($this->_vars['tecnodesign']['controller-options'])) {
-            $this->_vars['tecnodesign']['controller-options']=self::$defaultController;
+
+        if (!isset($this->_vars['tecnodesign']['controller-options'])) {
+            $this->_vars['tecnodesign']['controller-options'] = self::$defaultController;
         } else {
-            $this->_vars['tecnodesign']['controller-options']+=self::$defaultController;
+            $this->_vars['tecnodesign']['controller-options'] += self::$defaultController;
         }
-        if(!isset($this->_vars['tecnodesign']['routes'])) {
-            $this->_vars['tecnodesign']['routes']=array();
+
+        if (!isset($this->_vars['tecnodesign']['routes'])) {
+            $this->_vars['tecnodesign']['routes'] = array();
         }
-        foreach ($this->_vars['tecnodesign']['routes'] as $url=>$route) {
-            $this->_vars['tecnodesign']['routes'][$url]=$this->getRouteConfig($route);
+
+        foreach ($this->_vars['tecnodesign']['routes'] as $url => $route) {
+            $this->_vars['tecnodesign']['routes'][$url] = $this->getRouteConfig($route);
         }
-        foreach ($this->_vars['tecnodesign'] as $name=>$value) {
-            if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
-                if(is_array($value)) {
-                    foreach($this->_vars['tecnodesign'][$name] as $i=>$value) {
-                        if(substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':') {
-                            $save = true;
-                            $this->_vars['tecnodesign'][$name][$i]=str_replace('\\', '/', realpath($base.'/'.$value));
+
+        foreach ($this->_vars['tecnodesign'] as $name => $value) {
+
+            if ((substr($name, -4) === 'root' || substr($name, -4) === '-dir')
+                && (is_array($value) || (strpos($value, '/') !== 0 && substr($value, 1, 1) !== ':'))) {
+                if (is_array($value)) {
+                    foreach ($value as $i => $v) {
+                        if (strpos($v, '/') !== 0 && substr($v, 1, 1) !== ':') {
+                            $this->_vars['tecnodesign'][$name][$i]
+                                = str_replace('\\', '/', realpath($base . '/' . $v));
                         }
                     }
                 } else {
-                    $save = true;
-                    $this->_vars['tecnodesign'][$name]=str_replace('\\', '/', realpath($base.'/'.$value));
+                    $this->_vars['tecnodesign'][$name] = str_replace('\\', '/', realpath($base . '/' . $value));
                 }
             }
         }
         $this->cache();
         $this->start();
         $save = false;
-        if(isset($this->_vars['tecnodesign']['addons']) && is_array($this->_vars['tecnodesign']['addons'])) {
-            foreach ($this->_vars['tecnodesign']['addons'] as $addon=>$load) {
+        if (isset($this->_vars['tecnodesign']['addons']) && is_array($this->_vars['tecnodesign']['addons'])) {
+            foreach ($this->_vars['tecnodesign']['addons'] as $addon => $load) {
                 if ($load) {
                     $save = true;
                     if (is_array($load) && isset($load['class'])) {
                         $class = $load['class'];
                         $config = $load['params'];
                     } else {
-                        $class = 'Tecnodesign_App_'.ucfirst($addon);
+                        $class = 'Tecnodesign_App_' . ucfirst($addon);
                         $config = $load;
                     }
                     tdz::autoload($class);
                     if (class_exists($class)) {
-                        if(!is_array($config) && isset($this->_vars[$config])) {
-                            $config = $this->_vars[$config];
-                        } else if(!is_array($config) && isset($this->_vars[$addon])) {
-                            $config = $this->_vars[$addon];
+                        if (!is_array($config)) {
+                            if (isset($this->_vars[$config])) {
+                                $config = $this->_vars[$config];
+                            } elseif (isset($this->_vars[$addon])) {
+                                $config = $this->_vars[$addon];
+                            }
                         }
                         $this->addons[$addon] = $class;
                         $this->_o[$class] = new $class($config, $this->_env);
@@ -134,47 +140,57 @@ class Tecnodesign_App
                 }
             }
         }
-        if($save){
+        if ($save) {
             $this->cache();
         }
     }
 
-    public static function getInstance($name=false, $env='prod', $expires=0)
+    public static function getInstance($name = false, $env = 'prod', $expires = 0)
     {
-        $instance="{$name}/{$env}";
-        $ckey="app/{$instance}";
+        $instance = "{$name}/{$env}";
+        $cacheKey = "app/{$instance}";
         $app = false;
         if (!defined('TDZ_ENV')) {
             define('TDZ_ENV', $env);
         } else {
+            /**
+             * @todo I believe this is useless. Shouldn't always use TDZ_ENV?
+             */
             $env = TDZ_ENV;
         }
+
+        /** @todo should it be $name=== false? obs: zero is false! */
         if (!$name) {
-            if(is_null(Tecnodesign_App::$_instances)) {
-                Tecnodesign_App::$_instances = new ArrayObject();
+            if (self::$_instances === null) {
+                self::$_instances = new ArrayObject();
             }
-            $instances = Tecnodesign_App::$_instances;
+            $instances = self::$_instances;
             $siteKey = Tecnodesign_Cache::siteKey();
             if ($siteKey) {
                 $siteKey .= '/';
-                foreach ($instances as $key=>$instance) {
-                    if (substr($key, 0, strlen($siteKey))==$siteKey) {
+                foreach ($instances as $key => $instance) {
+                    if (strpos($key, $siteKey) === 0) {
                         return $instance;
                     }
                 }
             } else {
-                if(!is_array($instances)) {
+                if (!is_array($instances)) {
                     $instances = (array)$instances;
                 }
                 return array_shift($instances);
             }
         }
-        if(isset(Tecnodesign_App::$_instances[$instance])) {
-            return Tecnodesign_App::$_instances[$instance];
-        } else if(Tecnodesign_Cache::siteKey()) {
-            $app = Tecnodesign_Cache::get($ckey, $expires);
-            if($app) {
-                Tecnodesign_App::$_instances[$instance] = $app;
+        if (isset(self::$_instances[$instance])) {
+            return self::$_instances[$instance];
+        }
+
+        /**
+         * @todo the $cacheKey can be different from Tecnodesign_Cache::siteKey(). Is it right?
+         */
+        if (Tecnodesign_Cache::siteKey()) {
+            $app = Tecnodesign_Cache::get($cacheKey, $expires);
+            if ($app) {
+                self::$_instances[$instance] = $app;
             }
         }
         return $app;
@@ -190,37 +206,37 @@ class Tecnodesign_App
      */
     public function start()
     {
-        if(isset($this->_vars['tecnodesign']['lib-dir'])) {
-            $sep = (isset($_SERVER['WINDIR']))?(';'):(':');
-            if(!is_array($this->_vars['tecnodesign']['lib-dir'])) {
+        if (isset($this->_vars['tecnodesign']['lib-dir'])) {
+            $sep = (isset($_SERVER['WINDIR'])) ? (';') : (':');
+            if (!is_array($this->_vars['tecnodesign']['lib-dir'])) {
                 $this->_vars['tecnodesign']['lib-dir'] = explode($sep, $this->_vars['tecnodesign']['lib-dir']);
             }
             foreach ($this->_vars['tecnodesign']['lib-dir'] as $dir) {
-                if(substr($dir, 0, 1)!='/' && substr($dir, 1, 1)!=':') {
-                    $dir = $this->_vars['tecnodesign']['apps-dir'].'/'.$dir;
+                if (substr($dir, 0, 1) != '/' && substr($dir, 1, 1) != ':') {
+                    $dir = $this->_vars['tecnodesign']['apps-dir'] . '/' . $dir;
                 }
-                if(!in_array($dir, tdz::$lib)) {
-                    tdz::$lib[]=$dir;
+                if (!in_array($dir, tdz::$lib)) {
+                    tdz::$lib[] = $dir;
                 }
             }
-            $libdir = ini_get('include_path').$sep.implode($sep, tdz::$lib);
+            $libdir = ini_get('include_path') . $sep . implode($sep, tdz::$lib);
             @ini_set('include_path', $libdir);
         }
-        if(isset($this->_vars['tecnodesign']['languages'])) {
+        if (isset($this->_vars['tecnodesign']['languages'])) {
             tdz::set('languages', $this->_vars['tecnodesign']['languages']);
         }
-        if(isset($this->_vars['tecnodesign']['language'])) {
+        if (isset($this->_vars['tecnodesign']['language'])) {
             tdz::$lang = $this->_vars['tecnodesign']['language'];
         }
-        if(isset($this->_vars['tecnodesign']['document-root'])) {
+        if (isset($this->_vars['tecnodesign']['document-root'])) {
             $_SERVER['DOCUMENT_ROOT'] = $this->_vars['tecnodesign']['document-root'];
         }
-        if(isset($this->_vars['database']) && !tdz::$database) {
+        if (isset($this->_vars['database']) && !tdz::$database) {
             tdz::$database = $this->_vars['database'];
         }
     }
 
-    public static function end($output='', $status=200)
+    public static function end($output = '', $status = 200)
     {
         throw new Tecnodesign_App_End($output, $status);
     }
@@ -230,18 +246,18 @@ class Tecnodesign_App
      */
     public function renew()
     {
-        self::$_request=null;
+        self::$_request = null;
         self::request();
-        if(isset($this->_vars['tecnodesign']['export'])) {
-            foreach($this->_vars['tecnodesign']['export'] as $cn=>$toExport) {
-                if(!tdz::classFile($cn)) {
-                    $cn = 'Tecnodesign_'.tdz::camelize($cn, true);
-                    if(!tdz::classFile($cn)) {
+        if (isset($this->_vars['tecnodesign']['export'])) {
+            foreach ($this->_vars['tecnodesign']['export'] as $cn => $toExport) {
+                if (!tdz::classFile($cn)) {
+                    $cn = 'Tecnodesign_' . tdz::camelize($cn, true);
+                    if (!tdz::classFile($cn)) {
                         return false;
                     }
                 }
-                foreach($toExport as $k=>$v) {
-                    $cn::$$k=$v;
+                foreach ($toExport as $k => $v) {
+                    $cn::$$k = $v;
                 }
             }
         }
@@ -258,12 +274,12 @@ class Tecnodesign_App
         if (is_null($this->_name) || !$this->_timeout) {
             return false;
         }
-        $instance="{$this->_name}/{$this->_env}";
-        $ckey="app/{$instance}";
-        if(is_null(Tecnodesign_App::$_instances)) {
+        $instance = "{$this->_name}/{$this->_env}";
+        $ckey = "app/{$instance}";
+        if (is_null(Tecnodesign_App::$_instances)) {
             Tecnodesign_App::$_instances = array();
         }
-        Tecnodesign_App::$_instances[$instance]=$this;
+        Tecnodesign_App::$_instances[$instance] = $this;
         return Tecnodesign_Cache::set($ckey, $this, $this->_timeout);
     }
 
@@ -271,12 +287,12 @@ class Tecnodesign_App
     {
         // run internals first...
         $this->renew();
-        foreach(self::$beforeRun as $exec) {
+        foreach (self::$beforeRun as $exec) {
             tdz::exec($exec);
         }
         try {
             // then check addons, like Symfony
-            foreach ($this->addons as $addon=>$class) {
+            foreach ($this->addons as $addon => $class) {
                 $addonObject = $this->getObject($class);
                 $m = 'run';
                 if (method_exists($addonObject, $m)) {
@@ -288,70 +304,85 @@ class Tecnodesign_App
             $request = self::request();
             $valid = false;
             if (isset($routes[$request['script-name']])) {
+                /**
+                 * @todo runRoute does not have an second argument
+                 */
                 $valid = $this->runRoute($request['script-name'], $request);
             }
-            if(!$valid) {
-                foreach ($routes as $url=>$options) {
+            if (!$valid) {
+                foreach ($routes as $url => $options) {
+                    /**
+                     * @todo runRoute does not have an second argument
+                     */
                     $valid = $this->runRoute($url, $request);
                     if ($valid) {
                         break;
                     }
                 }
             }
-            if(!$valid || !self::$_response['found']) {
+            if (!$valid || !self::$_response['found']) {
                 $this->runError(404, $defaults['layout']);
             }
             if (isset(self::$_response['template']) && self::$_response['template']) {
-                if(!isset(self::$_response['variables'])) self::$_response['variables']=array();
-                self::$_response['data']=$this->runTemplate(self::$_response['template'], self::$_response['variables'], self::$_response['cache']);
+                if (!isset(self::$_response['variables'])) {
+                    self::$_response['variables'] = array();
+                }
+                self::$_response['data'] = $this->runTemplate(self::$_response['template'],
+                    self::$_response['variables'], self::$_response['cache']);
             }
-            if(!isset(self::$_response['data'])) {
-                self::$_response['data']=false;
+            if (!isset(self::$_response['data'])) {
+                self::$_response['data'] = false;
             }
-            self::$result=self::$_response['data'];
-            if(isset(self::$_response['layout']) && self::$_response['layout']) {
+            self::$result = self::$_response['data'];
+            if (isset(self::$_response['layout']) && self::$_response['layout']) {
                 self::$result = $this->runTemplate(self::$_response['layout'], self::$_response);
             }
-        } catch(Tecnodesign_App_End $e) {
+        } catch (Tecnodesign_App_End $e) {
             self::status($e->getCode());
             self::$result = $e->getMessage();
-        } catch(Tecnodesign_Exception $e) {
-            if($e->error) {
-                tdz::log('Error in action stack: '.$e->getMessage());
+        } catch (Tecnodesign_Exception $e) {
+            if ($e->error) {
+                tdz::log('Error in action stack: ' . $e->getMessage());
                 $this->runError(500, $defaults['layout']);
             } else {
                 self::$result = $e->getMessage();
             }
-        } catch(Exception $e) {
-            tdz::log('Error in action stack: '.$e->getMessage());
+        } catch (Exception $e) {
+            tdz::log('Error in action stack: ' . $e->getMessage());
             $this->runError(500, $defaults['layout']);
         }
-        if(isset(tdz::$variables['exit']) && !tdz::$variables['exit']) return self::$result;
-        if(!self::$_request['shell']) {
-            if(!headers_sent()) {
-                if(!isset(self::$_response['headers']['content-length'])) {
-                    if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
+        if (isset(tdz::$variables['exit']) && !tdz::$variables['exit']) {
+            return self::$result;
+        }
+        if (!self::$_request['shell']) {
+            if (!headers_sent()) {
+                if (!isset(self::$_response['headers']['content-length'])) {
+                    if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'],
+                            'gzip')) {
                         self::$result = gzencode(self::$result, 9);
-                        self::$_response['headers']['content-encoding'] = (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip'))?('x-gzip'):('gzip');
+                        self::$_response['headers']['content-encoding'] = (strpos($_SERVER['HTTP_ACCEPT_ENCODING'],
+                            'x-gzip')) ? ('x-gzip') : ('gzip');
                     }
                     self::$_response['headers']['content-length'] = strlen(self::$result);
                 }
-                foreach(self::$_response['headers'] as $hn=>$h) {
-                    if(!is_int($hn)) {
-                        header($hn.': '.$h);
+                foreach (self::$_response['headers'] as $hn => $h) {
+                    if (!is_int($hn)) {
+                        header($hn . ': ' . $h);
                     } else {
                         header($h);
                     }
                 }
                 if (self::$_response['cache']) {
-                    $timeout = (self::$_response['cache']>0)?(self::$_response['cache']):(3600);
+                    $timeout = (self::$_response['cache'] > 0) ? (self::$_response['cache']) : (3600);
                     tdz::cacheControl('public', $timeout);
-                } else if(!tdz::get('cache-control')) {
-                    tdz::cacheControl('no-cache, private, must-revalidate', false);
+                } else {
+                    if (!tdz::get('cache-control')) {
+                        tdz::cacheControl('no-cache, private, must-revalidate', false);
+                    }
                 }
             }
-            if(self::$http2push && self::$link) {
-                header('link: '.static::$link);
+            if (self::$http2push && self::$link) {
+                header('link: ' . static::$link);
             }
             echo self::$result;
             tdz::flush();
@@ -363,36 +394,38 @@ class Tecnodesign_App
         //exit();
     }
 
-    public static function afterRun($exec=null, $next=false)
+    public static function afterRun($exec = null, $next = false)
     {
-        if($exec && $next) {
-            $t=microtime(true);
-            Tecnodesign_App::$afterRun[$t]=$exec;
+        if ($exec && $next) {
+            $t = microtime(true);
+            Tecnodesign_App::$afterRun[$t] = $exec;
             $nrun = Tecnodesign_Cache::get('nextRun', 0, null, true);
-            if(!$nrun || !is_array($nrun)) {
-                $nrun =array();
+            if (!$nrun || !is_array($nrun)) {
+                $nrun = array();
             }
             $nrun[$t] = $exec;
             Tecnodesign_Cache::set('nextRun', $nrun, 0, null, true);
-        } else if($exec) {
-            Tecnodesign_App::$afterRun[]=$exec;
         } else {
-            $run = Tecnodesign_App::$afterRun;
-            $nrun = Tecnodesign_Cache::get('nextRun', 0, null, true);
-            if($nrun) {
-                if(is_array($nrun)) {
-                    $run = array_merge($run, $nrun);
+            if ($exec) {
+                Tecnodesign_App::$afterRun[] = $exec;
+            } else {
+                $run = Tecnodesign_App::$afterRun;
+                $nrun = Tecnodesign_Cache::get('nextRun', 0, null, true);
+                if ($nrun) {
+                    if (is_array($nrun)) {
+                        $run = array_merge($run, $nrun);
+                    }
+                    Tecnodesign_Cache::delete('nextRun', null, true);
                 }
-                Tecnodesign_Cache::delete('nextRun', null, true);
-            }
-            Tecnodesign_App::$afterRun=array();
-            foreach($run as $exec) {
-                tdz::exec($exec);
+                Tecnodesign_App::$afterRun = array();
+                foreach ($run as $exec) {
+                    tdz::exec($exec);
+                }
             }
         }
     }
 
-    public static function status($code=200, $header=true)
+    public static function status($code = 200, $header = true)
     {
         // http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
         static $status = array(
@@ -414,58 +447,70 @@ class Tecnodesign_App
             422 => 'Unprocessable Entity',
             500 => 'Internal Server Error',
         );
-        if(!isset($status[$code])) $code = 500;
-        $proto = (isset($_SERVER['SERVER_PROTOCOL']))?($_SERVER['SERVER_PROTOCOL']):('HTTP/1.1');
-        @header($proto.' '.$code.' '.$status[$code], true);
-        return $code.' '.$status[$code];
+        if (!isset($status[$code])) {
+            $code = 500;
+        }
+        $proto = (isset($_SERVER['SERVER_PROTOCOL'])) ? ($_SERVER['SERVER_PROTOCOL']) : ('HTTP/1.1');
+        @header($proto . ' ' . $code . ' ' . $status[$code], true);
+        return $code . ' ' . $status[$code];
     }
 
-    public function runError($error, $layout=null)
+    public function runError($error, $layout = null)
     {
         @ob_clean();
-        if(!self::status($error)) {
+        if (!self::status($error)) {
             $error = 500;
             self::status($error);
         }
-        if(is_null($layout)) {
-            if(isset($this->_vars['tecnodesign']['controller-options']['layout'])) {
+        if (is_null($layout)) {
+            if (isset($this->_vars['tecnodesign']['controller-options']['layout'])) {
                 $layout = $this->_vars['tecnodesign']['controller-options']['layout'];
             }
         }
-        if(tdz::templateFile('error'.$error)) self::$_response['template']='error'.$error;
-        else self::$_response['template']='error';
-        self::$_response['cache']=false;
-        self::$_response['layout']=$layout;
-        if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();
-        if(!isset(self::$_response['variables'])) self::$_response['variables']=tdz::$variables['variables'];
+        if (tdz::templateFile('error' . $error)) {
+            self::$_response['template'] = 'error' . $error;
+        } else {
+            self::$_response['template'] = 'error';
+        }
+        self::$_response['cache'] = false;
+        self::$_response['layout'] = $layout;
+        if (!isset(tdz::$variables['variables'])) {
+            tdz::$variables['variables'] = array();
+        }
+        if (!isset(self::$_response['variables'])) {
+            self::$_response['variables'] = tdz::$variables['variables'];
+        }
         self::$_response['variables']['error'] = $error;
-        self::$_response['data']=$this->runTemplate(self::$_response['template'], self::$_response['variables'], self::$_response['cache']);
-        $result=self::$_response['data'];
-        if(self::$_response['layout']) {
+        self::$_response['data'] = $this->runTemplate(self::$_response['template'], self::$_response['variables'],
+            self::$_response['cache']);
+        $result = self::$_response['data'];
+        if (self::$_response['layout']) {
             self::$_response += tdz::$variables;
             $result = $this->runTemplate(self::$_response['layout'], self::$_response);
         }
         //@header('content-type: text/html; charset=utf-8');
-        @header('content-length: '.strlen($result));
+        @header('content-length: ' . strlen($result));
         tdz::cacheControl('no-cache, private, must-revalidate', false);
         echo $result;
         tdz::flush();
         exit();
     }
 
-    public function runTemplate($tpl, $variables, $cache=false)
+    public function runTemplate($tpl, $variables, $cache = false)
     {
-        if($tpl && strpos($tpl, '<')!==false) return $tpl;
-        if(static::$assets) {
-            foreach(static::$assets as $i=>$n) {
+        if ($tpl && strpos($tpl, '<') !== false) {
+            return $tpl;
+        }
+        if (static::$assets) {
+            foreach (static::$assets as $i => $n) {
                 static::asset($n);
                 unset(static::$assets[$i], $i, $n);
             }
         }
         $result = false;
-        $exec = array('variables'=>$variables, 'script'=>tdz::templateFile($tpl));
-        if($exec['script']) {
-            $result=tdz::exec($exec);
+        $exec = array('variables' => $variables, 'script' => tdz::templateFile($tpl));
+        if ($exec['script']) {
+            $result = tdz::exec($exec);
         }
         return $result;
     }
@@ -478,45 +523,54 @@ class Tecnodesign_App
      */
     public function asset($component)
     {
-        if(is_null(tdz::$assetsUrl)) return;
+        if (is_null(tdz::$assetsUrl)) {
+            return;
+        }
 
-        if(substr($component, 0, 1)=='!') {
+        if (substr($component, 0, 1) == '!') {
             $component = substr($component, 1);
             $output = false;
         } else {
             $output = true;
         }
 
-        static $types=array('js'=>'js','less'=>'css');
-        static $destination=array('js'=>'script','css'=>'style');
+        static $types = array('js' => 'js', 'less' => 'css');
+        static $destination = array('js' => 'script', 'css' => 'style');
 
-        foreach($types as $from=>$to) {
+        foreach ($types as $from => $to) {
             // first look for assets
-            if(!isset(tdz::$variables['variables'][$destination[$to]])) tdz::$variables['variables'][$destination[$to]]=array();
+            if (!isset(tdz::$variables['variables'][$destination[$to]])) {
+                tdz::$variables['variables'][$destination[$to]] = array();
+            }
 
             $t = null;
-            $src=preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
+            $src = preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
             $fmod = 0;
-            foreach($src as $i=>$n) {
+            foreach ($src as $i => $n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
-                if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
+                if (file_exists($f = TDZ_DOCUMENT_ROOT . tdz::$assetsUrl . '/' . $to . '/' . str_replace('.', '/',
+                            $n) . '.' . $from)
+                    || file_exists($f = TDZ_ROOT . '/src/Tecnodesign/Resources/assets/' . $n . '.' . $from)
+                    || file_exists($f = TDZ_ROOT . '/src/' . $n . '/' . $n . '.' . $from)
+                    || file_exists($f = TDZ_ROOT . '/src/' . str_replace('.', '/', $n) . '.' . $from)
+                    || file_exists($f = dirname(TDZ_ROOT) . '/' . $n0 . '/' . str_replace('.', '/', $n) . '.' . $from)
+                    || file_exists($f = dirname(TDZ_ROOT) . '/' . $n0 . '/src/' . str_replace('.', '/',
+                            $n) . '.' . $from)
+                    || file_exists($f = dirname(TDZ_ROOT) . '/' . $n0 . '/dist/' . str_replace('.', '/',
+                            $n) . '.' . $from)
                 ) {
-                    $src[$i]=$f;
-                    if($t===null) {
-                        $t =  tdz::$assetsUrl.'/'.tdz::slug($n).'.'.$to;
-                        $tf =  TDZ_DOCUMENT_ROOT.$t;
-                        if(in_array($t, tdz::$variables['variables'][$destination[$to]])) {
+                    $src[$i] = $f;
+                    if ($t === null) {
+                        $t = tdz::$assetsUrl . '/' . tdz::slug($n) . '.' . $to;
+                        $tf = TDZ_DOCUMENT_ROOT . $t;
+                        if (in_array($t, tdz::$variables['variables'][$destination[$to]])) {
                             $t = null;
                             break;
                         }
                     }
-                    if(($mod=filemtime($f)) && $mod > $fmod) $fmod = $mod;
+                    if (($mod = filemtime($f)) && $mod > $fmod) {
+                        $fmod = $mod;
+                    }
                     unset($mod);
                 } else {
                     unset($src[$i]);
@@ -524,19 +578,23 @@ class Tecnodesign_App
                 unset($f);
             }
 
-            if($t) { // check and build
-                if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
-                if($src) {
+            if ($t) { // check and build
+                if (file_exists($tf) && filemtime($tf) > $fmod) {
+                    $src = null;
+                }
+                if ($src) {
                     tdz::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
-                    if(!file_exists($tf)) {// && !copy($f, $tf)
-                        tdz::log('[ERROR] Could not build component '.$component.': '.$tf.' from ', $src);
+                    if (!file_exists($tf)) {// && !copy($f, $tf)
+                        tdz::log('[ERROR] Could not build component ' . $component . ': ' . $tf . ' from ', $src);
                     }
                 }
 
-                if($output) {
-                    if($tf) $t .= '?'.date('YmdHis', filemtime($tf));
+                if ($output) {
+                    if ($tf) {
+                        $t .= '?' . date('YmdHis', filemtime($tf));
+                    }
 
-                    if(isset(tdz::$variables['variables'][$destination[$to]][700])) {
+                    if (isset(tdz::$variables['variables'][$destination[$to]][700])) {
                         tdz::$variables['variables'][$destination[$to]][] = $t;
                     } else {
                         tdz::$variables['variables'][$destination[$to]][700] = $t;
@@ -548,168 +606,202 @@ class Tecnodesign_App
     }
 
 
+    /**
+     * @param string|array $url
+     * @return bool
+     */
     public function runRoute($url)
     {
-        if(is_array($url) && isset($url['url'])) {
+        if (is_array($url) && isset($url['url'])) {
             $options = $url;
             $url = $options['url'];
-        } else if(isset($this->_vars['tecnodesign']['routes'][$url])) {
+        } elseif (isset($this->_vars['tecnodesign']['routes'][$url])) {
             $options = $this->_vars['tecnodesign']['routes'][$url];
         } else {
             return false;
         }
 
-        if(isset($options['url']) && $options['url']!='') {
+        if (isset($options['url']) && $options['url'] !== '') {
             $url = $options['url'];
         } else {
             $options['url'] = $url;
         }
-        $pat=(isset($options['additional-params']) && $options['additional-params'])?("@^{$url}@i"):("@^{$url}\$@i");
-        if (!preg_match($pat, self::$_request['script-name'], $m)) {
+        $pattern = (isset($options['additional-params']) && $options['additional-params']) ? "@^{$url}@i" : "@^{$url}\$@i";
+        if (!preg_match($pattern, self::$_request['script-name'], $matches)) {
             return false;
         }
-        if(self::$_request['shell']) {
-            $m = array_merge($m, self::$_request['argv']);
+        if (self::$_request['shell']) {
+            $matches = array_merge($matches, self::$_request['argv']);
         }
-        $class=$options['class'];
-        $method=$options['method'];
-        $method=tdz::camelize($method);
-        $params=array();
+        $class = $options['class'];
+        $method = $options['method'];
+        $method = tdz::camelize($method);
+        $params = array();
         // param verification
-        $valid=true;
+        $valid = true;
         if (isset($options['params']) && is_array($options['params'])) {
-            $ps=$m;
-            $pi=-1;
-            $base=array_shift($ps);
+            $ps = $matches;
+            $pi = -1;
+            $base = array_shift($ps);
             if ($options['additional-params']) {
-                $ap=substr(self::$_request['self'],strlen($base));
-                if(substr($ap, 0, 1)=='/') $ap = substr($ap,1);
-                $ap=preg_split('#/#', $ap, null);
-                $ps=array_merge($ps, $ap);
+                $ap = substr(self::$_request['self'], strlen($base));
+                if (strpos($ap, '/') === 0) {
+                    $ap = substr($ap, 1);
+                }
+                $ap = explode('/', $ap);
+                $ps = array_merge($ps, $ap);
             }
-            foreach ($ps as $pi=>$pv) {
+            foreach ($ps as $pi => $pv) {
                 $pv = urldecode($pv);
                 if (isset($options['params'][$pi])) {
-                    $po=$options['params'][$pi];
+                    $po = $options['params'][$pi];
                     if (!is_array($po)) {
-                        $po=array('name'=>$po);
+                        $po = array('name' => $po);
                     }
                     if (isset($po['choices']) && !is_array($po['choices'])) {
                         // expand method in $po['choices'] to an array and cache it
-                        $po['choices'] = @eval('return '.$po['choices'].';');
-                        if(!is_array($po['choices'])) {
+                        $po['choices'] = @eval('return ' . $po['choices'] . ';');
+                        if (!is_array($po['choices'])) {
                             $po['choices'] = array();
                         }
-                        $this->_vars['tecnodesign']['routes'][$url]['params'][$pi]['choices']=$po['choices'];
+                        $this->_vars['tecnodesign']['routes'][$url]['params'][$pi]['choices'] = $po['choices'];
                         $this->cache();
                     }
                     if ($pv && isset($po['choices']) && !in_array($pv, $po['choices'])) {
                         // invalid param
-                        $valid=false;
                         return false;
                     }
-                    $params[$po['name']]=$pv;
-                } else if(!$options['additional-params']) {
+                    $params[$po['name']] = $pv;
+                } elseif (!$options['additional-params']) {
                     // invalid param
-                    $valid=false;
                     return false;
                 }
-                if(!$valid) {
+
+                /**
+                 * @todo It doesn't make much sense since $valid==false already returns false above
+                 */
+                if (!$valid) {
                     continue;
                 }
-                if(isset($po['append'])) {
-                    if($po['append']=='method') {
-                        $method.=ucfirst($pv);
-                    } else if($po['append']=='class') {
-                        $class.=ucfirst($pv);
+
+                if (isset($po['append'])) {
+                    if ($po['append'] === 'method') {
+                        $method .= ucfirst($pv);
+                    } elseif ($po['append'] === 'class') {
+                        $class .= ucfirst($pv);
                     }
                 }
+
                 if (isset($po['prepend'])) {
-                    if($po['prepend']=='method') {
-                        $method=$pv.ucfirst($method);
-                    } else if ($po['prepend']=='class') {
-                        $class=$pv.ucfirst($class);
+                    if ($po['prepend'] === 'method') {
+                        $method = $pv . ucfirst($method);
+                    } elseif ($po['prepend'] === 'class') {
+                        $class = $pv . ucfirst($class);
                     }
                 }
             }
             $pi++;
             while (isset($options['params'][$pi])) {
-                $po=$options['params'][$pi++];
-                if(!is_array($po)) {
-                    $po=array('name'=>$po);
+                $po = $options['params'][$pi++];
+                if (!is_array($po)) {
+                    $po = array('name' => $po);
                 }
-                if(isset($po['required']) && $po['required']) {
-                    $valid=false;
+
+                if (isset($po['required']) && $po['required']) {
                     return false;
                     break;
-                } else {
-                    $params[$po['name']]=null;
                 }
+
+                $params[$po['name']] = null;
             }
+
             if (!$valid) {
                 return false;
                 //continue;
             }
         }
-        if(isset($options['credentials']) && $options['credentials']) {
+        if (isset($options['credentials']) && $options['credentials']) {
             $user = tdz::getUser();
             $forbidden = false;
-            if(!$user) {
+
+            if (!$user) {
                 $forbidden = true;
-            } else if(is_array($options['credentials']) && !$user->hasCredential($options['credentials'])) {
+            } elseif (is_array($options['credentials']) && !$user->hasCredential($options['credentials'])) {
                 $forbidden = true;
             }
-            if($forbidden) {
+
+            if ($forbidden) {
                 $this->runError(403, $options['layout']);
                 return false;
             }
         }
 
-        self::$_request['action-name']="$class::$method";
-        self::$_response['found']=true;
-        self::$_response['route']=$options;
-        if(isset($options['layout'])) {
-            self::$_response['layout']=$options['layout'];
+        self::$_request['action-name'] = "$class::$method";
+        self::$_response['found'] = true;
+        self::$_response['route'] = $options;
+
+        if (isset($options['layout'])) {
+            self::$_response['layout'] = $options['layout'];
         }
-        self::$_response['cache']=(isset($options['cache']))?($options['cache']):(false);
-        if(isset($options['params']) && is_array($options['params'])) {
-            self::$_response['variables']=$options['params'];
+
+        self::$_response['cache'] = isset($options['cache']) ? $options['cache'] : false;
+        if (isset($options['params']) && is_array($options['params'])) {
+            self::$_response['variables'] = $options['params'];
         }
-        if(isset($options['static']) && $options['static']) {
+
+        if (isset($options['static']) && $options['static']) {
             $static = true;
             $o = $class;
         } else {
             $static = false;
-            $o=$this->getObject($class);
+            $o = $this->getObject($class);
         }
-        $template=false;
+        /**@todo var not used */
+        $template = false;
 
-        if(isset($options['arguments']) && (!$params || (!isset($params[0]) || !$params[0]))) $params = $options['arguments'];
-        if(method_exists($o,'preExecute')) {
-            if($static) $o::preExecute($this, $params);
-            else $o->preExecute($this, $params);
+        if (isset($options['arguments']) && (!$params || (!isset($params[0]) || !$params[0]))) {
+            $params = $options['arguments'];
         }
-        if(method_exists($o,$method)) {
-            if($static) $template=$o::$method($params);
-            else $template=$o->$method($params);
+
+        if (method_exists($o, 'preExecute')) {
+            if ($static) {
+                $o::preExecute($this, $params);
+            } else {
+                $o->preExecute($this, $params);
+            }
+        }
+
+        if (method_exists($o, $method)) {
+            if ($static) {
+                $template = $o::$method($params);
+            } else {
+                $template = $o->$method($params);
+            }
         } else {
             return false;
         }
-        if(method_exists($o,'postExecute')) {
-            if($static) $o::postExecute($this, $params);
-            else $o->postExecute($this, $params);
+
+        if (method_exists($o, 'postExecute')) {
+            if ($static) {
+                $o::postExecute($this, $params);
+            } else {
+                $o->postExecute($this, $params);
+            }
         }
-        if($template && is_string($template)) {
-            self::$_response['template']=$template;
-        } else if($template!==false) {
-            self::$_response['template']=$class.'_'.$method;
+
+        if ($template && is_string($template)) {
+            self::$_response['template'] = $template;
+        } elseif ($template !== false) {
+            self::$_response['template'] = $class . '_' . $method;
         } else {
-            self::$_response['template']=false;
+            self::$_response['template'] = false;
         }
-        if(isset(self::$_response['cache']) && self::$_response['cache']) {
+
+        if (isset(self::$_response['cache']) && self::$_response['cache']) {
             $this->_o[$class] = $o;
             $this->cache();
         }
+
         return true;
     }
 
@@ -724,14 +816,14 @@ class Tecnodesign_App
     public function getObject($class)
     {
         $cache = false;
-        if(is_null($this->_o)) {
-            $this->_o=new ArrayObject();
+        if (is_null($this->_o)) {
+            $this->_o = new ArrayObject();
         }
-        if(!isset($this->_o[$class])) {
-            $cache=true;
-            $this->_o[$class]=new $class("{$this->_name}/{$this->_env}");
+        if (!isset($this->_o[$class])) {
+            $cache = true;
+            $this->_o[$class] = new $class("{$this->_name}/{$this->_env}");
         }
-        if($cache) {
+        if ($cache) {
             $this->cache();
         }
         return $this->_o[$class];
@@ -739,8 +831,8 @@ class Tecnodesign_App
 
     public function getRouteConfig($route)
     {
-        if(!is_array($route)) {
-            $route = array('method'=>$route);
+        if (!is_array($route)) {
+            $route = array('method' => $route);
         }
         $route += $this->_vars['tecnodesign']['controller-options'];
         return $route;
@@ -751,74 +843,77 @@ class Tecnodesign_App
      *
      * Might be replaced afterwards for a proper Tecnodesign_Request object
      *
+     * @param string $key
+     * @param mixed $sub
      * @return array request directives
      */
-    public static function request($q=null, $sub=null)
+    public static function request($key = null, $sub = null)
     {
-        $removeExtensions=array('html', 'htm', 'php');
-        if(is_null(self::$_request)) {
-            self::$_response=&tdz::$variables;
-            self::$_response+=array('headers'=>array(),'variables'=>array());
+        $removeExtensions = array('html', 'htm', 'php');
+        if (self::$_request === null) {
+            self::$_response =& tdz::$variables;
+            self::$_response += array('headers' => array(), 'variables' => array());
             $app = tdz::getApp();
-            if(isset($app->tecnodesign['response'])) {
+            if (isset($app->tecnodesign['response'])) {
                 self::$_response += $app->tecnodesign['response'];
             }
-            self::$_request=array('started'=>microtime(true));
-            self::$_request['shell']=TDZ_CLI;
-            self::$_request['method']=(!self::$_request['shell'])?(strtolower($_SERVER['REQUEST_METHOD'])):('get');
-            self::$_request['ajax']=(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH']=='XMLHttpRequest');
+            self::$_request = array('started' => microtime(true));
+            self::$_request['shell'] = TDZ_CLI;
+            self::$_request['method'] = (!self::$_request['shell']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
+            self::$_request['ajax'] = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
             if (!self::$_request['shell']) {
                 self::$_request['ip'] = $_SERVER['REMOTE_ADDR'];
-                self::$_request['hostname']=preg_replace('/[\s\n\;]+/', '', $_SERVER['HTTP_HOST']);
-                self::$_request['https']=(isset($_SERVER['HTTPS']));
-                self::$_request['host']=((self::$_request['https'])?('https://'):('http://')).self::$_request['hostname'];
-                $ui=@parse_url($_SERVER['REQUEST_URI']);
-                if(!$ui) {
-                    $ui=array();
-                    if(strpos($_SERVER['REQUEST_URI'], '?')!==false) {
-                        $ui['path']=substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?'));
-                        $ui['query']=substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], '?')+1);
+                self::$_request['hostname'] = preg_replace('/[\s\n\;]+/', '', $_SERVER['HTTP_HOST']);
+                self::$_request['https'] = isset($_SERVER['HTTPS']);
+                self::$_request['host'] = (self::$_request['https'] ? 'https://' : 'http://') . self::$_request['hostname'];
+                $ui = @parse_url($_SERVER['REQUEST_URI']);
+                if (!$ui) {
+                    $ui = array();
+                    if (strpos($_SERVER['REQUEST_URI'], '?') !== false) {
+                        $ui['path'] = substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?'));
+                        $ui['query'] = substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], '?') + 1);
                     } else {
-                        $ui['path']=$_SERVER['REQUEST_URI'];
+                        $ui['path'] = $_SERVER['REQUEST_URI'];
                     }
                 }
             } else {
                 $arg = $_SERVER['argv'];
                 self::$_request['shell'] = array_shift($arg);
                 $ui = array_shift($arg);
-                $ui=parse_url($ui);
-                if(isset($ui['query'])) {
+                $ui = parse_url($ui);
+                if (isset($ui['query'])) {
                     parse_str($ui['query'], $_GET);
                 }
-                self::$_request['argv']=$arg;
+                self::$_request['argv'] = $arg;
             }
-            self::$_request['query-string']=(isset($ui['query']))?($ui['query']):('');
-            self::$_request['script-name']=$ui['path'];
-            if (preg_match('/\.('.implode('|', $removeExtensions).')$/i', $ui['path'], $m)) {
-                self::$_request['self']=substr($ui['path'],0,strlen($ui['path'])-strlen($m[0]));
-                self::$_request['extension']=substr($m[0],1);
+            self::$_request['query-string'] = isset($ui['query']) ? $ui['query'] : '';
+            self::$_request['script-name'] = $ui['path'];
+            if (preg_match('/\.(' . implode('|', $removeExtensions) . ')$/i', $ui['path'], $m)) {
+                self::$_request['self'] = substr($ui['path'], 0, strlen($ui['path']) - strlen($m[0]));
+                self::$_request['extension'] = substr($m[0], 1);
             } else {
-                self::$_request['self']=$ui['path'];
+                self::$_request['self'] = $ui['path'];
             }
-            self::$_request['get']=$_GET;
+            self::$_request['get'] = $_GET;
             // fix: apache fills up CONTENT_TYPE rather than HTTP_CONTENT_TYPE
-            if(self::$_request['method']!='get' && !isset($_SERVER['HTTP_CONTENT_TYPE']) && isset($_SERVER['CONTENT_TYPE'])) {
+            if (self::$_request['method'] !== 'get' && !isset($_SERVER['HTTP_CONTENT_TYPE']) && isset($_SERVER['CONTENT_TYPE'])) {
                 $_SERVER['HTTP_CONTENT_TYPE'] = $_SERVER['CONTENT_TYPE'];
             }
-            if(self::$_request['method']!='get' && isset($_SERVER['HTTP_CONTENT_TYPE'])) {
-                if(substr($_SERVER['HTTP_CONTENT_TYPE'],0,16)=='application/json') {
-                    if($d=file_get_contents('php://input')) {
-                        self::$_request['post']=json_decode($d, true);
-                        if(is_null(self::$_request['post'])) {
+            if (self::$_request['method'] !== 'get' && isset($_SERVER['HTTP_CONTENT_TYPE'])) {
+                if (strpos($_SERVER['HTTP_CONTENT_TYPE'], 'application/json') === 0) {
+                    if ($d = file_get_contents('php://input')) {
+                        self::$_request['post'] = json_decode($d, true);
+                        if (self::$_request['post'] === null) {
                             self::$_request['error']['post'] = 'Invalid request body.';
                         }
                         unset($d);
                     }
-                } else if(substr($_SERVER['HTTP_CONTENT_TYPE'],0,15)=='application/xml' || substr($_SERVER['HTTP_CONTENT_TYPE'],0,8)=='text/xml') {
-                    if($d=file_get_contents('php://input')) {
+                } elseif (strpos($_SERVER['HTTP_CONTENT_TYPE'], 'application/xml') === 0
+                    || strpos($_SERVER['HTTP_CONTENT_TYPE'], 'text/xml') === 0) {
+                    if ($d = file_get_contents('php://input')) {
                         $xml = simplexml_load_string($d, null, LIBXML_NOCDATA);
-                        if($xml) {
-                            self::$_request['post'] = (array) $xml;
+                        if ($xml) {
+                            self::$_request['post'] = (array)$xml;
                         } else {
                             self::$_request['error']['post'] = 'Invalid request body.';
                         }
@@ -826,34 +921,36 @@ class Tecnodesign_App
                     }
                 }
             }
-            if(!isset(self::$_request['post'])) {
-                self::$_request['post']=tdz::postData($_POST);
+            if (!isset(self::$_request['post'])) {
+                self::$_request['post'] = tdz::postData($_POST);
             }
         }
-        if($q=='headers' && !isset(self::$_request[$q])) {
-            self::$_request[$q]=array();
-            foreach($_SERVER as $k=>$v) {
-                if(substr($k, 0, 5)=='HTTP_') {
-                    self::$_request[$q][str_replace('_','-',strtolower(substr($k,5)))] = $v;
+        if ($key === 'headers' && !isset(self::$_request[$key])) {
+            self::$_request[$key] = array();
+            foreach ($_SERVER as $k => $v) {
+                if (strpos($k, 'HTTP_') === 0) {
+                    self::$_request[$key][str_replace('_', '-', strtolower(substr($k, 5)))] = $v;
                 }
                 unset($k, $v);
             }
         }
-        if($q) {
-            if(!isset(self::$_request[$q])) return null;
-            $r = self::$_request[$q];
-            if($sub) {
+        if ($key) {
+            if (!isset(self::$_request[$key])) {
+                return null;
+            }
+            $r = self::$_request[$key];
+            if ($sub) {
                 $args = func_get_args();
                 array_shift($args);
-                while(isset($args[0])) {
+                while (isset($args[0])) {
                     $p = array_shift($args);
-                    if(!isset($r[$p])) {
+                    if (!isset($r[$p])) {
                         $r = null;
                         unset($p);
                         break;
-                    } else {
-                        $r = $r[$p];
                     }
+
+                    $r = $r[$p];
                     unset($p);
                 }
             }
@@ -873,13 +970,20 @@ class Tecnodesign_App
     {
         $a = func_get_args();
         $an = count($a);
-        if ($an==2 && !is_array($a[0])) {
-            self::$_response[$a[0]]=$a[1];
-        } else if($an==1 && is_array($a[0])) {
-            self::$_response = tdz::mergeRecursive($a[0], self::$_response);
-        } else if($an==1) {
-            if(isset(self::$_response[$a[0]])) return self::$_response[$a[0]];
-            else return;
+        if ($an == 2 && !is_array($a[0])) {
+            self::$_response[$a[0]] = $a[1];
+        } else {
+            if ($an == 1 && is_array($a[0])) {
+                self::$_response = tdz::mergeRecursive($a[0], self::$_response);
+            } else {
+                if ($an == 1) {
+                    if (isset(self::$_response[$a[0]])) {
+                        return self::$_response[$a[0]];
+                    } else {
+                        return;
+                    }
+                }
+            }
         }
         return self::$_response;
     }
@@ -888,9 +992,9 @@ class Tecnodesign_App
     {
         $a = func_get_args();
         $o = $this->_vars;
-        while($v=array_shift($a)) {
-            if(isset($o[$v])) {
-                $o=$o[$v];
+        while ($v = array_shift($a)) {
+            if (isset($o[$v])) {
+                $o = $o[$v];
             } else {
                 $o = null;
                 break;
@@ -913,18 +1017,18 @@ class Tecnodesign_App
      * Magic setter. Searches for a set$Name method, and stores the value in $_vars
      * for later use.
      *
-     * @param string $name  parameter name, should start with lowercase
-     * @param mixed  $value value to be set
+     * @param string $name parameter name, should start with lowercase
+     * @param mixed $value value to be set
      *
      * @return void
      */
-    public function  __set($name, $value)
+    public function __set($name, $value)
     {
-        $m='set'.ucfirst($name);
+        $m = 'set' . ucfirst($name);
         if (method_exists($this, $m)) {
             $this->$m($value);
         }
-        $this->_vars[$name]=$value;
+        $this->_vars[$name] = $value;
     }
 
     /**
@@ -935,14 +1039,16 @@ class Tecnodesign_App
      *
      * @return mixed the stored value, or method results
      */
-    public function  __get($name)
+    public function __get($name)
     {
-        $m='get'.ucfirst($name);
+        $m = 'get' . ucfirst($name);
         $ret = false;
         if (method_exists($this, $m)) {
             $ret = $this->$m();
-        } else if (isset($this->_vars[$name])) {
-            $ret = $this->_vars[$name];
+        } else {
+            if (isset($this->_vars[$name])) {
+                $ret = $this->_vars[$name];
+            }
         }
         return $ret;
     }
