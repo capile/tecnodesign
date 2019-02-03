@@ -148,7 +148,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      *
      * return array $schema array
      */
-    public static function schema($cn=null, $base=array())
+    public static function schema($cn=null, $base=array(), $object=false)
     {
         if(is_null($cn) || !class_exists($cn)) {
             $cn = get_called_class();
@@ -181,6 +181,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $schema = $scn::updateSchema($schema);
                 Tecnodesign_Cache::set('schema/'.$cn, $schema, 0, false);
             }
+        }
+
+        if($object) {
+            static $schemas=array();
+            if(!isset($schemas[$cn])) $schemas[$cn] = new Tecnodesign_Schema($schema);
+            return $schemas[$cn];
         }
         return $schema;
     }
@@ -424,18 +430,19 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(strpos($fn, ' ')) {
                     $fn0 = $fn;
                     $fn = substr($fn, strrpos($fn, ' ')+1);
-                    if(isset(static::$schema['columns'][$fn])) {
-                        if(!isset($fd)) $fd = $base;
-                        $fd += static::$schema['columns'][$fn];
-                    }
-                    if(isset(static::$schema['form'][$fn])) {
-                        if(!isset($fd)) $fd = $base;
-                        $fd += static::$schema['form'][$fn];
-                    }
-
+                }
+                if(isset(static::$schema['columns'][$fn])) {
+                    if(!isset($fd)) $fd = $base;
+                    $fd += static::$schema['columns'][$fn];
+                }
+                if(isset(static::$schema['form'][$fn])) {
+                    if(!isset($fd)) $fd = $base;
+                    $fd += static::$schema['form'][$fn];
+                }
+                if(isset($fn0)) {
                     if(isset($fd)) $fd['bind'] = $fn0;
                     $fn = $fn0;
-
+                    unset($fn0);
                 }
 
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
@@ -1253,6 +1260,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             return $value;
         }
 
+        if(!isset(static::$schema['relations'][$relation])) return false;
         // gather relation information
         $rel = static::$schema['relations'][$relation];
         $local = (is_array($rel['local']))?($rel['local']):(array($rel['local']));
@@ -1385,9 +1393,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         $d = $v->asArray();
                         $checkp=true;
                     }
-                    foreach($d as $fn=>$fv) {
-                        if(!isset($R->$fn) || $R->$fn!=$fv) $R[$fn]=$fv;
-                        unset($d[$fn], $fn, $fv);
+                    if(is_array($d)) {
+                        foreach($d as $fn=>$fv) {
+                            if(!isset($R->$fn) || $R->$fn!=$fv) $R[$fn]=$fv;
+                            unset($d[$fn], $fn, $fv);
+                        }
                     }
                     if($checkp) {
                         if($v->isNew() && !$R->isNew()) $R->isNew(true);
@@ -2332,76 +2342,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         return '';
     }
 
-    public function validate($schema, $value, $name=null)
+    public function validate($def, $value, $name=null)
     {
         $ovalue = $value;
         if (!is_null($name) && method_exists($this, $m='validate'.tdz::camelize($name, true))) {
             $value = $this->$m($value);
         }
 
-        if(!isset($schema['type'])) $schema['type']='string';
-        if ($schema['type']=='string') {
-            if(is_array($value)) {
-                if(isset($schema['serialize'])) {
-                    $value = tdz::serialize($value, $schema['serialize']);
-                } else {
-                    $value = implode(',',$value);
-                }
-            } else {
-                $value = @(string) $value;
-            }
-            if (isset($schema['size']) && $schema['size'] && strlen($value) > $schema['size']) {
-                $value = mb_strimwidth($value, 0, (int)$schema['size'], '', 'UTF-8');
-            }
-        } else if($schema['type']=='int') {
-            if (!is_numeric($value) && $value!='') {
-                throw new Tecnodesign_Exception(tdz::t('This is not a valid value.', 'exception').' '.tdz::t('An integer number is expected.', 'exception'));
-            }
-            if(!tdz::isempty($value)) $value = (int) $value;
-            if (isset($schema['min']) && $value < $schema['min']) {
-                throw new Tecnodesign_Exception(array(tdz::t('%s is less than the expected minimum %s', 'exception'), $value, $schema['min']));
-            }
-            if (isset($schema['max']) && $value > $schema['max']) {
-                throw new Tecnodesign_Exception(array(tdz::t('%s is more than the expected maximum %s', 'exception'), $value, $schema['max']));
-            }
-        } else if(substr($schema['type'], 0,4)=='date') {
-            if($value) {
-                $time = false;
-                $d = false;
-                if(!preg_match('/^[0-9]{4}\-[0-9]{2}\-[0-9]{2}/', $value)) {
-                    $format = tdz::$dateFormat;
-                    if (substr($schema['type'], 0, 8)=='datetime') {
-                        $format .= ' '.tdz::$timeFormat;
-                        $time = true;
-                    }
-                    $d = date_parse_from_format($format, $value);
-                }
-                if($d && !isset($d['errors'])) {
-                    $value = str_pad((int)$d['year'], 4, '0', STR_PAD_LEFT)
-                        . '-' . str_pad((int)$d['month'], 2, '0', STR_PAD_LEFT)
-                        . '-' . str_pad((int)$d['day'], 2, '0', STR_PAD_LEFT);
-                    if($time) {
-                        $value .= ' '.str_pad((int)$d['hour'], 2, '0', STR_PAD_LEFT)
-                            . ':' . str_pad((int)$d['minute'], 2, '0', STR_PAD_LEFT)
-                            . ':' . str_pad((int)$d['second'], 2, '0', STR_PAD_LEFT);
-                    }
-                } else if($d = strtotime($value)) {
-                    $value = (substr($schema['type'], 0, 8)=='datetime')?(date('Y-m-d H:i:s', $d)):(date('Y-m-d', $d));
-                }
-            }
-        }
-        if(!isset($schema['default']) && isset(static::$schema['form'][$name]['default'])) $schema['default'] = static::$schema['form'][$name]['default'];
-        if(($value==='' || $value===null) && isset($schema['default'])) {
-            $value = $schema['default'];
-        }
-        if (($value==='' || $value===null) && isset($schema['null']) && !$schema['null']) {
-            $sch = $this->schema();
-            $label = tdz::t(ucwords(str_replace('_', ' ', $name)), 'model-'.$sch['tableName']);
-            throw new Tecnodesign_Exception(array(tdz::t('%s is mandatory and should not be blank.', 'exception'), $label));
-        } else if($value==='') {
-            $value = false;
-        }
-        return $value;
+        //@TODO: must handle this...
+        if(($value===null || $value==='') && !isset($def['default']) && isset(static::$schema['form'][$name]['default'])) $def['default'] = static::$schema['form'][$name]['default'];
+
+        return Tecnodesign_Schema::validateProperty($def, $value, $name);
     }
 
     public static function __set_state($a, $underscore=false)

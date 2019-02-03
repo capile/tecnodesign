@@ -1188,7 +1188,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(tdz::isempty($value)) $value = null;
         } else if($this->type!='form') {
             if(is_array($value)) {
-                $value = implode(',', $value);
+                $value = ($this->serialize)?(tdz::serialize($value, $this->serialize)):(tdz::implode($value));
             } else if($value===false) {
                 $value = '';
             }
