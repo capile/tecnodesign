@@ -2183,7 +2183,28 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $dl = '';
         if($enableChoices && !is_null($this->choices)) {
             foreach ($this->getChoices() as $k=>$v) {
-                $dl .= '<option value="'.tdz::xmlEscape($v).'" />';
+                $label = false;
+                if(is_object($v) && $v instanceof Tecnodesign_Model) {
+                    $label = (string)$v;
+                } else if (is_array($v) || is_object($v)) {
+                    $firstv=false;
+                    foreach ($v as $vk=>$vv) {
+                        if(!$firstv) {
+                            $firstv = $vv;
+                        }
+                        if($vk=='label') {
+                            $label = $vv;
+                        }
+                    }
+                    if(!$label && $firstv) {
+                        $label = $firstv;
+                    }
+                    unset($firstv);
+                } else {
+                    $label = $v;
+                }
+                $dl .= '<option value="'.tdz::xml($label).'" />';
+                unset($label, $k, $v);
             }
             if ($dl) {
                 $input .= 'list="l__'.$arg['id'].'" ';

@@ -401,6 +401,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         continue;
                     }
                 }
+                if($fn && !isset($fd['bind'])) $fd['bind'] = $fn;
                 if(strpos($fn, ' ')) $fn = preg_replace('/\s+(as\s+)?[a-z0-9\_]+$/i', '', $fn);
                 if(!isset(static::$schema['columns'][$fn]) || !in_array(static::$schema['columns'][$fn]['type'], $type)) {
                     $rfd = static::column($fn);
@@ -427,20 +428,19 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                         continue;
                     }
                 }
+                if(!isset($fd)) $fd = array('bind'=>$fn)+$base;
                 if(strpos($fn, ' ')) {
                     $fn0 = $fn;
                     $fn = substr($fn, strrpos($fn, ' ')+1);
                 }
                 if(isset(static::$schema['columns'][$fn])) {
-                    if(!isset($fd)) $fd = $base;
                     $fd += static::$schema['columns'][$fn];
                 }
                 if(isset(static::$schema['form'][$fn])) {
-                    if(!isset($fd)) $fd = $base;
                     $fd += static::$schema['form'][$fn];
                 }
                 if(isset($fn0)) {
-                    if(isset($fd)) $fd['bind'] = $fn0;
+                    if(!isset($fd['bind'])) $fd['bind'] = $fn0;
                     $fn = $fn0;
                     unset($fn0);
                 }
@@ -475,8 +475,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $scope[$i]=$fn['bind'];
                 } else if(is_array($fn) || (substr($fn, 0, 2)=='--' && substr($fn, -2)=='--')) {
                     unset($scope[$i]);
-                } else if($base) {
-                    $scope[$i] = array('bind'=>$fn) + $base;
                 }
             }
         }
@@ -1153,7 +1151,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $r['where'];
         if($scope) {
-            $r['select']=$rcn::columns($scope);
+            $r['select']=$rcn::columns($scope, null, 3, true);
         }
         if(isset($sc['order'])) $r['orderBy'] = $sc['order'];
         unset($sc, $rel);
