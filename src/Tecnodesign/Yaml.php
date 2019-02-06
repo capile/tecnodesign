@@ -44,11 +44,11 @@ class Tecnodesign_Yaml
             if(function_exists('yaml_parse')) self::$parser='php-yaml';
             else self::$parser = 'Spyc';
         }
-        
+
         if(self::$parser=='Spyc' && !class_exists('Spyc')) {
             Tecnodesign_App_Install::dep('Spyc');
         }
-        
+
         return self::$parser;
     }
 
@@ -57,7 +57,7 @@ class Tecnodesign_Yaml
      * Loads YAML text and converts to a PHP array
      *
      * @param string $s file name or YAML string to load
-     * 
+     *
      * @return array contents of the YAML text
      */
     public static function load($s, $timeout=1800)
@@ -106,7 +106,7 @@ class Tecnodesign_Yaml
      * Loads YAML text and converts to a PHP array
      *
      * @param string $s YAML string to load
-     * 
+     *
      * @return array contents of the YAML text
      */
     public static function loadString($s)
@@ -117,36 +117,46 @@ class Tecnodesign_Yaml
             return Spyc::YAMLLoadString($s);
         }
     }
+
     /**
      * Dumps YAML content from params
      *
-     * @param mixed $a arguments to be converted to YAML
-     * 
+     * @param mixed $data arguments to be converted to YAML
+     * @param int $indent
+     * @param int $wordwrap
      * @return string YAML formatted string
      */
-    public static function dump($a, $indent=2, $wordwrap=0)
+    public static function dump($data, $indent = 2, $wordwrap = 0)
     {
-        if(self::$parser=='php-yaml') {
+        if (self::$parser === 'php-yaml') {
             ini_set('yaml.output_indent', (int)$indent);
             ini_set('yaml.output_width', $wordwrap);
-            return yaml_emit($a, YAML_UTF8_ENCODING, YAML_LN_BREAK);
-        } else {
-            return Spyc::YAMLDump($a, $indent, $wordwrap);
+            return yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
         }
+
+        return Spyc::YAMLDump($data, $indent, $wordwrap);
     }
 
-    public static function save($s, $a, $timeout=1800)
+    /**
+     * @param string $filename
+     * @param mixed $data Arguments to be converted to YAML
+     * @param int $timeout OPTIONAL Cache timeout
+     * @return bool
+     */
+    public static function save($filename, $data, $timeout = 1800)
     {
-        $ckey = 'yaml/'.md5($s);
-        if(self::$cache && $timeout) Tecnodesign_Cache::set($ckey, $a, $timeout);
-        return tdz::save($s, self::dump($a), true);
+        $cacheKey = 'yaml/' . md5($filename);
+        if (self::$cache && $timeout) {
+            Tecnodesign_Cache::set($cacheKey, $data, $timeout);
+        }
+        return tdz::save($filename, self::dump($data), true);
     }
 
     /**
      * Appends YAML text to memory object and yml file
      *
      * @param string $s file name or YAML string to load
-     * 
+     *
      * @return array contents of the YAML text
      */
     public static function append($s, $arg, $timeout=1800)
