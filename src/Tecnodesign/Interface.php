@@ -1725,11 +1725,13 @@ class Tecnodesign_Interface implements ArrayAccess
         $newInterface = [
             'base' => $this->text['interface'],
             'title' => $this->text['title'] . ' Shared',
-            'options' => [
-                'list-filter' => $this->text['options']['list-filter'],
+            'search' => $this->search,
+            'actions' => [
+                'list'=> $this->actions['list']// He needs at least this
             ]
         ];
-        $form = new Tecnodesign_Form([
+
+        $formConfig = [
             'method' => 'post',
             'buttons'=> 'Save',
             'fields' => [
@@ -1739,7 +1741,28 @@ class Tecnodesign_Interface implements ArrayAccess
                     'value' => $newInterface['title']
                 ],
             ],
-        ]);
+        ];
+
+        $availableActions = [];
+        foreach ($this->actions as $actionName => $actionConfig) {
+            if ($actionName === 'list') {
+                continue;
+            }
+            $availableActions[$actionName] = [
+                'label' => $actionConfig['label']?: ucfirst($actionName),
+                'value' => $actionName
+            ];
+        }
+        if (!empty($availableActions)) {
+            $formConfig['fields']['actions'] = [
+                'label' => '*Permissions',
+                'type' => 'checkbox',
+                'multiple' => true,
+                'choices' => $availableActions
+            ];
+        }
+        $form = new Tecnodesign_Form($formConfig);
+
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
             $post = Tecnodesign_App::request('post');
@@ -1749,37 +1772,18 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
 
                 $newInterface['title'] = $post['title'];
-                $newInterface['search'] = 0;
-
-                $fileName = $newInterface['base'] . date('-Y-m-d-') . tdz::salt();
-                Tecnodesign_Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName, ['all'=>$newInterface]);
-
-                $oldurl = $this->link();
-
-                $next = (static::$format !== 'html') ? null : 'preview';
-                if (isset($this->options['next'])) {
-                    if (is_array($this->options['next'])) {
-                        if (isset($this->options['next'][$this->action])) {
-                            $next = $this->options['next'][$this->action];
-                        }
+                foreach(array_keys($availableActions) as $action) {
+                    if (in_array($action, $post['actions'], true)) {
+                        $newInterface['actions'][$action] = $this->actions[$action];
                     } else {
-                        $next = $this->options['next'];
+                        $newInterface['actions'][$action] = false;
                     }
                 }
-                if (!$next && isset($this->actions[$this->action]['next'])) {
-                    $next = $this->actions[$this->action]['next'];
-                }
-                if (!$next && ($next = Tecnodesign_App::request('get', 'next')) && !isset($this->actions[$next])) {
-                    $next = null;
-                }
-                $this->text['success'] = sprintf(static::t('newSuccess'), $object::label(), $this->getTitle());
-                $msg = '<div class="tdz-i-msg tdz-i-success"><p>' . $this->text['success'] . '</p></div>';
-                if ($next) {
-                    $this->action = $next;
-                    $this->message($msg);
-                    $this->redirect($this->link(), $oldurl);
-                }
-                $this->text['summary'] .= $msg;
+
+                $fileName = $newInterface['base'] . date('-Y-m-d-') . strtolower(tdz::salt(5));
+                Tecnodesign_Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName . '.yml', ['all'=>$newInterface]);
+                $this->message('<div class="tdz-i-msg tdz-i-success"><p>Shared interface /a/' . $fileName . ' created.</p></div>');
+                $this->redirect("/a/$fileName");
             }
         } catch (Exception $e) {
             tdz::log('[INFO] User error while processing ' . __METHOD__ . ': ' . $e);
