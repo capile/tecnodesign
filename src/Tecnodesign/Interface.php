@@ -1780,7 +1780,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     }
                 }
 
-                $fileName = $newInterface['base'] . date('-Y-m-d-') . strtolower(tdz::salt(5));
+                $fileName = $newInterface['base'] . date('-Y-m-d-') . tdz::salt(10);
                 Tecnodesign_Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName . '.yml', ['all'=>$newInterface]);
                 $this->message('<div class="tdz-i-msg tdz-i-success"><p>Shared interface /a/' . $fileName . ' created.</p></div>');
                 $this->redirect("/a/$fileName");
@@ -3179,7 +3179,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         static $dd;
         if(is_null($dd)) $dd = tdz::getApp()->tecnodesign['data-dir'];
-        $s = tdz::slug($s, '/_');
+        $s = tdz::slug($s, '/_',true);
         foreach(static::$dir as $d) {
             if(file_exists( $f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml') ) {
                 return $f;
