@@ -179,7 +179,6 @@ class Tecnodesign_Schema implements ArrayAccess
             $add = $scope['__default'] + $add;
             unset($scope['__default']);
         }
-
         foreach($scope as $n=>$def) {
             $base = $add;
             $ref = $this;
@@ -203,7 +202,7 @@ class Tecnodesign_Schema implements ArrayAccess
                     continue;
                 } else {
                     $base['bind'] = $def;
-                    if(strpos($def, ' ')) $def = substr($def, strrpos($def, ' ')+1);
+                    if(preg_match('/^([^\s\`]+)(\s+as)?\s+[a-zA-Z0-9\_\-]+$/', $def, $m)) $def = $m[1];
 
                     while(strpos($def, '.')!==false) {
                         list($rn,$def)=explode('.', $def, 2);
@@ -215,7 +214,6 @@ class Tecnodesign_Schema implements ArrayAccess
                             break;
                         }
                     }
-
                     if($def!==null && isset($ref->properties[$def])) {
                         $def = $ref->properties[$def];
                         $i=10;
@@ -229,15 +227,24 @@ class Tecnodesign_Schema implements ArrayAccess
                             }
                         }
                         unset($i);
+                    } else {
+                        $def = array('type'=>'string','null'=>true);
                     }
                 }
             }
 
+            /*
             if(!is_int($n)) $base['label'] = $n;
 
             if(is_array($def) && isset($def['bind'])) $n = $def['bind'];
             else if(isset($base['bind'])) $n = $base['bind'];
             else if(is_string($def)) $n = $def;
+            */
+            if(is_int($n)) {
+                if(is_array($def) && isset($def['bind'])) $n = $def['bind'];
+                else if(isset($base['bind'])) $n = $base['bind'];
+                else if(is_string($def)) $n = $def;
+            }
 
             if(strpos($n, ' ')) $n = substr($n, strrpos($n, ' ')+1);
 
@@ -304,10 +311,13 @@ class Tecnodesign_Schema implements ArrayAccess
             if($p=strrpos($bind, ' ')) $bind = substr($bind, $p+1);
             if(isset($cn::$schema['columns'][$bind])) $fd+=$cn::$schema['columns'][$bind];
             $type = (isset($fd['type']) && isset($types[$fd['type']]))?($types[$fd['type']]):('string');
-            if(isset($fd['multiple']) && $fd['multiple']) $type = array($type, 'array');
+            if(isset($fd['multiple']) && $fd['multiple']) {
+                if(isset($fd['type']) && $fd['type']=='array') $type = 'array'; 
+                else $type = array($type, 'array');
+            }
             $R['properties'][$fn]=array(
-                'type'=>$type,
                 'description'=>(isset($fd['description']))?($fd['description']):($fd['label']),
+                'type'=>$type,
             );
             if(isset($fd['null']) && !$fd['null']) $R['required'][] = $fn;
         }

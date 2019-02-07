@@ -414,7 +414,6 @@ class Tecnodesign_Interface implements ArrayAccess
             //Tecnodesign_App::$assets[] = '!Z.Graph,Chart';
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
-
             if(is_null(static::$format)) {
                 $f = static::$formats;
                 static::$format = array_shift($f);
@@ -2034,6 +2033,7 @@ class Tecnodesign_Interface implements ArrayAccess
         // move this to a Tecnodesign_Schema::dump($scope, $properties=array($id, title) ) method
         // available scopes might form full definitions (?)
         $cn = $this->getModel();
+        $so = $cn::schema($cn, array(), true)->toJsonSchema($scope);
         $S = array(
             '$schema'=>'http://json-schema.org/draft-07/schema#',
             '$id'=>tdz::buildUrl($this->link().$qs),
@@ -2069,15 +2069,15 @@ class Tecnodesign_Interface implements ArrayAccess
 
             $S['properties'][static::$envelopeProperty] = array(
                 'type'=>'array',
-                'items'=>$cn::schema($cn, array(), true)->toJsonSchema($scope),
+                'items'=>$so,
             );
             $S['required'][] = static::$envelopeProperty;
 
         } else if(!$identified) {
             $S['type'] = 'array';
-            $S['items'] = $cn::schema($cn, array(), true)->toJsonSchema($scope);
+            $S['items'] = $so;
         } else {
-            $S += $cn::schema($cn, array(), true)->toJsonSchema($scope);
+            $S += $so;
         }
         tdz::output($this->toJson($S), 'application/schema+json', false);
         Tecnodesign_App::end();
