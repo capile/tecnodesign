@@ -391,7 +391,7 @@ class Tecnodesign_Query_Api
             if(!is_null($r=$this->header('headerCount'))) {
                 $this->_count = (int) $r;
             } else if($this->response) {
-                $this->_count = count($this->response);
+                $this->_count = @count($this->response);
             }
         }
 
