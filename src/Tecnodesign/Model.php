@@ -433,11 +433,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $fn0 = $fn;
                     $fn = substr($fn, strrpos($fn, ' ')+1);
                 }
-                if(isset(static::$schema['columns'][$fn])) {
-                    $fd += static::$schema['columns'][$fn];
-                }
                 if(isset(static::$schema['form'][$fn])) {
                     $fd += static::$schema['form'][$fn];
+                }
+                if(isset(static::$schema['columns'][$fn])) {
+                    $fd += static::$schema['columns'][$fn];
                 }
                 if(isset($fn0)) {
                     if(!isset($fd['bind'])) $fd['bind'] = $fn0;
@@ -2163,6 +2163,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $I->setAction($a);
             $I->setUrl(tdz::scriptName(true).'/'.$fd['interface']);
             $v = $I->preview();
+            $xmlEscape = false;
+        } else if(isset($fd['type']) && $fd['type']=='file' && isset($fd['accept']['inline-preview']) && $fd['accept']['inline-preview'] && ($f=Tecnodesign_Image::base64Data($this[$fn]))) {
+            $v = '<img src="'.((is_array($f))?(implode('" /><img src="', $f)):($f)).'" />';
             $xmlEscape = false;
         } else {
             $v = $this[$fn];

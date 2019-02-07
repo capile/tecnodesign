@@ -817,7 +817,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $R = array('size'=>$size, 'total'=>$u['wrote'], 'expects'=>$u['size']);
             if($u['wrote']>=$u['size']) {
                 $R['id'] = $upload['id'];
-                $R['value'] = 'ajax:'.basename($u['file']).'|'.$upload['file'];
+                $R['value'] = 'ajax:'.$ckey.'|'.$upload['file'];
                 $R['file'] = $upload['file'];
             }
             tdz::output($R, 'json');
@@ -890,8 +890,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     if(isset($upload['_']) && substr($upload['_'], 0, 5)=='ajax:') {
                         $uid = substr($upload['_'], 5, strpos($upload['_'], '|') -5);
 
-                        $U=tdz::getUser();
-                        if($u=$U->getAttribute($uid)) {
+                        //$U=tdz::getUser();
+                        //if($u=$U->getAttribute($uid)) {
+                        if($u=Tecnodesign_Cache::get($uid)) {
                             if(file_exists($u['file'])) {
                                 $upload['tmp_name'] = $u['file'];
                                 $upload['error'] = 0;
@@ -924,9 +925,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     } else if($size && $upload['size']>$size) {
                         throw new Tecnodesign_Exception(array(tdz::t('Uploaded file exceeds the limit of %s.', 'exception'), tdz::formatBytes($size)));
                     }
-                    if ($type && !in_array($upload['type'], $type) && !in_array(substr($upload['type'], 0, strpos($upload['type'], '/')),$type)) {
-                        throw new Tecnodesign_Exception(tdz::t('This file format is not supported.', 'exception'));
-                    }
                     $file = $dest = $upload['tmp_name'];
                     $file = eval("return {$hfn};");
                     if($ext && strpos($dest, '.')===false) {
@@ -944,6 +942,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                             }
                         }
                         if($ext) $file .= '.'.$ext;
+                    }
+                    if ($type && !in_array($upload['type'], $type) && !in_array(substr($upload['type'], 0, strpos($upload['type'], '/')),$type) && !in_array($ext, $type)) {
+                        throw new Tecnodesign_Exception(tdz::t('This file format is not supported.', 'exception'));
                     }
 
                     $dest = $uploadDir.'/'.$file;
@@ -1757,7 +1758,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 if($type && isset($type[0])) {
                     $aa = array();
                     foreach($type as $ts) {
-                        if(substr($ts, -1)=='*') {
+                        if(substr($ts, -1)=='*' || strpos($ts, '/')) {
                             $aa[] = $ts;
                         } else if(substr($ts, -1)=='/') {
                             $aa[]= $ts.'*';
@@ -1773,7 +1774,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $this->attributes['data-size'] = $this->accept['size'];
             }
         }
-
         if(strpos($arg['class'], 'app-file-preview')!==false) {
             if($arg['value']) {
                 $s .= '<span class="text tdz-f-file">'.$this->filePreview($arg['id']).'</span>';
@@ -1800,7 +1800,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $uploadDir = tdz::uploadDir();
         $fpart = explode('|', $s);
         $fname = array_pop($fpart);
-        if(count($fpart)>=1 && ($ftmp=preg_replace('/(^ajax:)|[^a-zA-Z0-9\-\_\.]+/', '', $fpart[0])) && (file_exists($f=$uploadDir.'/'.$ftmp) || (file_exists($f=self::$tmpDir.'/'.$ftmp)))) {
+        if(count($fpart)>=1 && ($ftmp=preg_replace('/[^a-zA-Z0-9\-\_\.]+/', '', $fpart[0])) && (file_exists($f=$uploadDir.'/'.$ftmp) || (file_exists($f=self::$tmpDir.'/'.$ftmp)))) {
             if($array) return array('name'=>$fname, 'file'=>$f);
             return $f;
         } else if(file_exists($f=$uploadDir.'/'.$fname)) {
