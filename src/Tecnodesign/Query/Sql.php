@@ -570,7 +570,7 @@ class Tecnodesign_Query_Sql
                 } else {
                     $fn = $ta.'.'.$sc['relations'][$fn]['local'];
                 }
-            } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
+            } else if ((isset($sc['className']) && $sc['className']::$allowNewProperties) || isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
                     $fn = $ta.'.'.$sc['columns'][$fn]['alias'].' '.tdz::sql($fn);
