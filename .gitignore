@@ -1,3 +1,4 @@
 .svn
 ._*
 /composer.lock
+/vendor/
