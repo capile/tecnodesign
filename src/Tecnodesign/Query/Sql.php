@@ -574,7 +574,7 @@ class Tecnodesign_Query_Sql
                 }
                 */
                 return;
-            } else if (isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
+            } else if ((isset($sc['className']) && $sc['className']::$allowNewProperties) || isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
                     $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));

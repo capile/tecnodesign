@@ -469,6 +469,27 @@ class Tecnodesign_Image
             }
         }
         return $src;
+    }
 
+    public static function base64Data($img)
+    {
+        $r = null;
+        if(!$img) {
+            return;
+        } else if(strpos($img, ',')) {
+            $r = array();
+            foreach(preg_split('/^\[|\s*\,\s*|\]$/', $img, null, PREG_SPLIT_NO_EMPTY) as $i) {
+                if($v = static::base64Data($i)) {
+                    $r[] = $v;
+                }
+            }
+        } else if($img && strpos($img, '|')) {
+            $fpart = explode('|', $img);
+            if($fpart && file_exists($f=tdz::uploadDir().'/'.preg_replace('/[^a-z0-9A-Z\.\-\_]/', '', $fpart[0]))) {
+                $format = tdz::fileFormat($f);
+                $r = 'data:'.(($format)?($format.';'):('')).'base64,'.base64_encode(file_get_contents($f));
+            }
+        }
+        return $r;
     }
 }

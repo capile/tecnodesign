@@ -615,6 +615,7 @@ class Tecnodesign_Query_Api
         if($data) {
             curl_setopt($conn, CURLOPT_POST, true);
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+            \tdz::log(__METHOD__, $data);
         }
 
         if($method && $method!='GET') {
@@ -1052,6 +1053,7 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
             curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
             $this->_method = 'POST';
+            \tdz::log(__METHOD__, $data);
         }
         if($method) {
             $this->_method = $method;
@@ -1108,7 +1110,7 @@ class Tecnodesign_Query_Api
         $action = sprintf(static::$previewPath, $tn, $pk);
         if(static::$previewQuery) $action .= '?'.sprintf(static::$previewQuery, $tn, $pk);
         try {
-            $R = $this->runAction($action, $M, static::$previewMethod);
+            $R = $this->runAction($action, null, static::$previewMethod);
             if(static::$saveToModel && $R && is_object($R) && $R->response) {
                 $cn = $this->schema('className');
                 return new $cn($R->response, false, false);
