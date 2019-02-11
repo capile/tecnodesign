@@ -18,12 +18,15 @@ class Tecnodesign_Query_Ldap
         $enableOffset=true,
         $connectionCallback,
         $errorCallback,
+        $fetchOperationalAttributes=true,
+        $operationalAttributes=array(),
         $timeout=-1;
     protected static 
         $options=[
             LDAP_OPT_PROTOCOL_VERSION => 3,
         ],
         $conn=[], 
+        $schemas=[],
         $tableDefault;
     protected 
         $_schema, 
@@ -126,21 +129,27 @@ class Tecnodesign_Query_Ldap
         $this->_last = null;
     }
 
-    public function schema($prop=null)
+    public function schema($prop=null, $object=true)
     {
         $cn = $this->_schema;
         if($prop) {
             if(isset($cn::$schema[$prop])) return $cn::$schema[$prop];
             return null;
         }
+        if($object) {
+            if(!isset(static::$schemas[$cn])) static::$schemas[$cn] = new Tecnodesign_Schema($cn::$schema);
+            return static::$schemas[$cn];
+        }
         return $cn::$schema;
     }
 
     public function scope($o=null, $sc=null)
     {
-        $cn = ($sc && isset($sc['className']))?($sc['className']):($this->_schema);
-        if($o==='uid') return $cn::pk(null, true);
-        return $cn::scope($o);
+        $this->_scope = $o;
+        if($sc && is_array($sc)) $sc = new Tecnodesign_Schema($sc);
+        else if(!$sc) $sc = $this->schema();
+        if($o==='uid') return $sc->uid();
+        return $sc->properties($o, false, null, false);
     }
 
     public function getDatabaseName($n=null)
@@ -181,7 +190,10 @@ class Tecnodesign_Query_Ldap
 
     public function buildQuery($count=false)
     {
-        $select = array('*');
+        $select = $this->select();
+        if(!is_array($select)) $select = array();
+        if(static::$fetchOperationalAttributes) $select[]='+';
+        $select = array_values(array_unique($select));
         $where = $this->getWhere($this->_where);
         if(!$where) $where = 'ou=*';
         $limit = -1;//($count || !$this->_limit)?(-1):((int)$this->_limit);
@@ -266,20 +278,18 @@ class Tecnodesign_Query_Ldap
             $this->_select = null;
             $this->addSelect($o);
         }
-        return ' '.implode(', ', $this->_select);
+        if(!$this->_select && $this->_scope) {
+            $this->_select = $this->schema()->properties($this->_scope, null, null, false);
+        }
+        return $this->_select;
     }
 
     public function addSelect($o)
     {
-        if(is_null($this->_select)) $this->_select = array();
-        if(is_array($o)) {
-            foreach($o as $s) {
-                $this->addSelect($s);
-                unset($s);
-            }
-        } else if(!in_array($o, $this->_select)) {
-            $this->_select[]=$o;
-        }
+        $r = $this->schema()->properties($o, null, null, false);
+        if(is_null($this->_select)) $this->_select = $r;
+        else $this->_select = array_merge($this->_select, $r);
+        unset($r);
         return $this;
     }
 

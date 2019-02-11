@@ -1830,6 +1830,8 @@ class tdz
                 $logs['syslog'] = true;
             } else if($l=='error_log') {
                 $logs[0] = true;
+            } else if($l=='cli') {
+                if(TDZ_CLI) $logs[2] = true;
             } else {
                 if(!$l) {
                     if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
@@ -1871,6 +1873,9 @@ class tdz
                 if(isset($logs[0])) {
                     error_log($v, 0);
                 }
+                if(isset($logs[2])) {
+                    echo $v;
+                }
             } else {
                 try {
                     throw new Exception(tdz::toString($v));
@@ -1888,6 +1893,9 @@ class tdz
                     }
                     if(isset($logs[0])) {
                         error_log($v, 0);
+                    }
+                    if(isset($logs[2])) {
+                        echo $v;
                     }
                     unset($e);
                 }
