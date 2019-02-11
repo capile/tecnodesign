@@ -1,0 +1,14 @@
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/7.5/phpunit.xsd"
+	bootstrap="./bootstrap.php"
+	colors="true">
+    <testsuite name="Tecnodz Test Suite">
+        <directory>src/src</directory>
+    </testsuite>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../src</directory>
+        </whitelist>
+    </filter>
+</phpunit>
