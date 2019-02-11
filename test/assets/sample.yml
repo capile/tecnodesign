@@ -1,0 +1,19 @@
+---
+all:
+  title: Some string
+  model: Tecnodesign\Account
+  auth:
+    credential:
+      - first one
+      - second one
+  actions:
+    create: false
+    update: false
+    delete: false
+    confirm:
+      action: executeMethod
+      identified: false
+      batch: false
+      additional-params: false
+      query: false
+    recover:
