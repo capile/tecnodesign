@@ -1719,12 +1719,13 @@ class Tecnodesign_Interface implements ArrayAccess
         $className = $this->getModel();
         $this->options['scope'] = $this->scope($scope);
         $arguments = $this->source ?: array();
-        if (!$object) {
-            $object = new $className($arguments, true, false);
-        }
+
         $newInterface = [
             'base' => $this->text['interface'],
             'title' => $this->text['title'] . ' Shared',
+            'owner' => (int) tdz::getUser()->id,
+            'expires' => '',
+            'auth' => ['credential'=>[]],
             'search' => $this->search,
             'actions' => [
                 'list'=> $this->actions['list']// He needs at least this
@@ -1740,8 +1741,29 @@ class Tecnodesign_Interface implements ArrayAccess
                     'type' => 'text',
                     'value' => $newInterface['title']
                 ],
+                'expires' => [
+                    'label' => '*Expire Date',
+                    'type' => 'date',
+                    'value' => (new \DateTime('30 days'))->format('Y-m-d')
+                ],
             ],
         ];
+
+        $availableCredentials = [];
+        foreach($this->getAuth()['credential'] as $credential ) {
+            $availableCredentials[$credential] = [
+                'label' => ucfirst($credential),
+                'value' => $credential
+            ];
+        }
+        if (!empty($availableCredentials)) {
+            $formConfig['fields']['auth_credential'] = [
+                'label' => '*Credentials',
+                'type' => 'checkbox',
+                'multiple' => true,
+                'choices' => $availableCredentials
+            ];
+        }
 
         $availableActions = [];
         foreach ($this->actions as $actionName => $actionConfig) {
@@ -1755,7 +1777,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         if (!empty($availableActions)) {
             $formConfig['fields']['actions'] = [
-                'label' => '*Permissions',
+                'label' => '*Actions',
                 'type' => 'checkbox',
                 'multiple' => true,
                 'choices' => $availableActions
@@ -1772,6 +1794,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
 
                 $newInterface['title'] = $post['title'];
+                $newInterface['expires'] = $post['expires'];
+                $newInterface['auth']['credential'] = $post['auth_credential'];
                 foreach(array_keys($availableActions) as $action) {
                     if (in_array($action, $post['actions'], true)) {
                         $newInterface['actions'][$action] = $this->actions[$action];
