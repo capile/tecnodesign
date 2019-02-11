@@ -565,7 +565,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(!isset($a['action'])) continue;
 
                 if(!isset($a['position'])) $a['position'] = 0.000;
-                $p = $a['position'];
+                $p = (float) $a['position'];
                 while(isset($la[$p])) $p += 0.001;
                 $a['id'] = $an;
 

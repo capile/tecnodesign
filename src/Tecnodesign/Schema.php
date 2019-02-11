@@ -163,6 +163,20 @@ class Tecnodesign_Schema implements ArrayAccess
         return $value;
     }
 
+    public function uid($expand=false)
+    {
+        //return $this->properties(null, false, array('primary'=>true), $expand);
+        $r = array();
+        foreach($this->properties as $n=>$d) {
+            if($d && isset($d['primary']) && $d['primary']) {
+                if($expand) $r[$n]=$d;
+                else $r[] = $n;
+            }
+            unset($n, $d);
+        }
+        return $r;
+    }
+
     public function properties($scope=null, $overlay=false, $filter=null, $expand=10, $add=array())
     {
         $R = array();
@@ -285,6 +299,15 @@ class Tecnodesign_Schema implements ArrayAccess
             }
             unset($base, $n, $def, $ref);
         }
+
+        if($R && $expand===false) {
+            $r = array();
+            foreach($R as $n=>$d) {
+                if(isset($d['bind'])) $r[$n]=$d['bind'];
+                unset($n, $d);
+            }
+            return $r;
+        }
         return $R;
     }
 
@@ -333,8 +356,9 @@ class Tecnodesign_Schema implements ArrayAccess
      *
      * @return mixed the stored value, or method results
      */
-    public function  offsetGet($name)
+    public function &offsetGet($name)
     {
+        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
         if (method_exists($this, $m='get'.ucfirst(tdz::camelize($name)))) {
             return $this->$m();
         } else if (isset($this->$name)) {
@@ -350,8 +374,9 @@ class Tecnodesign_Schema implements ArrayAccess
      * 
      * @return void
      */
-    public function  offsetSet($name, $value)
+    public function offsetSet($name, $value)
     {
+        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
         if (method_exists($this, $m='set'.tdz::camelize($name))) {
             $this->$m($value);
         } else if(!property_exists($this, $name)) {
@@ -372,6 +397,7 @@ class Tecnodesign_Schema implements ArrayAccess
      */
     public function offsetExists($name)
     {
+        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
         return isset($this->$name);
     }
 
@@ -383,6 +409,7 @@ class Tecnodesign_Schema implements ArrayAccess
      */
     public function offsetUnset($name)
     {
+        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
         return $this->offsetSet($name, null);
     }
 }
