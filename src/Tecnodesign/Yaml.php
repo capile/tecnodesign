@@ -153,6 +153,9 @@ class Tecnodesign_Yaml
      */
     public static function loadString($s)
     {
+        // Initialize the default parser
+        self::parser();
+
         if (self::$currentParser === self::PARSE_NATIVE) {
             return yaml_parse($s);
         }
@@ -170,7 +173,10 @@ class Tecnodesign_Yaml
      */
     public static function dump($data, $indent = 2, $wordwrap = 0)
     {
-        if (self::$parser === self::PARSE_NATIVE) {
+        // Initialize the default parser
+        self::parser();
+
+        if (self::$currentParser === self::PARSE_NATIVE) {
             ini_set('yaml.output_indent', (int)$indent);
             ini_set('yaml.output_width', $wordwrap);
             return yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
@@ -211,14 +217,19 @@ class Tecnodesign_Yaml
         }
         $yaml = self::load($s);
         $a = tdz::mergeRecursive($yaml, $arg);
-        if ($a != $yaml) {
+        if ($a !== $yaml) {
             if (self::$cache) {
-                $ckey = 'yaml/' . md5($s);
-                Tecnodesign_Cache::set($ckey, $a, $timeout);
+                $cacheKey = 'yaml/' . md5($s);
+                Tecnodesign_Cache::set($cacheKey, $a, $timeout);
             }
             file_put_contents($s, $text, FILE_APPEND);
         }
+
+        /**
+         * @todo necessary for PHP < 7
+         */
         unset($arg, $yaml, $s, $text);
+
         return $a;
     }
 

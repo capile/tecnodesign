@@ -42,7 +42,6 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         Tecnodesign_Yaml::parser('I do not exist');
     }
 
-
     public function testLoad()
     {
         $yamlFilePath = __DIR__ . '/../assets/sample.yml';
@@ -51,15 +50,20 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_NATIVE);
         $loadNativeFile = Tecnodesign_Yaml::load($yamlFilePath);
         $loadNativeContent = Tecnodesign_Yaml::load($yamlFileContent);
+        $loadStringNative =  Tecnodesign_Yaml::loadString($yamlFileContent);
         $this->assertEquals($loadNativeContent, $loadNativeFile);
+        $this->assertEquals($loadNativeContent, $loadStringNative);
 
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_SPYC);
         $loadSpycFile = Tecnodesign_Yaml::load($yamlFilePath);
         $loadSpycContent = Tecnodesign_Yaml::load($yamlFileContent);
+        $loadStringSpyc =  Tecnodesign_Yaml::loadString($yamlFileContent);
         $this->assertEquals($loadSpycContent, $loadSpycFile);
+        $this->assertEquals($loadSpycContent, $loadStringSpyc);
 
         $this->assertEquals($loadSpycContent, $loadNativeContent);
         $yaml = $loadSpycContent;
+
 
         // A simple keys test because what matters is tha both parser gives the same answers
         $this->assertInternalType('array', $yaml);
@@ -75,11 +79,6 @@ class YamlTest extends \PHPUnit\Framework\TestCase
     public function testAppend()
     {
 
-    }
-
-    public function testLoadString()
-    {
-        $yaml = Tecnodesign_Yaml::loadString('teste');
     }
 
     public function testDump()
