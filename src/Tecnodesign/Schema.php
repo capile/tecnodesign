@@ -22,6 +22,7 @@ class Tecnodesign_Schema implements ArrayAccess
         $errorInteger='An integer number is expected.',
         $errorMinorThan='%s is less than the expected minimum %s',
         $errorGreaterThan='%s is more than the expected maximum %s',
+        $errorMandatory='%s is mandatory and should not be a blank value.',
         $error;
 
     protected 
