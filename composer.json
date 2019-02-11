@@ -7,8 +7,8 @@
         "php": ">=5.4"
     },
     "autoload" : {
-        "psr-4": {
-            "" : "src"
+        "psr-0": {
+            "" : "src/"
         }
 
     },
@@ -24,9 +24,14 @@
         "squizlabs/php_codesniffer": "^2.8",
         "namshi/cuzzle": "^2.0",
         "friendsofphp/php-cs-fixer": "^2.13",
-        "phpmd/phpmd": "^2.6"
+        "phpmd/phpmd": "^2.6",
+        "mustangostang/spyc": "^0.6.2"
     },
     "scripts": {
         "test": "vendor/bin/phpunit --configuration=test/phpunit.xml"
+    },
+    "suggest" : {
+        "mustangostang/spyc" : "Allows YAML processing when native support is not available",
+        "ext-yaml": "Needed to YAML processing natively"
     }
 }

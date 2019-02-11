@@ -5,13 +5,17 @@
  */
 chdir(dirname(__DIR__));
 
+/**
+ * @todo Criar um init decente
+ * O TDZ inicializa um monte de constantes
+ */
+require 'tdz.php';
+
+// Remove o autoloader do TDZ para ter certeza que está usando o do composer
+foreach(spl_autoload_functions() as $function) {
+    if ($function[0] === 'tdz') {
+        spl_autoload_unregister($function);
+    }
+}
+
 require 'vendor/autoload.php';
-
-// Gambiarra para funcionar o PHPUnit 6.2+ por que estamos usando o ZF1
-class_alias(PHPUnit\Framework\TestCase::class, 'PHPUnit_Framework_TestCase');
-class_alias(PHPUnit\Runner\Version::class, 'PHPUnit_Runner_Version');
-class_alias(PHPUnit\DbUnit\TestCase::class, 'PHPUnit_Extensions_Database_TestCase');
-class_alias(PHPUnit\Framework\ExpectationFailedException::class, 'PHPUnit_Framework_ExpectationFailedException');
-class_alias(PHPUnit\Framework\Constraint\Constraint::class, 'PHPUnit_Framework_Constraint');
-
-

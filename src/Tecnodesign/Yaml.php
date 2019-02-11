@@ -31,22 +31,37 @@ Tecnodesign_Yaml::parser();
  */
 class Tecnodesign_Yaml
 {
-    public static $parser, $cache=true;
+    public static $parser, $cache = true;
+
+    private static $autoInstall = true;
+
+    const PARSE_NATIVE = 'php-yaml';
+    const PARSE_SPYC = 'Spyc';
+
     /**
      * Defines/sets current Yaml parser
+     * @param string $parser
+     * @return string|null
      */
-    public static function parser($P=null)
+    public static function parser($parser = null)
     {
-        if(!is_null($P)) {
-            self::$parser = $P;
-        }
-        if(is_null(self::$parser)) {
-            if(function_exists('yaml_parse')) self::$parser='php-yaml';
-            else self::$parser = 'Spyc';
+        if ($parser !== null) {
+            if (!in_array($parser, [self::PARSE_NATIVE, self::PARSE_SPYC], true)) {
+                throw new \InvalidArgumentException("Invalid parser: $parser");
+            }
+            self::$parser = $parser;
+        } elseif (function_exists('yaml_parse')) {
+            self::$parser = self::PARSE_NATIVE;
+        } else {
+            self::$parser = self::PARSE_SPYC;
         }
 
-        if(self::$parser=='Spyc' && !class_exists('Spyc')) {
-            Tecnodesign_App_Install::dep('Spyc');
+        if (self::$parser === 'Spyc' && !class_exists('Spyc')) {
+            if (self::$autoInstall) {
+                Tecnodesign_App_Install::dep('Spyc');
+            } else {
+                throw new \RuntimeException('Spyc not installed');
+            }
         }
 
         return self::$parser;
@@ -60,11 +75,11 @@ class Tecnodesign_Yaml
      *
      * @return array contents of the YAML text
      */
-    public static function load($s, $timeout=1800)
+    public static function load($s, $timeout = 1800)
     {
         $readTimeout = $timeout;
-        if($s && strlen($s)<255 && file_exists($s)) {
-            if(self::$parser=='php-yaml') {
+        if ($s && strlen($s) < 255 && file_exists($s)) {
+            if (self::$parser === self::PARSE_NATIVE) {
                 $fn = 'yaml_parse_file';
             } else {
                 $C = 'Spyc';
@@ -73,7 +88,7 @@ class Tecnodesign_Yaml
             $file = true;
             $readTimeout = filemtime($s);
         } else {
-            if(self::$parser=='php-yaml') {
+            if (self::$parser === self::PARSE_NATIVE) {
                 $fn = 'yaml_parse';
             } else {
                 $C = 'Spyc';
@@ -81,11 +96,13 @@ class Tecnodesign_Yaml
             }
             $file = false;
         }
-        if(self::$cache && ($file || strlen($s)>4000)) {
-            $ckey = 'yaml/'.md5($s);
+        if (self::$cache && ($file || strlen($s) > 4000)) {
+            $ckey = 'yaml/' . md5($s);
             $cache = Tecnodesign_Cache::get($ckey, $readTimeout);
-            if ($cache) return $cache;
-            if(isset($C)) {
+            if ($cache) {
+                return $cache;
+            }
+            if (isset($C)) {
                 $a = $C::$fn($s);
             } else {
                 $a = $fn($s);
@@ -94,7 +111,7 @@ class Tecnodesign_Yaml
             unset($ckey, $cache, $fn, $readTimeout);
             return $a;
         } else {
-            if(isset($C)) {
+            if (isset($C)) {
                 return $C::$fn($s);
             } else {
                 return $fn($s);
@@ -111,7 +128,7 @@ class Tecnodesign_Yaml
      */
     public static function loadString($s)
     {
-        if(self::$parser=='php-yaml') {
+        if (self::$parser === self::PARSE_NATIVE) {
             return yaml_parse($s);
         } else {
             return Spyc::YAMLLoadString($s);
@@ -128,7 +145,7 @@ class Tecnodesign_Yaml
      */
     public static function dump($data, $indent = 2, $wordwrap = 0)
     {
-        if (self::$parser === 'php-yaml') {
+        if (self::$parser === self::PARSE_NATIVE) {
             ini_set('yaml.output_indent', (int)$indent);
             ini_set('yaml.output_width', $wordwrap);
             return yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
@@ -159,25 +176,41 @@ class Tecnodesign_Yaml
      *
      * @return array contents of the YAML text
      */
-    public static function append($s, $arg, $timeout=1800)
+    public static function append($s, $arg, $timeout = 1800)
     {
         $text = $arg;
-        if(is_array($arg)) {
-            $text = "\n".preg_replace('/^---[^\n]*\n?/', '', self::dump($arg));
+        if (is_array($arg)) {
+            $text = "\n" . preg_replace('/^---[^\n]*\n?/', '', self::dump($arg));
         } else {
             $arg = self::parse($arg);
         }
         $yaml = self::load($s);
         $a = tdz::mergeRecursive($yaml, $arg);
-        if($a!=$yaml) {
-            if(self::$cache) {
-                $ckey = 'yaml/'.md5($s);
+        if ($a != $yaml) {
+            if (self::$cache) {
+                $ckey = 'yaml/' . md5($s);
                 Tecnodesign_Cache::set($ckey, $a, $timeout);
             }
             file_put_contents($s, $text, FILE_APPEND);
         }
         unset($arg, $yaml, $s, $text);
         return $a;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isAutoInstall()
+    {
+        return static::$autoInstall;
+    }
+
+    /**
+     * @param bool $autoInstall
+     */
+    public static function setAutoInstall($autoInstall)
+    {
+        static::$autoInstall = $autoInstall;
     }
 
 }
