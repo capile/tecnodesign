@@ -122,12 +122,12 @@ class Tecnodesign_Yaml
             }
         }
 
-        $className = (self::$currentParser === self::PARSE_NATIVE)? null : 'Spyc';
+        $className = (self::$currentParser === self::PARSE_NATIVE) ? null : 'Spyc';
         if ($isFile) {
-            $functionName = (self::$currentParser === self::PARSE_NATIVE)? 'yaml_parse_file' : 'YAMLLoad';
+            $functionName = (self::$currentParser === self::PARSE_NATIVE) ? 'yaml_parse_file' : 'YAMLLoad';
             $readTimeout = filemtime($string);
         } else {
-            $functionName = (self::$currentParser === self::PARSE_NATIVE)? 'yaml_parse' : 'YAMLLoadString';
+            $functionName = (self::$currentParser === self::PARSE_NATIVE) ? 'yaml_parse' : 'YAMLLoadString';
         }
 
         $yamlArray = $className ? $className::$functionName($string) : $functionName($string);
@@ -197,40 +197,39 @@ class Tecnodesign_Yaml
         if (self::$cache && $timeout) {
             Tecnodesign_Cache::set($cacheKey, $data, $timeout);
         }
+
+        /**
+         * @todo there's no way to know if $filename is string or a file to be updated or create
+         */
         return tdz::save($filename, self::dump($data), true);
     }
 
     /**
      * Appends YAML text to memory object and yml file
      *
-     * @param string $s file name or YAML string to load
+     * @param string $yaml file name or YAML string to load
+     * @param array $append
+     * @param int $timeout
      *
      * @return array contents of the YAML text
      */
-    public static function append($s, $arg, $timeout = 1800)
+    public static function append($yaml, $append, $timeout = 1800)
     {
-        $text = $arg;
-        if (is_array($arg)) {
-            $text = "\n" . preg_replace('/^---[^\n]*\n?/', '', self::dump($arg));
-        } else {
-            $arg = self::parse($arg);
+        if (!is_array($append)) {
+            throw new \InvalidArgumentException('$args must be an array');
         }
-        $yaml = self::load($s);
-        $a = tdz::mergeRecursive($yaml, $arg);
-        if ($a !== $yaml) {
-            if (self::$cache) {
-                $cacheKey = 'yaml/' . md5($s);
-                Tecnodesign_Cache::set($cacheKey, $a, $timeout);
-            }
-            file_put_contents($s, $text, FILE_APPEND);
+        $yamlArray = self::load($yaml);
+        $yamlMerged = tdz::mergeRecursive($yamlArray, $append);
+        if ($yamlMerged !== $yamlArray) {
+            self::save($yaml, $yamlMerged, $timeout);
         }
 
         /**
          * @todo necessary for PHP < 7
          */
-        unset($arg, $yaml, $s, $text);
+        unset($yaml, $append, $timeout, $yamlArray);
 
-        return $a;
+        return $yamlMerged;
     }
 
     /**
