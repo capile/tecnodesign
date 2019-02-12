@@ -406,7 +406,8 @@ class Tecnodesign_Query_Sql
     protected function getAlias($f, $sc=null, $noalias=null)
     {
         $ofn = $fn = $f;
-        if(substr($f, 0, 1)=='-' && substr($f,-1)=='-') {
+        $r = null;
+        if($f==='null' || (substr($f, 0, 1)=='-' && substr($f,-1)=='-')) {
             return false;
         } else if(preg_match_all('#`([^`]+)`#', $fn, $m)) {
             $r = $s = array();
@@ -418,6 +419,8 @@ class Tecnodesign_Query_Sql
             return str_replace($s, $r, $fn);
         } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc, true))) {
             return $r.' '.tdz::sql($m[3]);
+        } else if($r===false) {
+            return null;
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
         } else if(substr($f, 0, 1)=='_' && !isset($this->schema('columns')[$f])) {
@@ -448,8 +451,10 @@ class Tecnodesign_Query_Sql
 
         if (isset($sc['columns'][$fn])) {
             $found = true;
-            if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
-                if(strpos($sc['columns'][$fn]['alias'], '`')!==false) {
+            if(isset($sc['columns'][$fn]['alias'])) {
+                if($sc['columns'][$fn]['alias']===false) {
+                    return null;
+                } else if(strpos($sc['columns'][$fn]['alias'], '`')!==false) {
                     $fn = $this->getAlias($sc['columns'][$fn]['alias'], $sc, true).((!$noalias)?(' '.tdz::sql($fn)):(''));
                 } else {
                     $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
@@ -563,16 +568,8 @@ class Tecnodesign_Query_Sql
             }
         }
         if(!$found) {
-            if (isset($sc['relations'][$fn])) {
-                // ignore relations, this should be set on preview
-                /*
-                $found = true;
-                if(is_array($sc['relations'][$fn]['local'])) {
-                    $fn = $ta.'.'.array_pop($sc['relations'][$fn]['local']).' \''.$fn.'\'';
-                } else {
-                    $fn = $ta.'.'.$sc['relations'][$fn]['local'].' \''.$fn.'\'';
-                }
-                */
+            if (isset($sc['relations'][$fn]) || strtolower($fn)==='null') {
+                // ignore
                 return;
             } else if ((isset($sc['className']) && $sc['className']::$allowNewProperties) || isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
                 $found = true;
@@ -581,7 +578,7 @@ class Tecnodesign_Query_Sql
                 } else {
                     $fn = $ta.'.'.$fn;
                 }
-            } else if(strtolower($fn)!=='null') {
+            } else {
                 tdz::log("[INFO] Cannot find by [{$ofn}] at [{$sc['tableName']}]");
                 throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
             }
