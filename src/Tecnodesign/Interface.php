@@ -80,6 +80,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $actionsAvailable   = array(
                                 'list'      => array('position'=>0,  'identified'=>false, 'batch'=>false, 'query'=>true,  'additional-params'=>true, ),
                                 'report'    => array('position'=>10, 'identified'=>false, 'batch'=>false, 'query'=>true,  'additional-params'=>true,   'renderer'=>'renderReport',),
+                                //'share'     => array('position'=>15, 'identified'=>false, 'batch'=>false, 'query'=>true,  'additional-params'=>true,   'renderer'=>'renderShare',),
                                 'new'       => array('position'=>20, 'identified'=>false, 'batch'=>false, 'query'=>false, 'additional-params'=>false,  'renderer'=>'renderNew', 'next'=>'preview'),
                                 'preview'   => array('position'=>30, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderPreview',),
                                 'update'    => array('position'=>40, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderUpdate', 'next'=>'preview'),
@@ -133,8 +134,8 @@ class Tecnodesign_Interface implements ArrayAccess
 
 
     protected $uid, $model, $action, $id, $search, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source;
-    protected static 
-        $instances=array(), 
+    protected static
+        $instances=array(),
         $is=0,
         $base,
         $formats=array( 'html', 'json', 'xls', 'xlsx', 'csv', 'yml', 'xml' ),
@@ -170,12 +171,12 @@ class Tecnodesign_Interface implements ArrayAccess
      *    (array) search:       $model::find() parameters for restricting the scope of this interface.
      *                          this parameter is automatically filled when sub-interfaces are called
      *    (array) options:      different options for controlling the interface, is also set as the action parameter[0]
-     * (callable) action:       action definition. If it's a string, then it's checked for a method of $model 
+     * (callable) action:       action definition. If it's a string, then it's checked for a method of $model
      *                          or a Tecnodesign_Interface action. Arrays might contain the className/Object in the first parameter.
      *    (mixed) auth:         who is able to perform this action
      *     (bool) batch:        if this action might be performed in batch actions
      *     (bool) identified:   if this action should be performed only when at least one record is identified
-     *    (array) actions:      array of dependent actions: ( $url => $action ). For each action, if it's a string, 
+     *    (array) actions:      array of dependent actions: ( $url => $action ). For each action, if it's a string,
      *                          then the interface is checked at TDZ_VAR/interfaces/{$action}.yml
      *   (string) actionsDefault: list of actions to be tried as default options
      */
@@ -861,7 +862,7 @@ class Tecnodesign_Interface implements ArrayAccess
                             $nc = explode(Tecnodesign_Model::$keySeparator, $n, count($this->key));
                             $add = array();
                             foreach($this->key as $k) {
-                                $add[$k] = array_shift($nc); 
+                                $add[$k] = array_shift($nc);
                             }
                         } else {
                             if(strpos($n, ',')) $n = preg_split('/\s*\,\s*/', $n, null, PREG_SPLIT_NO_EMPTY);
@@ -1330,7 +1331,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $td = tdz::getApp()->tecnodesign['templates-dir'];
         foreach($tpls as $tpl) {
             if(!$tpl) continue;
-            if(file_exists($f=$tpl.'.php') 
+            if(file_exists($f=$tpl.'.php')
                 || file_exists($f=$td.'/'.$tpl.'.php')
                 || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates/'.$tpl.'.php')) break;
             unset($f, $tpl);
@@ -1459,7 +1460,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
 
         $m='render'.ucfirst($this->action);
-        if(($this->action=='list' || !isset($this->id)) && static::$displaySearch && 
+        if(($this->action=='list' || !isset($this->id)) && static::$displaySearch &&
             (
                 (isset($this->options['search']) && $this->options['search'])
                 || (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])
@@ -1712,6 +1713,110 @@ class Tecnodesign_Interface implements ArrayAccess
         }
     }
 
+    public function renderShare($object = null, $scope = 'share', $class = null, $translate = false, $xmlEscape = true)
+    {
+        $className = $this->getModel();
+        $this->options['scope'] = $this->scope($scope);
+        $arguments = $this->source ?: array();
+
+        $newInterface = [
+            'base' => $this->text['interface'],
+            'title' => $this->text['title'] . ' Shared',
+            'owner' => (int) tdz::getUser()->id,
+            'expires' => '',
+            'auth' => ['credential'=>[]],
+            'search' => $this->search,
+            'actions' => [
+                'list'=> $this->actions['list']// He needs at least this
+            ]
+        ];
+
+        $formConfig = [
+            'method' => 'post',
+            'buttons'=> 'Save',
+            'fields' => [
+                'title' => [
+                    'label' => '*Title',
+                    'type' => 'text',
+                    'value' => $newInterface['title']
+                ],
+                'expires' => [
+                    'label' => '*Expire Date',
+                    'type' => 'date',
+                    'value' => (new \DateTime('30 days'))->format('Y-m-d')
+                ],
+            ],
+        ];
+
+        $availableCredentials = [];
+        foreach($this->getAuth()['credential'] as $credential ) {
+            $availableCredentials[$credential] = [
+                'label' => ucfirst($credential),
+                'value' => $credential
+            ];
+        }
+        if (!empty($availableCredentials)) {
+            $formConfig['fields']['auth_credential'] = [
+                'label' => '*Credentials',
+                'type' => 'checkbox',
+                'multiple' => true,
+                'choices' => $availableCredentials
+            ];
+        }
+
+        $availableActions = [];
+        foreach ($this->actions as $actionName => $actionConfig) {
+            if ($actionName === 'list') {
+                continue;
+            }
+            $availableActions[$actionName] = [
+                'label' => $actionConfig['label']?: ucfirst($actionName),
+                'value' => $actionName
+            ];
+        }
+        if (!empty($availableActions)) {
+            $formConfig['fields']['actions'] = [
+                'label' => '*Actions',
+                'type' => 'checkbox',
+                'multiple' => true,
+                'choices' => $availableActions
+            ];
+        }
+        $form = new Tecnodesign_Form($formConfig);
+
+        //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
+        try {
+            $post = Tecnodesign_App::request('post');
+            if ($post) {
+                if (!$form->validate($post))  {
+                    throw new Tecnodesign_Exception((!$post) ? static::t('errorNoInput') : $form->getError());
+                }
+
+                $newInterface['title'] = $post['title'];
+                $newInterface['expires'] = $post['expires'];
+                $newInterface['auth']['credential'] = $post['auth_credential'];
+                foreach(array_keys($availableActions) as $action) {
+                    if (in_array($action, $post['actions'], true)) {
+                        $newInterface['actions'][$action] = $this->actions[$action];
+                    } else {
+                        $newInterface['actions'][$action] = false;
+                    }
+                }
+
+                $fileName = $newInterface['base'] . date('-Y-m-d-') . tdz::salt(10);
+                Tecnodesign_Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName . '.yml', ['all'=>$newInterface]);
+                $this->message('<div class="tdz-i-msg tdz-i-success"><p>Shared interface /a/' . $fileName . ' created.</p></div>');
+                $this->redirect("/a/$fileName");
+            }
+        } catch (Exception $e) {
+            tdz::log('[INFO] User error while processing ' . __METHOD__ . ': ' . $e);
+            $this->text['error'] = static::t('newError');
+            $this->text['errorMessage'] = $e->getMessage();
+            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>' . $this->text['error'] . '</p>' . $this->text['errorMessage'] . '</div>';
+        }
+
+        return $form;
+    }
 
     public function renderReport($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
     {
@@ -2061,7 +2166,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         $S['required'][] = $k;
                         if(!is_string($v)) {
                             $S['properties'][$k]['type']='number';
-                        } 
+                        }
                     }
                     unset($k, $v);
                 }
@@ -2215,7 +2320,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
         $url = $this->url;
         $ic = get_class($this);
-        
+
         if(isset($this->actions[$n]['relation'])) {
             $f = $this->search;
             $cn = $this->getModel();
@@ -2240,7 +2345,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $I = new $ic($a, $this);
         unset($a);
         if(isset($f)) {
-            $I->source = $f; 
+            $I->source = $f;
             if($I->search) {
                 $I->search = $f + $I->search;
             } else {
@@ -2276,7 +2381,7 @@ class Tecnodesign_Interface implements ArrayAccess
                             $r[] = $I->$call();
                             unset($I);
                         }
-                    } 
+                    }
                     if(isset($I)) {
                         $r[] = $I;
                         unset($I);
@@ -2485,7 +2590,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if($this->text['listOffset']>$count) $this->text['listOffset'] = $count;
             static::$headers['offset'] = $this->text['listOffset'];
         } else if(isset(static::$headers['limit'])) {
-            static::$headers['offset'] = $this->text['listOffset']; 
+            static::$headers['offset'] = $this->text['listOffset'];
         }
         if(isset($scope)) {
             if($f=Tecnodesign_App::request('get', static::REQ_FIELDS)) {
@@ -2744,10 +2849,10 @@ class Tecnodesign_Interface implements ArrayAccess
                         'type'=>$fd['type'],
                         'label'=>$label,
                         'id'=>$slug.'-0',
-                        //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'), 
+                        //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'),
                         'placeholder'=>tdz::t('From', 'interface'),
                         'fieldset'=>$fieldset,
-                        'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$fd['type'].'-input', 
+                        'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$fd['type'].'-input',
                     );
                     $fo['fields'][$slug.'-1']=array(
                         'type'=>$fd['type'],
@@ -2755,7 +2860,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         'id'=>$slug.'-1',
                         'placeholder'=>tdz::t('To', 'interface'),
                         'fieldset'=>$fieldset,
-                        'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$fd['type'].'-input', 
+                        'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$fd['type'].'-input',
                     );
                     $ff[$slug]='date';
                     if(isset($post[$slug.'-0']) || isset($post[$slug.'-1'])) $active = true;
@@ -2784,7 +2889,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     if(!isset($fd['type']))$fd['type']='checkbox';
                     $type = ($fd['type']!='select')?($fd['type']):('select');
 
-                    if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className'])) 
+                    if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className']))
                         $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
                     else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($cn, $m)) $fd['choices']=$cn::$m();
 
@@ -3079,7 +3184,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         static $dd;
         if(is_null($dd)) $dd = tdz::getApp()->tecnodesign['data-dir'];
-        $s = tdz::slug($s, '/_');
+        $s = tdz::slug($s, '/_',true);
         foreach(static::$dir as $d) {
             if(file_exists( $f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml') ) {
                 return $f;
@@ -3148,7 +3253,7 @@ class Tecnodesign_Interface implements ArrayAccess
      *
      * @param string $name  parameter name, should start with lowercase
      * @param mixed  $value value to be set
-     * 
+     *
      * @return void
      */
     public function  offsetSet($name, $value)
@@ -3159,7 +3264,7 @@ class Tecnodesign_Interface implements ArrayAccess
             throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
         } else {
             $this->$name = $value;
-        } 
+        }
         unset($m);
         return $this;
     }

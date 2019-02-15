@@ -4,7 +4,7 @@ Atualmente a framework comporta os seguintes tipos de campos:
 
 - **string**: campo texto livre
 - **textarea**: caixa de texto
-- **html**: caixa de texto com converção de conteúdo html
+- **html**: caixa de texto com conversão de conteúdo html
 - **number**: número inteiro
 - **password**: campo para senhas
 - **bool**: campo boleano

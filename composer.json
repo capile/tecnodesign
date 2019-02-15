@@ -1,0 +1,33 @@
+{
+    "name": "tecnodz/tecnodesign",
+    "description": "PHP Framework",
+    "type": "library",
+    "license": "GPL-3.0-only",
+    "require": {
+        "php": ">=5.4"
+    },
+    "autoload" : {
+        "psr-0": {
+            "" : "src/"
+        }
+    },
+    "autoload-dev" : {
+        "psr-4": {
+            "TecnodesignTest\\" : "test/src"
+        }
+    },
+    "require-dev": {
+        "ext-yaml": "*",
+        "phpunit/phpunit": "^4.8.9",
+        "mustangostang/spyc": "^0.6.2",
+        "doctrine/instantiator" : "1.0.5",
+        "phpdocumentor/reflection-docblock": "2.0.5"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --configuration=test/phpunit.xml"
+    },
+    "suggest" : {
+        "mustangostang/spyc" : "Allows YAML processing when native support is not available",
+        "ext-yaml": "Needed to YAML processing natively"
+    }
+}
