@@ -142,7 +142,7 @@ class tdz
         $lang = 'en',
         $format = 'text/html',
         $timeout = 0,
-        $assetsUrl = '/_assets',
+        $assetsUrl = '/_',
         $async = true,
         $variables = array(),
         $minifier = array(),
@@ -3190,8 +3190,8 @@ if (!defined('TDZ_ROOT')) {
     set_include_path(get_include_path().PATH_SEPARATOR.TDZ_ROOT.'/src');
 }
 if (!defined('TDZ_APP_ROOT')) {
-    if(isset($_SERVER['tecnodz_dir']) && is_dir($_SERVER['tecnodz_dir'])) {
-        define('TDZ_APP_ROOT', realpath($_SERVER['tecnodz_dir']));
+    if(isset($_SERVER['APP_ROOT']) && is_dir($_SERVER['APP_ROOT'])) {
+        define('TDZ_APP_ROOT', realpath($_SERVER['APP_ROOT']));
     } else if(strrpos(TDZ_ROOT, '/lib/')!==false) {
         define('TDZ_APP_ROOT', substr(TDZ_ROOT, 0, strrpos(TDZ_ROOT, '/lib/')));
     } else {
@@ -3206,7 +3206,7 @@ if (!defined('TDZ_VAR')) {
         ) {
         define('TDZ_VAR', realpath($d));
     } else {
-        define('TDZ_VAR', TDZ_APP_ROOT.'/data/Tecnodesign');
+        define('TDZ_VAR', $d);
     }
     unset($d);
 }

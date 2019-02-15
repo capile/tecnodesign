@@ -31,8 +31,8 @@ class Tecnodesign_Studio
         $staticCache=0,     // configurable, store static previews of entries
         $home='/_/studio',  // configurable, where to load E-Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
-        $uploadDir='studio/uploads', // configurable, relative to TDZ_VAR
-        $index='studio/index.db', // configurable, relative to TDZ_VAR
+        $uploadDir,         // deprecated, use tdz::uploadDir
+        $index='studio.db', // configurable, relative to TDZ_VAR
         $response=array(    // configurable, this will be added to the App response (passed to the template)
             'script'=>array(),// make sure this is .min.js in production environments
             'style'=>array(),
@@ -42,7 +42,7 @@ class Tecnodesign_Studio
         $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
         $allowedExtensions=array('.html');
-    const VERSION = 1.1; 
+    const VERSION = 2.2; // should match the development branch 
 
     /**
      * This is a Tecnodesign_App, the constructor is loaded once and then cached (until configuration changes)
