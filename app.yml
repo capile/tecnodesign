@@ -7,6 +7,7 @@ all:
     log-dir: data/log
     templates-dir: data/templates
     document-root: data/web
+    lib-dir: vendor
     controller-options:
       class: Tecnodesign_Studio
       static: true

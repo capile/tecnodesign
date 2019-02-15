@@ -752,6 +752,7 @@ class tdz
                         }
                     }
                 }
+                if($compress && !isset(tdz::$minifier[$type]) && !file_exists(dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar')) $compress = false;
                 if($compress && $build){
                     // try yui compressor
                     $dir = dirname($file);
@@ -783,6 +784,7 @@ class tdz
                     foreach($files as $fname => $ftime) {
                         $js .= file_get_contents($fname);
                     }
+                    tdz::save($file, $js);
                 }
                 $url .= '?'.date('YmdHis', $time);
                 if($raw) {
@@ -3033,7 +3035,6 @@ class tdz
         } else if(tdz::$log>10) {
             tdz::log(true, '[ERROR] Class '.$cn.' was not found!');
         }
-        return false;
     }
 
     public static function classFile($cn)
@@ -3216,6 +3217,7 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
         || is_dir($d=TDZ_APP_ROOT.'/../web')
         || is_dir($d=TDZ_APP_ROOT.'/htdocs')
         || is_dir($d=TDZ_APP_ROOT.'/web')
+        || is_dir($d=TDZ_VAR.'/web')
         ) {
         define('TDZ_DOCUMENT_ROOT', realpath($d));
     } else {
@@ -3228,9 +3230,11 @@ spl_autoload_register('tdz::autoload');
 if(is_null(tdz::$lib)) {
     tdz::$lib = array();
     if(TDZ_ROOT!=TDZ_APP_ROOT) {
-        tdz::$lib[]=TDZ_APP_ROOT.'/lib/';
+        tdz::$lib[]=TDZ_APP_ROOT.'/lib';
+        tdz::$lib[] = dirname(TDZ_ROOT);
+    } else {
+        tdz::$lib[] = TDZ_ROOT.'/vendor';
     }
-    tdz::$lib[] = dirname(TDZ_ROOT);
 }
 tdz::autoloadParams('tdz');
 if (TDZ_CLI && !file_exists(TDZ_VAR.'/no-install') && isset($_SERVER['argv'][1]) && ($_SERVER['argv'][1]=='install' || (substr($_SERVER['argv'][1], 0, 8)=='install:') && isset(Tecnodesign_App_Install::$modules[substr($_SERVER['argv'][1], 8)]))) {

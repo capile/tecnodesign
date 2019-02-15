@@ -1,4 +1,2 @@
 ---
-script: [ /_/js/highlight.js, "<script>hljs.initHighlightingOnLoad();</script>" ]
-style: /_/css/highlight.css
 languages: [ pt, en ]
