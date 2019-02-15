@@ -1,2 +1,5 @@
 ---
-languages: [ pt, en ]
+title: Tecnodesign Documentation
+#script: [ /_/js/docs.js ]
+#style: /_/css/docs.css
+languages: [ en ]
