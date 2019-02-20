@@ -773,7 +773,7 @@ class Tecnodesign_User
             $this->_superAdmin=false;
             if($this->_me && method_exists($this->_me, 'isSuperAdmin')){
                 $this->_superAdmin = $this->_me->isSuperAdmin();
-            } else if($this->_me && ($sa = tdz::getApp()->user['super-admin']) && ($uc = $this->getCredentials())) {
+            } else if($this->_me && isset(tdz::getApp()->user['super-admin']) && ($sa = tdz::getApp()->user['super-admin']) && ($uc = $this->getCredentials())) {
                 if(!is_array($sa)) $this->_superAdmin = in_array($sa, $uc);
                 else {
                     foreach ($sa as $i=>$c) {
