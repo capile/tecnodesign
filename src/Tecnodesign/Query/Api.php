@@ -13,8 +13,8 @@
 class Tecnodesign_Query_Api
 {
     const TYPE='api';
-    public static 
-        $microseconds=6, 
+    public static
+        $microseconds=6,
         $envelope,
         $search='q',
         $fieldnames='fieldnames',
@@ -24,16 +24,21 @@ class Tecnodesign_Query_Api
         $offset='offset',
         $sort='sort',
         $scope='scope',
-        $queryPath,
-        $insertPath='/new',
+        $queryPath='/%s',
+        $queryTableName, // deprecated, use $queryPath instead
+        $insertPath='/%s/new',
         $insertQuery,
         $insertMethod='POST',
-        $updatePath='/update/%s',
+        $previewPath='/%s/preview/%s',
+        $previewQuery,
+        $previewMethod='GET',
+        $updatePath='/%s/update/%s',
         $updateQuery,
         $updateMethod='POST',
-        $deletePath='/delete/%s',
+        $deletePath='/%s/delete/%s',
         $deleteQuery,
         $deleteMethod='POST',
+        $saveToModel,
         $postFormat='json',
         $curlOptions=array(
             CURLOPT_HEADER=>1,
@@ -49,18 +54,18 @@ class Tecnodesign_Query_Api
             CURLOPT_TIMEOUT        => 120,          // timeout on response
             CURLOPT_MAXREDIRS      => 2,            // stop after 10 redirects
             CURLOPT_POST           => false,
-            CURLOPT_HTTPHEADER     => array('accept: application/json'),
         ),
         $requestHeaders = array('accept: application/json'),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
         $errorPattern='/HTTP\/[0-9\.]+ +[45][0-9]{2} .*/i',
-        $errorAttribute,
+        $errorAttribute='error.message|error',
         $headerCount='x-total-count',
         $headerModified='last-modified',
         $dataAttribute,
         $countAttribute,
         $enableOffset=true,
         $pagingAttribute,
+        $cookieJar,
         $connectionCallback;
     protected static $options, $conn=array();
     protected $_schema, $_method, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $_count, $_unique, $headers, $response;
@@ -82,7 +87,7 @@ class Tecnodesign_Query_Api
                         $qs = substr($url, $p);
                         $url = substr($url, 0, $p);
                     }
-                    if(isset($s::$schema['tableName'])) {
+                    if(static::$queryTableName && isset($s::$schema['tableName'])) {
                         $url .= '/'.$s::$schema['tableName'];
                     }
                     $this->_url = $url.$qs;
@@ -108,6 +113,10 @@ class Tecnodesign_Query_Api
     // move this to curl requests?
     public static function disconnect($n='')
     {
+        if(static::$cookieJar && is_string(static::$cookieJar)) {
+            if(file_exists(static::$cookieJar)) @unlink(static::$cookieJar);
+            static::$cookieJar = true;
+        }
         if(isset(self::$C[$n])) {
             curl_close(self::$C[$n]);
             unset(self::$C[$n]);
@@ -122,9 +131,21 @@ class Tecnodesign_Query_Api
             $O = static::$curlOptions;
             curl_setopt_array(self::$C[$n], $O);
             curl_setopt(self::$C[$n], CURLOPT_HTTPHEADER, static::$requestHeaders);
-            if(static::$connectionCallback) {
-                self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
+        }
+        if(static::$cookieJar) {
+            if(!is_string(static::$cookieJar)) {
+                static::$cookieJar = tempnam(Tecnodesign_Cache::cacheDir(), 'cookie');
             }
+            curl_setopt(self::$C[$n], CURLOPT_COOKIEFILE, static::$cookieJar);
+            curl_setopt(self::$C[$n], CURLOPT_COOKIEJAR, static::$cookieJar);
+        }
+        if(static::$connectionCallback) {
+            self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
+        }
+
+        if(!self::$C[$n]) {
+            tdz::log('[INFO] Failed connection to '.$n);
+            if($exception) throw new Tecnodesign_Exception(array(tdz::t('Could not connect to %s.', 'exception'), $n));
         }
         return self::$C[$n];
     }
@@ -159,6 +180,18 @@ class Tecnodesign_Query_Api
 
     public static function getTables($n='')
     {
+    }
+
+    public function cleanup()
+    {
+        if($this->response) {
+            if(is_array($this->response)) {
+                foreach($this->response as $i=>$o) {
+                    unset($this->response[$i], $i, $o);
+                }
+            }
+            $this->response = null;
+        }
     }
 
     public function reset()
@@ -205,7 +238,7 @@ class Tecnodesign_Query_Api
     public function buildQueryWhere($qs='')
     {
         return $qs.(($qs)?('&'):('?')).http_build_query($this->_where);
-    } 
+    }
 
 
     public function buildQueryCount($qs='')
@@ -233,7 +266,7 @@ class Tecnodesign_Query_Api
         }
         unset($k);
         return $qs;
-    } 
+    }
 
 
     public function buildQuery($count=false)
@@ -245,7 +278,7 @@ class Tecnodesign_Query_Api
             $url = substr($url, 0, $p);
         }
         if(static::$queryPath) {
-            $url .= static::$queryPath;
+            $url .= sprintf(static::$queryPath, $this->schema('tableName'), null);
         }
         if($this->_where) {
             $qs = $this->buildQueryWhere($qs);
@@ -582,6 +615,7 @@ class Tecnodesign_Query_Api
         if($data) {
             curl_setopt($conn, CURLOPT_POST, true);
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+            \tdz::log(__METHOD__, $data);
         }
 
         if($method && $method!='GET') {
@@ -589,7 +623,7 @@ class Tecnodesign_Query_Api
         }
 
         if($headers) {
-            curl_setopt($conn, CURLOPT_HTTPHEADER, $headers); 
+            curl_setopt($conn, CURLOPT_HTTPHEADER, $headers);
         }
         $r = curl_exec($conn);
         $msg = '';
@@ -597,7 +631,7 @@ class Tecnodesign_Query_Api
             tdz::log('[ERROR] Curl error: '.curl_error($conn));
             return false;
         }
-        if($callback && $callback=='json') { 
+        if($callback && $callback=='json') {
             if(isset(static::$curlOptions[CURLOPT_HEADER]) && static::$curlOptions[CURLOPT_HEADER]) {
                 list($headers, $body) = preg_split('/\r?\n\r?\n/', $r, 2);
                 while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
@@ -640,7 +674,7 @@ class Tecnodesign_Query_Api
 
     public function run($q, $conn=null, $enablePaging=true, $keepAlive=null, $cn=null, $defaults=null, $callback=null, $args=array())
     {
-        if(tdz::$log) tdz::log("API call to $q\n  Memory: ".ceil(memory_get_peak_usage() * 0.000001)."M\n  Time: ".substr((microtime(true) - TDZ_TIME), 0, 5));
+        if(tdz::$log) tdz::log("[INFO] API call to $q (".ceil(memory_get_peak_usage() * 0.000001).'M, '.substr((microtime(true) - TDZ_TIME), 0, 5).'s)');
         if(!$conn) $conn = static::connect($this->schema('database'));
         curl_setopt($conn, CURLOPT_URL, $q);
         if(isset($this->_options['certificate']) && $this->_options['certificate']) {
@@ -662,8 +696,10 @@ class Tecnodesign_Query_Api
         } else if($this->_method!='GET' && $this->_method!='POST') {
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
+        $this->cleanup();
         $r = curl_exec($conn);
         $msg = '';
+        $body = null;
         if(!$r) {
             $msg = curl_error($conn);
         } else {
@@ -672,41 +708,41 @@ class Tecnodesign_Query_Api
                 while(preg_match('#^HTTP/1.[0-9]+ [0-9]+ #', $body)) {
                     list($this->headers, $body) = preg_split('/\r?\n\r?\n/', $body, 2);
                 }
-                $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
-                if($this->headers && strpos($this->header('content-type'), 'json')===false) {
-                    $this->response = $body;
-                } else {
-                    $this->response = json_decode($body, true);
-                    if($this->response===null) {
-                        $err = json_last_error();
-                        if($err) {
-                            $errs = array (
-                              0 => 'JSON_ERROR_NONE',
-                              1 => 'JSON_ERROR_DEPTH',
-                              2 => 'JSON_ERROR_STATE_MISMATCH',
-                              3 => 'JSON_ERROR_CTRL_CHAR',
-                              4 => 'JSON_ERROR_SYNTAX',
-                              5 => 'JSON_ERROR_UTF8',
-                              6 => 'JSON_ERROR_RECURSION',
-                              7 => 'JSON_ERROR_INF_OR_NAN',
-                              8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
-                              9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
-                              10 => 'JSON_ERROR_UTF16',
-                            );
-                            if(isset($errs[$err])) {
-                                tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
-                            } else {
-                                tdz::log('[ERROR] JSON unknown error: '.$err);
-                            }
+            } else {
+                $this->headers = null;
+                $body = $r;
+            }
+            $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
+            if($this->headers && strpos($this->header('content-type'), 'json')===false) {
+                $this->response = $body;
+            } else {
+                $this->response = json_decode($body, true);
+                if($this->response===null) {
+                    $err = json_last_error();
+                    if($err) {
+                        $errs = array (
+                          0 => 'JSON_ERROR_NONE',
+                          1 => 'JSON_ERROR_DEPTH',
+                          2 => 'JSON_ERROR_STATE_MISMATCH',
+                          3 => 'JSON_ERROR_CTRL_CHAR',
+                          4 => 'JSON_ERROR_SYNTAX',
+                          5 => 'JSON_ERROR_UTF8',
+                          6 => 'JSON_ERROR_RECURSION',
+                          7 => 'JSON_ERROR_INF_OR_NAN',
+                          8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
+                          9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
+                          10 => 'JSON_ERROR_UTF16',
+                        );
+                        if(isset($errs[$err])) {
+                            tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
+                        } else {
+                            tdz::log('[ERROR] JSON unknown error: '.$err);
                         }
                     }
                 }
-                unset($body);
-            } else {
-                $this->headers = null;
-                $this->response = json_decode($body, true);
             }
         }
+        unset($r);
 
         if($this->response && is_array($this->response) && $this->_unique) {
             $this->response = array($this->response);
@@ -791,7 +827,13 @@ class Tecnodesign_Query_Api
                 if(static::$countAttribute) {
                     $this->_count = $this->_getResponseAttribute(static::$countAttribute);
                 }
-                $this->response = $this->_getResponseAttribute(static::$dataAttribute);
+                if($R=$this->_getResponseAttribute(static::$dataAttribute)) {
+                    $this->response = $R;
+                } else if($cn) {
+                    $cn = null;
+                    //$this->response = null;
+                }
+                unset($R);
             }
             /*
             if($this->response && is_array($this->response) && static::$dataAttribute) {
@@ -814,17 +856,11 @@ class Tecnodesign_Query_Api
 
         $m = null;
         if($msg || preg_match(static::$errorPattern, $this->headers, $m)) {
-            if(isset(static::$errorAttribute) && isset($this->response[static::$errorAttribute])) {
-                $msg = $this->response[static::$errorAttribute];
-            } else if(isset($this->response['error']['message'])) {
-                $msg = $this->response['error']['message'];
-            } else if(isset($this->response['error'])) {
-                $msg = $this->response['error'];
-            } else {
+            if(!$msg && (!static::$errorAttribute || !($msg=$this->_getResponseAttribute(static::$errorAttribute)))) {
                 $msg=$this->header('x-message');
             }
             if(is_array($msg)) {
-                $msg = '<p>'.implode('</p><p>', $msg).'</p>';
+                $msg = tdz::xmlImplode($msg);
             }
             $msg = '<div class="tdz-i-msg tdz-i-error">'
                  . $msg
@@ -833,13 +869,14 @@ class Tecnodesign_Query_Api
                 $msg .= $this->response['message'];
             }
             if($m) {
-                tdz::log('[INFO] Bad response for '.$q.': ('.$m[0].")\n  ".strip_tags($msg));
+                tdz::log("[INFO] Bad response for {$q}: \n{$this->headers}\n  ".strip_tags($msg));
+                if(tdz::$log>2) tdz::log($body);
             }
             throw new Tecnodesign_Exception($msg);
-        } else if(!preg_match(static::$successPattern, $r)) {
-            $this->headers = $r;
+        } else if(!preg_match(static::$successPattern, $this->headers)) {
             $this->response = false;
         }
+        unset($body);
 
         if($cn && $this->response) {
             foreach($this->response as $i=>$o) {
@@ -860,6 +897,17 @@ class Tecnodesign_Query_Api
     {
         if(is_null($dataAttribute)) $dataAttribute = static::$dataAttribute;
         if(!$dataAttribute) return $this->response;
+
+        if(strpos($dataAttribute, '|')!==false) {
+            $da = explode('|', $dataAttribute);
+            foreach($da as $i=>$o) {
+                if($R=$this->_getResponseAttribute($o)) {
+                    return $R;
+                }
+                unset($da[$i], $i, $o);
+            }
+            return null;
+        }
 
         $R = null;
         if($this->response && is_array($this->response)) {
@@ -961,7 +1009,7 @@ class Tecnodesign_Query_Api
     public function transaction($id=null)
     {
     }
-    
+
     public function commit($id=null)
     {
     }
@@ -986,7 +1034,7 @@ class Tecnodesign_Query_Api
         if($qs) $url .= '?'.$qs;
 
         if($data && is_object($data)) {
-            $data = $data->asArray('save');
+            $data = $data->asArray('save', null, false, false);
         }
         if(!$conn) $conn = static::connect($this->schema('database'));
         $H = static::$requestHeaders;
@@ -1005,6 +1053,7 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
             curl_setopt($conn, CURLOPT_HTTPHEADER, $H);
             $this->_method = 'POST';
+            \tdz::log(__METHOD__, $data);
         }
         if($method) {
             $this->_method = $method;
@@ -1016,15 +1065,30 @@ class Tecnodesign_Query_Api
 
     public function insert($M, $conn=null)
     {
-        $action = static::$insertPath;
-        if(static::$insertQuery) $action .= '?'.sprintf(static::$insertQuery, $pk);
+        $pk = $M->pk;
+        if(is_array($pk)) $pk = array_shift($pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$insertPath, $tn, $pk);
+        if(static::$insertQuery) $action .= '?'.sprintf(static::$insertQuery, $tn, $pk);
         try {
-            $R = $this->runAction($action, $M->asArray('save'), static::$insertMethod);
-            $pk = $M::pk(null, true);
-            if($R && $pk && is_array($d=$R->response)) {
-                foreach($pk as $fn) {
-                    if(isset($d[$fn])) {
-                        $M->$fn = $d[$fn];
+            $R = $this->runAction($action, $M, static::$insertMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                foreach($R->response as $fn=>$v) {
+                    if(is_int($fn)) {
+                        break;
+                    }
+                    if($v && $v!=$M->$fn) {
+                        $M->$fn = $v;
+                    }
+                }
+            } else {
+                $pk = $M::pk(null, true);
+                if($R && $pk && is_array($d=$R->response)) {
+                    foreach($pk as $fn) {
+                        if(isset($d[$fn])) {
+                            $M->$fn = $d[$fn];
+                        }
                     }
                 }
             }
@@ -1038,14 +1102,50 @@ class Tecnodesign_Query_Api
         }
     }
 
+    public function preview($pk, $conn=null)
+    {
+        if(is_array($pk)) $pk = array_shift($pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$previewPath, $tn, $pk);
+        if(static::$previewQuery) $action .= '?'.sprintf(static::$previewQuery, $tn, $pk);
+        try {
+            $R = $this->runAction($action, null, static::$previewMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                $cn = $this->schema('className');
+                return new $cn($R->response, false, false);
+            }
+            return $R;
+        } catch(Exception $e) {
+            $msg = $e->getMessage();
+            if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
+                $msg = array(tdz::t('Could not fetch %s.', 'exception'), $M::label());
+            }
+            throw new Tecnodesign_Exception($msg);
+        }
+    }
+
     public function update($M, $conn=null)
     {
         $pk = $M->pk;
         if(is_array($pk)) $pk = array_shift($pk);
-        $action = (static::$updatePath)?(sprintf(static::$updatePath, $pk)):('');
-        if(static::$updateQuery) $action .= '?'.sprintf(static::$updateQuery, $pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$updatePath, $tn, $pk);
+        if(static::$updateQuery) $action .= '?'.sprintf(static::$updateQuery, $tn, $pk);
         try {
-            return $this->runAction($action, $M->asArray('save'), static::$updateMethod);
+            $R = $this->runAction($action, $M, static::$updateMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                foreach($R->response as $fn=>$v) {
+                    if(is_int($fn)) {
+                        break;
+                    }
+                    if($v && $v!=$M->$fn) {
+                        $M->$fn = $v;
+                    }
+                }
+            }
+            return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {
@@ -1059,10 +1159,23 @@ class Tecnodesign_Query_Api
     {
         $pk = $M->pk;
         if(is_array($pk)) $pk = array_shift($pk);
-        $action = (static::$deletePath)?(sprintf(static::$deletePath, $pk)):('');
-        if(static::$deleteQuery) $action .= '?'.sprintf(static::$deleteQuery, $pk);
+        $pk = urlencode($pk);
+        $tn = urlencode($this->schema('tableName'));
+        $action = sprintf(static::$deletePath, $tn, $pk);
+        if(static::$deleteQuery) $action .= '?'.sprintf(static::$deleteQuery, $tn, $pk);
         try {
-            return $this->runAction($action, $M->getPk(null, true), static::$deleteMethod);
+            $R = $this->runAction($action, $M->getPk(null, true), static::$deleteMethod);
+            if(static::$saveToModel && $R && is_object($R) && $R->response) {
+                foreach($R->response as $fn=>$v) {
+                    if(is_int($fn)) {
+                        break;
+                    }
+                    if($v && $v!=$M->$fn) {
+                        $M->$fn = $v;
+                    }
+                }
+            }
+            return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {

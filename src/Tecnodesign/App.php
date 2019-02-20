@@ -9,21 +9,7 @@
  * @category  App
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: App.php 1298 2013-12-12 02:33:05Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Application Server
- *
- * This package enable Tecnodesign application management.
- *
- * @category  App
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
+ * @copyright 2019 Tecnodesign
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
@@ -36,7 +22,9 @@ class Tecnodesign_App
     protected $_vars=array();
     public $addons=array();
     public $start=null;
-    public static $beforeRun=array(), $afterRun=array(),
+    public static
+        $beforeRun=array(),
+        $afterRun=array(),
         $defaultController = array(
             'class'=>false,
             'cache'=>false,
@@ -48,6 +36,7 @@ class Tecnodesign_App
             'layout'=>false,
             'credentials'=>false,
         ),
+        $assets=array('Z'),
         $result,
         $http2push=false,
         $link;
@@ -74,8 +63,8 @@ class Tecnodesign_App
         }
         unset($s);
         $base = $this->_vars['tecnodesign']['apps-dir'];
-        if (!$base || $base == '.') {
-            $base = substr(TDZ_ROOT, 0, strpos(TDZ_ROOT, '/lib/'));
+        if (!$base || $base === '.') {
+            $base = TDZ_APP_ROOT;
             $this->_vars['tecnodesign']['apps-dir'] = $base;
         }
         if(!isset($this->_vars['tecnodesign']['controller-options'])) {
@@ -103,6 +92,7 @@ class Tecnodesign_App
                     $this->_vars['tecnodesign'][$name]=str_replace('\\', '/', realpath($base.'/'.$value));
                 }
             }
+            unset($name, $value);
         }
         $this->cache();
         $this->start();
@@ -256,7 +246,7 @@ class Tecnodesign_App
             return false;
         }
         $instance="{$this->_name}/{$this->_env}";
-        $ckey="app/{$this->_env}";
+        $ckey="app/{$instance}";
         if(is_null(Tecnodesign_App::$_instances)) {
             Tecnodesign_App::$_instances = array();
         }
@@ -307,7 +297,7 @@ class Tecnodesign_App
             }
             self::$result=self::$_response['data'];
             if(isset(self::$_response['layout']) && self::$_response['layout']) {
-                self::$result = $this->runTemplate(self::$_response['layout'], self::$_response);
+                self::$result = $this->runTemplate(self::$_response['layout']);
             }
         } catch(Tecnodesign_App_End $e) {
             self::status($e->getCode());
@@ -450,10 +440,17 @@ class Tecnodesign_App
         exit();
     }
 
-    public function runTemplate($tpl, $variables, $cache=false)
+    public function runTemplate($tpl, $variables=null, $cache=false)
     {
         if($tpl && strpos($tpl, '<')!==false) return $tpl;
+        if(static::$assets) {
+            foreach(static::$assets as $i=>$n) {
+                static::asset($n);
+                unset(static::$assets[$i], $i, $n);
+            }
+        }
         $result = false;
+        if(is_null($variables)) $variables=self::$_response;
         $exec = array('variables'=>$variables, 'script'=>tdz::templateFile($tpl));
         if($exec['script']) {
             $result=tdz::exec($exec);
@@ -461,6 +458,82 @@ class Tecnodesign_App
         return $result;
     }
 
+    /**
+     * All loaded assets should be built into TDZ_DOCUMENT_ROOT.tdz::$assetsUrl (if assetUrl is set)
+     *
+     * Currently they are loaded from TDZ_ROOT/src/Tecnodesign/Resources/assets but this should be evolved to a modular structure directly under src
+     * and external components should also be loaded (example: font-awesome, d3 etc)
+     */
+    public function asset($component)
+    {
+        if(is_null(tdz::$assetsUrl)) return;
+
+        if(substr($component, 0, 1)=='!') {
+            $component = substr($component, 1);
+            $output = false;
+        } else {
+            $output = true;
+        }
+
+        static $types=array('js'=>'js','less'=>'css');
+        static $destination=array('js'=>'script','css'=>'style');
+
+        foreach($types as $from=>$to) {
+            // first look for assets
+            if(!isset(self::$_response[$destination[$to]])) self::$_response[$destination[$to]]=array();
+
+            $t = null;
+            $src=preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
+            $fmod = 0;
+            foreach($src as $i=>$n) {
+                $n0 = preg_replace('#[\.\/].*#', '', $n);
+                if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
+                ) {
+                    $src[$i]=$f;
+                    if($t===null) {
+                        $t =  tdz::$assetsUrl.'/'.tdz::slug($n).'.'.$to;
+                        $tf =  TDZ_DOCUMENT_ROOT.$t;
+                        if(in_array($t, self::$_response[$destination[$to]])) {
+                            $t = null;
+                            break;
+                        }
+                    }
+                    if(($mod=filemtime($f)) && $mod > $fmod) $fmod = $mod;
+                    unset($mod);
+                } else {
+                    unset($src[$i]);
+                }
+                unset($f);
+            }
+
+            if($t) { // check and build
+                if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
+                if($src) {
+                    tdz::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
+                    if(!file_exists($tf)) {// && !copy($f, $tf)
+                        tdz::log('[ERROR] Could not build component '.$component.': '.$tf.' from ', $src);
+                    }
+                }
+
+                if($output) {
+                    if($tf) $t .= '?'.date('YmdHis', filemtime($tf));
+
+                    if(isset(self::$_response[$destination[$to]][700])) {
+                        self::$_response[$destination[$to]][] = $t;
+                    } else {
+                        self::$_response[$destination[$to]][700] = $t;
+                    }
+                }
+            }
+            unset($t, $tf, $from, $to);
+        }
+    }
 
     public function runRoute($url)
     {
@@ -624,6 +697,7 @@ class Tecnodesign_App
             $this->_o[$class] = $o;
             $this->cache();
         }
+
         return true;
     }
 

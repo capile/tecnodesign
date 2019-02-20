@@ -29,89 +29,115 @@
  */
 class Tecnodesign_Form implements ArrayAccess
 {
-    protected $id=null, $method='post', $action='', $fields=null, $model=null, $err=null, $prefix='';
-    public $buttons=array('submit'=>'*Send'), $attributes=array();
-    private static $_instances=null;
-    public static $enableStyles=false;
+    /**
+     * @var Tecnodesign_Form_Field[]
+     */
+    protected $fields;
+
+    protected $id, $method = 'post', $action = '', $model, $err, $prefix = '';
+    public $buttons = array('submit' => '*Send'), $attributes = array('class' => 'z-form');
+    private static $_instances;
+    public static $assets='Z.Form,moment,pikaday';
+
     private $_uid;
 
+    /**
+     * @deprecated use Tecnodesign_App::$assets instead
+     */
+    public static $enableStyles = false;
 
-    public function __construct($def)
+    public function __construct($formConfig)
     {
-        if (isset($def['id'])) {
-            $id = $def['id'];
+        if (isset($formConfig['id'])) {
+            $id = $formConfig['id'];
             $this->prefix = $id;
-            $this->id=$id;
+            $this->id = $id;
         } else {
             $id = uniqid();
         }
         $this->register($id);
-        if (isset($def['buttons'])) {
-            if(!$def['buttons']) {
+
+        if (isset($formConfig['buttons'])) {
+            if (!$formConfig['buttons']) {
                 $this->buttons = array();
-            } else if(!is_array($def['buttons'])) {
-                $this->buttons['submit']=$def['buttons'];
+            } elseif (!is_array($formConfig['buttons'])) {
+                $this->buttons['submit'] = $formConfig['buttons'];
             } else {
-                $this->buttons = $def['buttons'] + $this->buttons;
+                $this->buttons = $formConfig['buttons'] + $this->buttons;
             }
         }
-        if (!isset($def['action'])) {
+
+        if (!isset($formConfig['action'])) {
             $this->action = tdz::getRequestUri();
         } else {
-            $this->action = $def['action'];
+            $this->action = $formConfig['action'];
         }
-        if (isset($def['method'])) {
-            $this->method = $def['method'];
+
+        if (isset($formConfig['method'])) {
+            $this->method = $formConfig['method'];
         }
-        if (isset($def['model'])) {
-            $this->setModel($def['model']);
+
+        if (isset($formConfig['model'])) {
+            $this->setModel($formConfig['model']);
         }
-        $this->fields=new arrayObject();
-        if (isset($def['fields'])) {
+
+        $this->fields = new arrayObject();
+        if (isset($formConfig['fields'])) {
             $last = '';
-            foreach ($def['fields'] as $fn=>$fd) {
-                if(is_string($fd)) {
-                    if(!isset($before)) $before = '';
-                    $before .= $fd;
+            foreach ($formConfig['fields'] as $fieldName => $fieldDefinition) {
+                if (is_string($fieldDefinition)) {
+                    if (!isset($before)) {
+                        $before = '';
+                    }
+                    $before .= $fieldDefinition;
                     continue;
                 }
-                if(isset($fd['credential'])) {
-                    if(!$this->checkCredential($fd['credential'])) {
+
+                // Checks if the user has access to the field
+                if (isset($fieldDefinition['credential'])) {
+                    if (!$this->checkCredential($fieldDefinition['credential'])) {
                         continue;
                     }
-                    unset($fd['credential']);
+                    unset($fieldDefinition['credential']);
                 }
-                $fd['prefix'] = $this->prefix;
 
-                // php doesn't parse post values with .
-                $fn = str_replace('.', '_', $fn);
+                $fieldDefinition['prefix'] = $this->prefix;
 
-                $fd['id'] = $fn;
-                $last = $fn;
-                if(isset($before)) {
-                    if(!isset($fd['before'])) $fd['before'] = '';
-                    
-                    $fd['before'] = $before.$fd['before'];
+                // PHP doesn't parse post values with .
+                $fieldName = str_replace('.', '_', $fieldName);
+
+                $fieldDefinition['id'] = $fieldName;
+                $last = $fieldName;
+                if (isset($before)) {
+                    if (!isset($fieldDefinition['before'])) {
+                        $fieldDefinition['before'] = '';
+                    }
+
+                    $fieldDefinition['before'] = $before . $fieldDefinition['before'];
                     unset($before);
                 }
-                $this->fields[$fn]=new Tecnodesign_Form_Field($fd, $this);
-                unset($def['fields'][$fn], $fd);
-            }
-            if(isset($before)) {
+                $this->fields[$fieldName] = new Tecnodesign_Form_Field($fieldDefinition, $this);
+                unset($formConfig['fields'][$fieldName], $fieldDefinition);
+            } // endforeach ($def['fields'] as $fieldName => $fieldDefinition)
+
+            if (isset($before)) {
                 $this->fields[$last]->after .= $before;
                 unset($before);
             }
-            unset($def['fields']);
+            unset($formConfig['fields']);
         }
 
-        if(isset($def['attributes']) && is_array($def['attributes'])) {
-            $def += $def['attributes'];
+        if (isset($formConfig['attributes']) && is_array($formConfig['attributes'])) {
+            $formConfig += $formConfig['attributes'];
         }
-        foreach($def as $an=>$av){
-            if(!isset($this->$an)) {
-                $this->attributes[$an]=$av;
+
+        foreach ($formConfig as $an => $av) {
+            if (!isset($this->$an)) {
+                $this->attributes[$an] = $av;
             }
         }
+
+        Tecnodesign_App::$assets[] = static::$assets;
     }
 
     /**
@@ -191,14 +217,14 @@ class Tecnodesign_Form implements ArrayAccess
     {
         $form->register($id);
     }
-    
+
     public static function getInstance($id)
     {
         if(isset(self::$_instances[$id])) {
             return self::$_instances[$id];
         }
     }
-    
+
     protected function getEnctype()
     {
         if(!isset($this->attributes['enctype'])) {
@@ -212,7 +238,7 @@ class Tecnodesign_Form implements ArrayAccess
         }
         return $this->attributes['enctype'];
     }
-    
+
     public function setPrefix($prefix='')
     {
         $this->prefix  = $prefix;
@@ -232,7 +258,7 @@ class Tecnodesign_Form implements ArrayAccess
             return false;
         }
     }
-    
+
     public function render($arg=array())
     {
         $tpl = false;
@@ -288,13 +314,13 @@ class Tecnodesign_Form implements ArrayAccess
         }
         return tdz::exec(array('variables'=>$vars, 'script'=>$tpl));
     }
-    
+
     /**
      * Validates the form (and the model & nested forms, if binded)
      *
      * @param array $values values to be validated
-     * 
-     * @return bool true on success, false on error — each form field will have 
+     *
+     * @return bool true on success, false on error — each form field will have
      *              the referred error in this case
      */
     public function validate($values=array())
@@ -346,7 +372,7 @@ class Tecnodesign_Form implements ArrayAccess
             $e = $fv->resetError();
         }
     }
-    
+
     public function getError($array=false)
     {
         $s=($array)?(array()):('');
@@ -367,39 +393,39 @@ class Tecnodesign_Form implements ArrayAccess
         }
     }
 
-    public function setModel($o)
+    public function setModel($model)
     {
-        if($o instanceof Tecnodesign_Model) {
+        if($model instanceof Tecnodesign_Model) {
             if(is_null(self::$models)) {
                 self::$models = array();
             }
-            if(self::$models && in_array($o, self::$models)) {
-                $id = array_search($o, self::$models);
-            } else if($o->isNew()) {
-                $id = get_class($o).'#new-'.$this->_uid;
+            if(self::$models && in_array($model, self::$models)) {
+                $id = array_search($model, self::$models);
+            } else if($model->isNew()) {
+                $id = get_class($model).'#new-'.$this->_uid;
             } else {
-                $id = get_class($o).'#'.$o->getPk();
+                $id = get_class($model).'#'.$model->getPk();
                 if(isset(self::$models[$id])) {
                     $id .= '-'.$this->_uid;
                 }
             }
             $this->model = $id;
-            self::$models[$id] = $o;
+            self::$models[$id] = $model;
         } else {
             $id = uniqid();
             $this->model = $id;
-            self::$models[$id] = $o;
+            self::$models[$id] = $model;
         }
         return $this;
     }
 
-    protected static $models; 
+    protected static $models;
     public static function model($id)
     {
         // $id is $cn($pk)
         if(isset(self::$models) && isset(self::$models[$id])) return self::$models[$id];
         return null;
-    } 
+    }
 
     /**
      * Get current form values
@@ -417,7 +443,7 @@ class Tecnodesign_Form implements ArrayAccess
 
     /**
      * Magic terminator. Returns the page contents, ready for output.
-     * 
+     *
      * @return string page output
      */
     function __toString()
@@ -458,7 +484,7 @@ class Tecnodesign_Form implements ArrayAccess
      * $_vars.
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return mixed the stored value, or method results
      */
     public function  __get($name)
@@ -503,7 +529,7 @@ class Tecnodesign_Form implements ArrayAccess
      *
      * @param string $name  parameter name, should start with lowercase
      * @param mixed  $value value to be set
-     * 
+     *
      * @return void
      * @see __set()
      */
@@ -516,7 +542,7 @@ class Tecnodesign_Form implements ArrayAccess
      * to the PDF classes — only unsets values stored in $_vars
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return void
      */
     public function offsetUnset($name)

@@ -1,0 +1,15 @@
+---
+all:
+  tecnodesign:
+    apps-dir: .
+    data-dir: data
+    cache-dir: data/cache
+    log-dir: data/log
+    templates-dir: [ data/templates, src/Tecnodesign/Resources/templates ]
+    document-root: data/web
+    lib-dir: [ vendor ]
+    controller-options:
+      class: Tecnodesign_Studio
+      static: true
+    routes:
+      '.*': run

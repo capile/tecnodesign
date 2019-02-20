@@ -30,33 +30,17 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrCounterClass   = 'tdz-counter',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
-        /*
-        $actionsAvailable   = array(
-                                'new'       => array('position'=>20, 'identified'=>false, 'batch'=>false, 'query'=>false, 'additional-params'=>false,  'renderer'=>'renderNew',),
-                                'preview'   => array('position'=>30, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderPreview',),
-                                'update'    => array('position'=>40, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderUpdate'),
-                                'delete'    => array('position'=>50, 'identified'=>true,  'batch'=>true,  'query'=>false, 'additional-params'=>false,  'renderer'=>'renderDelete'),
+        $dir                = array('interface'),
+        $additionalActions   = array(
+                                //'publish'=> array('position'=>31, 'action' => 'executePublish',  'identified'=>true, 'batch'=>true, 'renderer'=>'renderPublish'),
                             ),
-        $additionalActions  = array(
-                                'publish'=> array('position'=>31, 'action' => 'executePublish',  'identified'=>true, 'batch'=>true, 'renderer'=>'renderPublish'),
-                            ),
-        */
-        $actionAlias        = array(
-                                's'=>'search',
-                                'v'=>'preview',
-                                'n'=>'new',
-                                'u'=>'update',
-                                //'x'=>'publish',
-                                'd'=>'delete',
-            ),
         $models             = array(
                                 //'e'=>'Entry',
                                 'c'=>'Content',
                                 //'p'=>'Permission',
                                 //'w'=>'User',
                                 //'g'=>'Group',
-            ),
-        $urls               = array();
+            );
 
     private static $t;
 
@@ -77,12 +61,12 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return '<div id="studio" class="studio-interface">'.parent::run($n, $url).'</div>';
     }
 
-    public static function loadInterface($a=array())
+    public static function loadInterface($a=array(), $prepare=true)
     {
-        $a = parent::loadInterface($a);
+        $a = parent::loadInterface($a, $prepare);
 
         // overwrite credentials
-        if(!isset($a['credential'])) {
+        if($prepare && !isset($a['credential'])) {
             $min = null;
             foreach(self::$actionAlias as $aa=>$an) {
                 $m = (isset(self::$models[$a['interface']]))?(self::$models[$a['interface']]):($a['model']);
@@ -114,7 +98,6 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
     {
         Tecnodesign_Studio::error($code);
     }
-
 }
 
 Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/interface';

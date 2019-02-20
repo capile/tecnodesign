@@ -1,49 +1,18 @@
 <?php
-
 /**
  * Tecnodesign Framework shortcuts and multi-purpose utils
  *
- * PHP version 5.2
+ * PHP version 5.4
  *
  * @category  Core
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: tdz.php 1306 2014-03-19 18:53:20Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Framework shortcuts and multi-purpose utils
- *
- * @category  Core
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @copyright 2018 Tecnodesign
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
 class tdz
 {
-    protected static $slugReplacements = array(
-        'Š' => 'S', 'š' => 's', 'Đ' => 'Dj', 'đ' => 'dj', 'Ž' => 'Z',
-        'ž' => 'z', 'Č' => 'C', 'č' => 'c', 'Ć' => 'C', 'ć' => 'c',
-        'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A',
-        'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
-        'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I',
-        'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O',
-        'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U',
-        'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss',
-        'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a',
-        'å' => 'a', 'æ' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e',
-        'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i',
-        'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o',
-        'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u',
-        'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'ý' => 'y', 'þ' => 'b',
-        'ÿ' => 'y', 'Ŕ' => 'R', 'ŕ' => 'r',
-    );
-
     protected static
     $_app = null,
     $_env = null,
@@ -118,7 +87,9 @@ class tdz
             'm3u' => 'video/quicktime',
             'js'  => 'application/javascript',
             'css' => 'text/css',
+            'txt' => 'text/plain',
             'htc' => 'text/plain',
+            'md'  => 'text/plain',
             'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -171,7 +142,7 @@ class tdz
         $lang = 'en',
         $format = 'text/html',
         $timeout = 0,
-        $assetsUrl = '/_assets',
+        $assetsUrl = '/_',
         $async = true,
         $variables = array(),
         $minifier = array(),
@@ -521,8 +492,7 @@ class tdz
                 $configs[] = $s;
             }
         }
-        $res = call_user_func_array ('tdz::mergeRecursive', $configs);
-        return $res;
+        return call_user_func_array ('array_merge_recursive', $configs);
     }
 
     public static function replace($s, $r, $r2=null)
@@ -541,22 +511,7 @@ class tdz
     
     public static function mergeRecursive()
     {
-        $a = func_get_args();
-        $res = array_shift($a);
-        foreach($a as $args) {
-            if(!is_array($res)) {
-                $res = $a;
-            } else {
-                foreach($args as $k=>$v) {
-                    if(!isset($res[$k])) {
-                        $res[$k] = $v;
-                    } else if(is_array($res[$k]) && is_array($v)) {
-                        $res[$k] = tdz::mergeRecursive($v, $res[$k]);
-                    }
-                }
-            }
-        }
-        return $res;
+        return call_user_func_array ('array_merge_recursive', func_get_args());
     }
     
     
@@ -662,163 +617,7 @@ class tdz
      */
     public static function minify($s, $root=false, $compress=true, $before=true, $raw=false, $output=false)
     {
-        if($root===false) {
-            $root = TDZ_DOCUMENT_ROOT;
-        }
-        // search for static files to compress
-        $types = array(
-          'js'=>array('pat'=>'#<script [^>]*src="([^"\?\:]+)"[^>]*>\s*</script>#', 'tpl'=>'<script type="text/javascript"'.((tdz::$async)?(' async="async"'):('')).' src="[[url]]"></script>'),
-          'css'=>array('pat'=>'#<link [^>]*type="text/css"[^>]*href="([^"\?\:]+)"[^>]*>#', 'tpl'=>'<link rel="stylesheet" type="text/css" href="[[url]]" />'),
-        );
-        if(!is_array($s) && strpos($s, '<')===false) {
-            $s = array($s);
-        }
-        $s0=$s;
-        $sa = '';
-        if(is_array($s)) {
-            $f=$s;
-            $s='';
-            foreach($f as $i=>$url){
-                if(!$url) {
-                    unset($f[$i]);
-                    continue;
-                }
-                if($raw) {
-                    continue;
-                }
-                if(strpos($url, '<')!==false) {
-                    $sa .= $url;
-                    continue;
-                }
-                if(substr($url, 0, 1)!='/' && strpos($url, ':')===false) {
-                    $url = tdz::$assetsUrl.'/'.$url;
-                }
-                if(substr($url, -5)=='.less' || substr($url, -4)=='.css' || strpos($url, '.css?')!==false){
-                    $tpl = $types['css']['tpl'];
-                } else {
-                    $tpl = $types['js']['tpl'];
-                }
-                $s .= str_replace('[[url]]', tdz::xmlEscape($url), $tpl);
-            }
-        }
-
-        if($compress && !file_exists(tdz::$paths['java'])) {
-            $compress = false;
-        }
-        foreach($types as $type=>$o) {
-            $files=array();
-            if($raw) {
-                $ext = '.'.$type;
-                foreach($f as $i=>$url){
-                    if(substr($url, -1 * strlen($ext))==$ext) {
-                        if(file_exists($url) && substr($url, 0, strlen($root))==$root) {
-                            $files[substr($url, strlen($root))]=filemtime($url);
-                        } else if(file_exists($root.$url)) {
-                            $files[$url]=filemtime($root.$url);
-                        }
-                    }
-                }
-            } else {
-                $lc=false;
-                if(preg_match_all($o['pat'], $s, $m)) {
-                    foreach($m[1] as $i=>$url) {
-                        if(file_exists($root.$url)) {
-                            $css=$root.$url;
-                            if(substr($url, -5)=='.less') {
-                                $less = $url;
-                                $css = $root.$url.'.css';
-                                if(!file_exists($css)) $css = TDZ_VAR.'/'.basename($url).'.css';
-                                if(!file_exists($css) || filemtime($css) < filemtime($root.$less)) {
-                                    // compile less
-                                    if(!$lc && class_exists('lessc')) {
-                                        $lc = new lessc();
-                                        $lc->setVariables(array('assets-url'=>'"'.self::$assetsUrl.'"'));
-                                        $imp = array(dirname($root.$less).'/',$root);
-                                        if($root!=TDZ_DOCUMENT_ROOT && is_dir($d=TDZ_DOCUMENT_ROOT.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d); 
-                                        if(is_dir($d=$root.self::$assetsUrl.'/css/') && $imp[0]!=$d) array_unshift($imp, $d);
-                                        $lc->setImportDir($imp);
-                                        $lc->registerFunction('dechex', function($a){
-                                            return dechex($a[1]);
-                                        });
-                                    }
-                                    $lc->checkedCompile($root.$less, $css);
-                                }
-                                if(file_exists($css)) {
-                                    $url = $css;
-                                }
-                            }
-                            $files[$url]=filemtime($css);
-                            $s = str_replace($m[0][$i], '', $s);
-                        }
-                    }
-                }
-            }
-            if(count($files)>0) {
-                $fname = md5(implode(array_keys($files)));
-                $url = self::$assetsUrl.'/'.$fname.'.'.$type;
-                if($output) {
-                    if(self::$assetsUrl && substr($output, 0, strlen(self::$assetsUrl))==self::$assetsUrl) {
-                        $file = $root.$output;
-                        $url = $output;
-                    } else {
-                        $file=$output;
-                    }
-                } else if(substr($root, 0, strlen(TDZ_ROOT))==TDZ_ROOT) {
-                    $file = TDZ_VAR.'/cache/minify/'.basename($url);
-                } else {
-                    $file = $root.$url;
-                }
-                $time = max($files);
-                $build = (!file_exists($file) || filemtime($file) < $time);
-                $fs=array_keys($files);
-                foreach($fs as $fk=>$fv)
-                    if(substr($fv, 0, strlen(self::$assetsUrl))==self::$assetsUrl || file_exists($root.$fv)) $fs[$fk]=$root.$fv;
-                if($compress && $build){
-                    // try yui compressor
-                    $dir = dirname($file);
-                    if(!is_dir($dir)) {
-                        mkdir($dir, 0777, true);
-                    }
-                    $tempnam = tempnam(dirname($file), '._');
-                    if(isset(tdz::$minifier[$type])) {
-                        $cmd = sprintf(tdz::$minifier[$type], implode(' ',$fs), $tempnam);
-                    } else {
-                        $cmd = tdz::$paths['cat'].' '.implode(' ',$fs).' | '.tdz::$paths['java'].' -jar '.dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar --nomunge --type '.$type.' -o '.$tempnam;
-                    }
-                    exec($cmd, $cmdoutput, $ret);
-                    unset($cmdoutput, $ret);
-                    if(file_exists($tempnam)) {
-                        $build = false;
-                        rename($tempnam, $file);
-                        chmod($file, 0666);
-                        unset($tempnam);
-                    }
-                }
-                if($output===true) {
-                    return (file_exists($output) && filemtime($output) > $time);
-                }
-                if($build){
-                    $js = '';
-                    foreach($files as $fname => $ftime) {
-                        $js .= file_get_contents($fname);
-                    }
-                }
-                $url .= '?'.date('YmdHis', $time);
-                if($raw) {
-                    $s .= ($build)?($js):(file_get_contents($file));
-                } else {
-                    $s = ($before)?(str_replace('[[url]]', $url, $o['tpl']).$s):($s.str_replace('[[url]]', $url, $o['tpl']));
-                }
-            }
-        }
-        $s .= $sa;
-        if(!$raw) {
-            $s = preg_replace('/>\s+</', '><', trim($s));
-        }
-        if($output===true) {
-            return file_exists($output);
-        }
-        return $s;
+        return Tecnodesign_Studio_Asset::minify($s, $root, $compress, $before, $raw, $output);
     }
     
     public static function og()
@@ -860,6 +659,38 @@ class tdz
         }
     }
 
+    public static function implode($v, $del=',')
+    {
+        if(is_array($v)) {
+            $r = '';
+            foreach($v as $a) {
+                $r .= (($r)?($del):('')).tdz::implode($a, $del);
+                unset($a);
+            }
+            return $r;
+        } else {
+            return (string) $v;
+        }
+    }
+
+    public static function xmlImplode($v, $element='span', $printElement=true)
+    {
+        if(is_array($v)) {
+            $r = '';
+            foreach($v as $e=>$a) {
+                if(!is_numeric($e) && $printElement) {
+                    $r .= '<'.$element.'>'.tdz::xml($e).': ';
+                } else {
+                    $r .= '<'.$element.((!is_numeric($e))?(' data-element="'.tdz::xml($e).'"'):('')).'>';
+                }
+                $r .= tdz::xmlImplode($a, $element, $printElement).'</'.$element.'>';
+                unset($a, $e);
+            }
+            return $r;
+        } else {
+            return tdz::xml((string)$v);
+        }
+    }
     
     public static function requestUri($arg=array())
     {
@@ -899,20 +730,25 @@ class tdz
         return tdz::requestUri($arg);
     }
 
-    public static function getUrlParams($url=false)
+    public static function getUrlParams($url=false, $unescape=false)
     {
-        return tdz::urlParams($url);
+        return tdz::urlParams($url, $unescape);
     }
 
-    public static function urlParams($url=false)
+    public static function urlParams($url=false, $unescape=false)
     {
-        if($url===false) $url = tdz::scriptName();
+        if($url===false || is_null($url)) $url = tdz::scriptName();
+        if($url=='/') $url='';
         $fullurl = tdz::scriptName(true);
         $urlp = array();
-        if ($fullurl!='/' && $url != $fullurl 
-            && substr($fullurl, 0, strlen($url) + 1) == $url . '/'
-        ) {
+        if ($fullurl!='/' && $url != $fullurl && substr($fullurl, 0, strlen($url) + 1) == $url . '/') {
             $urlp = explode('/', substr($fullurl, strlen($url) + 1));
+        }
+        if($unescape) {
+            foreach($urlp as $i=>$v) {
+                $urlp[$i] = urldecode($v);
+                unset($i, $v);
+            }
         }
         return $urlp;
     }
@@ -1401,18 +1237,19 @@ class tdz
         exit();
     }
 
-    public static function flush()
+    public static function flush($end=true)
     {
         @ob_end_flush();
         flush();
-        if(function_exists('fastcgi_finish_request'))
+        if($end && function_exists('fastcgi_finish_request')) {
             @fastcgi_finish_request();
+        }
     }
 
     public static function unflush()
     {
         $i=10;
-        while(ob_get_level()>0 && $i--){
+        while (ob_get_level()>0 && $i--) {
             ob_end_clean();
         }
     }
@@ -1703,25 +1540,24 @@ class tdz
         return $img->render();
     }
 
-    public static function validUrl($str='')
+    public static function validUrl($s='')
     {
-        $str = trim($str);
-        if ($str != '') {
-            if (substr($str, 0, 1) != '/')
-                $str = "/{$str}";
-            $str = preg_replace('#\.\.+#', '.', $str);
-            $str = preg_replace('#\.+([^a-z0-9-_])#i', '$1', $str);
-            $str = strtr($str, tdz::$slugReplacements);
-            //$str = strtolower(trim($str));
-            $str = preg_replace('/[^a-z0-9-_\.\/]+/i', '-', $str);
-            $str = preg_replace('/-?\/-?/', '/', $str);
-            $str = preg_replace('#//+#', '/', $str);
-            $str = preg_replace('/-+/', '-', $str);
-            $str = preg_replace('/^-|-$/', '', $str);
-            $str = preg_replace('/([^\/])\/+$/', '$1', $str);
-            return $str;
+        $s = trim($s);
+        if($s != '') {
+            if (substr($s, 0, 1) != '/') $s = "/{$s}";
+            $s = preg_replace('#\.\.+#', '.', $s);
+            $s = preg_replace('#\.+([^a-z0-9-_])#i', '$1', $s);
+            $s = tdz::slug($s, '_./', true);
+            //$s = html_entity_decode(preg_replace('/&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);/i', '$1', htmlentities($s, ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
+            //$s = preg_replace('/[^a-z0-9-_\.\/]+/i', '-', $s);
+            $s = preg_replace('/-?\/-?/', '/', $s);
+            $s = preg_replace('#//+#', '/', $s);
+            $s = preg_replace('/-+/', '-', $s);
+            $s = preg_replace('/^-|-$/', '', $s);
+            $s = preg_replace('/([^\/])\/+$/', '$1', $s);
+            return $s;
         }
-        return $str;
+        return $s;
     }
 
     public static function uploadDir($d=null)
@@ -1813,6 +1649,8 @@ class tdz
                 $logs['syslog'] = true;
             } else if($l=='error_log') {
                 $logs[0] = true;
+            } else if($l=='cli') {
+                if(TDZ_CLI) $logs[2] = true;
             } else {
                 if(!$l) {
                     if(tdz::$_app && tdz::$_env && ($app=tdz::getApp()) && isset($app->tecnodesign['log-dir'])) {
@@ -1854,15 +1692,29 @@ class tdz
                 if(isset($logs[0])) {
                     error_log($v, 0);
                 }
+                if(isset($logs[2])) {
+                    echo $v;
+                }
             } else {
                 try {
                     throw new Exception(tdz::toString($v));
                 } catch(Exception $e) {
+                    $v = (string)$e;
+                    if(isset($logs['syslog'])) {
+                        $l = LOG_INFO;
+                        if(substr($v, 0, 4)=='[ERR') $l = LOG_ERR;
+                        else if(substr($v, 0, 5)=='[WARN') $l = LOG_WARNING;
+                        else $l = LOG_INFO;
+                        syslog($l, $v);
+                    }
                     if(isset($logs[3])) {
-                        error_log((string)$e, 3, $logs[3]);
-                    } 
+                        error_log($v, 3, $logs[3]);
+                    }
                     if(isset($logs[0])) {
-                        error_log((string)$e, 0);
+                        error_log($v, 0);
+                    }
+                    if(isset($logs[2])) {
+                        echo $v;
                     }
                     unset($e);
                 }
@@ -1933,20 +1785,17 @@ class tdz
      *
      * @return string slug
      */
-    public static function slug($str, $accept='', $anycase=null)
+    public static function slug($s, $accept='_', $anycase=null)
     {
-        $str = strtr($str, tdz::$slugReplacements);
+        $s = html_entity_decode(preg_replace('/&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);/i', '$1', htmlentities($s, ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
         if($accept) {
             $accept = preg_replace('/([^a-z0-9])/i', '\\\$1', $accept);
-        } else {
-            $accept = '_';
         }
-        $str = ($anycase)?(trim($str)):(strtolower(trim($str)));
-        $str = preg_replace('/[^a-z0-9-'.$accept.']+/'.(($anycase)?('i'):('')), '-', $str);
-        $str = preg_replace('/-+/', '-', $str);
-        $str = preg_replace('/^-|-$/', '', $str);
-        return $str;
+        $s = trim(preg_replace('/[^0-9a-z'.$accept.']+/i', '-', $s), '-');
+
+        return ($anycase)?($s):(strtolower($s));
     }
+
     public static function textToSlug($str, $accept=''){return tdz::slug($str, $accept);}
     
     public static function timeToNumber($t)
@@ -2598,7 +2447,7 @@ class tdz
     {
         $isValid = true;
         $atIndex = strrpos($email, '@');
-        if (is_bool($atIndex) && !$atIndex){
+        if ($atIndex===false){
            $isValid = false;
         } else {
             $domain = substr($email, $atIndex+1);
@@ -2638,9 +2487,9 @@ class tdz
         return $isValid;
     }
 
-    public static function checkDomain($domain, $records=array('MX', 'A'))
+    public static function checkDomain($domain, $records=array('MX', 'A'), $cache=true)
     {
-        if(!($R=Tecnodesign_Cache::get('dnscheck/'.$domain, 600))) {
+        if(!$cache || !($R=Tecnodesign_Cache::get('dnscheck/'.$domain, 600))) {
             $r = false;
             foreach($records as $k=>$v) {
                 if(checkdnsrr($domain,$v)) {
@@ -2958,26 +2807,33 @@ class tdz
     }
 
 
+    public static function templateDir()
+    {
+        if(is_null(tdz::$tplDir)) {
+            $cfg = tdz::getApp()->tecnodesign['templates-dir'];
+            if(!is_array($cfg)) $cfg = [$cfg];
+            tdz::$tplDir = $cfg;
+            unset($cfg);
+        }
+        return tdz::$tplDir;
+    }
+
     /**
      * Find current template file location, or false if none are found, accepts multiple arguments, processed in order.
      * example: $template = tdz::templateFile($mytemplate, 'tdz_entry');
      */
-    public static function templateFile($tpl)
+    public static function templateFile($tpls)
     {
         $app = tdz::getApp();
-        if(is_null(tdz::$tplDir)) {
-            self::$tplDir = array(
-                $app->tecnodesign['templates-dir'],
-            );
-        }
         $apps = $app->tecnodesign['apps-dir'];
         unset($app);
-        foreach(func_get_args() as $tpl) {
+        if(!is_array($tpls)) $tpls = func_get_args();
+        foreach($tpls as $tpl) {
             if($tpl) {
                 if(substr($tpl, 0, strlen($apps))==$apps && file_exists($tplf=$tpl.'.php')) {
                     return $tplf;
                 }
-                foreach(tdz::$tplDir as $d) {
+                foreach(tdz::templateDir() as $d) {
                     if(strpos($tpl, '/')!==false && substr($tpl, 0, strlen($d))==$d && file_exists($tpl)) {
                         return $tpl;
                     } else if(file_exists($tplf=$d.'/'.$tpl.'.php')) {
@@ -3001,9 +2857,8 @@ class tdz
             require_once $f;
             tdz::autoloadParams($cn);
         } else if(tdz::$log>10) {
-            tdz::log(true, '[INFO] Class '.$cn.' was not found!');
+            tdz::log(true, '[ERROR] Class '.$cn.' was not found!');
         }
-        return false;
     }
 
     public static function classFile($cn)
@@ -3160,8 +3015,8 @@ if (!defined('TDZ_ROOT')) {
     set_include_path(get_include_path().PATH_SEPARATOR.TDZ_ROOT.'/src');
 }
 if (!defined('TDZ_APP_ROOT')) {
-    if(isset($_SERVER['tecnodz_dir']) && is_dir($_SERVER['tecnodz_dir'])) {
-        define('TDZ_APP_ROOT', realpath($_SERVER['tecnodz_dir']));
+    if(isset($_SERVER['APP_ROOT']) && is_dir($_SERVER['APP_ROOT'])) {
+        define('TDZ_APP_ROOT', realpath($_SERVER['APP_ROOT']));
     } else if(strrpos(TDZ_ROOT, '/lib/')!==false) {
         define('TDZ_APP_ROOT', substr(TDZ_ROOT, 0, strrpos(TDZ_ROOT, '/lib/')));
     } else {
@@ -3176,7 +3031,7 @@ if (!defined('TDZ_VAR')) {
         ) {
         define('TDZ_VAR', realpath($d));
     } else {
-        define('TDZ_VAR', TDZ_APP_ROOT.'/data/Tecnodesign');
+        define('TDZ_VAR', $d);
     }
     unset($d);
 }
@@ -3186,6 +3041,7 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
         || is_dir($d=TDZ_APP_ROOT.'/../web')
         || is_dir($d=TDZ_APP_ROOT.'/htdocs')
         || is_dir($d=TDZ_APP_ROOT.'/web')
+        || is_dir($d=TDZ_VAR.'/web')
         ) {
         define('TDZ_DOCUMENT_ROOT', realpath($d));
     } else {
@@ -3198,9 +3054,11 @@ spl_autoload_register('tdz::autoload');
 if(is_null(tdz::$lib)) {
     tdz::$lib = array();
     if(TDZ_ROOT!=TDZ_APP_ROOT) {
-        tdz::$lib[]=TDZ_APP_ROOT.'/lib/';
+        tdz::$lib[]=TDZ_APP_ROOT.'/lib';
+        tdz::$lib[] = dirname(TDZ_ROOT);
+    } else {
+        tdz::$lib[] = TDZ_ROOT.'/vendor';
     }
-    tdz::$lib[] = dirname(TDZ_ROOT);
 }
 tdz::autoloadParams('tdz');
 if (TDZ_CLI && !file_exists(TDZ_VAR.'/no-install') && isset($_SERVER['argv'][1]) && ($_SERVER['argv'][1]=='install' || (substr($_SERVER['argv'][1], 0, 8)=='install:') && isset(Tecnodesign_App_Install::$modules[substr($_SERVER['argv'][1], 8)]))) {

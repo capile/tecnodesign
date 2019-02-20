@@ -1,3 +1,4 @@
+/*!moment.js*/
 !function(a,b){"object"==typeof exports&&"undefined"!=typeof module?module.exports=b():"function"==typeof define&&define.amd?define(b):a.moment=b()}(this,function(){"use strict";function a(){return le.apply(null,arguments)}
 // This is done to register the method called with moment()
 // without creating circular dependencies.
