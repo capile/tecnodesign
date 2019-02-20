@@ -15,31 +15,14 @@ $id = tdz::slug($url);
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
 
+$format = 'text/directory';
+$loopLimit = 100;
+$flush = false;
 // add headers
 // add messages
 // echo tdz::getUser()->getMessage(false, true), (isset($app))?($app):('');
 
-// add errors
-/*
-if(isset($error)): 
-    ?><div class="tdz-error"><?php 
-        if(is_array($error)) {
-            foreach($error as $e) echo '<div class="tdz-i-msg tdz-i-error"><p>', $e, '</p></div>';
-        } else {
-            echo $error; 
-        }
-    ?></div><?php 
-endif;
-*/
-// add preview
-// add summary
-/*
-if(isset($summary)) {
-    echo $summary;
-    Tecnodesign_App::response('summary', $summary);
-}
-*/
-$nonull = true;//(in_array($Interface::format(), array('json', 'xml')));
+$nonull = true;
 
 $r = '';
 
@@ -76,7 +59,7 @@ if(isset($list) && is_array($list)) {
             $d = array($preview);
             unset($preview);
         } else {
-            $d = $list->getItems($listOffset, ($listLimit<100)?($listLimit):(100));
+            $d = $list->getItems($listOffset, ($listLimit<$loopLimit)?($listLimit):($loopLimit));
         }
 
         $prop = array('dn', 'dc', 'ou', 'cn', 'objectClass');
@@ -123,11 +106,26 @@ if(isset($list) && is_array($list)) {
             }
             unset($d);
             if($o>=$l) break;
-            $d = $list->getItems($o, ($l-$o<100)?($l-$o):(100));
+            if(!$flush) {
+                $Interface::headers();
+                header('content-type: '.$format.';charset=utf8');
+                $flush = true;
+            }
+            echo $r;
+            $r = '';
+            tdz::flush(false);
+            $d = $list->getItems($o, ($l-$o<$loopLimit)?($l-$o):($loopLimit));
+            \tdz::tune();
         }
         unset($d);
     }
     $r = ltrim($r);
+    if($flush) {
+        echo $r;
+        $r = '';
+        tdz::flush(true);
+        Tecnodesign_App::end();
+    }
 
 } else if(isset($response)) {
     $r = $response;
@@ -152,5 +150,6 @@ if(isset($error) && $error) {
     $R = $r;
 }
 
-tdz::output($R, 'text/directory');
+$Interface::headers();
+tdz::output($R, $format);
 

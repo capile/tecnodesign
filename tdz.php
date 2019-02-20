@@ -1237,18 +1237,19 @@ class tdz
         exit();
     }
 
-    public static function flush()
+    public static function flush($end=true)
     {
         @ob_end_flush();
         flush();
-        if(function_exists('fastcgi_finish_request'))
+        if($end && function_exists('fastcgi_finish_request')) {
             @fastcgi_finish_request();
+        }
     }
 
     public static function unflush()
     {
         $i=10;
-        while(ob_get_level()>0 && $i--){
+        while (ob_get_level()>0 && $i--) {
             ob_end_clean();
         }
     }

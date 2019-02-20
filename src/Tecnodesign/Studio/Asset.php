@@ -196,7 +196,7 @@ class Tecnodesign_Studio_Asset
             foreach($fs as $i=>$o) {
                 if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d;
                 unset($d);
-                $s .= '@import '.escapeshellarg($o).";\n";
+                $s .= '@import '.escapeshellarg(basename($o)).";\n";
                 unset($fs[$i], $i, $o);
             }
             $fs = $s;
@@ -208,8 +208,8 @@ class Tecnodesign_Studio_Asset
             $save = false;
         }
 
-        if($this->root!=TDZ_DOCUMENT_ROOT && is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($s, $importDir)) $importDir[] = $d;
-        if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root;
+        if($this->root && !in_array($this->root, $importDir)) array_unshift($importDir, $this->root);
+        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($s, $importDir)) array_unshift($importDir, $d);
         $parser->setImportDir($importDir);
         unset($importDir);
 

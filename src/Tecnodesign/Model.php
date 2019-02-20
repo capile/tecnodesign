@@ -2417,7 +2417,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($fallback) {
                 $this->_original[$fn] = $this->$fn;
             } else {
-                return false;
+                return $fallback;
             }
         }
         $v = $this->_original[$fn];

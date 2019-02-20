@@ -1967,7 +1967,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($post);
         } catch(Exception $e) {
-            tdz::log('[INFO] User error while processing '.__METHOD__.': '.$e);
+            tdz::log('[INFO] User error while processing '.__METHOD__.': '.$e->getMessage());
             $this->text['error'] = static::t('newError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';

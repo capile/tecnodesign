@@ -195,7 +195,7 @@ class Tecnodesign_Query_Ldap
         if(static::$fetchOperationalAttributes) $select[]='+';
         $select = array_values(array_unique($select));
         $where = $this->getWhere($this->_where);
-        if(!$where) $where = 'ou=*';
+        if(!$where) $where = '(objectClass=*)';
         $limit = -1;//($count || !$this->_limit)?(-1):((int)$this->_limit);
         $this->_last = ldap_list(self::connect($this->schema('database')), $this->schema('tableName'), $where, $select, 0, $limit, static::$timeout);
         return $this->_last;
@@ -332,26 +332,6 @@ class Tecnodesign_Query_Ldap
 
     public function addOrderBy($o, $sort='asc')
     {
-        if(is_array($o)) {
-            foreach($o as $i=>$s) {
-                if(!is_int($i) || $s=='asc' || $s=='desc') {
-                    $this->addOrderBy($i, $s);
-                } else {
-                    $this->addOrderBy($s);
-                }
-                unset($s);
-            }
-        } else if($o) {
-            if(preg_match('/\s+[\_\-a-z0-9]+\s*$/i', $o, $m)) {
-                $o = substr($o, 0, strlen($o)-strlen($m[0]));
-            }
-            $fn = $o;
-            if($fn && strpos($fn, $this->_orderBy)===false) {
-                if($sort!='asc' && $sort!='desc') $sort='';
-                $this->_orderBy .= ($this->_orderBy)?(", {$fn} {$sort}"):(" {$fn} {$sort}");
-            }
-            unset($fn);
-        }
         return $this;
     }
 
@@ -539,8 +519,11 @@ class Tecnodesign_Query_Ldap
             unset($k, $fn, $v);
         }
 
-        if(!$r) $r='(ou=*)';
-        else if(substr($r, 0, 1)!='(') $r = "($r)";
+        if(!$r) {
+            $r = '(objectClass=*)';
+        } else if(substr($r, 0, 1)!='(') {
+            $r = "($r)";
+        }
 
         return trim($r);
     }
@@ -626,61 +609,20 @@ class Tecnodesign_Query_Ldap
      * Returns the last inserted ID from a insert call
      * returns true if successful
      */
-    // public function lastInsertId($M=null, $conn=null) {}
+    public function lastInsertId($M=null, $conn=null) {
+        return $this->getDn($M);
+    }
 
     public function insert($M, $conn=null)
     {
-        return null;
-        $odata = $M->asArray('save', null, null, true);
-        $data = array();
-
-        $fs = $M::$schema['columns'];
-        if(!$fs) $fs = array_flip(array_keys($odata));
-        foreach($fs as $fn=>$fv) {
-            if(!is_array($fv)) $fv=array('null'=>true);
-            if(isset($fv['increment']) && $fv['increment']=='auto' && !isset($odata[$fn])) {
-                continue;
-            }
-            if(!isset($odata[$fn]) && isset($fv['default']) &&  $M->getOriginal($fn, false, true)===false) {
-                $odata[$fn] = $fv['default'];
-            }
-            if (!isset($odata[$fn]) && $fv['null']===false) {
-                throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $M::fieldLabel($fn)));
-            } else if(array_key_exists($fn, $odata)) {
-                $data[$fn] = self::sql($odata[$fn], $fv);
-            } else if($M->getOriginal($fn, false, true)!==false && is_null($M->$fn)) {
-                $data[$fn] = 'null';
-            }
-            unset($fs[$fn], $fn, $fv);
-        }
-
-        $tn = $M::$schema['tableName'];
-        if($data) {
+        if($data=$this->valuesToSave($M, true)) {
             if(!$conn) {
                 $conn = self::connect($this->schema('database'));
             }
-            $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
-            $r = $this->exec($this->_last, $conn);
-            if($r===false && $conn->errorCode()!=='00000') {
-                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
-            }
+            $r = ldap_add($conn, $this->getDn($M), $data);
 
-            if($id = $this->lastInsertId($M, $conn)) {
-                $pk = $M::pk();
-                if(is_array($id)) {
-                    if(!is_array($pk)) $pk = array($pk);
-                    foreach($pk as $f) {
-                        if(isset($id[$f])) {
-                            $M->$f = $id[$f];
-                        }
-                        unset($f);
-                    }
-                } else {
-                    if(is_array($pk)) $pk = array_shift($pk);
-                    $M[$pk] = $id;
-                }
-                $M->isNew(false);
-                $r = $id;
+            if($r===false) {
+                throw new Tecnodesign_Exception(sprintf(tdz::t('Could not save %s', 'exception'), $this->getDn($M)).': '.ldap_error($conn));
             }
             return $r;
         }
@@ -688,56 +630,14 @@ class Tecnodesign_Query_Ldap
 
     public function update($M, $conn=null)
     {
-        return null;
-        $odata = $M->asArray('save', null, null, true);
-        $data = array();
-
-        $fs = $M::$schema['columns'];
-        if(!$fs) $fs = array_flip(array_keys($odata));
-        $sql = '';
-        foreach($fs as $fn=>$fv) {
-            $original=$M->getOriginal($fn, false, true);
-            if(isset($fv['primary']) && $fv['primary']) {
-                $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
-                continue;
-            }
-            if(!is_array($fv)) $fv=array('null'=>true);
-
-            if (!isset($odata[$fn]) && $original===false) {
-                continue;
-            } else if(array_key_exists($fn, $odata)) {
-                $v  = $odata[$fn];
-                $fv = self::sql($v, $fv);
-            } else if($original!==false && $M->$fn===false) {
-                $v  = null;
-                $fv = 'null';
-            } else {
-                continue;
-            }
-
-            if($original===false) $original=null;
-
-            if((string)$original!==(string)$v) {
-                $sql .= (($sql!='')?(', '):(''))
-                      . "{$fn}={$fv}";
-                //$M->setOriginal($fn, $v);
-            }
-            unset($fs[$fn], $fn, $fv, $v);
-        }
-        if($sql) {
-            $tn = $M::$schema['tableName'];
-            $wsql = '';
-            foreach($pks as $fn=>$fv) {
-                $wsql .= (($wsql!='')?(' and '):(''))
-                       . "{$fn}={$fv}";
-            }
+        if($data=$this->valuesToSave($M)) {
             if(!$conn) {
                 $conn = self::connect($this->schema('database'));
             }
-            $this->_last = "update {$tn} set {$sql} where {$wsql}";
-            $r = $this->exec($this->_last, $conn);
-            if($r===false && $conn->errorCode()!=='00000') {
-                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            $r = ldap_mod_replace($conn, $this->getDn($M), $data);
+
+            if($r===false) {
+                throw new Tecnodesign_Exception(sprintf(tdz::t('Could not save %s', 'exception'), $this->getDn($M)).': '.ldap_error($conn));
             }
             return $r;
         }
@@ -745,26 +645,73 @@ class Tecnodesign_Query_Ldap
 
     public function delete($M, $conn=null)
     {
-        return null;
-        $pk = $M->getPk(true);
-        if($pk) {
-            $tn = $M::$schema['tableName'];
-            $wsql = '';
-            foreach($pk as $fn=>$v) {
-                $fv = self::sql($v, (isset($M::$schema['columns'][$fn]))?($M::$schema['columns'][$fn]):(null));
-                $wsql .= (($wsql!='')?(' and '):(''))
-                       . "{$fn}={$fv}";
-            }
-            if(!$conn) {
-                $conn = self::connect($this->schema('database'));
-            }
-            $this->_last = "delete from {$tn} where {$wsql}";
-            $r = $this->exec($this->_last, $conn);
-            if($r===false && $conn->errorCode()!=='00000') {
-                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
-            }
-            return $r;
+        if(!$conn) {
+            $conn = self::connect($this->schema('database'));
         }
+        $r = ldap_delete($conn, $this->getDn($M));
+
+        if($r===false) {
+            throw new Tecnodesign_Exception(sprintf(tdz::t('Could not save %s', 'exception'), $this->getDn($M)).': '.ldap_error($conn));
+        }
+        return $r;
+    }
+
+    public function getDn($M)
+    {
+        if($M->isNew() || !($r=$M->dn)) {
+            $pk = $this->schema()->uid();
+            $r = '';
+            foreach($pk as $fn) {
+                $r .= ($r ?',' :'').$fn.'='.$M->$fn;
+                unset($fn);
+            }
+            $r .= ($r ?',' :'').$this->schema('tableName');
+            $M->dn = $r;
+        }
+        return $r;
+
+    }
+
+    protected function valuesToSave($M, $new=null)
+    {
+        $odata = $M->asArray('save', null, null, true);
+        $data = array();
+        $fs = $M::$schema['columns'];
+        if(!$fs) $fs = array_flip(array_keys($odata));
+        foreach($fs as $fn=>$fv) {
+            if(!is_array($fv)) $fv=array('null'=>true);
+            if($new && (!isset($odata[$fn]) || tdz::isempty($odata[$fn])) && isset($fv['default'])) {
+                $M->$fn = $odata[$fn] = $fv['default'];
+            } else if(isset($fv['readonly']) && $fv['readonly']) {
+                unset($fn, $fv);
+                continue;
+            }
+            $original=$M->getOriginal($fn, null, false);
+            if($original===null) continue;
+
+            if(array_key_exists($fn, $odata)) {
+                $v = $odata[$fn];
+            } else if($original!==null && $M->$fn===false) {
+                $v = null;
+            } else {
+                continue;
+            }
+
+            if($v!==$original) {
+                $M->setOriginal($fn, $v);
+                if($v && is_string($v) && isset($fv['serialize']) && isset($fv['multiple']) && $fv['multiple']) {
+                    \tdz::log('unserialize: '.$v);
+                    $v = tdz::unserialize($v, $fv['serialize']);
+                } else if(!$v) {
+                    $v = array();
+                }
+                $data[$fn] = $v;
+            }
+            unset($fn, $fv, $v, $original);
+        }
+        unset($fs);
+
+        return $data;
     }
 
     //  public function create($tn=null, $conn=null) {}
