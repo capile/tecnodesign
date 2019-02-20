@@ -1710,25 +1710,27 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function renderShare($object = null, $scope = 'share', $class = null, $translate = false, $xmlEscape = true)
     {
-        $className = $this->getModel();
         $this->options['scope'] = $this->scope($scope);
         $arguments = $this->source ?: array();
 
         $newInterface = [
             'base' => $this->text['interface'],
             'title' => $this->text['title'] . ' Shared',
-            'owner' => (int) tdz::getUser()->id,
+            'owner' => (int)tdz::getUser()->id,
             'expires' => '',
-            'auth' => ['credential'=>[]],
+            'auth' => [
+                'credential' => [],
+                'user' => [(int)tdz::getUser()->id],
+            ],
             'search' => $this->search,
             'actions' => [
-                'list'=> $this->actions['list']// He needs at least this
+                'list' => true// He needs at least this
             ]
         ];
 
         $formConfig = [
             'method' => 'post',
-            'buttons'=> 'Save',
+            'buttons' => 'Save',
             'fields' => [
                 'title' => [
                     'label' => '*Title',
@@ -1765,7 +1767,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 continue;
             }
             $availableActions[$actionName] = [
-                'label' => $actionConfig['label']?: ucfirst($actionName),
+                'label' => $actionConfig['label'] ?: ucfirst($actionName),
                 'value' => $actionName
             ];
         }
@@ -1778,28 +1780,26 @@ class Tecnodesign_Interface implements ArrayAccess
             ];
         }
         $form = new Tecnodesign_Form($formConfig);
+        $this->text['summary'] = 'Sharing query';
 
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
             $post = Tecnodesign_App::request('post');
             if ($post) {
-                if (!$form->validate($post))  {
+                if (!$form->validate($post)) {
                     throw new Tecnodesign_Exception((!$post) ? static::t('errorNoInput') : $form->getError());
                 }
 
                 $newInterface['title'] = $post['title'];
                 $newInterface['expires'] = $post['expires'];
-                $newInterface['auth']['credential'] = $post['auth_credential'];
-                foreach(array_keys($availableActions) as $action) {
-                    if (in_array($action, $post['actions'], true)) {
-                        $newInterface['actions'][$action] = $this->actions[$action];
-                    } else {
-                        $newInterface['actions'][$action] = false;
-                    }
+                $newInterface['auth']['credential'] = array_filter($post['auth_credential']);
+                $newInterface['auth'] = array_filter($newInterface['auth']);
+                foreach (array_keys($availableActions) as $action) {
+                    $newInterface['actions'][$action]= in_array($action, $post['actions'], true);
                 }
 
                 $fileName = $newInterface['base'] . date('-Y-m-d-') . tdz::salt(10);
-                Tecnodesign_Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName . '.yml', ['all'=>$newInterface]);
+                Tecnodesign_Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName . '.yml', ['all' => $newInterface]);
                 $this->message('<div class="tdz-i-msg tdz-i-success"><p>Shared interface /a/' . $fileName . ' created.</p></div>');
                 $this->redirect("/a/$fileName");
             }
