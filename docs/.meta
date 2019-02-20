@@ -1,5 +1,7 @@
 ---
 title: Tecnodesign Documentation
-#script: [ /_/js/docs.js ]
-#style: /_/css/docs.css
+#script: 
+#  docs: [ /docs/_/js/docs.js ]
+style:
+  docs: [ /docs/_/css/docs.less ]
 languages: [ en ]

@@ -15,7 +15,7 @@ $id = tdz::slug($url);
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
 
-Tecnodesign_App::response('title', $title);
+if(isset($title)) Tecnodesign_App::response('title', $title);
 
 // .tdz-i-header
 ?><div class="tdz-i-header"><?php 
@@ -155,6 +155,5 @@ Tecnodesign_App::response('title', $title);
             ?></div><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
                 echo $buttons; 
             ?></div></div><?php 
-
 
 ?></div></div>

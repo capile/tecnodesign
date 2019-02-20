@@ -116,6 +116,11 @@ class Tecnodesign_Yaml
         $cacheKey = 'yaml/' . md5($string);
         $useCache = self::$cache && ($isFile || strlen($string) > 4000);
         if ($useCache) {
+            if($isFile && ($lmod=filemtime($string)) > time() - $readTimeout) {
+                $readTimeout = $lmod;
+                unset($lmod);
+            }
+
             $cacheFound = Tecnodesign_Cache::get($cacheKey, $readTimeout);
             if ($cacheFound) {
                 return $cacheFound;

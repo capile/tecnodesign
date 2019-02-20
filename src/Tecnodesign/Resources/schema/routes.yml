@@ -1,0 +1,15 @@
+---
+title: Routing
+tableName: tecnodesign.routes
+properties:
+  id:
+    type: string
+    primary: true
+  dsn:
+    type: string
+  username:
+    type: string
+  password:
+    type: string
+  options:
+    type: array
