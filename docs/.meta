@@ -1,4 +1,7 @@
 ---
-script: [ /_/js/highlight.js, "<script>hljs.initHighlightingOnLoad();</script>" ]
-style: /_/css/highlight.css
-languages: [ pt, en ]
+title: Tecnodesign Documentation
+#script: 
+#  docs: [ /docs/_/js/docs.js ]
+style:
+  docs: [ /docs/_/css/docs.less ]
+languages: [ en ]

@@ -236,7 +236,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $b = ($array && is_string($array))?($array.'.'):('');
         foreach($pk as $fn) {
             if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
-            $r[$b.$fn]=$this->$fn;
+            $r[$b.$fn]=(!isset($this->$fn) && method_exists($this, $m='get'.tdz::camelize($fn, true)))?($this->$m()):($this->$fn);
         }
         if($array) return $r;
         return implode(static::$keySeparator, $r);
@@ -966,20 +966,22 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         }
         if($scope && is_array($scope)) {
             foreach($scope as $fn=>$fv) {
-                if(is_array($fv)) {
+                if(is_string($fv) && isset($schema['columns'][$fv]['bind']) && $schema['columns'][$fv]['bind']!=$fv) {
+                    $fv = $schema['columns'][$fv]['bind'];
+                } else if(is_array($fv)) {
                     $fv = (isset($fv['bind']))?($fv['bind']):($fn);
                 }
                 if(strpos($fv, ' ')) {
                     $fv = trim(substr($fv, strrpos($fv, ' ')+1));
                 }
-                if(!is_null($this->$fv)) {
-                    if($valueFormat===true) {
-                        $v = $this->renderField($fv);
-                    } else if($valueFormat) {
-                        $v = sprintf($valueFormat, $this->$fv);
-                    } else {
-                        $v = $this->$fv;
-                    }
+                if($valueFormat===true) {
+                    $v = $this->renderField($fv);
+                } else if($valueFormat) {
+                    $v = sprintf($valueFormat, $this->$fv);
+                } else {
+                    $v = $this->$fv;
+                }
+                if(!is_null($v)) {
                     if($keyFormat===true) {
                         $k = $this->fieldLabel($fn);
                     } else if($keyFormat) {

@@ -4,21 +4,7 @@
  *
  * This package enable Tecnodesign application management.
  *
- * PHP version 5.2
- *
- * @category  App
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: App.php 1298 2013-12-12 02:33:05Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Application Server
- *
- * This package enable Tecnodesign application management.
+ * PHP version 5.4
  *
  * @category  App
  * @package   Tecnodesign
@@ -77,8 +63,8 @@ class Tecnodesign_App
         }
         unset($s);
         $base = $this->_vars['tecnodesign']['apps-dir'];
-        if (!$base || $base == '.') {
-            $base = substr(TDZ_ROOT, 0, strpos(TDZ_ROOT, '/lib/'));
+        if (!$base || $base === '.') {
+            $base = TDZ_APP_ROOT;
             $this->_vars['tecnodesign']['apps-dir'] = $base;
         }
         if(!isset($this->_vars['tecnodesign']['controller-options'])) {
@@ -106,6 +92,7 @@ class Tecnodesign_App
                     $this->_vars['tecnodesign'][$name]=str_replace('\\', '/', realpath($base.'/'.$value));
                 }
             }
+            unset($name, $value);
         }
         $this->cache();
         $this->start();
@@ -310,7 +297,7 @@ class Tecnodesign_App
             }
             self::$result=self::$_response['data'];
             if(isset(self::$_response['layout']) && self::$_response['layout']) {
-                self::$result = $this->runTemplate(self::$_response['layout'], self::$_response);
+                self::$result = $this->runTemplate(self::$_response['layout']);
             }
         } catch(Tecnodesign_App_End $e) {
             self::status($e->getCode());
@@ -453,7 +440,7 @@ class Tecnodesign_App
         exit();
     }
 
-    public function runTemplate($tpl, $variables, $cache=false)
+    public function runTemplate($tpl, $variables=null, $cache=false)
     {
         if($tpl && strpos($tpl, '<')!==false) return $tpl;
         if(static::$assets) {
@@ -463,6 +450,7 @@ class Tecnodesign_App
             }
         }
         $result = false;
+        if(is_null($variables)) $variables=self::$_response;
         $exec = array('variables'=>$variables, 'script'=>tdz::templateFile($tpl));
         if($exec['script']) {
             $result=tdz::exec($exec);
@@ -492,7 +480,7 @@ class Tecnodesign_App
 
         foreach($types as $from=>$to) {
             // first look for assets
-            if(!isset(tdz::$variables['variables'][$destination[$to]])) tdz::$variables['variables'][$destination[$to]]=array();
+            if(!isset(self::$_response[$destination[$to]])) self::$_response[$destination[$to]]=array();
 
             $t = null;
             $src=preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
@@ -511,7 +499,7 @@ class Tecnodesign_App
                     if($t===null) {
                         $t =  tdz::$assetsUrl.'/'.tdz::slug($n).'.'.$to;
                         $tf =  TDZ_DOCUMENT_ROOT.$t;
-                        if(in_array($t, tdz::$variables['variables'][$destination[$to]])) {
+                        if(in_array($t, self::$_response[$destination[$to]])) {
                             $t = null;
                             break;
                         }
@@ -536,10 +524,10 @@ class Tecnodesign_App
                 if($output) {
                     if($tf) $t .= '?'.date('YmdHis', filemtime($tf));
 
-                    if(isset(tdz::$variables['variables'][$destination[$to]][700])) {
-                        tdz::$variables['variables'][$destination[$to]][] = $t;
+                    if(isset(self::$_response[$destination[$to]][700])) {
+                        self::$_response[$destination[$to]][] = $t;
                     } else {
-                        tdz::$variables['variables'][$destination[$to]][700] = $t;
+                        self::$_response[$destination[$to]][700] = $t;
                     }
                 }
             }
@@ -710,6 +698,7 @@ class Tecnodesign_App
             $this->_o[$class] = $o;
             $this->cache();
         }
+
         return true;
     }
 

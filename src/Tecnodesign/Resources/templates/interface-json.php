@@ -77,11 +77,10 @@ if(isset($list) && is_array($list)) {
             } else {
                 $fd = null;
             }
-            if(strpos($label, ':') || (substr($fn, 0, 2)=='--' && substr($fn, 0, -2)=='--')) continue;
+            if(substr($fn, 0, 2)=='--' && substr($fn, 0, -2)=='--') continue;
             if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
             if(is_int($label)) $label = $fn;
             $S[$label]=$fn;
-            if(method_exists($cn, $m='preview'.tdz::camelize($fn, true))) $M[$fn]=$m;
             unset($label, $fn, $p, $m);
         }
         if(isset($preview)) {
@@ -95,16 +94,7 @@ if(isset($list) && is_array($list)) {
         while($d && $o<$l) {
             foreach($d as $i=>$v) {
                 $o++;
-                $e=array();
-                foreach($S as $k=>$c) {
-                    $vc = (isset($M[$c]))?($v->{$M[$c]}()):($v[$c]);
-                    if($vc!=='' && $vc!==false && $vc!==null) {
-                        $e[$k] = str_replace("\t",' ', tdz::raw($vc));
-                    } else if(!$nonull) {
-                        $e[$k] = null;
-                    }
-                    unset($k, $c, $vc);
-                }
+                $e=array_filter($v->asArray($S, null, true));
                 if(isset($key)) {
                     $r[$v[$key]] = $e;
                 } else {

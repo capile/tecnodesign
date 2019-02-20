@@ -312,23 +312,36 @@ class Tecnodesign_Schema implements ArrayAccess
         return $R;
     }
 
-    public function toJsonSchema($scope=null, $properties=null)
+    public function toJsonSchema($scope=null, &$R=array())
     {
         // available scopes might form full definitions (?)
-
-        $cn = $this->className;
         $fo = $this->properties($scope);
+        $cn = $this->className;
 
-        $R=array('type'=>'object','properties'=>array(), 'required'=>array());
-        /*
-        $R += array(
-            '$schema'=>'http://json-schema.org/draft-07/schema#',
-            '$id'=>tdz::buildUrl($this->link().$qs),
-            'title'=>(isset($this->text['title']))?($this->text['title']):($cn::label()),
+        if(!is_array($R)) {
+            $R += array(
+                '$schema'=>'http://json-schema.org/draft-07/schema#',
+                '$id'=>tdz::buildUrl($this->link().$qs),
+                'title'=>(isset($this->text['title']))?($this->text['title']):($cn::label()),
+            );
+        }
+        $R+=array('type'=>'object','properties'=>array(), 'required'=>array());
+
+        $types = array(
+            'bool'=>'boolean',
+            'array'=>'object',
+            'form'=>'object',
+            'integer'=>'integer',
+            'number'=>'number',
         );
-        */
 
-        $types = array('boolean'=>'boolean', 'bool'=>'boolean', 'array'=>'object', 'integer'=>'number', 'number'=>'number');
+        $properties=array(
+            'label'=>'title',
+            'description'=>'description',
+            'placeholder'=>'description',
+            'default'=>'default',
+            'readonly'=>'readOnly',
+        );
 
         foreach($fo as $fn=>$fd) {
             $bind = (isset($fd['bind']))?($fd['bind']):($fn);
@@ -340,14 +353,85 @@ class Tecnodesign_Schema implements ArrayAccess
                 else $type = array($type, 'array');
             }
             $R['properties'][$fn]=array(
-                'description'=>(isset($fd['description']))?($fd['description']):($fd['label']),
                 'type'=>$type,
             );
+
+            foreach($properties as $n=>$v) {
+                if(isset($fd[$n]) && !isset($R['properties'][$fn][$n])) {
+                    $R['properties'][$fn][$n] = $fd[$n];
+                }
+                unset($n, $v);
+            }
             if(isset($fd['null']) && !$fd['null']) $R['required'][] = $fn;
+
+            if(!is_array($type) && method_exists($this, $m='_jsonSchema'.ucfirst($type))) {
+                $this->$m($fd, $R['properties'][$fn]);
+            }
+
+            if(isset($fd['choices']) && is_array($fd['choices'])) {
+                $R['properties'][$fn]['enum'] = array_keys($fd['choices']);
+            }
         }
 
-
         return $R;
+    }
+
+    protected function _jsonSchemaInteger($fd, &$R=array())
+    {
+        return $this->_jsonSchemaNumber($fd, $R);
+    }
+
+    protected function _jsonSchemaNumber($fd, &$R=array())
+    {
+        if(isset($fd['min_size'])) $R['minimum'] = $fd['min_size'];
+        if(isset($fd['size'])) $R['maximum'] = $fd['size'];
+        // exclusiveMaximum
+        // exclusiveMinimum
+        // multipleOf
+    }
+
+    protected function _jsonSchemaString($fd, &$R=array())
+    {
+        if(isset($fd['min_size'])) $R['minLength'] = $fd['min_size'];
+        if(isset($fd['size'])) $R['maxLength'] = $fd['size'];
+        // pattern
+
+        static $format=array(
+            'date'=>'date',
+            'datetime'=>'date-time',
+            'time'=>'time',
+            'email'=>'email',
+            'ipv4'=>'ipv4',
+            'ipv6'=>'ipv6',
+            'url'=>'uri',
+        );
+        if(isset($fd['type']) && isset($format[$fd['type']])) $R['format'] = $format[$fd['type']];
+    }
+
+    protected static function _jsonSchemaArray($fd, &$R=array())
+    {
+        if(isset($fd['scope'])) {
+            $R['items'] = $this->toJsonSchema($fd['scope'], $R);
+        }
+        // additionalItems
+        // pattern
+        if(isset($fd['min_size'])) $R['minItems'] = $fd['min_size'];
+        if(isset($fd['size'])) $R['maxItems'] = $fd['size'];
+        // uniqueItems
+        // contains
+    }
+
+    protected static function _jsonSchemaObject($fd, &$R=array())
+    {
+        if(isset($fd['scope'])) {
+            $R = $this->toJsonSchema($fd['scope'], $R);
+        }
+        // maxProperties
+        // minProperties
+        // patternProperties
+        // additionalProperties
+        // dependencies
+        // propertyNames
     }
 
     /**
