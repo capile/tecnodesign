@@ -32,10 +32,10 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             'entry'=>'Article',
             'file'=>'Uploaded file',
         ),
-        $pageDir='studio/page',                        // where pages are stored (relative to TDZ_VAR)
-        $uploadDir='studio/upload',                    // where uploads are stored (relative to TDZ_VAR)
-        $indexFile='index',                             // filename to use for directory reads
-        $previewEntryType=array('feed','file','page');  // which entry types can be previewed
+        $pageDir='web',                                // where pages are stored (relative to TDZ_VAR)
+        $uploadDir,                                    // deprecated, use tdz::uploadDir
+        $indexFile='index',                            // filename to use for directory reads
+        $previewEntryType=array('feed','file','page'); // which entry types can be previewed
 
     public static $s=1;
     /**
@@ -379,7 +379,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         ) {
             $file = false;
         }
-        if(file_exists($ufile=TDZ_VAR.'/'.static::$uploadDir.'/'.$this->source)) {
+        if(file_exists($ufile=tdz::uploadDir().'/'.$this->source)) {
             if(!$file || filemtime($ufile)>filemtime($file))
                 $file = $ufile;
         }

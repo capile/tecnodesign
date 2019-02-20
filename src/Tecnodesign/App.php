@@ -4,21 +4,7 @@
  *
  * This package enable Tecnodesign application management.
  *
- * PHP version 5.2
- *
- * @category  App
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: App.php 1298 2013-12-12 02:33:05Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Application Server
- *
- * This package enable Tecnodesign application management.
+ * PHP version 5.4
  *
  * @category  App
  * @package   Tecnodesign
@@ -77,8 +63,8 @@ class Tecnodesign_App
         }
         unset($s);
         $base = $this->_vars['tecnodesign']['apps-dir'];
-        if (!$base || $base == '.') {
-            $base = substr(TDZ_ROOT, 0, strpos(TDZ_ROOT, '/lib/'));
+        if (!$base || $base === '.') {
+            $base = TDZ_APP_ROOT;
             $this->_vars['tecnodesign']['apps-dir'] = $base;
         }
         if(!isset($this->_vars['tecnodesign']['controller-options'])) {
@@ -106,6 +92,7 @@ class Tecnodesign_App
                     $this->_vars['tecnodesign'][$name]=str_replace('\\', '/', realpath($base.'/'.$value));
                 }
             }
+            unset($name, $value);
         }
         $this->cache();
         $this->start();

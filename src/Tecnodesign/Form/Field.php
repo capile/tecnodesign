@@ -15,7 +15,7 @@
  */
 class Tecnodesign_Form_Field implements ArrayAccess
 {
-    public static 
+    public static
         $hashMethods=array(
             'datetime'=>'date("Ymd/His_").tdz::slug($name,"._")',
             'time'=>'microtime(true)',
@@ -37,12 +37,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $allowedProperties=array('on'),
         $tmpDir='/tmp'
         ;
-    
+
     /**
-     * Common attributes to each form field. If there's a set$Varname, then it'll 
+     * Common attributes to each form field. If there's a set$Varname, then it'll
      * be used to check the validity of the added information.
      */
-    protected 
+    protected
         $prefix=false,          // prefix to be added to the form field, useful for CSRF and subforms
         $id=false,              // field ID, usually automatically created from key index
         $type='text',           // field type, must have a corresponding function render$Type
@@ -60,7 +60,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $renderer=false,        // use another renderer instead of the template, accepts callbacks
         $error=false,           // field errors
         $filters=false,         // filters this field choices based on another field's value
-        $dataprop,              // 
+        $dataprop,              //
         $class='',              // container class names (attribute value, use spaces for multiple classes)
         $template=false,        // custom template, otherwise, guess from $type
         $rules=false,           // validation rules, regular expression => message
@@ -68,7 +68,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $multiple=false,        // for select and checkboxes, if accepts multiple values
         $required=false,        // if this field is mandatory (raises errors)
         $html_labels=false,     // if true, labels and other template contents won't be escaped
-        $messages=null,         // 
+        $messages=null,         //
         $disabled=false,        // should updates be disabled?
         $readonly=false,        // makes this readonly
         $size=false,            // size, in bytes, for the contents of this field, for numeric types use $range
@@ -78,8 +78,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $decimal=0,             // decimal values accepted
         $accept=false,          // content types accepted, used for file uploads
         $toAdd=null,            // for subforms
-        $insert=true,           
-        $update=true,           
+        $insert=true,
+        $update=true,
         $before=false,          // content to be displayed before the field
         $fieldset=false,        // fieldset label this field belongs to
         $after=false,           // content to be displayed after the field
@@ -143,7 +143,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         return Tecnodesign_Form::instance($this->form)->model;
     }
-    
+
     public function getSchema()
     {
         $cn = false;
@@ -164,8 +164,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return false;
     }
-    
-    
+
+
     public function setMessages($msgs=array())
     {
         if(is_array($msgs)) {
@@ -177,8 +177,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
     }
-    
-    
+
+
     /**
      * Binds field to $form->model column or relation
      */
@@ -225,8 +225,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             throw new Tecnodesign_Exception(array(tdz::t('Field name "%s" is bound to non-existing model'), $name));
         }
     }
-    
-    
+
+
     public function setUpdate($update)
     {
         $this->update = (bool) $update;
@@ -236,7 +236,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
     }
-    
+
     public function setInsert($insert)
     {
         $this->insert = (bool) $insert;
@@ -246,8 +246,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
     }
-    
-    
+
+
     public function setPlaceholder($str) {
         if(substr($str, 0, 1)=='*') {
             $tlib = ($this->bind && ($schema=$this->getSchema()))?('model-'.$schema['tableName']):('form');
@@ -255,8 +255,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $this->placeholder = $str;
     }
-    
-    
+
+
     public function setType($type)
     {
         if($type=='') {
@@ -267,7 +267,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $this->type = $type;
     }
-    
+
     public static function id($name)
     {
         return str_replace('-', '_', tdz::slug($name, '§,', true));
@@ -304,13 +304,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $name = $this->prefix.'['.$id.']';
         } else {
             $name = $id;
-        }        
+        }
         if(($this->multiple && $this->type!='form') || $this->type == 'file') {
             $name.='[]';
         }
         return $name;
     }
-    
+
     public function getValue()
     {
         if(is_null($this->value) && $this->bind) {
@@ -333,7 +333,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $this->value;
     }
-    
+
     public function setValue($value=false, $outputError=true)
     {
         $this->error=array();
@@ -443,7 +443,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $value;
     }
-    
+
     public function checkModel($value, $message='')
     {
         if(is_null($this->value)) {
@@ -480,7 +480,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         unset($cn, $M, $fn, $m);
         return $value;
     }
-    
+
     public function checkChoices($value, $message='')
     {
         if($value===false) {
@@ -522,7 +522,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $value;
     }
-    
+
     public function checkForm($value, $message='')
     {
         if(!is_array($value)) {
@@ -683,7 +683,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $fo['id'] = $p0.'['.$i.']';
                 $F = new Tecnodesign_Form($fo);
                 if(!$F->validate($o)) {
-                    $valid = false; 
+                    $valid = false;
                     break;
                 } else {
                     $value[$i] = $F->getData();
@@ -699,7 +699,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $value;
     }
-    
+
     public function checkSize($value, $message='')
     {
         if($this->type=='form') {
@@ -1041,11 +1041,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public function checkDate($value, $message='')
     {
-        
-        if($value != '' && !preg_match('/^[0-9]{4}(-[0-9]{1,2}(-[0-9]{1,2}([ T][0-9]{1,2}(:[0-9]{1,2}(:[0-9]{1,2}(\.[0-9]+)?)?)?)?)?)?$/', $value)) {            
+
+        if($value != '' && !preg_match('/^[0-9]{4}(-[0-9]{1,2}(-[0-9]{1,2}([ T][0-9]{1,2}(:[0-9]{1,2}(:[0-9]{1,2}(\.[0-9]+)?)?)?)?)?)?$/', $value)) {
             $value = date('Y-m-d H:i:s', tdz::strtotime($value, false));
         }
-        return $value;        
+        return $value;
     }
 
     public function checkDatetime($value, $message='')
@@ -1142,10 +1142,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $fd;
     }
-    
+
     /**
      * Value adjustment
-     * 
+     *
      * Whenever a form is posted, the values might need adjustment, like to convert search strings to keys, arrays to strings.
      *
      */
@@ -1199,12 +1199,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $value;
     }
-    
+
     public function getError()
     {
         return $this->error;
     }
-    
+
     public function getClass()
     {
         $cn = $this->class;
@@ -1216,7 +1216,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return trim($cn);
     }
-    
+
     public function setError($msg)
     {
         if(!is_array($this->error)) {
@@ -1225,12 +1225,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $this->error[$msg]=$msg;
         return $this;
     }
-    
+
     public function countChoices($check=null)
     {
         return $this->getChoices($check, true);
     }
-    
+
     private $_choicesCollection=null;
     private $_choicesTranslated=false;
     public function getChoices($check=null, $count=false)
@@ -1349,7 +1349,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $this->choices;
     }
-    
+
     public function getLabel()
     {
         $ttable = false;
@@ -1384,7 +1384,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $this;
     }
-    
+
     public function render($arg=array())
     {
         $base = array('id', 'name', 'value', 'error', 'label', 'class');
@@ -1462,7 +1462,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         return $s;
     }
-    
+
     public function renderForm(&$arg)
     {
         $input = '<input type="hidden" id="'.tdz::xml($arg['id']).'" name="'.tdz::xml($arg['name']).'" />';
@@ -1522,7 +1522,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         unset($fkvalues[$fn]);
                     }
                 }
-                
+
                 if(!$this->min_size || !$this->size) {
                     $form = $model->getForm($scope, false);
 
@@ -1546,7 +1546,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 unset($model);
             }
             unset($M);
-            
+
             if($this->min_size && count($arg['value']) < $this->min_size) {
                 while(count($arg['value']) < $this->min_size) {
                     if($bind) {
@@ -1563,7 +1563,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $arg['value']=array_slice($arg['value'], 0, $this->size);
                 }
             }
-            
+
             if($arg['value']) {
                 foreach ($arg['value'] as $i=>$model) {
                     $form = $model->getForm($scope, !$model->isNew());
@@ -1623,7 +1623,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
             }
         }
-        
+
         if (!isset($arg['template'])) {
             $arg['template'] = dirname(__FILE__).'/Resources/templates/subform.php';
         }
@@ -1708,7 +1708,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $fo;
 
     }
-    
+
     public function renderEmail(&$arg)
     {
         $arg['type']=self::$emailInputType;
@@ -1808,7 +1808,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             return $f;
         }
     }
-    
+
     public function filePreview($prefix='', $img = false)
     {
         $s='';
@@ -1962,7 +1962,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             self::$dateInputFormat = tdz::$dateFormat;
         }
         $df = self::$dateInputFormat;
-        
+
         $yf = (strpos($df, 'Y'))?('Y'):('y');
         $input=array();
         $input[$yf] = '<span class="input date-year"><select ';
@@ -2065,7 +2065,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
         $input[$f].='</select></span>';
-        
+
         // add time/seconds
         $uk = array();
         foreach($input as $k=>$v) {
@@ -2097,11 +2097,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
         */
         return $this->renderText($arg);
     }
-    
+
     public function renderColor(&$arg)
     {
         $arg['type']='color';
-        
+
         return $this->renderText($arg);
     }
 
@@ -2116,7 +2116,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         return $this->renderText($arg, $enableChoices);
     }
-    
+
     public function renderText(&$arg, $enableChoices=true, $enableMultiple=null)
     {
         if($this->multiple && ($enableMultiple || (is_null($enableMultiple) && static::$enableMultipleText))) {
@@ -2246,9 +2246,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $input .= $attr . '="' . tdz::xmlEscape($value) . '" ';
         }
         $input .= '>'.tdz::xmlEscape($arg['value']).'</textarea>';
-        
+
         return $input;
-    }    
+    }
     public function renderNone()
     {
     }
@@ -2301,34 +2301,37 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $this->renderCheckbox($arg, 'checkbox');
     }
 
-    public function renderCheckbox(&$arg, $type='checkbox')
+    public function renderCheckbox(&$arg, $type = 'checkbox')
     {
         //$a = array('id'=>$arg['id']);
-        $a = array('type'=>$type, 'name'=>$arg['name']);
+        $attributeList = array('type' => $type, 'name' => $arg['name']);
         $bv = array('required', 'readonly', 'disabled');
-        foreach ($bv as $attr) {
-            $value = $this->$attr;
+        foreach ($bv as $attribute) {
+            $value = $this->$attribute;
             if ($value) {
-                $a[$attr] = true;
+                $attributeList[$attribute] = true;
             }
         }
-        $a += $this->attributes;
+        $attributeList += $this->attributes;
+
         $input = '<input';
-        foreach ($a as $attr=>$value) {
+        foreach ($attributeList as $attribute => $value) {
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input .= ' ' . $attr . '="' . tdz::xmlEscape($value) . '"';
+            $input .= ' ' . $attribute . '="' . tdz::xmlEscape($value) . '"';
         }
         //$input .= '>';
+
         if (!$this->choices) {
             // render as a bool
-            if($this->placeholder) {
-                $this->choices=array(1=>$this->placeholder);
+            if ($this->placeholder) {
+                $this->choices = array(1 => $this->placeholder);
             } else {
-                $this->choices = array(1=>'');
+                $this->choices = array(1 => '');
             }
         }
+
         $options = array();
         /*
          * get something to reset buttons
@@ -2339,107 +2342,124 @@ class Tecnodesign_Form_Field implements ArrayAccess
          */
         /**
          *  Modificação executada dia 30/10 pois o getOriginal sempre
-         *  mantinha o valor original do model ao invés de setar o novo 
+         *  mantinha o valor original do model ao invés de setar o novo
          *  valor.
          * if($this->bind) {
             $ovalue = $this->getModel()->getOriginal($this->bind);
             if(is_null($ovalue) && $this->default) $ovalue = $this->default;
         } else {
             $ovalue = $this->value;
-        }*/        
-        $ovalue = $arg['value'];
+        }*/
+        $oValue = $arg['value'];
 
-        if(!is_array($ovalue)) {
-            $ovalue = ($this->serialize)?(tdz::unserialize($ovalue, $this->serialize)):(preg_split('/\s*\,\s*/', $ovalue));
-            if(!is_array($ovalue)) $ovalue = array($ovalue);
+        if (!is_array($oValue)) {
+            $oValue = $this->serialize
+                ? tdz::unserialize($oValue, $this->serialize)
+                : preg_split('/\s*\,\s*/', $oValue);
+            if (!is_array($oValue)) {
+                $oValue = array($oValue);
+            }
         } else {
             $opk = null;
-            foreach($ovalue as $i=>$o) {
-                if(is_object($o) && ($o instanceof Tecnodesign_Model)) {
-                    $v = $o->getPk(true);
-                    $ovalue[$i] = array_pop($v);
-                    unset($i, $o, $v);
-                } else break;
+            foreach ($oValue as $i => $o) {
+                if (is_object($o) && ($o instanceof Tecnodesign_Model)) {
+                    $valueConfig = $o->getPk(true);
+                    $oValue[$i] = array_pop($valueConfig);
+                    unset($i, $o, $valueConfig);
+                } else {
+                    break;
+                }
             }
         }
-        $opt = $this->getChoices();
-        if(count($opt)==1 && !implode('', $opt)) $opt=array();
+
+        $choices = $this->getChoices();
+        if (count($choices) === 1 && !implode('', $choices)) {
+            $choices = array();
+        }
         $i=0;
-        foreach ($opt as $k=>$v) {
-            $value = $k;
+        foreach ($choices as $key => $valueConfig) {
+            $value = $key;
             $label = false;
             $group = false;
             $attrs = '';
-            $sc = '';
-            if(is_object($v) && $v instanceof Tecnodesign_Model) {
-                $value = $v->pk;
-                $label = (string)$v;
-                $group = (isset($v->_group))?($v->_group):($v->group);
-            } else if (is_array($v) || is_object($v)) {
-                $firstv=false;
-                foreach ($v as $vk=>$vv) {
-                    if(!$firstv) {
-                        $firstv = $vv;
+            $styleClasses = '';
+            if (is_object($valueConfig) && $valueConfig instanceof Tecnodesign_Model) {
+                $value = $valueConfig->pk;
+                $label = (string)$valueConfig;
+                $group = isset($valueConfig->_group) ? $valueConfig->_group : $valueConfig->group;
+            } elseif (is_array($valueConfig) || is_object($valueConfig)) {
+                $firstValue = false;
+                foreach ($valueConfig as $configKey => $configValue) {
+                    if (!$firstValue) {
+                        $firstValue = $configValue;
                     }
-                    if($vk=='value') {
-                        $value = $vv;
-                    } else if($vk=='label') {
-                        $label = $vv;
-                    } else if($vk=='group') {
-                        $group = $vv;
-                    } else if($vk=='class') {
-                        $sc = ' '.$vv;
-                    } else if($vk=='disabled' || $vk=='readonly') {
-                        if($vv) $attrs.=' disabled="disabled"';
-                    } else if(!is_int($vk)) {
-                        $attrs.=' data-'.$vk.'="'.tdz::xmlEscape($vv).'"';
+                    if ($configKey === 'value') {
+                        $value = $configValue;
+                    } elseif ($configKey === 'label') {
+                        $label = $configValue;
+                    } elseif ($configKey === 'group') {
+                        $group = $configValue;
+                    } elseif ($configKey === 'class') {
+                        $styleClasses = ' ' . $configValue;
+                    } elseif ($configKey === 'disabled' || $configKey === 'readonly') {
+                        if ($configValue) {
+                            $attrs .= ' disabled="disabled"';
+                        }
+                    } elseif (!is_int($configKey)) {
+                        $attrs .= ' data-' . $configKey . '="' . tdz::xmlEscape($configValue) . '"';
                     }
                 }
-                if(!$label && $firstv) {
-                    $label = $firstv;
+                if (!$label && $firstValue) {
+                    $label = $firstValue;
                 }
             } else {
-                $label = $v;
+                $label = $valueConfig;
             }
-            if(in_array($value, $ovalue)){
+
+            if (in_array($value, $oValue,false)) {
                 $attrs .= ' checked="checked"';
-                $sc = ' on'; 
+                $styleClasses = ' on';
             }
+
             if ($label) {
-                if(!$this->html_labels) {
+                if (!$this->html_labels) {
                     $label = tdz::xmlEscape($label);
                 }
-                $id = $arg['id'].'-'.($i++);
-                $dl = "<label for=\"{$id}\"><span class=\"{$type}{$sc}\">{$input} id=\"{$id}\" value=\"" . tdz::xmlEscape($value) . '"' . $attrs
-                    . ' /></span>' . $label . '</label>';
+                $id = $arg['id'] . '-' . ($i++);
+                $dl = "<label for=\"$id\"><span class=\"$type $styleClasses\">"
+                    . "$input id=\"$id\" value=\"" . tdz::xmlEscape($value) . "\" $attrs />"
+                    . '</span>' . $label . '</label>';
             } else {
                 $id = $arg['id'];
-                $dl = "<span class=\"{$type}{$sc}\">{$input} id=\"{$id}\" value=\"" . tdz::xmlEscape($value) . '"' . $attrs . ' /></span>';
+                $dl = "<span class=\"$type $styleClasses\">"
+                    . "$input id=\"$id\" value=\"" . tdz::xmlEscape($value) . "\" $attrs />"
+                    . '</span>';
             }
             if ($group) {
-                $options[$group][]=$dl;
+                $options[$group][] = $dl;
             } else {
                 $options[] = $dl;
             }
-            unset($opt[$k], $v);
-        }
-        if(!isset($k)) {
+            unset($choices[$key], $valueConfig);
+        }// endforeach ($choices as $key => $valueConfig)
+
+        if(!isset($key)) {
             $attrs = '';
-            $sc = '';
+            $styleClasses = '';
             $value = ($arg['value'])?($arg['value']):('1');
             if($this->value) {
                 $attrs .= ' checked="checked"';
-                $sc = ' on'; 
+                $styleClasses = ' on';
             }
             $id = $arg['id'];
-            $options[] = "<span class=\"{$type}{$sc}\">{$input} id=\"{$id}\" value=\"" . tdz::xmlEscape($value) . '"' . $attrs . ' /></span>';
+            $options[] = "<span class=\"{$type}{$styleClasses}\">{$input} id=\"{$id}\" value=\"" . tdz::xmlEscape($value) . '"' . $attrs . ' /></span>';
         }
         $dl = '';
-        foreach ($options as $k=>$v) {
-            if (is_array($v)) {
-                $dl .= '<div class="'.tdz::slug($k).'" label="'.tdz::xml($k).'"><span class="label">'.tdz::xml($k).'</span>'.implode('', $v).'</div>';
+        foreach ($options as $key=>$valueConfig) {
+            if (is_array($valueConfig)) {
+                $dl .= '<div class="'.tdz::slug($key).'" label="'.tdz::xml($key).'"><span class="label">'.tdz::xml($key).'</span>'.implode('', $valueConfig).'</div>';
             } else {
-                $dl .= $v;
+                $dl .= $valueConfig;
             }
         }
         return $dl;
@@ -2568,7 +2588,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $m = preg_match($p, $tg);
                 unset($p);
             } else if($tg==$arg['id']) {
-                $m = true; 
+                $m = true;
             }
             if($m) {
                 unset($m, $tg);
@@ -2595,7 +2615,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $this->_choicesCollection=null;
             }
 
-            
+
             $ia = $arg;
             $ha=$arg;
             $ia['type']='search';
@@ -2744,7 +2764,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $options[$group][]=$dl;
             } else {
                 $options[] = $dl;
-            }            
+            }
         }
         $dl = '';
         foreach ($options as $k=>$v) {
@@ -2757,7 +2777,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $input .= $dl . '</select>';
         return $input;
     }
-    
+
 
 
     /**
@@ -2796,11 +2816,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         $this->prefix=$s;
     }
-    
+
 
     /**
      * Magic terminator. Returns the page contents, ready for output.
-     * 
+     *
      * @return string page output
      */
     function __toString()
@@ -2836,7 +2856,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * $_vars.
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return mixed the stored value, or method results
      */
     public function  __get($name)
@@ -2879,7 +2899,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      *
      * @param string $name  parameter name, should start with lowercase
      * @param mixed  $value value to be set
-     * 
+     *
      * @return void
      * @see __set()
      */
@@ -2892,7 +2912,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * to the PDF classes — only unsets values stored in $_vars
      *
      * @param string $name parameter name, should start with lowercase
-     * 
+     *
      * @return void
      */
     public function offsetUnset($name)
