@@ -555,7 +555,15 @@ class Tecnodesign_User
         } else {
             $domain = $_SERVER['HTTP_HOST'];
         }
-        if($p=strpos($domain, ':')) $domain = substr($domain, 0, $p);
+        if(preg_match('/^[0-9\:]+([0-9a-f]*[\.\:])+[0-9a-f](\:|$)/', $domain)) {
+            $domain = null;
+            static::$cookieSecure = false;
+        } else if($p=strpos($domain, ':')) {
+            $domain = substr($domain, 0, $p);
+        }
+        if(static::$cookieSecure && !Tecnodesign_App::request('https')) {
+            static::$cookieSecure = false;
+        }
         $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         if($timeout > 0 && $timeout<31536000) $timeout += time();
         setcookie($n, $this->_cid, $timeout, '/', $domain, static::$cookieSecure, static::$cookieHttpOnly);
@@ -765,7 +773,7 @@ class Tecnodesign_User
             $this->_superAdmin=false;
             if($this->_me && method_exists($this->_me, 'isSuperAdmin')){
                 $this->_superAdmin = $this->_me->isSuperAdmin();
-            } else if($this->_me && ($sa = tdz::getApp()->user['super_admin']) && ($uc = $this->getCredentials())) {
+            } else if($this->_me && ($sa = tdz::getApp()->user['super-admin']) && ($uc = $this->getCredentials())) {
                 if(!is_array($sa)) $this->_superAdmin = in_array($sa, $uc);
                 else {
                     foreach ($sa as $i=>$c) {

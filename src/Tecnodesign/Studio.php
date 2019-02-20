@@ -20,16 +20,16 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
-        $automatedInstall=false,
+        $automatedInstall,
         $webInterface,
         $checkOrigin=true,  // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
-        $cacheTimeout=0,    // configurable, cache timeout, use false to disable caching, 0 means forever
-        $staticCache=0,     // configurable, store static previews of entries
-        $home='/_/studio',  // configurable, where to load E-Studio interface
+        $cacheTimeout=false,// configurable, cache timeout, use false to disable caching, 0 means forever
+        $staticCache=false, // configurable, store static previews of entries
+        $home='/_studio',   // configurable, where to load E-Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
         $uploadDir,         // deprecated, use tdz::uploadDir
         $index='studio.db', // configurable, relative to TDZ_VAR
@@ -72,6 +72,9 @@ class Tecnodesign_Studio
     public static function run()
     {
         self::$app = tdz::getApp();
+        if(!self::$app->studio && tdz::scriptName()==='/' && tdz::getUser()->isSuperAdmin()) {
+            return tdz::redirect('/_studio/config');
+        }
         $req = Tecnodesign_App::request();
         if($req['shell']) {
             tdz::scriptName($req['script-name']);
@@ -163,9 +166,9 @@ class Tecnodesign_Studio
         return $lang;
     }
 
-    private static function _runInterface()
+    private static function _runInterface($url=null)
     {
-        $url = substr(tdz::scriptName(), strlen(self::$home));
+        if(!$url) $url = substr(tdz::scriptName(), strlen(self::$home));
         if(strpos($url, '.')!==false) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
@@ -189,8 +192,8 @@ class Tecnodesign_Studio
                 tdz::$translator = 'Tecnodesign_Studio::translate';
                 Tecnodesign_App::response('layout', 'layout');
                 tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
-                Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
-                Tecnodesign_App::response('style', array('/studio.less'));
+                //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
+                //Tecnodesign_App::response('style', array('/studio.less'));
                 return Tecnodesign_Studio_Interface::run();
             } else if(isset($methods[$url])) {
                 $m = $methods[$url];
@@ -200,9 +203,9 @@ class Tecnodesign_Studio
                 tdz::$translator = 'Tecnodesign_Studio::translate';
                 Tecnodesign_App::response('layout', 'layout');
                 tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
-                tdz::$assetsUrl = self::$home;
-                Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
-                Tecnodesign_App::response('style', array('/studio.less'));
+                //tdz::$assetsUrl = self::$home;
+                //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
+                //Tecnodesign_App::response('style', array('/studio.less'));
                 return Tecnodesign_Studio_Interface::run();
             }
         }
@@ -798,16 +801,11 @@ class Tecnodesign_Studio
      */
     public static function templateFile($tpl)
     {
-        $tpld = self::$app->tecnodesign['templates-dir'];
-        $apps = self::$app->tecnodesign['apps-dir'];
-        $template=false;
-        foreach(func_get_args() as $tpl) {
-            if($tpl && ((substr($tpl, 0, strlen($apps))==$apps && file_exists($tplf=$tpl.'.php')) || file_exists($tplf=$tpld.'/'.$tpl.'.php') || file_exists($tplf=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/templates/'.$tpl.'.php'))) {
-                $template = $tplf;
-                break;
-            }
+        if(!in_array($d=TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates', tdz::templateDir())) {
+            tdz::$tplDir[] = $d;
         }
-        return $template;
+        unset($d);
+        return tdz::templateFile(func_get_args());
     }
 
     public static function translate($s, $table=null, $to=null, $from=null)

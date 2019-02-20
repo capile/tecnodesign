@@ -236,7 +236,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         $b = ($array && is_string($array))?($array.'.'):('');
         foreach($pk as $fn) {
             if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
-            $r[$b.$fn]=$this->$fn;
+            $r[$b.$fn]=(!isset($this->$fn) && method_exists($this, $m='get'.tdz::camelize($fn, true)))?($this->$m()):($this->$fn);
         }
         if($array) return $r;
         return implode(static::$keySeparator, $r);
