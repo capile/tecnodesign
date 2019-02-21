@@ -23,6 +23,8 @@ matrix:
 
 before_install:
   - composer self-update
+  - printf "\n" | pecl install yaml
+  - echo "extension=yaml.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 install:
   - travis_retry composer install --no-interaction --ignore-platform-reqs
