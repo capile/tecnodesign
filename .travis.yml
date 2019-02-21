@@ -4,7 +4,7 @@ language: php
 
 branches:
   only:
-    - feature/phpunit
+    - master
 
 cache:
   directories:
