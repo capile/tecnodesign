@@ -27,7 +27,7 @@ before_install:
   - test/ci/install_dependencies.sh
 
 install:
-  - travis_retry composer install --no-interaction --ignore-platform-reqs
+  - travis_retry composer install --no-interaction
 
 script:
   - composer test
