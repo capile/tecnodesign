@@ -2,6 +2,8 @@
 Tecnodesign Application Development Framework 
 =============================================
 
+[![Build Status](https://travis-ci.org/capile/Tecnodesign.svg?branch=master)](https://travis-ci.org/capile/Tecnodesign)
+
 This is a framework developed by Tecnodesign to build web applications and websites. It comes with a powerful MVC structure and several additional modules.
 
 ## Quick Install (standalone)
