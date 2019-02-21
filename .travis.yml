@@ -23,9 +23,8 @@ matrix:
 
 before_install:
   - composer self-update
-  #- pecl channel-update pecl.php.net
-  #- printf "\n" | pecl install yaml-1.3.2
-  #- echo "extension=yaml.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - pecl channel-update pecl.php.net
+  - test/ci/install_dependencies.sh
 
 install:
   - travis_retry composer install --no-interaction --ignore-platform-reqs
