@@ -16,4 +16,4 @@ all:
       batch: false
       additional-params: false
       query: false
-    recover:
+    recover: ""

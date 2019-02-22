@@ -42,7 +42,7 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         Tecnodesign_Yaml::parser('I do not exist');
     }
 
-    public function testLoad()
+    public function testLoadDump()
     {
         $yamlFilePath = __DIR__ . '/../assets/sample.yml';
         $yamlFileContent = file_get_contents($yamlFilePath);
@@ -64,7 +64,6 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($loadSpycContent, $loadNativeContent);
         $yaml = $loadSpycContent;
 
-
         // A simple keys test because what matters is tha both parser gives the same answers
         $this->assertInternalType('array', $yaml);
         $this->assertArrayHasKey('all', $yaml);
@@ -73,15 +72,22 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('credential', $yaml['all']['auth']);
         $this->assertEquals(['first one', 'second one'], $yaml['all']['auth']['credential']);
 
+        /**
+         * Testing the dump()
+         */
+        Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_NATIVE);
+        $yamlString = Tecnodesign_Yaml::dump($yaml);
+        //@todo Esse teste vai quebrar! Temos que decidir se vai continuar usando php-yaml
+        $this->assertEquals($yamlFileContent, $yamlString);
+
+        Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_SPYC);
+        $yamlString = Tecnodesign_Yaml::dump($yaml);
+        $this->assertEquals($yamlFileContent, $yamlString);
+
         $this->markTestIncomplete('Test the cache!');
     }
 
     public function testAppend()
-    {
-
-    }
-
-    public function testDump()
     {
 
     }

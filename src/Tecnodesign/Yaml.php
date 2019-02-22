@@ -183,7 +183,7 @@ class Tecnodesign_Yaml
 
         if (self::$currentParser === self::PARSE_NATIVE) {
             ini_set('yaml.output_indent', (int)$indent);
-            ini_set('yaml.output_width', $wordwrap);
+            ini_set('yaml.output_width', (int)$wordwrap);
             return yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
         }
 
