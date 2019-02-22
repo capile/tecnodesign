@@ -77,12 +77,20 @@ class YamlTest extends \PHPUnit\Framework\TestCase
          */
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_NATIVE);
         $yamlString = Tecnodesign_Yaml::dump($yaml);
-        //@todo Esse teste vai quebrar! Temos que decidir se vai continuar usando php-yaml
-        $this->assertEquals($yamlFileContent, $yamlString);
+        $this->assertNotEquals($yamlFileContent, $yamlString,
+            'php-yaml exports array of values without 2 spaces before the hifen and includes 3 dots at the end');
+        $yamlFileContentAlternative = str_replace('  -', '-', $yamlFileContent) . "...\n";
+        $this->assertEquals($yamlFileContentAlternative, $yamlString);
+        $this->assertEquals($yaml, Tecnodesign_Yaml::loadString($yamlFileContentAlternative),
+            "php-yaml loads the 'alternative format' just like the original");
 
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_SPYC);
         $yamlString = Tecnodesign_Yaml::dump($yaml);
         $this->assertEquals($yamlFileContent, $yamlString);
+        $this->assertNotEquals($yamlFileContentAlternative, $yamlString,
+            'Spyc export with the indentation before the array os values');
+        $this->assertNotEquals($yaml, Tecnodesign_Yaml::loadString($yamlFileContentAlternative),
+            "Spyc cannot read 'alternative format' because it merges the array of values with the key");
 
         $this->markTestIncomplete('Test the cache!');
     }
