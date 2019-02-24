@@ -209,7 +209,7 @@ class Tecnodesign_Studio_Asset
         }
 
         if($this->root && !in_array($this->root, $importDir)) array_unshift($importDir, $this->root);
-        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($s, $importDir)) array_unshift($importDir, $d);
+        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) array_unshift($importDir, $d);
         $parser->setImportDir($importDir);
         unset($importDir);
 

@@ -12,15 +12,21 @@
  * @version   SVN: $Id: form.php 1132 2012-12-07 13:25:05Z capile $
  * @link      http://tecnodz.com/
  */
-?><form<?php if($id): ?> id="<?php echo $id ?>"<?php endif; ?> action="<?php echo tdz::xmlEscape($action) ?>" method="<?php echo $method ?>"<?php
-foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"'; ?>><?php
 $fieldsets=array();
-
+$hasFieldset = false;
 foreach($fields as $fn=>$fo) {
     $fs = (string)$fo->fieldset;
+    if(!$hasFieldset && $fs) $hasFieldset = true;
     if(!isset($fieldsets[$fs])) $fieldsets[$fs]='';
     $fieldsets[$fs] .= $fo->render();
 }
+if($hasFieldset) {
+    $attributes['class'] .= ' z-fieldset';
+}
+
+?><form<?php if($id): ?> id="<?php echo $id ?>"<?php endif; ?> action="<?php echo tdz::xmlEscape($action) ?>" method="<?php echo $method ?>"<?php
+foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"';
+?>><?php
 foreach($fieldsets as $fn=>$fv) {
     if($fn) {
         $fl = (substr($fn, 0, 1)=='*')?(tdz::t(substr($fn,1), 'form')):($fn);
