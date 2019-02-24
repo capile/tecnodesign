@@ -57,7 +57,7 @@ class Tecnodesign_Cache
         if(is_null(self::$storage)) {
             if(self::$memcachedServers && ini_get('memcached.serializer') && Tecnodesign_Cache_Memcached::memcached()) self::$storage='memcached';
             else if(self::$memcachedServers && function_exists('memcache_debug') && Tecnodesign_Cache_Memcache::memcache()) self::$storage='memcache';
-            else if(function_exists('apc_fetch')) self::$storage='apc';
+            else if(function_exists('apc_fetch') || function_exists('apcu_fetch')) self::$storage='apc';
             else self::$storage='file';
         }
         return self::$storage;
