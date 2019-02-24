@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+phpversion="$(php --version | head -n 1 | cut -d " " -f 2 | cut -c 1,3)";
+
+if [[ ${phpversion} = '54' || ${phpversion} = '55' || ${phpversion} = '56' ]]; then
+    echo "dependencies for PHP 5.4";
+    sudo apt-get update && apt-get install -y libyaml-dev
+    printf "\n" | pecl install yaml-1.3.2
+    exit 0;
+fi;
+
+if [[ ${phpversion} = '70' || ${phpversion} = '71' || ${phpversion} = '72' || ${phpversion} = '73' ]]; then
+    echo "dependencies for PHP 7+";
+    sudo apt-get update \
+        && apt-get install -y libyaml-dev
+    printf "\n" | pecl install yaml
+    exit 0;
+fi;
+
+echo "No dependencies defined for ${phpversion}"
+exit 0;
