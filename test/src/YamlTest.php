@@ -11,6 +11,7 @@ class YamlTest extends \PHPUnit\Framework\TestCase
     {
         // Desabilita o auto install pois considero que está tudo no composer
         Tecnodesign_Yaml::setAutoInstall(false);
+        Tecnodesign_Yaml::$cache = false;
     }
 
     public function testParser()
@@ -50,14 +51,14 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_NATIVE);
         $loadNativeFile = Tecnodesign_Yaml::load($yamlFilePath);
         $loadNativeContent = Tecnodesign_Yaml::load($yamlFileContent);
-        $loadStringNative =  Tecnodesign_Yaml::loadString($yamlFileContent);
+        $loadStringNative = Tecnodesign_Yaml::loadString($yamlFileContent);
         $this->assertEquals($loadNativeContent, $loadNativeFile);
         $this->assertEquals($loadNativeContent, $loadStringNative);
 
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_SPYC);
         $loadSpycFile = Tecnodesign_Yaml::load($yamlFilePath);
         $loadSpycContent = Tecnodesign_Yaml::load($yamlFileContent);
-        $loadStringSpyc =  Tecnodesign_Yaml::loadString($yamlFileContent);
+        $loadStringSpyc = Tecnodesign_Yaml::loadString($yamlFileContent);
         $this->assertEquals($loadSpycContent, $loadSpycFile);
         $this->assertEquals($loadSpycContent, $loadStringSpyc);
 
@@ -84,6 +85,18 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($yaml, Tecnodesign_Yaml::loadString($yamlFileContentAlternative),
             "php-yaml loads the 'alternative format' just like the original");
 
+        /**
+         * There's a bug on Spyc dump()
+         * something:
+         * - one
+         * - two
+         * (without spaces at the beginning)
+         * is a valid format, but it parses to
+         * [something, one, two]
+         * instead of
+         * [something=>[one, two]]
+         *
+         */
         Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_SPYC);
         $yamlString = Tecnodesign_Yaml::dump($yaml);
         $this->assertEquals($yamlFileContent, $yamlString);
@@ -97,7 +110,37 @@ class YamlTest extends \PHPUnit\Framework\TestCase
 
     public function testAppend()
     {
+        $resetFile = function () {
+            copy(__DIR__ . '/../assets/sample-translate.yml', __DIR__ . '/../assets/sample-temp.yml');
+        };
+        $resetFile();
+        $yamlFilePath = __DIR__ . '/../assets/sample-temp.yml';
+        $yamlFileOriginalContent = file_get_contents($yamlFilePath);
 
+        Tecnodesign_Yaml::parser(Tecnodesign_Yaml::PARSE_NATIVE);
+        $yaml = Tecnodesign_Yaml::load($yamlFilePath);
+        $append = [
+            'nome' => 'Nombre',
+            'aniversário' => 'Birthday'
+        ];
+        $yamlAppended = array_replace_recursive($yaml, ['all' => $append]);
+        Tecnodesign_Yaml::append($yamlFilePath, $append);
+        sleep(1);
+        $yamlFileNewContent = file_get_contents($yamlFilePath);
+        $yamlNew = Tecnodesign_Yaml::load($yamlFilePath);
+        $this->assertNotEquals($yamlFileOriginalContent, $yamlFileNewContent);
+        $this->assertEquals($yamlNew, $yamlAppended);
+        $this->assertArraySubset($append, $yamlNew['all']);
+
+        $resetFile();
+        $append = ['all' => $append];
+        Tecnodesign_Yaml::append($yamlFilePath, $append);
+        sleep(1);
+        $yamlFileNewContent = file_get_contents($yamlFilePath);
+        $yamlNew = Tecnodesign_Yaml::load($yamlFilePath);
+        $this->assertNotEquals($yamlFileOriginalContent, $yamlFileNewContent);
+        $this->assertEquals($yamlNew, $yamlAppended);
+        $this->assertArraySubset($append, $yamlNew);
     }
 
     public function testSave()
