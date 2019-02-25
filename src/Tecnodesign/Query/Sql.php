@@ -527,6 +527,9 @@ class Tecnodesign_Query_Sql
                                 unset($rfn, $fnc);
                             }
                         }
+                        if(isset($sc['relations'][$rn]['params']) && is_array($sc['relations'][$rn]['params'])) {
+                            $this->_from .= ' and '.$this->getWhere($sc['relations'][$rn]['params'], 'and', $rsc);
+                        }
 
                         if(isset($rsc['events']['active-records']) && $rsc['events']['active-records']) {
                             $ar = $rsc['events']['active-records'];

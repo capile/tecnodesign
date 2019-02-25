@@ -534,7 +534,7 @@
             e.preventDefault();
 
             if(this.nodeName.toLowerCase()=='button') {
-                t=this.form.parentNode.parentNode;
+                t=Z.node(Z.parentNode(this.form, '.tdz-i-scope-block'), this.form.parentNode);
                 u=this.getAttribute('data-url');
             } else if(this.getAttribute('data-action-item')) {
                 t=this;
@@ -559,8 +559,9 @@
             // get tdz-i only
             if(I.children.length==1) {
                 t=I.children[0];
+                t.className=this.className;
                 if(t.className.search(/\btdz-i-scope-block\b/)<0) {
-                    t.className=((this.className)?(this.className+' '):(''))+'tdz-i-scope-block';
+                    t.className+=' tdz-i-scope-block';
                 }
                 this.parentNode.replaceChild(t, this);
             } else {

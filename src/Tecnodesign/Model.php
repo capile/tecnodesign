@@ -1151,7 +1151,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 $r['where'][$rev.$rel['foreign']]=$v;
             }
         }
-        if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $rel['where'] = $rel['params'] + $r['where'];
+        if($r['where'] && isset($rel['params']) && is_array($rel['params'])) $r['where'] += $rel['params'];
         if($scope) {
             $r['select']=$rcn::columns($scope, null, 3, true);
         }
