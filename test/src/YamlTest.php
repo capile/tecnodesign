@@ -104,8 +104,6 @@ class YamlTest extends \PHPUnit\Framework\TestCase
             'Spyc export with the indentation before the array os values');
         $this->assertNotEquals($yaml, Tecnodesign_Yaml::loadString($yamlFileContentAlternative),
             "Spyc cannot read 'alternative format' because it merges the array of values with the key");
-
-        $this->markTestIncomplete('Test the cache!');
     }
 
     public function testAppend()
@@ -143,8 +141,44 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         $this->assertArraySubset($append, $yamlNew);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage  $append must be an array
+     */
+    public function testAppendException()
+    {
+        Tecnodesign_Yaml::append('whatever', 'I should be an array');
+    }
+
+
     public function testSave()
     {
+        $loadSampleFile = function () {
+            copy(__DIR__ . '/../assets/sample.yml', __DIR__ . '/../assets/sample-temp.yml');
+        };
+        $loadTranslateFile = function () {
+            copy(__DIR__ . '/../assets/sample-translate.yml', __DIR__ . '/../assets/sample-temp.yml');
+        };
+        $loadSampleFile();
+        $yamlFilePath = __DIR__ . '/../assets/sample-temp.yml';
+        Tecnodesign_Yaml::$cache = true;
+        $yaml = Tecnodesign_Yaml::load($yamlFilePath,0);
+        // change the contents
+        $loadTranslateFile();
+        $yamlCached = Tecnodesign_Yaml::load($yamlFilePath,0);
+        $this->assertEquals($yaml, $yamlCached);
+        $this->markTestIncomplete('Needs to define better how cache works');
+        $yamlCached = Tecnodesign_Yaml::load($yamlFilePath,100);
+        $this->assertNotEquals($yaml, $yamlCached);
+    }
 
+    public function testAutoInstall()
+    {
+        // Default should be true, but we set as false at SetupUp()
+        $this->assertFalse(Tecnodesign_Yaml::isAutoInstall());
+        Tecnodesign_Yaml::setAutoInstall(true);
+        $this->assertTrue(Tecnodesign_Yaml::isAutoInstall());
+        Tecnodesign_Yaml::setAutoInstall(false);
+        $this->assertFalse(Tecnodesign_Yaml::isAutoInstall());
     }
 }

@@ -3,6 +3,7 @@ version: "3.3"
 services:
   php:
     container_name: php54
+    image: php54
     build:
       context: .
       dockerfile: Dockerfile

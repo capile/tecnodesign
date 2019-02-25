@@ -100,8 +100,8 @@ class Tecnodesign_Yaml
      * Loads YAML text and converts to a PHP array
      *
      * @param string $string file name or YAML string to load
-     *
      * @param int $cacheTimeout
+     *
      * @return array contents of the YAML text
      */
     public static function load($string, $cacheTimeout = 1800)
