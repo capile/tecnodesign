@@ -100,8 +100,8 @@ class Tecnodesign_Yaml
      * Loads YAML text and converts to a PHP array
      *
      * @param string $string file name or YAML string to load
-     *
      * @param int $cacheTimeout
+     *
      * @return array contents of the YAML text
      */
     public static function load($string, $cacheTimeout = 1800)
@@ -116,9 +116,9 @@ class Tecnodesign_Yaml
         $cacheKey = 'yaml/' . md5($string);
         $useCache = self::$cache && ($isFile || strlen($string) > 4000);
         if ($useCache) {
-            if($isFile && ($lmod=filemtime($string)) > time() - $readTimeout) {
-                $readTimeout = $lmod;
-                unset($lmod);
+            if ($isFile && ($lastModified = filemtime($string)) > time() - $readTimeout) {
+                $readTimeout = $lastModified;
+                unset($lastModified);
             }
 
             $cacheFound = Tecnodesign_Cache::get($cacheKey, $readTimeout);
@@ -183,7 +183,7 @@ class Tecnodesign_Yaml
 
         if (self::$currentParser === self::PARSE_NATIVE) {
             ini_set('yaml.output_indent', (int)$indent);
-            ini_set('yaml.output_width', $wordwrap);
+            ini_set('yaml.output_width', (int)$wordwrap);
             return yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
         }
 
@@ -199,7 +199,7 @@ class Tecnodesign_Yaml
     public static function save($filename, $data, $timeout = 1800)
     {
         $cacheKey = 'yaml/' . md5($filename);
-        if (self::$cache && $timeout) {
+        if ($timeout && self::$cache) {
             Tecnodesign_Cache::set($cacheKey, $data, $timeout);
         }
 
@@ -212,6 +212,9 @@ class Tecnodesign_Yaml
     /**
      * Appends YAML text to memory object and yml file
      *
+     * This is used with tdz::t(). It should be used with caution since it will not
+     * merge correctly all files. Interfaces configurations for example
+     *
      * @param string $yaml file name or YAML string to load
      * @param array $append
      * @param int $timeout
@@ -221,10 +224,16 @@ class Tecnodesign_Yaml
     public static function append($yaml, $append, $timeout = 1800)
     {
         if (!is_array($append)) {
-            throw new \InvalidArgumentException('$args must be an array');
+            throw new \InvalidArgumentException('$append must be an array');
         }
+
+        // verify it has the 'all' key
+        if (!array_key_exists('all', $append)) {
+            $append = ['all' => $append];
+        }
+
         $yamlArray = self::load($yaml);
-        $yamlMerged = tdz::mergeRecursive($yamlArray, $append);
+        $yamlMerged = array_replace_recursive($yamlArray, $append);
         if ($yamlMerged !== $yamlArray) {
             self::save($yaml, $yamlMerged, $timeout);
         }
