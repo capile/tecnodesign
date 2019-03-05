@@ -72,7 +72,7 @@ class Tecnodesign_Studio
     public static function run()
     {
         self::$app = tdz::getApp();
-        if(!self::$app->studio && tdz::scriptName()==='/' && tdz::getUser()->isSuperAdmin()) {
+        if(static::$webInterface && !self::$app->studio && tdz::scriptName()==='/' && tdz::getUser()->isSuperAdmin()) {
             return tdz::redirect('/_studio/config');
         }
         $req = Tecnodesign_App::request();

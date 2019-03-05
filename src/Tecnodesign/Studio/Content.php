@@ -429,15 +429,20 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
             unset($attr[$n], $n, $v);
         }
         unset($attr);
-        if(file_exists($tpl=Tecnodesign_Studio::$app->tecnodesign['templates-dir'].'/tdz-contents-'.$type.'.php')) {
-            if(!isset($code['txt']) && isset($code[0])) {
-                $code['txt']=$code[0];
-                unset($code[0]);
+        $d = Tecnodesign_Studio::$app->tecnodesign['templates-dir'];
+        if(!is_array($d)) $d=array($d);
+        foreach($d as $dir) {
+            if(file_exists($tpl=$dir.'/tdz-contents-'.$type.'.php')) {
+                if(!isset($code['txt']) && isset($code[0])) {
+                    $code['txt']=$code[0];
+                    unset($code[0]);
+                }
+                $s = "<div{$a}>"
+                    . tdz::exec(array('script'=>$tpl, 'variables'=>$code))
+                    . '</div>';
+                return $s;
             }
-            $s = "<div{$a}>"
-                . tdz::exec(array('script'=>$tpl, 'variables'=>$code))
-                . '</div>';
-            return $s;
+            unset($tpl, $dir);
         }
         $ct = (isset(static::$contentType[$type]))?(static::$contentType[$type]):(array());
         $call = (isset($ct['class']) && class_exists($ct['class']))?(array($ct['class'])):(array($this));
