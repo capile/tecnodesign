@@ -1,2 +1,449 @@
-body { background: #fff;  padding: 20px; }
-html {margin:0;padding:0;}
+@charset "utf-8"; 
+
+
+@magenta: #ff0099;
+@ciano: #00ccff;
+@verde: #ccff00;
+@chumbo: #345;
+
+/* force a vertical scrollbar to prevent a jumpy page */
+html{
+    overflow-y:scroll;
+    overflow-x:hidden;
+    background:@chumbo;
+    margin:0;
+    padding:0;
+}
+body {
+    font: 15px/20px 'Open Sans', 'OpenSans', sans-serif;font-weight:400;display:block;
+    margin:0;
+    padding:0;
+}
+
+
+#header {
+    position:relative;
+    height: 132px;
+    nav {
+        z-index:10;
+        position:absolute;
+        right:1em;
+        top:3em;
+        line-height:1em;
+        display:block;
+        ul {
+            line-height:1em;
+            list-style: none;
+            padding:0;
+            margin:0;
+            display:block;
+            ul {
+                display:none;
+            }
+            li:hover > ul, li:active > ul, .active > ul {
+                display:block;
+            }
+        }
+        li {
+            line-height:1em;
+            background:@chumbo;
+            padding:0;
+            margin:0;
+        }
+        > ul {
+            > li {
+                display: inline-block;
+                vertical-align:top;
+                padding:0;
+                margin:0;
+            }
+        }
+        a {
+            display:block;
+            width:12em;
+            margin:0;
+            padding: 1em;
+            line-height:1em;
+            &:hover {
+                color:#fff;
+                background:@ciano;
+                text-decoration:none;
+            }
+        }
+    }
+}
+
+#body {
+    max-width:70em;
+    padding: 1em 2em 2em 2em;
+    background:#fff;
+    margin:0 auto 4em auto;
+}
+
+
+@media screen and (min-width: 80em) {
+    body {
+        margin: 2em 0 0 16em;
+    }
+    #header {
+        position:fixed;
+        left:0;
+        height:100vh;
+        top:0;
+        overflow-x: visible;
+        overflow-y:auto;
+        background:@chumbo;
+        width:16em;
+        #logo {
+            position:absolute;
+            left:1em;
+            top:1em;
+        }
+        nav {
+            position:absolute;
+            top:12em;
+            left:1em;
+            ul ul {
+                display: block;
+                margin-left:1em;
+            }
+            > ul {
+                > li {
+                    display: block;
+                    vertical-align:top;
+                    padding:0;
+                    margin:0;
+                }
+            }
+            li {
+                background:transparent;
+            }
+        }
+    }
+}
+
+
+
+h1{
+    font-size:2em;
+    line-height:1em;
+    margin:1em 0 1em 0;
+    font-weight:700;
+    color:@chumbo;
+}
+h2{
+    font-size:2em;
+    line-height:1em;
+    font-weight:400;
+    color:@chumbo;
+    margin:1em 0 1em 0;
+}
+
+h1 + h2 {
+    margin-top:-1em;
+}
+
+h3,legend{
+    font-weight:700;
+    color:#333;
+}
+
+p{
+    margin:0 0 1em 0;
+    max-width:70em;
+}
+thead th{padding:4px;background:#666666;color:#ffffff;}
+tbody td{background:#f0f0f0;padding:4px;}
+tbody tr:nth-child(even) td{background:#f6f6f6;}
+tbody tr:hover td{background:#e0e0e0;}
+tbody tr:hover:nth-child(even) td{background:#e6e6e6;}
+html, select, input, textarea {color: #333;}
+
+ul{padding:0 0 8px 16px;}
+ul ul{padding:8px 0 0 16px;}
+li{margin:0 0 8px 0;}
+
+ol{list-style:roman;padding:0 0 8px 16px;}
+ol ol, ul ol{padding:8px 0 0 16px;}
+
+blockquote, q {quotes: none;}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {content: ''; content: none;}
+
+a {
+    color: @ciano;text-decoration:none;
+    &:visited {color:@ciano;text-decoration:none}
+    &:hover {color: @magenta;text-decoration:underline}
+}
+
+del {text-decoration: line-through;}
+
+abbr[title], dfn[title] {border-bottom: 1px dotted #000; cursor: help;}
+
+/* tables still need cellspacing="0" in the markup */
+table {border-collapse: collapse; border-spacing: 0;}
+th {font-weight: bold; vertical-align: top;text-align:left}
+td {font-weight: normal; vertical-align: top;}
+
+hr {display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin: 1em 0; padding: 0;}
+
+input, select {vertical-align: middle;}
+
+pre {
+white-space: pre; /* CSS2 */
+white-space: pre-wrap; /* CSS 2.1 */
+white-space: pre-line; /* CSS 3 (and 2.1 as well, actually) */
+word-wrap: break-word; /* IE */
+}
+
+input[type="radio"] {vertical-align: text-bottom;}
+input[type="checkbox"] {vertical-align: bottom; *vertical-align: baseline;}
+.ie6 input {vertical-align: text-bottom;}
+
+select, input, textarea {font: 99% sans-serif;}
+
+table {font-size: inherit; font: 100%;}
+ 
+/* Accessible focus treatment
+people.opera.com/patrickl/experiments/keyboard/test */
+a:hover, a:active {outline: none;}
+
+small {font-size: 85%;}
+
+strong, th {font-weight: bold;}
+
+td, td img {vertical-align: top;}
+
+/* Make sure sup and sub don't screw with your line-heights
+gist.github.com/413930 */
+sub, sup {font-size: 75%; line-height: 0; position: relative;}
+sup {top: -0.5em;}
+sub {bottom: -0.25em;}
+
+/* standardize any monospaced elements */
+pre, code, kbd, samp {font-size:1em;font-family: 'Source Code Pro', 'Source Code', monospace, sans-serif;}
+
+code {
+    background:#e6e6e6;
+    padding: 0 0.25em;
+}
+
+pre {
+    white-space: pre;
+    background:#e6e6e6;
+    max-width:70em;
+    padding: 0.5em;
+    code {
+        background:none;
+        padding:none;
+    }
+}
+
+/* hand cursor on clickable elements */
+.clickable,
+label,
+input[type=button],
+input[type=submit],
+button {cursor: pointer;}
+
+/* Webkit browsers add a 2px margin outside the chrome of form elements */
+button, input, select, textarea {margin: 0;}
+
+/* make buttons play nice in IE */
+button {width: auto; overflow: visible;}
+ 
+.lang{
+    position:absolute;top:15px;left:0;width:95%;text-align:right;color:#ccc;white-space:nowrap;font-size:0.85em;
+    &:before{content:'[ '}
+    &:after{content:' ]'}
+    a {
+        color:#bbb;text-decoration:none;cursor:pointer;
+        &:link, &:visited{ color:#bbb;text-decoration:none;cursor:pointer}
+        &:hover,&:active{ color:#444;text-decoration:none}
+        &.selected{ font-weight:bold;color:#999}
+        &:after{ content:', ';background:none}
+        &:last-child:after{ content:''}
+    }
+}
+
+
+/* Custom text-selection colors (remove any text shadows: twitter.com/miketaylr/status/12228805301) */
+::-moz-selection{background: @magenta; color: #fff; text-shadow: none;}
+::selection {background: @magenta; color: #fff; text-shadow: none;}
+
+
+ins {background-color: #fcd700; color: #000; text-decoration: none;}
+mark {background-color: #fcd700; color: #000; font-style: italic; font-weight: bold;}
+
+.circle{display:inline-block;border:4px solid @ciano;}
+.circle{.transition(~"background 0.5s ease-out, color 0.5s ease-out, border 0.5s ease-out");}
+.circle.logo{
+    position:static;
+    overflow:hidden;
+    .border(124px);
+    border-color:@ciano !important;
+    background:@ciano;
+    top:2px;
+    left:2px;
+    height:124px;
+    width:124px;
+}
+
+.circle.big{.circle(75);}
+.circle.medium{.circle(50);}
+.circle.small{.circle(25);}
+.circle.bigger{.circle(100);}
+.keyframes("rotate", rotate(0deg), rotate(360deg));
+
+span.ciano{color:@ciano}
+span.magenta{color:@magenta}
+span.verde{color:@verde}
+
+
+.heading h2{margin:10px 0 5px 0;}
+.heading > .box{background:#eee;background:rgba(0,0,0,.05);color:#444;padding:10px 10px 1px 10px;}
+p.date{color:#002244;text-decoration:none;border:none;}
+
+.lighter{opacity:0.5}
+.smaller{font-size:0.8em;}
+.bigger{font-size:1.25em;}
+
+/* transitions */
+
+@media screen and (min-width: 891px) {
+    .mobile{display:none}
+}
+
+@media screen and (max-width: 990px) {
+    .desktop{display:none}
+}
+
+.circle(@r) {
+    @rpx: ~"@{r}px";
+    @rt: 66 - (@r * 0.5);
+    @rl: @rt;
+    @rm: @r * 0.5;
+    @ra: 90 - ((@r * -90)/25);
+    @rs: (@r * 5)/25;
+    .border(@rpx);width:@rpx;height:@rpx;
+    position:absolute;
+    left:"@{rl}px";
+    top:~"@{rt}px";
+    z-index:5;
+    .transform-origin(~"-66px @{rm}px");
+    .rotate(~"@{ra}deg");
+    .animation(~"rotate @{rs}s infinite linear");
+}
+
+.box-shadow(@a: 3px 3px 4px rgba(0,0,0,.5)) {
+  box-shadow: @arguments;
+  -webkit-box-shadow: @arguments;
+  -moz-box-shadow: @arguments;
+  behavior: url(/_/js/PIE.htc);
+}
+
+.box-shadow-ie(@d: 4, @color: #000000, @a: 135) {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=@{d}, Direction=@{a}, Color='@{color}')";filter: progid:DXImageTransform.Microsoft.Shadow(Strength=@d, Direction=@a, Color='@color');
+}
+
+.gradient(@color1, @color2) {
+    @color1h:rgbahex(@color1);
+    @color2h:rgbahex(@color2);
+
+    background: -moz-linear-gradient(top,  @color1 0%, @color2 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, @color1, color-stop(100%, @color2)));
+    background: -webkit-linear-gradient(top,  @color1 0%, @color2 100%);
+    background: -o-linear-gradient(top,  @color1 0%,@color2 100%);
+    background: -ms-linear-gradient(top,  @color1 0%, @color2 100%);
+    background: linear-gradient(to bottom,  @color1 0%, @color2 100%);
+    /*-pie-background: linear-gradient(@color1, @color2);*/
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='@{color1h}', endColorstr='@{color2h}',GradientType=0 );
+}
+.gradient(@color1, @color2, @noie) {
+    background: -moz-linear-gradient(top,  @color1 0%, @color2 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, @color1, color-stop(100%, @color2)));
+    background: -webkit-linear-gradient(top,  @color1 0%, @color2 100%);
+    background: -o-linear-gradient(top,  @color1 0%,@color2 100%);
+    background: -ms-linear-gradient(top,  @color1 0%, @color2 100%);
+    background: linear-gradient(to bottom,  @color1 0%, @color2 100%);
+    -pie-background: linear-gradient(@color1, @color2);
+}
+
+.background-alpha(@color, @alpha: 0.5)
+{
+    @alphah: dechex(round(@alpha * 255));
+    background:@color;
+    background:transparent;
+    background: hsla(hue(@color), saturation(@color), lightness(@color), @alpha);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@{color}@{alphah}', endColorstr='@{color}@{alphah}');
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=@{color}@{alphah}, endColorstr=@{color}@{alphah})";
+}
+
+.opacity(@alpha)
+{
+    @alphaie: round(@alpha * 100);
+    opacity:@alpha;
+    filter: ~"alpha(opacity=@{alphaie})";
+    -ms-filter:"alpha(opacity=@{alphaie})";
+}
+
+.animation(@a: animation1 0.3s ease-out)
+{
+  -webkit-animation: @arguments;  /* Safari 3.2+, Chrome */
+     -moz-animation: @arguments;  /* Firefox 4-15 */
+       -o-animation: @arguments;  /* Opera 10.5–12.00 */
+          animation: @arguments;  /* Firefox 16+, Opera 12.50+ */
+
+}
+.transition(@a: all 0.3s ease-out)
+{
+  -webkit-transition: @arguments;  /* Safari 3.2+, Chrome */
+     -moz-transition: @arguments;  /* Firefox 4-15 */
+       -o-transition: @arguments;  /* Opera 10.5–12.00 */
+          transition: @arguments;  /* Firefox 16+, Opera 12.50+ */
+
+}
+.rotate(@deg) {
+  -webkit-transform: rotate(@deg);
+     -moz-transform: rotate(@deg);
+      -ms-transform: rotate(@deg);
+       -o-transform: rotate(@deg);
+          transform: rotate(@deg);
+}
+.transform-origin(@s) {
+  -webkit-transform-origin: @s;
+     -moz-transform-origin: @s;
+      -ms-transform-origin: @s;
+       -o-transform-origin: @s;
+          transform-origin: @s;
+}
+
+.keyframes(@name, @from, @to) {
+    @-webkit-keyframes @{name} {
+        from { -webkit-transform: @from;}
+        to   { -webkit-transform: @to;}
+    }
+    @-moz-keyframes @{name} {
+        from { -moz-transform: @from; }
+        to   { -moz-transform: @to; }
+    }
+    @-o-keyframes @{name} {
+        from { -o-transform: @from; }
+        to   { -o-transform: @to; }
+    }
+    @keyframes @{name} {
+        from { transform: @from; }
+        to   { transform: @to; }
+    }
+}
+
+
+
+.border(@r: 10px){
+-webkit-border-radius: @arguments;
+   -moz-border-radius: @arguments;
+        border-radius: @arguments;
+}

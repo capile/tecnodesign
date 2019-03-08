@@ -9,42 +9,20 @@ A **Schema** defines a model, in ways that it can be created, queried, updated a
 
 |     Attribute     |                                                                               Description                                                                                |                                   Example                                   |
 |-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| database          | Required, String. Name of the database key in the database configuration.                                                                                                | `'studio'`                                                                    |
-| className         | Optional, String. Class name to use when building this schema, defaults to the `Tecnodesign_Model` class it was called from.                                             | 'Profile'                                                                   |
-| tableName         | Required, String. Name of the table within the database. Will be used together with the `database` attribute to build the connection.                                    | 'profile'                                                                   |
-| view              | Optional, String. Query or another table name to overwrite the `tableName` in queries only (read operations)                                                             | 'select * from profile'                                                     |
-| properties        | Required, Indexed array or column names and their description (see [_Properties_](#Properties) below).                                                                   | _see below_                                                                 |
-| patternProperties | Optional, Array. List of acceptable property names as regular expressions. If a property is not within `properties` and doesn't match a pattern, it should be rejected.  | '/^_/' _(allow properties starting with `_`)_                               |
-| overlay           | Optional, Indexed array, used to overwrite `properties` when building forms and controlling output.                                                                      | _see below_                                                                 |
-| scope             | Optional, Indexed array of property collections. It can use only the name of the column or include a full overlay to be applied to the property when in this collection. | ['string'=>['name']] _(uses the `name` property when rendering the object)_ |
+| database          | Required, String. Name of the database key in the [database configuration](Database).                                                                                                | `'studio'`                                                                  |
+| className         | Optional, String. Class name to use when building this schema, defaults to the `Tecnodesign_Model` class it was called from.                                             | `'Profile'`                                                                 |
+| tableName         | Required, String. Name of the table within the database. Will be used together with the `database` attribute to build the connection.                                    | `'profile'`                                                                 |
+| view              | Optional, String. Query or another table name to overwrite the `tableName` in queries only (read operations)                                                             | `'select * from profile'`                                                   |
+| properties        | Required, Indexed array or column names and their description.                                                                                                           | _see [Properties](#Properties)_                                       |
+| patternProperties | Optional, Array. List of acceptable property names as regular expressions. If a property is not within `properties` and doesn't match a pattern, it should be rejected.  | `'/^_/'` *(allow properties starting with `_`)*                               |
+| overlay           | Optional, Indexed array, used to overwrite `properties` when building forms and controlling output.                                                                      | _see [Properties](#Properties)_                                                                 |
+| scope             | Optional, Indexed array of property collections. It can use only the name of the column or include a full overlay to be applied to the property when in this collection. | `[ 'string' => [ 'name' ] ]` _(use the `name` property when rendering the object)_ |
 | relations         | Optional, Indexed array of foreign keys definitions.                                                                                                                     | _see below_                                                                 |
 | events            | Optional, Indexed array of triggers for each event.                                                                                                                      |                                                                             |
 | orderBy           | Optional, Indexed array for custom default sorting of the queries provided by this model.                                                                                |                                                                             |
 | groupBy           | Optional, Indexed array for custom default grouping of the queries providede by this model.                                                                              |                                                                             |
 | columns           | Deprecated, alias of `properties`                                                                                                                                        |                                                                             |
 | form              | Deprecated, alias of `overlay`                                                                                                                                           |                                                                             |
-
-## Database
-
-Each database key should be defined at the `databases.yml` configuration file (in one of the `config-dir` folders). It requires a `dsn` entry with the connection string to use, and optionally a `username` and `password` entries. Setting the attribute `sync=true` enables this database to be reverse-engineered to have its schemas built automatically. Additional options for this connection should be set under `options`.
-
-Alternatively this can be also set in `tdz::$databases`.
-
-Examples:
-
-```
----
-studio:
-  dsn: 'mysql:host=localhost;dbname=studio'
-  username: robot-user
-  password: 'r0b0tW31rdP655w0rd#'
-
-studio-api:
-  dsn: 'https://capile.studio/api/v1'
-  options:
-    certificate: robot.crt
-    search: q
-```
 
 ## Properties
 
