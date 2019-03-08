@@ -3050,7 +3050,7 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
     unset($d);
 }
 
-spl_autoload_register('tdz::autoload');
+spl_autoload_register('tdz::autoload', true, true);
 if(is_null(tdz::$lib)) {
     tdz::$lib = array();
     if(TDZ_ROOT!=TDZ_APP_ROOT) {
