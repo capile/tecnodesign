@@ -1,6 +1,8 @@
-/*
+<!--
+---
 title: Interface
-*/
+...
+-->
 # Interface
 
 Tecnodesign framework provides a simple way of developing interfaces that are based on the models and its relations.
@@ -10,7 +12,7 @@ It's easier to create a custom *`InterfaceClass`* for each project, that extends
 
 Each interface instance is defined by a YAML file at `config:tecnodesign:data-dir`. Suppose we have a `country.yml` file with this information:
 
-```yaml
+```
 ---
 title: Countries
 model: CountryModel
@@ -30,7 +32,7 @@ actions:
 
 So, if you want to create a basic CRUD-like interface for managing the countries, simply add this content to your page:
 
-```php
+```
 echo InterfaceClass::run('country'); 
 ```
 
@@ -38,7 +40,7 @@ All the definitions will be loaded from the model and interface configuration fi
 
 If you want to load all of your eligible interfaces, you may instead simply run:
 
-```php
+```
 echo InterfaceClass::run();
 ```
 

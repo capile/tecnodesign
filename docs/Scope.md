@@ -1,13 +1,16 @@
-/*
-title: Scope (Model::$schema['scope'])
-*/
-# Model Scope (Model::$schema['scope'])
+<!--
+---
+title: Schema Scope
+...
+-->
+
+# Schema Scope
 
 Scope is the specific information to be queried from a model. Most of the time you don't need all the columns of one specific table, or would rather fetch a column from one relation to compliment the model and avoid mode queries to the database. It's even possible to query information differently, using database functions — for all of these you must define or use a specific scope.
 
 Scope resolution must return an associative array containing the actual field names as values, optionally with the labels to be used as keys:
 
-```php
+```
 CountryModel::$schema['scope'] = array(
   'string' => array( 'country' ),
 );
@@ -39,7 +42,7 @@ For example, consider a model for countries and a related model for companies, t
 
 If you want to fetch a list of companies per region, you could use the relation between these tables to gather this data:
 
-```php
+```
 CompanyModel::$schema['scope'] = array(
   'string' => array( 'name' ),
   'region' => array( 
@@ -57,13 +60,13 @@ if you render a table using that scope, you'd end up with two columns, one with 
 
 2. Relation names are translated to a table alias when querying. The last column name is the actual column at the result:
 
-   ```php
+   ```
    CompanyModel::find(null,0,'region');
    ``` 
 
    Would query as:
 
-   ```sql
+   ```
    select t.id, t.name, t0.region _region 
    from company_table as t 
      left outer join country_table as t0 on t0.id=t.country
@@ -73,7 +76,7 @@ if you render a table using that scope, you'd end up with two columns, one with 
 
 4. You can combine several columns and use database specific functions at the scope value. In these cases, isolate what are the actual column/relation names with either \` or enclose the names between `[]`:
 
-   ```php
+   ```
    CompanyModel::$schema['scope'] = array(
      ...
      'country-region' => array( 
