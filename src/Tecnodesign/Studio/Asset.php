@@ -166,6 +166,9 @@ class Tecnodesign_Studio_Asset
 
         $cacheDir = ($app=tdz::getApp()) ?$app->tecnodesign['cache-dir'] :null;
         if(!$cacheDir) $cacheDir = TDZ_VAR.'/cache/minify';
+        if(!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0777, true);
+        }
         if(isset($r['less'])) {
             $tmpCss = $cacheDir.'/less-'.md5(implode(':',array_keys($r['less']))).'.css';
             if(!file_exists($tmpCss) || filemtime($tmpCss)<max($r['less'])) {

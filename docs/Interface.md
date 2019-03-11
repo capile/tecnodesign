@@ -58,13 +58,13 @@ So you could update the country **Brazil (br)** at: `http://example.com/admin/co
 
 By default, the `Interface` component will try to build everything based on the model schema. You cn override and control specifically what should be done at the interface by updating its `.yml` file. 
 
-| Property   | Type                    | Description                                                                                      |
-|------------|-------------------------|--------------------------------------------------------------------------------------------------|
-| title      | *(optional)* string     | Title to be used for interface listings. If empty or not set, will default to the model label.   |
-| model      | string                  | Class name of the model. Should be a `Tecnodesign_Model` instance.                               |
-| credential | *(optional)* array/bool | Credentials needed to access this interface. Might also be `true` for authenticated users.       |
-| options    | *(optional)* array      | Additional interface options. Here you can override the model schema scope and add form options. |
-| actions    | *(optional)* array      | Each action configuration or relation description (described below). Defaults to `InterfaceClass::$actionsAvailable`.    |                                                        |
+|  Property  |           Type          |                                                      Description                                                      |
+|------------|-------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| title      | *(optional)* string     | Title to be used for interface listings. If empty or not set, will default to the model label.                        |
+| model      | string                  | Class name of the model. Should be a `Tecnodesign_Model` instance.                                                    |
+| credential | *(optional)* array/bool | Credentials needed to access this interface. Might also be `true` for authenticated users.                            |
+| options    | *(optional)* array      | Additional interface options. Here you can override the model schema scope and add form options.                      |
+| actions    | *(optional)* array      | Each action configuration or relation description (described below). Defaults to `InterfaceClass::$actionsAvailable`. |
 
 Each action defined might be a new action specific for this interface, a relation definition (that will trigger a sub interface) or customization options for the existing interfaces (like setting credentials for a specific action). 
 
