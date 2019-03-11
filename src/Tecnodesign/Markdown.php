@@ -44,33 +44,11 @@ class Tecnodesign_Markdown extends ParsedownExtra
 
     protected function blockFencedCode($Line)
     {
-        if (preg_match('/^['.$Line['text'][0].']{3,}[ ]*([\w-]+( [a-z]+)?)?[ ]*([0-9\! ]+)?$/', $Line['text'], $matches))
-        {
-            $Block = array(
-                'char' => $Line['text'][0],
-                'element' => array(
-                    'name' => 'pre',
-                    'handler' => 'element',
-                    'text' => array(
-                        'name' => 'code',
-                        'text' => '',
-                    ),
-                ),
-            );
-
-            if (isset($matches[1])) {
-                $class = 'language-'.$matches[1];
+        if($Block=parent::blockFencedCode($Line)) {
+            if(isset($Block['element']['element']['attributes']['class'])) {
                 $Block['highlight'] = true;
-                $Block['language'] = $matches[1];
-                $Block['element']['text']['attributes'] = array(
-                    'class' => $class,
-                );
+                $Block['language'] = substr($Block['element']['element']['attributes']['class'], 9);
             }
-
-            if (isset($matches[3])) {
-                $Block['highlight'] = $matches[3];
-            }
-
             return $Block;
         }
     }
@@ -79,12 +57,13 @@ class Tecnodesign_Markdown extends ParsedownExtra
     {
         if(!static::$syntaxHighlight || !isset($Block['highlight'])) return parent::blockFencedCodeComplete($Block);
 
-        if(static::$cacheSyntaxHighlight && ($k='hlite'.md5($Block['element']['text']['text'])) && ($text=Tecnodesign_Cache::get($k, static::$cacheSyntaxHighlight))) {
-            $Block['element']['text']['text'] = $text;
+        if(static::$cacheSyntaxHighlight && ($k='hlite'.md5($Block['element']['element']['text'])) && ($text=Tecnodesign_Cache::get($k, static::$cacheSyntaxHighlight))) {
+            $Block['element']['element']['rawHtml'] = $text;
+            unset($Block['element']['element']['text']);
             if(is_string($Block['highlight'])) {
-                $Block['element']['text']['attributes']['class'] .= ' line';
+                $Block['element']['element']['attributes']['class'] .= ' line';
             }
-            $Block['element']['text']['attributes']['class'] .= ' highlight';
+            $Block['element']['element']['attributes']['class'] .= ' highlight';
             return $Block;
         }
 
@@ -98,24 +77,22 @@ class Tecnodesign_Markdown extends ParsedownExtra
                 static $G;
                 if(is_null($G)) {
                     
-                    $G = new GeSHi($Block['element']['text']['text'], $lang);
+                    $G = new GeSHi($Block['element']['element']['text'], $lang);
                     $G->enable_classes();
                     $G->set_header_type(GESHI_HEADER_NONE);
                     $G->enable_line_numbers(GESHI_NORMAL_LINE_NUMBERS);
                     $G->enable_keyword_links(false);
                 } else {
-                    $G->set_source($Block['element']['text']['text']);
+                    $G->set_source($Block['element']['element']['text']);
                     $G->set_language($lang);
                 }
                 if(is_string($Block['highlight'])) {
                     $G->highlight_lines_extra(preg_split('/[^0-9]+/', $Block['highlight'], null, PREG_SPLIT_NO_EMPTY));
-                    $Block['element']['text']['attributes']['class'] .= ' line';
                 }
                 unset($f);
                 $text = $G->parse_code();
-                $Block['element']['text']['attributes']['class'] .= ' highlight';
             } else {
-                $text = $Block['element']['text']['text'];
+                $text = $Block['element']['element']['text'];
             }
 
         } else if(static::$syntaxHighlight=='pygmentize') {
@@ -141,15 +118,15 @@ class Tecnodesign_Markdown extends ParsedownExtra
                 }
                 if(isset($L[$lang])) {
                     setlocale(LC_CTYPE, "en_US.UTF-8");
-                    $cmd = 'echo '.escapeshellarg($Block['element']['text']['text']).' | pygmentize -O encoding=utf8 -f html -l '.$lang;
+                    $cmd = 'echo '.escapeshellarg($Block['element']['element']['text']).' | pygmentize -O encoding=utf8 -f html -l '.$lang;
                 }
             }
             if(!isset($cmd) && $lang!='none') {
                 setlocale(LC_CTYPE, "en_US.UTF-8");
-                $cmd = 'echo '.escapeshellarg($Block['element']['text']['text']).' | pygmentize -O encoding=utf8 -f html -g';
+                $cmd = 'echo '.escapeshellarg($Block['element']['element']['text']).' | pygmentize -O encoding=utf8 -f html -g';
             }
             if($lang=='none') {
-                $r = explode("\n", $Block['element']['text']['text']);
+                $r = explode("\n", $Block['element']['element']['text']);
                 $err=0;
             } else {
                 exec($cmd, $r, $err);
@@ -160,7 +137,6 @@ class Tecnodesign_Markdown extends ParsedownExtra
                 $xtra = array();
                 if(is_string($Block['highlight'])) {
                     $xtra=preg_split('/[^0-9]+/', $Block['highlight'], null, PREG_SPLIT_NO_EMPTY);
-                    $Block['element']['text']['attributes']['class'] .= ' line';
                 }
 
                 foreach($r as $i=>$o) {
@@ -174,17 +150,21 @@ class Tecnodesign_Markdown extends ParsedownExtra
                     unset($r[$i], $i, $o);
                 }
                 $text .= '</ol>';
-                $Block['element']['text']['attributes']['class'] .= ' highlight';
             }
             unset($r);
         }
         if(!isset($text)) {
             // command line highlighter?
-            $text = htmlentities($Block['element']['text']['text']);
+            $text = $Block['element']['element']['text'];
         } else if(static::$cacheSyntaxHighlight) {
             Tecnodesign_Cache::set($k, $text, static::$cacheSyntaxHighlight);
         }
-        $Block['element']['text']['text'] = $text;
+        $Block['element']['element']['rawHtml'] = $text;
+        unset($Block['element']['element']['text']);
+        if(is_string($Block['highlight'])) {
+            $Block['element']['element']['attributes']['class'] .= ' line';
+        }
+        $Block['element']['element']['attributes']['class'] .= ' highlight';
 
         return $Block;
     }

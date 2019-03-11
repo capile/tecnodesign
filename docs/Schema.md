@@ -34,7 +34,7 @@ Defaults to the string or attribute index if not present. Defines where to retri
 
 Examples: 
 
-```
+```php
 // same as [ 'bind' => 'id' ]
 'id'              => 'id',
 
