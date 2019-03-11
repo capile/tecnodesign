@@ -429,7 +429,7 @@ class Tecnodesign_User
                 unset($s);
             }
             if($delete && count($cookies)>0) {
-                setcookie($cookie, '', time() -86700, '', static::$cookieSecure, static::$cookieHttpOnly);
+                setcookie($cookie, '', time() -86700, '', $this->getCookieHost(), static::$cookieSecure, static::$cookieHttpOnly);
             }
             unset($cookies);
         }
@@ -521,12 +521,8 @@ class Tecnodesign_User
         return $this->_cname;
     }
 
-    public function setSessionCookie()
+    public function getCookieHost()
     {
-        if(!static::$setCookie) return true;
-        $n = $this->getSessionName();
-        if(isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
-
         if(isset($this->_ns['domain'])) {
             $domain = $this->_ns['domain'];
             if(substr($domain,0,1)!='.') {
@@ -541,12 +537,21 @@ class Tecnodesign_User
         } else if($p=strpos($domain, ':')) {
             $domain = substr($domain, 0, $p);
         }
+        return $domain;
+    }
+
+    public function setSessionCookie()
+    {
+        if(!static::$setCookie) return true;
+        $n = $this->getSessionName();
+        if(isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
+
         if(static::$cookieSecure && !Tecnodesign_App::request('https')) {
             static::$cookieSecure = false;
         }
         $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         if($timeout > 0 && $timeout<31536000) $timeout += time();
-        setcookie($n, $this->_cid, $timeout, '/', $domain, static::$cookieSecure, static::$cookieHttpOnly);
+        setcookie($n, $this->_cid, $timeout, '/', $this->getCookieHost(), static::$cookieSecure, static::$cookieHttpOnly);
         self::$_cookiesSent[$n.'/'.$this->_cid]=true;
         unset($n, $domain, $timeout);
         return true;
