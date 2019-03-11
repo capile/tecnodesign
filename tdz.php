@@ -509,12 +509,6 @@ class tdz
         return $s;
     }
     
-    public static function mergeRecursive()
-    {
-        return call_user_func_array ('array_merge_recursive', func_get_args());
-    }
-    
-    
     /**
      * Request method to get current script name. May act as a setter if a string is
      * passed. Also returns absolute script name (according to $_SERVER[REQUEST_URI])
@@ -1587,6 +1581,29 @@ class tdz
             $nf = call_user_func_array('tdz::mergeRecursive', $nf);
         }
         return $nf;
+    }
+
+    public static function mergeRecursive()
+    {
+        $a = func_get_args();
+        $res = array_shift($a);
+        foreach($a as $args) {
+            if(!is_array($res)) {
+                $res = $a;
+            } else {
+                foreach($args as $k=>$v) {
+                    if(!isset($res[$k])) {
+                        $res[$k] = $v;
+                    } else if(is_array($res[$k]) && is_array($v)) {
+                        $res[$k] = tdz::mergeRecursive($v, $res[$k]);
+                    }
+                }
+            }
+        }
+        return $res;
+        // if possible replace with native
+        //return call_user_func_array ('array_merge_recursive', func_get_args());
+        // caveats: increments numeric indexes
     }
 
     protected static function setLastKey($a, $name, $post=null) {
