@@ -6,7 +6,7 @@
     "repositories": [
         {
             "url": "https://github.com/capile/parsedown-extra",
-            "type": "vcs"
+            "type": "git"
         }
     ],
     "require": {
