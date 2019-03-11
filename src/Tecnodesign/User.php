@@ -4,35 +4,15 @@
  *
  * This package enables authentication & authorization for apps.
  *
- * PHP version 5.2
- *
  * @category  User
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign User
- *
- * This package enables authentication & authorization for apps.
- *
- * @category  User
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @copyright 2019 Tecnodesign
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
 class Tecnodesign_User
 {
-    /**
-     * Configurable behavior
-     * This is only available for customizing Studio, please use the tdzEntry class
-     * within your lib folder (not TDZ_ROOT!) or .ini files
-     */
     public static 
         $timeout=0,             // session timeout in seconds
         $cfg, 
