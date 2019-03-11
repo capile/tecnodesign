@@ -37,7 +37,7 @@ class Tecnodesign_Studio
             'script'=>array(),// make sure this is .min.js in production environments
             'style'=>array(),
         ),
-        $templateRoot,
+        $templateRoot='web',
         $languages=array(),
         $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
