@@ -529,7 +529,7 @@ class Tecnodesign_User
                 $domain = ".{$domain}";
             }
         } else {
-            $domain = $_SERVER['HTTP_HOST'];
+            $domain = Tecnodesign_App::request('hostname');
         }
         if(preg_match('/^[0-9\:]+([0-9a-f]*[\.\:])+[0-9a-f](\:|$)/', $domain)) {
             $domain = null;
