@@ -525,7 +525,7 @@ class Tecnodesign_User
     {
         if(isset($this->_ns['domain'])) {
             $domain = $this->_ns['domain'];
-            if(substr($domain,0,1)!='.') {
+            if($domain && substr($domain,0,1)!='.') {
                 $domain = ".{$domain}";
             }
         } else {
