@@ -207,12 +207,9 @@ class Tecnodesign_Markdown extends Parsedown
     {
         $Block = parent::blockHeader($Line);
 
-        if (preg_match('/[ #]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['handler']['argument'], $matches, PREG_OFFSET_CAPTURE))
-        {
+        if (isset($Block['element']['handler']['argument']) && preg_match('/[ #]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['handler']['argument'], $matches, PREG_OFFSET_CAPTURE)) {
             $attributeString = $matches[1][0];
-
             $Block['element']['attributes'] = $this->parseAttributeData($attributeString);
-
             $Block['element']['handler']['argument'] = substr($Block['element']['handler']['argument'], 0, $matches[0][1]);
         }
         if(!isset($Block['element']['attributes']['id'])) {
@@ -321,7 +318,7 @@ class Tecnodesign_Markdown extends Parsedown
     {
         $Block = parent::blockSetextHeader($Line, $Block);
 
-        if (preg_match('/[ ]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['handler']['argument'], $matches, PREG_OFFSET_CAPTURE)) {
+        if (isset($Block['element']['handler']['argument']) && preg_match('/[ ]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['handler']['argument'], $matches, PREG_OFFSET_CAPTURE)) {
             $attributeString = $matches[1][0];
             $Block['element']['attributes'] = $this->parseAttributeData($attributeString);
             $Block['element']['handler']['argument'] = substr($Block['element']['handler']['argument'], 0, $matches[0][1]);
@@ -619,6 +616,14 @@ class Tecnodesign_Markdown extends Parsedown
     protected function element(array $Element)
     {
         $index = null;
+        if(!isset($Element['name'])) {
+            if(isset($Element['rawHtml'])) {
+                return $Element['rawHtml'];
+            } else {
+                $Element['name'] = 'span';
+            }
+        }
+
         if(static::$indexElements && in_array($Element['name'], static::$indexElements)) {
             if(!isset($Element['attributes']['class']) || strpos($Element['attributes']['class'], 'noindex')===false) {
                 if(!isset($Element['attributes']['id'])) {

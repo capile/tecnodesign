@@ -1,6 +1,6 @@
 FROM php:5.4-cli
 RUN apt-get update \
- && apt-get install -y apt-utils libyaml-dev git zip unzip
+ && apt-get install -y apt-utils libyaml-dev git zip unzip wget grep procps
 
 RUN pecl channel-update pecl.php.net
 RUN pecl install xdebug-2.4.1 yaml-1.3.2
@@ -17,3 +17,4 @@ RUN curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
     && php /tmp/composer-setup.php --no-ansi --install-dir=/usr/local/bin --filename=composer --snapshot \
     && rm -f /tmp/composer-setup.* \
     && chmod 777 /usr/local/bin/composer
+RUN mkdir /opt/codeception && cd /opt/codeception && /usr/local/bin/composer require "codeception/codeception" --dev

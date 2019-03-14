@@ -1,0 +1,140 @@
+---
+title: User configuration
+description: Tecnodesign_User configuration schema
+type: object
+properties:
+  className:
+    title: Classname
+    description: Class to instantiate for the user manager
+    type: string
+    required: true
+    default: Tecnodesign_User
+  super-admin:
+    title: Superadmin Groups
+    description: Groups to be set as superadmins (bypass all credential checks)
+    type: array
+    required: false
+    default: ~
+  credentials:
+    title: Credentials
+    description: Default list of all available credentials
+    type: object
+    required: false
+    default: ~
+  session-name:
+    title: Default Session Name
+    description: Cookie identified to use for session name
+    type: string
+    required: false
+    default: tdz
+  model:
+    title: Model
+    description: Model to use for filling up the user object and search for usernames/passwords
+    type: string
+    required: false
+    default: ~
+  scope:
+    title: Scope
+    description: Scope of the model to use for populating the user object
+    type: string
+    required: false
+    default: ~
+  ns:
+    title: Authentication sources
+    description: Valid authenticators to use, in sequence, to validate the user
+    type: object
+    required: false
+    default: ~
+    patternProperties: /^[a-zA-Z0-9\-\_]$/
+    items:
+      type: object
+      properties:
+        name:
+          title: Authenticator Name
+          description: Authenticator identification, internal
+          type: string
+          required: false
+        enabled:
+          title: Is this authentication source enabled?
+          description: Controls the activation of the authentication source
+          type: bool
+          required: false
+          default: true
+        cookie:
+          title: Cookie to use for session
+          description: Overrides the session name for this authenticator
+          type: string
+          required: false
+        timeout:
+          title: Session timeout, in seconds
+          description: Duration of the session, in seconds, use 0 to terminate session on browser close
+          type: int
+          required: false
+          default: 0
+        model:
+          title: Class name to use for this authenticator user instantiation
+          description: When a user is found, create an object of this class to define items
+          required: false
+        finder:
+          alias: model
+        storage:
+          title: Cache storage for this user session
+          description: How this user session should be stored, should be managed by Tecnodesign_Cache
+          type: string
+          choices:
+            apc: APC(u) memory storage
+            file: File storage
+            memcache: Memcache server
+            memcached: Memcached server
+        export:
+          title: User export mapping
+          description: Maps the properties that should be exported to json when previewing the user
+          type: object
+          items:
+            type: string
+        properties:
+          title: Internal mapping of the user properties (like Scope)
+          description: Maps the properties that should be represented internally in the user object
+          type: object
+          properties:
+            id:
+              title: Unique User identification
+              description: An unique identified for this user, prefer numerical identifiers
+              type: string
+              required: true
+            sid:
+              title: Session id
+              description: When session ids are stored in the database, provide the property that maps it
+              type: string
+              required: false
+            name: 
+              title: User Display Name
+              description: Name to use to publicly announce the user
+              type: string
+              required: false
+            username:
+              title: Username
+              description: Username field to use in username/password authentication
+              type: string
+              required: false
+            password:
+              title: Password
+              description: Password field to check in username/password authentication
+              type: string
+              required: false
+            email:
+              title: E-mail
+              description: User e-mail for notifications and messages
+              type: string
+              required: false
+            lastAccess:
+              title: Last accessed time
+              description: Datetime field to update when the user last acessed the service
+              type: string
+              format: datetime
+              required: false
+            credentials:
+              title: User Credentials
+              description: Fieldname/relation to use to fetch user credentials
+              type: string
+              required: false

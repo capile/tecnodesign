@@ -4,3 +4,4 @@
 /composer.lock
 data/*
 /.idea/
+codecept*
