@@ -8,4 +8,3 @@ class StudioCest
         $I->see('Tecnodesign Application Development Framework');  
     }
 }
-   

@@ -1,5 +1,6 @@
 ---
 all:
+  include: data/config/*.yml
   tecnodesign:
     apps-dir: .
     data-dir: data

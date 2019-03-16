@@ -1,0 +1,21 @@
+---
+all:
+  user:
+    super-admin: Administrator
+    credentials:
+      Administrator: ~
+    ns:
+      host:
+        name: Host-based authentication
+        enabled: true
+        type: host
+        cookie: ~
+        options:
+          hosts:
+            127.0.0.1:
+              id: admin
+              username: admin
+              credentials: [ Administrator ]
+        export:
+          username: username
+          credentials: credentials

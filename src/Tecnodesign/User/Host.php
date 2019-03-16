@@ -13,11 +13,16 @@
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_User_Host
+class Tecnodesign_User_Host extends Tecnodesign_PublicObject
 {
+    public static $meta, $hosts=array();
 
-    public static $hosts=array();
-    protected $id, $address;
+    public $id, $name, $username, $address, $credentials, $lastAccess;
+
+    public function __toString()
+    {
+        return (string) $this->id;
+    }
 
     public static function authenticate($o=null)
     {
@@ -51,10 +56,12 @@ class Tecnodesign_User_Host
         if($r=self::authenticate()) {
             if(isset(Tecnodesign_User::$cfg['ns']['host']['className'])) {
                 $cn = Tecnodesign_User::$cfg['ns']['host']['className'];
-                $H = $cn::find($r,1,'minimal');
+                $H = $cn::find($r,1);
             } else {
-                $H = new Tecnodesign_Collection();
-                $H->id = $id;
+                $cn = get_called_class();
+                $d = is_array($id) ?$id :['id'=>$id];
+                $d['address'] = self::remoteAddr();
+                $H = new $cn($d);
             }
             return $H;
         }

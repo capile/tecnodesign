@@ -13,7 +13,7 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_Schema implements ArrayAccess
+class Tecnodesign_Schema extends Tecnodesign_PublicObject
 {
     const JSON_SCHEMA_VERSION='draft-07';
 
@@ -25,48 +25,86 @@ class Tecnodesign_Schema implements ArrayAccess
         $errorMandatory='%s is mandatory and should not be a blank value.',
         $error;
 
-    protected 
-        $database,
-        $className,
-        $tableName,
-        $view,
-        $properties,
-        $patternProperties=array('/^_/'=>array('type'=>'text')),
-        $overlay,
-        $scope,
-        $relations,
-        $events,
-        $orderBy,
-        $groupBy;
+    public static $meta;
 
-    protected static $meta=array(
-        'database'=>array('type'=>'string'),
-        'className'=>array('type'=>'string'),
-        'tableName'=>array('type'=>'string'),
-        'view'=>array('type'=>'string'),
-        'properties'=>array('type'=>'array'),
-        'patternProperties'=>array('type'=>'array'),
-        'overlay'=>array('type'=>'array'),
-        'scope'=>array('type'=>'array'),
-        'relations'=>array('type'=>'array'),
-        'events'=>array('type'=>'array'),
-        'orderBy'=>array('type'=>'array'),
-        'groupBy'=>array('type'=>'array'),
-        'columns'=>array('alias'=>'properties'),
-        'form'=>array('alias'=>'overlay'),
-    );
-
-    public function __construct($o=null)
+    public static function loadSchema($cn, $meta=null)
     {
-        if($o) {
-            if(is_array($o)) static::apply($this, $o, static::$meta);
+        static $timeout = 300;
+        // load from cache
+        $ckey = 'schema/'.$cn;
+        if($Schema=Tecnodesign_Cache::get($ckey, $timeout)) {
+            return $Schema;
         }
+
+        $src = static::loadSchemaRef($cn);
+
+        if(defined($cn.'::SCHEMA_PROPERTY')) {
+            $schema = $cn::SCHEMA_PROPERTY;
+            if(property_exists($cn, $schema) && (!is_object($cn::$$schema) || !($cn::$$schema instanceof Tecnodesign_Schema))) {
+                $d = $cn::$$schema;
+                if(!is_array($d)) {
+                    $d = array();
+                }
+                $src = $src ?array_merge_recursive($d, $src) :($cn::$$schema);
+            }
+        }
+
+        /**
+         * If a meta is specified, it means the schema must pass a schema validation before being assigned.
+         * It is meant to normalize old schemas and depreceted properties.
+         */
+        if($meta) {
+
+        }
+
+        if($src) {
+            $Schema = new Tecnodesign_Schema($src);
+            Tecnodesign_Cache::set($ckey, $Schema, $timeout);
+        } else {
+            $Schema = null;
+        }
+
+        return $Schema;
+    }
+
+    public static function loadSchemaRef($ref)
+    {
+        $dirs = tdz::getApp()->config('schema-dir');
+        if(!$dirs) {
+            $dirs = array();
+        } else if(!is_array($dirs)) {
+            $dirs = array($dirs);
+        }
+        if(substr($ref, 0, 12)=='Tecnodesign_')
+        array_unshift($dirs, TDZ_ROOT.'/schema');
+
+        $src = array();
+        $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);
+        foreach($dirs as $dir) {
+            if(file_exists($f=$dir.'/'.$fname.'.json')) {
+                if($d=json_decode(file_get_contents($f), true)) {
+                    $src = $src ?array_merge_recursive($src, $d) :$d;
+                }
+            }
+            if(file_exists($f=$dir.'/'.$fname.'.yml')) {
+                if($d=Tecnodesign_Yaml::load($f)) {
+                    $src = $src ?array_merge_recursive($src, $d) :$d;
+                }
+            }
+            unset($dir, $f, $d);
+        }
+
+        return $src;
     }
 
     public static function apply($Model, $values, $meta=null)
     {
+        $allowUndeclared = false;
         if(is_object($Model)) {
             if(!$meta && ($Model instanceof Tecnodesign_Model)) $meta = $Model::$schema['columns'];
+            if($Model instanceof Tecnodesign_Schema) {
+                $allowUndeclared = true;
+            }
         } else if(is_array($Model)) {
             $arr = $Model;
             $Model = false;
@@ -85,7 +123,7 @@ class Tecnodesign_Schema implements ArrayAccess
                 if(isset($meta[$name])) {
                     $value = static::validateProperty($meta[$name], $value, $name);
                 }
-            } else {
+            } else if($allowUndeclared!==true) {
                 unset($name, $value);
                 continue;
             }
@@ -432,69 +470,5 @@ class Tecnodesign_Schema implements ArrayAccess
         // additionalProperties
         // dependencies
         // propertyNames
-    }
-
-    /**
-     * ArrayAccess abstract method. Gets stored parameters.
-     *
-     * @param string $name parameter name, should start with lowercase
-     *
-     * @return mixed the stored value, or method results
-     */
-    public function &offsetGet($name)
-    {
-        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
-        if (method_exists($this, $m='get'.ucfirst(tdz::camelize($name)))) {
-            return $this->$m();
-        } else if (isset($this->$name)) {
-            return $this->$name;
-        }
-        return null;
-    }
-    /**
-     * ArrayAccess abstract method. Sets parameters to the PDF.
-     *
-     * @param string $name  parameter name, should start with lowercase
-     * @param mixed  $value value to be set
-     * 
-     * @return void
-     */
-    public function offsetSet($name, $value)
-    {
-        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
-        if (method_exists($this, $m='set'.tdz::camelize($name))) {
-            $this->$m($value);
-        } else if(!property_exists($this, $name)) {
-            throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
-        } else {
-            $this->$name = $value;
-        } 
-        unset($m);
-        return $this;
-    }
-
-    /**
-     * ArrayAccess abstract method. Searches for stored parameters.
-     *
-     * @param string $name parameter name, should start with lowercase
-     *
-     * @return bool true if the parameter exists, or false otherwise
-     */
-    public function offsetExists($name)
-    {
-        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
-        return isset($this->$name);
-    }
-
-    /**
-     * ArrayAccess abstract method. Unsets parameters to the PDF. Not yet implemented
-     * to the PDF classes — only unsets values stored in $_vars
-     *
-     * @param string $name parameter name, should start with lowercase
-     */
-    public function offsetUnset($name)
-    {
-        if(isset(static::$meta[$name]['alias'])) $name = static::$meta[$name]['alias'];
-        return $this->offsetSet($name, null);
     }
 }

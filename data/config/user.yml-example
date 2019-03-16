@@ -1,0 +1,42 @@
+---
+all:
+  tecnodesign:
+    routes:
+      /signin:
+        class: Tecnodesign_User
+        method: signInWidget
+        static: true
+  user:
+    super-admin: Administrator
+    icons: /_assets/img/connect.png
+    model: ~
+    credentials:
+      Author: ~
+      Editor: ~
+      Developer: ~
+      Administrator: ~
+    properties: ~
+    ns:
+      host:
+        name: Host-based authentication
+        enabled: false
+        type: host
+        cookie: ~
+        options:
+          hosts:
+            127.0.0.1: 1
+      fb:
+        name: Facebook API
+        enabled: false
+        type: facebook
+        cookie: tdzid
+        timeout: 0
+        options:
+          app_id: ~
+          api_key: ~
+          app_secret: ~
+          extended-permissions: 'email,user_groups'
+          js-options:
+            cookie: true
+            xfbml: false
+            status: true

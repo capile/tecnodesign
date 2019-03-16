@@ -2,6 +2,7 @@
 ._*
 /vendor/
 /composer.lock
-data/*
+data/cache
+data/log
 /.idea/
 codecept*

@@ -19,7 +19,7 @@ class Tecnodesign_User
         $hashType='sha256',     // hashing method
         $usePhpSession=false,   // load/destroy user based on PHP session
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
-        $setLastAccess='lastAccess', // property to use when setting last access, set to false to disable
+        $setLastAccess,         // property to use when setting last access, set to false to disable
         $setCookie=true,        // percentage of timeout to set a new cookie
         $cookieValidation='/^[a-z0-9\-\_]{20,40}$/i',
         $cookieSecure=true,
@@ -98,6 +98,9 @@ class Tecnodesign_User
         $cookies=array();
         $cookie = false;
         foreach (static::$cfg['ns'] as $ns=>$nso) {
+            if(!isset($nso['enabled']) || !$nso['enabled']) {
+                continue;
+            }
             if(!isset($nso['id'])) $nso['id'] = $ns;
             if (isset($nso['cookie']) && $nso['cookie']) {
                 $storage = (isset($nso['storage']))?($nso['storage']):(null);
@@ -855,12 +858,14 @@ class Tecnodesign_User
             $this->_credentials=array();
             if($this->_me && method_exists($this->_me, 'getCredentials')){
                 $this->_credentials = $this->_me->getCredentials();
-                if(!is_array($this->_credentials)) {
-                    if($this->_credentials) {
-                        $this->_credentials = array($this->_credentials);
-                    } else {
-                        $this->_credentials = array();
-                    }
+            } else if(is_object($this->_me) && property_exists($this->_me, 'credentials')){
+                $this->_credentials = $this->_me->credentials;
+            }
+            if(!is_array($this->_credentials)) {
+                if($this->_credentials) {
+                    $this->_credentials = array($this->_credentials);
+                } else {
+                    $this->_credentials = array();
                 }
             }
             if($this->_me) {
@@ -1185,14 +1190,21 @@ class Tecnodesign_User
     public function asArray($scope=null)
     {
         if($this->_me) {
-            if(!($this->_me instanceof Tecnodesign_Model)) {
-                $scope = false;
-            }
             if(is_null($scope)) {
                 if(isset($this->_ns['export'])) $scope = $this->_ns['export'];
             }
-            if($scope) {
+            if($this->_me instanceof Tecnodesign_Model) {
                 return $this->_me->asArray($scope);
+            } else if($this->_me instanceof ArrayAccess) {
+                $d = (array) $this->_me;
+                if(is_array($scope)) {
+                    $r = array();
+                    foreach($scope as $k=>$v) {
+                        if(isset($d[$v])) $r[$k] = $d[$v];
+                    }
+                    $d = $r;
+                }
+                return $d;
             } else {
                 return array('username'=>(string) $this->_me);
             }

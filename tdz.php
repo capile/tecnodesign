@@ -466,13 +466,44 @@ class tdz
             unset($a[$k]);
         }
         $configs = array();
-        foreach ($a as $s) {
+        // enable includes
+        $loaded = array();
+        while ($a) {
+            $s = array_shift($a);
             if (!is_array($s)) {
+                if(in_array($s, $loaded)) continue;
+                $loaded[] = $s;
                 $s = Tecnodesign_Yaml::load($s);
 
                 if (!is_array($s)) {
                     continue;
                 }
+                if(isset($s[$env]['include']) && !in_array($s[$env]['include'], $loaded)) {
+                    $loaded[] = $s['all']['include'];
+                    if($load = glob($s[$env]['include'])) {
+                        foreach($load as $f) {
+                            if(!in_array($f, $loaded)) {
+                                $a[] = $f;
+                            }
+                        }
+                    }
+                    unset($load);
+                    unset($s[$env]['include']);
+                }
+                if(isset($s['all']['include']) && !in_array($s['all']['include'], $loaded)) {
+                    $loaded[] = $s['all']['include'];
+                    if($load = glob($s['all']['include'])) {
+                        foreach($load as $f) {
+                            if(!in_array($f, $loaded)) {
+                                $a[] = $f;
+                            }
+                        }
+                    }
+                    unset($load);
+                    unset($s['all']['include']);
+                }
+
+
                 if ($section) {
                     if(isset($s[$env][$section])) {
                         $configs[] = $s[$env][$section];
@@ -2934,6 +2965,9 @@ class tdz
                 }
             }
             unset($c);
+        }
+        if(is_subclass_of($cn, 'Tecnodesign_AutoloadInterface')) {
+            $cn::staticInitialize();
         }
     }
 

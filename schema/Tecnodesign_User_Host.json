@@ -1,0 +1,12 @@
+{
+    "title": "Host-based authentication",
+    "type": "object",
+    "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string"  },
+        "username": { "type": "string" },
+        "address": { "type": "string", "format": "ip"  },
+        "credentials": { "type": "array" },
+        "lastAccess": { "type": "string" }
+    }
+}
