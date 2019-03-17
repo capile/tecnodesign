@@ -679,6 +679,37 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             }
         } else if($multiview) return;
 
+        $meta = static::loadMeta($url, $page, $meta);
+
+        $id = substr($page, strlen(TDZ_VAR)+1);
+        $t = date('Y-m-d\TH:i:s', filemtime($page));
+        $P = new tdzEntry(array(
+            //'id'=>tdz::hash($id, null, 'uuid'),
+            'source'=>$id,
+            'link'=>$url,
+            'published'=>$t,
+            'format'=>$format,
+            'type'=>($isPage)?('page'):('file'),
+            'updated'=>$t,
+        ));
+        if($meta) {
+            foreach($meta as $fn=>$v) {
+                if(property_exists($P, $fn)) {
+                    if($fn=='layout' || $fn=='slots') static::$$fn = $v;
+                    else $P->$fn = $v;
+                }
+                unset($meta[$fn], $fn, $v);
+            }
+        }
+        unset($meta, $t, $id, $format, $isPage);
+        return $P;
+    }
+
+    public static function loadMeta($url, $page=null, $meta=array())
+    {
+        if(is_null($page) && $url) {
+            $page = TDZ_VAR.'/'.static::$pageDir.$url;
+        }
         // get metadata
         if(file_exists($mf=$page.'.'.tdz::$lang.'.meta') || file_exists($mf=$page.'.meta')) {
             $m = Tecnodesign_Yaml::load($mf);
@@ -712,32 +743,15 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         }
         unset($d, $p);
 
-        $id = substr($page, strlen(TDZ_VAR)+1);
-        $t = date('Y-m-d\TH:i:s', filemtime($page));
-        $P = new tdzEntry(array(
-            //'id'=>tdz::hash($id, null, 'uuid'),
-            'source'=>$id,
-            'link'=>$url,
-            'published'=>$t,
-            'format'=>$format,
-            'type'=>($isPage)?('page'):('file'),
-            'updated'=>$t,
-        ));
         if($meta) {
             if(isset($meta['link']) && $meta['link']!=$url && $meta['link']!=tdz::requestUri()) tdz::redirect($meta['link']);
             if(isset($meta['languages'])) Tecnodesign_Studio::$languages = $meta['languages'];
             Tecnodesign_Studio::addResponse($meta);
-            foreach($meta as $fn=>$v) {
-                if(property_exists($P, $fn)) {
-                    if($fn=='layout' || $fn=='slots') static::$$fn = $v;
-                    else $P->$fn = $v;
-                }
-                unset($meta[$fn], $fn, $v);
-            }
         }
-        unset($meta, $t, $id, $format, $isPage);
-        return $P;
+
+        return $meta;
     }
+
 
     /**
      * Content loader

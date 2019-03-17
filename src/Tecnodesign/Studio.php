@@ -37,6 +37,7 @@ class Tecnodesign_Studio
             'script'=>array(),// make sure this is .min.js in production environments
             'style'=>array(),
         ),
+        $status,
         $templateRoot='web',
         $languages=array(),
         $ignore=array('.meta', '.less', '.md', '.yml'),
@@ -644,7 +645,10 @@ class Tecnodesign_Studio
         } else {
             $layout = self::templateFile(tdzEntry::$layout, 'layout');
         }
+        static::$status = $code;
         self::template('/error'.$code);
+        tdzEntry::loadMeta('/error'.$code);
+
         return Tecnodesign_Studio::$app->runError($code, $layout);
     }
 

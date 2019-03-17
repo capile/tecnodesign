@@ -921,6 +921,7 @@ class Tecnodesign_User
     
     public function signIn($o=array(), $app=false)
     {
+        if(!isset(static::$cfg['ns'])) return;
         if(!isset($this)) {
             return self::signInWidget($o);
         }
