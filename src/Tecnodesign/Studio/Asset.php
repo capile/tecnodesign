@@ -99,8 +99,8 @@ class Tecnodesign_Studio_Asset
 
     public function build($files=null, $outputFile=null)
     {
-        $optimize = $this->optimize;
-        if($optimize && (!isset(tdz::$minifier[$this->format]) || !file_exists($jar=dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar'))) $optimize = false;
+        $shell = $optimize = $this->optimize;
+        if($optimize && (!isset(tdz::$minifier[$this->format]) || !file_exists($jar=dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar'))) $shell = false;
 
         if(!$outputFile) $outputFile = $this->output;
 
@@ -113,18 +113,33 @@ class Tecnodesign_Studio_Asset
             $files = array($files);
         }
         if($optimize) {
-            // try yui compressor
             $cacheDir = ($app=tdz::getApp()) ?$app->tecnodesign['cache-dir'] :null;
             if(!$cacheDir) $cacheDir = TDZ_VAR.'/cache/minify';
-            if(!is_dir($dir)) {
-                mkdir($dir, 0777, true);
+            if(!is_dir($cacheDir)) {
+                mkdir($cacheDir, 0777, true);
             }
-            if(isset(tdz::$minifier[$this->format])) {
-                $cmd = sprintf(tdz::$minifier[$this->format], implode(' ',$files), $tempnam);
+            if($shell) {
+                if(isset(tdz::$minifier[$this->format])) {
+                    $cmd = sprintf(tdz::$minifier[$this->format], implode(' ',$files), $tempnam);
+                } else {
+                    $cmd = tdz::$paths['cat'].' '.implode(' ',$files).' | '.tdz::$paths['java'].' -jar '.escapeshellarg($jar).' --nomunge --type '.$this->format.' -o '.$tempnam;
+                }
+                exec($cmd, $cmdoutput, $ret);
             } else {
-                $cmd = tdz::$paths['cat'].' '.implode(' ',$files).' | '.tdz::$paths['java'].' -jar '.escapeshellarg($jar).' --nomunge --type '.$this->format.' -o '.$tempnam;
+                $Min = null;
+                foreach($files as $f) {
+                    if($Min===null) {
+                        $cmd = 'MatthiasMullie\\Minify\\'.strtoupper($this->format);
+                        $Min = new $cmd($f);
+                    } else {
+                        $Min->add($f);
+                    }
+                }
+                if($Min) {
+                    tdz::save($tempnam, $Min->minify(null, [dirname($outputFile), TDZ_DOCUMENT_ROOT]));
+                    unset($Min);
+                }
             }
-            exec($cmd, $cmdoutput, $ret);
             if(file_exists($tempnam) && filesize($tempnam)>0) {
                 rename($tempnam, $outputFile);
                 chmod($outputFile, 0666);

@@ -6,18 +6,17 @@ if('Z' in window)
 
 if(!('plugins' in Z)) Z.plugins={};
 if(!('studio' in Z.plugins)) {
-    Z.plugins.studio=[];
-    Z.home = '/_/studio';
+    Z.plugins.studio={home:'/_studio', load:[] };
 }
 
 if(!('modules' in Z)) Z.modules = {};
-var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'Tdz-Action':'Interface'};
+var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'Tdz-Action':'Interface'}, _Studio='/_studio';
 
 // load authentication info
 function startup()
 {
-    if(!('home' in Z)) {
-        Z.home = Z.plugins.studio[0].replace(/\..+$/, '');
+    if(('home' in Z.plugins.studio) && Z.plugins.studio.home!=_Studio) {
+        _Studio = Z.plugins.studio.home;
     }
     _P = {c:[],s:[]};
     var l=document.querySelectorAll('[data-studio-s]'),L,j,i,id,d=[];
@@ -36,7 +35,7 @@ function startup()
     }
 
     var ui = [
-          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':Z.home}},
+          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':_Studio}},
           {e:'div',p:{className:'studio-logo tdz-i-button tdz-i--studio'}},
           {e:'div',p:{className:'studio-menu'},c:[
             {e:'div',p:{className:'studio-box s-right tdz-i-actions'},c:[
@@ -49,7 +48,7 @@ function startup()
         ];
     /*
     var ui = [
-          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':Z.home}},
+          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':_Studio}},
           {e:'div',p:{className:'studio-logo'},t:{click:trigger},c:[
               {e:'span',p:{className:'studio-i-new'}},
               {e:'span',p:{className:'studio-i-square'}},
@@ -100,12 +99,12 @@ function doubleClick(e)
     e.stopPropagation();
     var id=this.getAttribute('data-studio-c');
     if(id) {
-        getInterface(Z.home+'/c/v/'+id);
+        getInterface(_Studio+'/c/v/'+id);
         return false;
     }
     id=this.getAttribute('data-studio-s');
     if(id) {
-        getInterface(Z.home+'/c/n/'+id);
+        getInterface(_Studio+'/c/n/'+id);
         return false;
     }
 }
@@ -147,7 +146,7 @@ function getInterface(u)
 
 function searchInterface(s)
 {
-    var d, u=Z.home+'/q';
+    var d, u=_Studio+'/q';
     if(typeof(s)=='object') {
         d = JSON.stringify({q:s});
     } else {
@@ -202,7 +201,7 @@ function getProperties(id)
 
     // fetch new properties
     var d={c:_P.c,s:_P.s};
-    Z.ajax(Z.home+'/p', JSON.stringify(d), setProperties, null, 'json', _Z, {'Tdz-Action':'Studio','Content-Type':'application/json'});
+    Z.ajax(_Studio+'/p', JSON.stringify(d), setProperties, null, 'json', _Z, {'Tdz-Action':'Studio','Content-Type':'application/json'});
 }
 
 var _prop={};

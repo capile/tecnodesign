@@ -49,7 +49,9 @@ function initZ(d)
                 for(n in d.plugins) {
                     if(n in Z.plugins) continue;
                     Z.plugins[n]=d.plugins[n];
-                    Z.load.apply(Z, d.plugins[n]);
+                    if('load' in Z.plugins[n]) {
+                        Z.load.apply(Z, d.plugins[n].load);
+                    }
                 }
                 delete(d.plugins);
             }

@@ -1,8 +1,11 @@
 .svn
 ._*
+config/
 /vendor/
 /composer.lock
 data/cache
 data/log
+data/config/*.yml
+data/web/_/z-*
 /.idea/
 codecept*

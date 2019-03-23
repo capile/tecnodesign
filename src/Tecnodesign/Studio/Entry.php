@@ -348,6 +348,15 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
             $layout .= "\n\$content = ".implode('.',$merge).';';
         }
 
+        // in Tecnodesign_App::runTemplate
+        if(Tecnodesign_Studio::$app::$assets) {
+            foreach(Tecnodesign_Studio::$app::$assets as $i=>$n) {
+                Tecnodesign_Studio::$app::asset($n);
+                unset(Tecnodesign_Studio::$app::$assets[$i], $i, $n);
+            }
+        }
+
+
         $mc = file_get_contents($master);
         if(substr($mc, 0, 5)=='<'.'?php') $layout .= "\n".substr($mc, 5);
         else $layout .= "\n?".'>'.$mc;

@@ -20,7 +20,7 @@ class Tecnodesign_Studio
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
-        $automatedInstall,
+        $automatedInstall,  // deprecated
         $webInterface,
         $checkOrigin=true,  // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
@@ -34,8 +34,6 @@ class Tecnodesign_Studio
         $uploadDir,         // deprecated, use tdz::uploadDir
         $index='studio.db', // configurable, relative to TDZ_VAR
         $response=array(    // configurable, this will be added to the App response (passed to the template)
-            'script'=>array(),// make sure this is .min.js in production environments
-            'style'=>array(),
         ),
         $status,
         $templateRoot='web',
@@ -52,17 +50,6 @@ class Tecnodesign_Studio
      */
     public function __construct($config, $env='prod')
     {
-        // this needs to be better, switching to command line
-        if(self::$automatedInstall) {
-            $version = (float) tdz::getApp()->studio['version'];
-            if($version<self::VERSION) {
-                if($version<self::VERSION) {
-                    Tecnodesign_Studio_Install::upgrade($version);
-                    tdz::save($if, Tecnodesign_Yaml::dump(array('id'=>'Tecnodesign_Studio','version'=>self::VERSION)));
-                }
-                Tecnodesign_Cache::set('e-studio', self::VERSION);
-            }
-        }
     }
 
     /**
@@ -73,8 +60,12 @@ class Tecnodesign_Studio
     public static function run()
     {
         self::$app = tdz::getApp();
-        if(static::$webInterface && !self::$app->studio && tdz::scriptName()==='/' && tdz::getUser()->isSuperAdmin()) {
-            return tdz::redirect('/_studio/config');
+        if(static::$webInterface) {
+            if(!self::$app->studio && tdz::scriptName()==='/' && tdz::getUser()->isSuperAdmin()) {
+                return tdz::redirect(self::$home.'/config');
+            }
+            Tecnodesign_App::$assets[] = '!Z.Studio';
+            Tecnodesign_App::$assets[] = '!Z.Interface';
         }
         $req = Tecnodesign_App::request();
         if($req['shell']) {
@@ -240,9 +231,8 @@ class Tecnodesign_Studio
             $P = $p;
         }
         if(!isset($P)) $P = array($p);
-
         foreach($P as $a=>$q) {
-            if(is_string($a) && ($I=Tecnodesign_Studio_Interface::searchInterface($a, $q))) {
+            if(is_string($a) && ($I=Tecnodesign_Studio_Interface::loadInterface($a))) {
                 $R['interface'] = $I->render();
             }
         }
@@ -387,8 +377,8 @@ class Tecnodesign_Studio
             if(isset($meta['credential'])) unset($meta['cdredential']);
         }
         if(!is_null($pos)) $C->_position = $slotname.$pos;
-        if(isset($meta)) {
-            Tecnodesign_Studio::addResponse($meta);
+        if(isset($meta) && is_array($meta) && $meta) {
+            static::addResponse($meta);
             foreach(tdzContent::$schema['columns'] as $fn=>$fd) {
                 if(isset($meta[$fn])) $C->$fn = $meta[$fn];
                 unset($fd, $fn);
@@ -475,7 +465,15 @@ class Tecnodesign_Studio
             $r = $U->asArray();
             if(self::$webInterface && (($U->isAuthenticated() && ($U->isSuperAdmin()) || (($ec= self::credential('studio')) && $U->hasCredential($ec, false))))) {
                 $r['plugins']=array(
-                    'studio'=>array(self::$home.'.min.js?interface',self::$home.'.min.css?interface'),
+                    'studio'=>array(
+                        'home'=>self::$home,
+                        'load'=>array(
+                            tdz::$assetsUrl.'/z-studio.js',
+                            tdz::$assetsUrl.'/z-studio.css',
+                            tdz::$assetsUrl.'/z-interface.js',
+                            tdz::$assetsUrl.'/z-interface.css',
+                        ),
+                    ),
                 );
             }
             if($U->isAuthenticated() && ($cfg=Tecnodesign_Studio::$app->user)) {
@@ -534,7 +532,7 @@ class Tecnodesign_Studio
         );
         static $scope = array('id','title','link','source','master','format','updated','published','version');
         self::$private = array();
-        self::addResponse(self::$response);
+        if(static::$response) static::addResponse(static::$response);
         if(is_null($published)) {
             // get information from user credentials
             if(self::$connection && ($U=tdz::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
@@ -894,7 +892,6 @@ class Tecnodesign_Studio
                 } else {
                     tdz::$variables[$k] = array_merge(tdz::$variables[$k], $a[$k]);
                 }
-                unset($a[$k], $k);
             }
         }
         if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();

@@ -450,8 +450,10 @@ class Tecnodesign_App
             }
         }
         $result = false;
-        if(is_null($variables)) $variables=self::$_response;
-        $exec = array('variables'=>$variables, 'script'=>tdz::templateFile($tpl));
+        $exec = array(
+            'variables' => is_array($variables) ?array_merge_recursive($variables, self::$_response) :self::$_response,
+            'script' => tdz::templateFile($tpl)
+        );
         if($exec['script']) {
             $result=tdz::exec($exec);
         }
@@ -477,6 +479,8 @@ class Tecnodesign_App
 
         static $types=array('js'=>'js','less'=>'css');
         static $destination=array('js'=>'script','css'=>'style');
+        static $copyExt='{eot,ttf,svg,woff,png,jpg,gif}';
+        $build = false;
 
         foreach($types as $from=>$to) {
             // first look for assets
@@ -513,6 +517,7 @@ class Tecnodesign_App
             }
 
             if($t) { // check and build
+                $build = true;
                 if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
                 if($src) {
                     tdz::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
@@ -532,6 +537,17 @@ class Tecnodesign_App
                 }
             }
             unset($t, $tf, $from, $to);
+        }
+
+        if($build && ($files = glob(TDZ_ROOT.'/src/{'.str_replace('.', '/', $component).'}{-*,}.'.$copyExt, GLOB_BRACE))) {
+            $p = strlen(TDZ_ROOT.'/src/');
+            foreach($files as $source) {
+                $dest = TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.tdz::slug(substr($source, $p),'.');
+                if(!file_exists($dest) || filemtime($dest)<filemtime($source)) {
+                    copy($source, $dest);
+                }
+            }
+            unset($files);
         }
     }
 
