@@ -1,0 +1,224 @@
+{
+    "database": "_studio",
+    "tableName": "tdz_entries",
+    "label": "*Entries",
+    "className": "tdzEntry",
+    "columns": {
+        "id": {
+            "type": "int",
+            "increment": "auto",
+            "null": false,
+            "primary": true
+        },
+        "title": {
+            "type": "string",
+            "size": "200",
+            "null": true
+        },
+        "summary": {
+            "type": "string",
+            "size": "",
+            "null": true
+        },
+        "link": {
+            "type": "string",
+            "size": "200",
+            "null": true
+        },
+        "source": {
+            "type": "string",
+            "size": "200",
+            "null": true
+        },
+        "format": {
+            "type": "string",
+            "size": "100",
+            "null": true
+        },
+        "published": {
+            "type": "datetime",
+            "null": true
+        },
+        "language": {
+            "type": "string",
+            "size": "10",
+            "null": true
+        },
+        "type": {
+            "type": "string",
+            "size": "100",
+            "null": true
+        },
+        "master": {
+            "type": "string",
+            "size": "100",
+            "null": true
+        },
+        "version": {
+            "type": "int",
+            "null": true
+        },
+        "created": {
+            "type": "datetime",
+            "null": false
+        },
+        "updated": {
+            "type": "datetime",
+            "null": false
+        },
+        "expired": {
+            "type": "datetime",
+            "null": true
+        }
+    },
+    "relations": {
+        "Tag": {
+            "local": "id",
+            "foreign": "entry",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Tag"
+        },
+        "Content": {
+            "local": "id",
+            "foreign": "entry",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Content"
+        },
+        "Permission": {
+            "local": "id",
+            "foreign": "entry",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Permission"
+        },
+        "Child": {
+            "local": "id",
+            "foreign": "entry",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Relation"
+        },
+        "Parent": {
+            "local": "id",
+            "foreign": "parent",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Relation"
+        },
+        "Relation": {
+            "local": "id",
+            "foreign": "entry",
+            "type": "many",
+            "className": "tdzRelation"
+        },
+        "Children": {
+            "local": "id",
+            "foreign": "parent",
+            "type": "many",
+            "className": "tdzRelation"
+        }
+    },
+    "scope": {
+        "link": [
+            "id",
+            "link",
+            "title"
+        ],
+        "studio-new": [
+            "type",
+            "title",
+            "link",
+            "summary",
+            "published"
+        ],
+        "studio-edit": [
+            "type",
+            "title",
+            "link",
+            "summary",
+            "published",
+            "contents"
+        ]
+    },
+    "order": {
+        "version": "desc"
+    },
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ],
+        "active-records": "`expired` is null"
+    },
+    "form": {
+        "type": {
+            "bind": "type",
+            "type": "select",
+            "choices": "Tecnodesign_Studio::config('entry_types')",
+            "fieldset": "*Properties",
+            "class": "studio-left"
+        },
+        "title": {
+            "bind": "title",
+            "fieldset": "*Properties",
+            "class": "studio-clear",
+            "required": true
+        },
+        "link": {
+            "bind": "link",
+            "attributes": {
+                "data-type": "url"
+            },
+            "fieldset": "*Properties"
+        },
+        "summary": {
+            "bind": "summary",
+            "type": "html",
+            "fieldset": "*Properties",
+            "class": "studio-clear"
+        },
+        "published": {
+            "bind": "published",
+            "type": "datetime",
+            "fieldset": "*Properties",
+            "class": "studio-left"
+        },
+        "contents": {
+            "bind": "Content",
+            "type": "form",
+            "fieldset": "*Content"
+        }
+    },
+    "actAs": {
+        "before-insert": {
+            "auto-increment": [
+                "id"
+            ],
+            "timestampable": [
+                "created",
+                "updated"
+            ]
+        },
+        "before-update": {
+            "auto-increment": [
+                "version"
+            ],
+            "timestampable": [
+                "updated"
+            ]
+        },
+        "before-delete": {
+            "auto-increment": [
+                "version"
+            ],
+            "timestampable": [
+                "updated"
+            ],
+            "soft-delete": [
+                "expired"
+            ]
+        }
+    }
+}

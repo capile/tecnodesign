@@ -1,0 +1,4 @@
+---
+all:
+  model: tdzEntry
+  priority: 10

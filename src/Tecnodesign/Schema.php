@@ -40,12 +40,12 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
 
         if(defined($cn.'::SCHEMA_PROPERTY')) {
             $schema = $cn::SCHEMA_PROPERTY;
-            if(property_exists($cn, $schema) && (!is_object($cn::$$schema) || !($cn::$$schema instanceof Tecnodesign_Schema))) {
-                $d = $cn::$$schema;
-                if(!is_array($d)) {
-                    $d = array();
+            if(property_exists($cn, $schema) && ($d = $cn::$$schema) && (is_array($d) || (is_object($d) && ($d instanceof Tecnodesign_Schema)))) {
+                if(is_object($d)) { // force a new object
+                    $d = (array) $d;
                 }
-                $src = $src ?array_merge_recursive($d, $src) :($cn::$$schema);
+                $src = $src ?array_merge_recursive($d, $src) :($d);
+                unset($d);
             }
         }
 
@@ -58,7 +58,8 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         }
 
         if($src) {
-            $Schema = new Tecnodesign_Schema($src);
+            $schemaClass = get_called_class();
+            $Schema = new $schemaClass($src);
             Tecnodesign_Cache::set($ckey, $Schema, $timeout);
         } else {
             $Schema = null;
@@ -111,6 +112,9 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         } else {
             $Model = false;
             $arr = array();
+        }
+        if(is_object($meta) && ($meta instanceof Tecnodesign_Schema)) {
+            $meta = $meta->properties;
         }
 
         foreach($values as $name=>$value) {

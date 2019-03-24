@@ -100,4 +100,6 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
     }
 }
 
-Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/interface';
+if(TDZ_VAR!=TDZ_ROOT.'/data') {
+    Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/data/interface';
+}

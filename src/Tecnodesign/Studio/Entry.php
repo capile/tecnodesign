@@ -10,7 +10,7 @@
  * @copyright 2014 Tecnodesign
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_Studio_Entry extends Tecnodesign_Model
+class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 {
     /**
      * Configurable behavior
@@ -38,70 +38,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Model
         $previewEntryType=array('feed','file','page'); // which entry types can be previewed
 
     public static $s=1;
-    /**
-     * Tecnodesign_Model schema
-     */
-    //--tdz-schema-start--2014-12-27 18:32:23
-    public static $schema = array (
-      'database' => 'studio',
-      'tableName' => 'tdz_entries',
-      'label' => '*Entries',
-      'className' => 'tdzEntry',
-      'columns' => array (
-        'id' => array ( 'type' => 'int', 'increment' => 'auto', 'null' => false, 'primary' => true, ),
-        'title' => array ( 'type' => 'string', 'size' => '200', 'null' => true, ),
-        'summary' => array ( 'type' => 'string', 'size' => '', 'null' => true, ),
-        'link' => array ( 'type' => 'string', 'size' => '200', 'null' => true, ),
-        'source' => array ( 'type' => 'string', 'size' => '200', 'null' => true, ),
-        'format' => array ( 'type' => 'string', 'size' => '100', 'null' => true, ),
-        'published' => array ( 'type' => 'datetime', 'null' => true, ),
-        'language' => array ( 'type' => 'string', 'size' => '10', 'null' => true, ),
-        'type' => array ( 'type' => 'string', 'size' => '100', 'null' => true, ),
-        'master' => array ( 'type' => 'string', 'size' => '100', 'null' => true, ),
-        'version' => array ( 'type' => 'int', 'null' => true, ),
-        'created' => array ( 'type' => 'datetime', 'null' => false, ),
-        'updated' => array ( 'type' => 'datetime', 'null' => false, ),
-        'expired' => array ( 'type' => 'datetime', 'null' => true, ),
-      ),
-      'relations' => array (
-        'Tag' => array ( 'local' => 'id', 'foreign' => 'entry', 'type' => 'many', 'className' => 'Tecnodesign_Studio_Tag', ),
-        'Content' => array ( 'local' => 'id', 'foreign' => 'entry', 'type' => 'many', 'className' => 'Tecnodesign_Studio_Content', ),
-        'Permission' => array ( 'local' => 'id', 'foreign' => 'entry', 'type' => 'many', 'className' => 'Tecnodesign_Studio_Permission', ),
-        'Child' => array ( 'local' => 'id', 'foreign' => 'entry', 'type' => 'many', 'className' => 'Tecnodesign_Studio_Relation', ),
-        'Parent' => array ( 'local' => 'id', 'foreign' => 'parent', 'type' => 'many', 'className' => 'Tecnodesign_Studio_Relation', ),
-        'Relation' => array ( 'local' => 'id', 'foreign' => 'entry', 'type' => 'many', 'className' => 'tdzRelation', ),
-        'Children' => array ( 'local' => 'id', 'foreign' => 'parent', 'type' => 'many', 'className' => 'tdzRelation', ),
-      ),
-      'scope' => array (
-        'link' => array ( 'id', 'link', 'title', ),
-        'studio-new' => array ( 'type', 'title', 'link', 'summary', 'published', ),
-        'studio-edit' => array ( 'type', 'title', 'link', 'summary', 'published', 'contents', ),
-      ),
-      'order' => array (
-        'version' => 'desc',
-      ),
-      'events' => array (
-        'before-insert' => array ( 'actAs', ),
-        'before-update' => array ( 'actAs', ),
-        'before-delete' => array ( 'actAs', ),
-        'active-records' => '`expired` is null',
-      ),
-      'form' => array (
-        'type' => array ( 'bind' => 'type', 'type' => 'select', 'choices' => 'Tecnodesign_Studio::config(\'entry_types\')', 'fieldset' => '*Properties', 'class' => 'studio-left', ),
-        'title' => array ( 'bind' => 'title', 'fieldset' => '*Properties', 'class' => 'studio-clear', 'required' => true, ),
-        'link' => array ( 'bind' => 'link', 'attributes' => array ( 'data-type' => 'url', ), 'fieldset' => '*Properties', ),
-        'summary' => array ( 'bind' => 'summary', 'type' => 'html', 'fieldset' => '*Properties', 'class' => 'studio-clear', ),
-        'published' => array ( 'bind' => 'published', 'type' => 'datetime', 'fieldset' => '*Properties', 'class' => 'studio-left', ),
-        'contents' => array ( 'bind' => 'Content', 'type' => 'form', 'fieldset' => '*Content', ),
-      ),
-      'actAs' => array (
-        'before-insert' => array ( 'auto-increment' => array ( 'id', ), 'timestampable' => array ( 'created', 'updated', ), ),
-        'before-update' => array ( 'auto-increment' => array ( 'version', ), 'timestampable' => array ( 'updated', ), ),
-        'before-delete' => array ( 'auto-increment' => array ( 'version', ), 'timestampable' => array ( 'updated', ), 'soft-delete' => array ( 'expired', ), ),
-      ),
-    );
+    public static $schema;
     protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Content, $Permission, $Child, $Parent, $Relation, $Children;
-    //--tdz-schema-end--
     
     protected $dynamic=false, $wrapper, $modified, $credential;
 

@@ -451,7 +451,7 @@ class Tecnodesign_App
         }
         $result = false;
         $exec = array(
-            'variables' => is_array($variables) ?array_merge_recursive($variables, self::$_response) :self::$_response,
+            'variables' => is_array($variables) ?tdz::mergeRecursive($variables, self::$_response) :self::$_response,
             'script' => tdz::templateFile($tpl)
         );
         if($exec['script']) {

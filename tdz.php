@@ -505,17 +505,17 @@ class tdz
 
 
                 if ($section) {
-                    if(isset($s[$env][$section])) {
+                    if(isset($s[$env][$section]) && is_array($s[$env][$section])) {
                         $configs[] = $s[$env][$section];
                     }
-                    if(isset($s['all'][$section])) {
+                    if(isset($s['all'][$section]) && is_array($s['all'][$section])) {
                         $configs[] = $s['all'][$section];
                     }
                 } else {
-                    if(isset($s[$env])) {
+                    if(isset($s[$env]) && is_array($s[$env])) {
                         $configs[] = $s[$env];
                     }
-                    if(isset($s['all'])) {
+                    if(isset($s['all']) && is_array($s['all'])) {
                         $configs[] = $s['all'];
                     }
                 }
@@ -523,7 +523,12 @@ class tdz
                 $configs[] = $s;
             }
         }
-        return call_user_func_array ('array_merge_recursive', $configs);
+        if($configs) {
+            $i=count($configs);
+            if($i==1) return $configs[0];
+            else return call_user_func_array ('array_merge_recursive', $configs);
+        }
+        return array();
     }
 
     public static function replace($s, $r, $r2=null)

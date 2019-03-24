@@ -1,0 +1,23 @@
+{
+    "title": "Model Schema",
+    "type": "object",
+    "patternProperties": "/.*/",
+    "properties": {
+        "database": { "type": "string" },
+        "className": { "type": "string" },
+        "tableName": { "type": "string" },
+        "title": { "type": "string" },
+        "label": { "alias": "title" },
+        "view": { "type": "string" },
+        "properties": { "type": "object" },
+        "patternProperties": { "type": "array" },
+        "overlay": { "type": "object" },
+        "scope": { "type": "object" },
+        "relations": { "type": "object" },
+        "events": { "type": "object" },
+        "orderBy": { "type": "object" },
+        "groupBy": { "type": "object" },
+        "columns": { "alias": "properties" },
+        "form": { "alias": "overlay" }
+    }
+}

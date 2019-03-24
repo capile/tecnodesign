@@ -70,7 +70,10 @@ class Tecnodesign_Query implements \ArrayAccess
     public static function databaseHandler($n)
     {
         $dbs = self::database();
-        $db = (!isset($dbs[$n]))?(array_shift($dbs)):($dbs[$n]);
+        if(!isset($dbs[$n])) {
+            throw new Tecnodesign_Exception(['There\'s no %s database configured', $n]);
+        }
+        $db = $dbs[$n];
         $cn = (isset($db['class']))?($db['class']):('Tecnodesign_Query_'.ucfirst(substr($db['dsn'], 0, strpos($db['dsn'], ':'))));
         unset($dbs, $db);
         return $cn;

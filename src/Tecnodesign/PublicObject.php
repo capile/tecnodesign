@@ -25,7 +25,8 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         $schema = static::SCHEMA_PROPERTY;
         if(!is_null($o) && property_exists(get_called_class(), $schema)) {
             if(is_object($o) && ($o instanceof ArrayAccess)) $o = (array) $o;
-            if(is_array($o)) Tecnodesign_Schema::apply($this, $o, static::$$schema);
+            $schemaClass = (static::$$schema)?(get_class(static::$$schema)):('Tecnodesign_Schema');
+            if(is_array($o)) $schemaClass::apply($this, $o, static::$$schema);
         }
     }
 
@@ -33,18 +34,21 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
     {
         $schema = static::SCHEMA_PROPERTY;
         if(property_exists(get_called_class(), $schema)) {
-            static::$$schema = Tecnodesign_Schema::loadSchema(get_called_class());
+            $schemaClass = (static::$$schema)?(get_class(static::$$schema)):('Tecnodesign_Schema');
+            static::$$schema = $schemaClass::loadSchema(get_called_class());
         }
     }
 
     public function resolveAlias($name)
     {
-        if(($schema = static::SCHEMA_PROPERTY) && is_object(static::$$schema)) {
+        if(($schema = static::SCHEMA_PROPERTY) && is_object($Schema=static::$$schema) && property_exists($Schema, 'properties')) {
             $i = 10;
-            while(property_exists(static::$$schema, $name) && isset(static::$$schema->$name['alias']) && $i--) {
-                $name = static::$$schema->$name['alias'];
+            $oname = $name;
+            while(isset($Schema->properties[$name]['alias']) && $i--) {
+                $name = $Schema->properties[$name]['alias'];
             }
         }
+        unset($Schema);
         return $name;
     } 
 
@@ -63,7 +67,8 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         } else if (isset($this->$name)) {
             return $this->$name;
         }
-        return null;
+        $n = null;
+        return $n;
     }
     /**
      * ArrayAccess abstract method. Sets parameters to the PDF.
@@ -78,6 +83,15 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         $name = $this->resolveAlias($name);
         if (method_exists($this, $m='set'.tdz::camelize($name))) {
             $this->$m($value);
+        } else if(property_exists(get_called_class(), $schema = static::SCHEMA_PROPERTY)) {
+            // validate schema, when available
+            $Schema = static::$$schema;
+            if(isset($Schema->properties[$name])) {
+                $value = $Schema::validateProperty($Schema->properties[$name], $value, $name);
+            } else if(!isset($Schema->patternProperties) || !preg_match($Schema->patternProperties, $name)) {
+                throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
+            }
+            $this->$name = $value;
         } else if(!property_exists($this, $name)) {
             throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
         } else {

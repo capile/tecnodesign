@@ -10,10 +10,10 @@
  * @copyright 2019 Tecnodesign
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_Studio_Config extends Tecnodesign_Model
+class Tecnodesign_Studio_Config extends Tecnodesign_Studio_Model
 {
     public static $schema = array (
-      'database' => '_studio-yaml',
+      'database' => '_studio-config',
       'tableName' => 'studio',
       'idPattern'=>'-*--%s',
       'className' => 'Tecnodesign_Studio_Config',
@@ -47,7 +47,7 @@ class Tecnodesign_Studio_Config extends Tecnodesign_Model
                 if(substr($r, 0, 1)=='-') $r = substr($r, 1);
 
                 if(preg_match('/^([a-z]+)\--(.+)/', $r, $m)) {
-                    if(file_exists(TDZ_ROOT.'/src/Tecnodesign/Resources/schema/'.$m[1].'.yml')) {
+                    if(file_exists(TDZ_ROOT.'/schema/'.$m[1].'.yml')) {
                         $this->type = $m[1];
                         $r = $m[2];
                     }

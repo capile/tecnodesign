@@ -232,7 +232,8 @@ class Tecnodesign_Studio
         }
         if(!isset($P)) $P = array($p);
         foreach($P as $a=>$q) {
-            if(is_string($a) && ($I=Tecnodesign_Studio_Interface::loadInterface($a))) {
+            if(is_string($a) && ($I=new Tecnodesign_Studio_Interface($a))) {
+                $I->setSearch($q);
                 $R['interface'] = $I->render();
             }
         }
@@ -243,7 +244,6 @@ class Tecnodesign_Studio
             Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
             //exit($s);
         }
-
         return $s;        
     }
 
