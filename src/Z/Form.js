@@ -431,6 +431,8 @@ function initDatepicker()
     _PickerT = setTimeout(cleanupDatepicker, 500);
 }
 
+Z.initDatepicker = initDatepicker;
+
 function cleanupDatepicker()
 {
     if(_PickerT) clearTimeout(_PickerT);

@@ -356,7 +356,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if(self::$className!=get_called_class()) self::$className = get_called_class();
         try {
             if(!is_null($url)) tdz::scriptName($url);
-            else if(($route=Tecnodesign_App::response('route')) && isset($route['url']) && strpos($route['url'], '*')===false) tdz::scriptName($route['url']);
+            else if(($route=Tecnodesign_App::response('route')) && isset($route['url']) && !preg_match('/[\*\|\(\)]/', $route['url'])) tdz::scriptName($route['url']);
             static::$request = tdz::requestUri();
             $p = tdz::urlParams(null, true);
             $l = count($p) -1;
