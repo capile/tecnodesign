@@ -149,6 +149,7 @@ function loadAsset(f, fn, args, ctx)
         if(!_assetUrl) {
             var e=document.querySelector('script[src*="/z.js"]');
             if(e) _assetUrl = e.getAttribute('src').replace(/\/z\.js.*/, '/');
+            else if((e=document.querySelector('script[src*=".js"]'))) _assetUrl = e.getAttribute('src').replace(/\/[^\/]+\.js.*/, '/');
             else _assetUrl = '/';
         }
         f=_assetUrl+f;
