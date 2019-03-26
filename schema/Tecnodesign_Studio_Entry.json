@@ -76,31 +76,31 @@
             "local": "id",
             "foreign": "entry",
             "type": "many",
-            "className": "Tecnodesign_Studio_Tag"
+            "className": "tdzTag"
         },
         "Content": {
             "local": "id",
             "foreign": "entry",
             "type": "many",
-            "className": "Tecnodesign_Studio_Content"
+            "className": "tdzContent"
         },
         "Permission": {
             "local": "id",
             "foreign": "entry",
             "type": "many",
-            "className": "Tecnodesign_Studio_Permission"
+            "className": "tdzPermission"
         },
         "Child": {
             "local": "id",
             "foreign": "entry",
             "type": "many",
-            "className": "Tecnodesign_Studio_Relation"
+            "className": "tdzRelation"
         },
         "Parent": {
             "local": "id",
             "foreign": "parent",
             "type": "many",
-            "className": "Tecnodesign_Studio_Relation"
+            "className": "tdzRelation"
         },
         "Relation": {
             "local": "id",
