@@ -157,11 +157,13 @@ class Tecnodesign_Query_Sql
         $this->_select = $this->_where = $this->_groupBy = $this->_orderBy = $this->_limit = $this->_offset = null;
         $sc = $this->schema();
         $this->_alias = array($sc['className']=>'a');
-        if(isset($sc['view'])) {
-            $this->_from = ((strpos($sc['view'], ' ')!==false))?('('.$sc['view'].') as a'):($sc['view'].' as a');
+        $quote = static::QUOTE;
+        if(isset($sc['view']) && $sc['view']) {
+            $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].') as a' :$sc['view'] )." as {$quote[0]}a{$quote[1]}";
         } else {
-            $this->_from = $sc['tableName'].' as a';
+            $this->_from = $sc['tableName']." as {$quote[0]}a{$quote[1]}";
         }
+        if(!isset($sc['tableName']) || !$sc['tableName']) \tdz::debug(__METHOD__, var_export($sc, true));
         if(isset($sc['defaults']['find'])) $this->filter($sc['defaults']['find']);
         unset($sc);
         $this->filter($options);

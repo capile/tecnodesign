@@ -287,13 +287,14 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         }
 
         // in Tecnodesign_App::runTemplate
-        if(Tecnodesign_Studio::$app::$assets) {
-            foreach(Tecnodesign_Studio::$app::$assets as $i=>$n) {
-                Tecnodesign_Studio::$app::asset($n);
-                unset(Tecnodesign_Studio::$app::$assets[$i], $i, $n);
+        $app = get_class(Tecnodesign_Studio::$app);
+        if($app::$assets) {
+            foreach($app::$assets as $i=>$n) {
+                $app::asset($n);
+                unset($app::$assets[$i], $i, $n);
             }
         }
-
+        unset($app);
 
         $mc = file_get_contents($master);
         if(substr($mc, 0, 5)=='<'.'?php') $layout .= "\n".substr($mc, 5);
