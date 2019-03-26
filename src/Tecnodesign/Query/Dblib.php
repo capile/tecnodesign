@@ -12,6 +12,7 @@
  */
 class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 {
+    const QUOTE='[]';
 
     public static $textToVarchar=2147483647, $microseconds=3;
     /**

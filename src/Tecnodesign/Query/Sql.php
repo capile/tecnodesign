@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Sql
 {
-    const TYPE='sql';
+    const TYPE='sql', QUOTE='``';
     public static 
         $microseconds=6,
         $enableOffset=true,
@@ -469,6 +469,8 @@ class Tecnodesign_Query_Sql
         } else if(!$found) {
             $rnf = '';
             $cn = get_called_class();
+
+            $quote = static::QUOTE;
             while(strpos($ofn, '.')) {
                 @list($rn, $fn) = explode('.', $ofn,2);
                 $ofn=$fn;
@@ -506,9 +508,9 @@ class Tecnodesign_Query_Sql
                         if(!is_array($sc['relations'][$rn]['foreign'])) {
                             $rfn = $this->getAlias($sc['relations'][$rn]['foreign'], $rsc, true);
                             $lfn = $this->getAlias($sc['relations'][$rn]['local'], $sc, true);
-                            $this->_from .= " left outer join {$jtn} as `{$an}` on {$lfn}={$rfn}";
+                            $this->_from .= " left outer join {$jtn} as {$quote[0]}{$an}{$quote[1]} on {$lfn}={$rfn}";
                         } else {
-                            $this->_from .= " left outer join {$jtn} as `{$an}` on";
+                            $this->_from .= " left outer join {$jtn} as {$quote[0]}{$an}{$quote[1]} on";
                             foreach($sc['relations'][$rn]['foreign'] as $rk=>$rv) {
                                 $rfn = $this->getAlias($rv, $rsc, true);
                                 $lfn = $this->getAlias($sc['relations'][$rn]['local'][$rk], $sc, true);
