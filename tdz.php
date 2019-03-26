@@ -526,7 +526,7 @@ class tdz
         if($configs) {
             $i=count($configs);
             if($i==1) return $configs[0];
-            else return call_user_func_array ('array_merge_recursive', $configs);
+            else return call_user_func_array ('tdz::mergeRecursive', $configs);
         }
         return array();
     }
