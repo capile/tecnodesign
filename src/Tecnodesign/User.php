@@ -1201,11 +1201,12 @@ class Tecnodesign_User
      */
     protected function loadAttributes()
     {
-        if(is_null($this->_attr)) {
-            $this->_attr = Tecnodesign_Cache::get("user/attr-".$this->getSessionId(), static::$timeout);
+        if(is_null($this->_attr) && ($id=$this->getSessionId())) {
+            $this->_attr = Tecnodesign_Cache::get("user/attr-".$id, static::$timeout);
             if(!$this->_attr) $this->_attr=array();
         }
     }
+
     public function hasAttribute($name)
     {
         $this->loadAttributes();
