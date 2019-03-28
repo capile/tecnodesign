@@ -198,7 +198,7 @@ class Tecnodesign_Studio_Asset
     public function parseLess($fs, $outputFile)
     {
         static $parser;
-        if(!$parser && class_exists('lessc')) {
+        if(is_null($parser) && class_exists('lessc')) {
             $parser = new lessc();
             $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
             $parser->registerFunction('dechex', function($a){
@@ -212,7 +212,7 @@ class Tecnodesign_Studio_Asset
             $importDir = array();
             $s = '';
             foreach($fs as $i=>$o) {
-                if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d;
+                if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d.'/';
                 unset($d);
                 $s .= '@import '.escapeshellarg(basename($o)).";\n";
                 unset($fs[$i], $i, $o);
@@ -222,11 +222,11 @@ class Tecnodesign_Studio_Asset
             unset($s);
         } else {
             if(is_array($fs)) $fs = array_shift($fs);
-            $importDir = array(dirname($fs));
+            $importDir = array(dirname($fs).'/');
             $save = false;
         }
 
-        if($this->root && !in_array($this->root, $importDir)) array_unshift($importDir, $this->root);
+        if($this->root && !in_array($this->root, $importDir)) array_unshift($importDir, $this->root.'/');
         if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) array_unshift($importDir, $d);
         $parser->setImportDir($importDir);
         unset($importDir);
@@ -237,12 +237,14 @@ class Tecnodesign_Studio_Asset
             $parser->checkedCompile($fs, $outputFile);
         }
 
+        if(substr(phpversion(), 0, 2)==='5.') $parser = null;
+
     }
 
     public function parseScss($fs, $outputFile)
     {
         static $parser;
-        if(!$parser && class_exists('scssc')) {
+        if(is_null($parser) && class_exists('scssc')) {
             $parser = new scssc();
             //$parser->setVariables(array('assets-url'=>'"'.tdz::$assetsUrl.'"'));
             $parser->registerFunction('dechex', function($a){
@@ -275,6 +277,8 @@ class Tecnodesign_Studio_Asset
         unset($importDir);
 
         tdz::save($outputFile, $parser->compile($fs));
+
+        if(substr(phpversion(), 0, 2)==='5.') $parser = null;
     }
 
 
