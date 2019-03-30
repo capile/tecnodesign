@@ -24,7 +24,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
         if(!$conn) {
             $conn = self::connect($this->schema('database'));
         }
-        $q = $conn->query('SELECT CAST(COALESCE(SCOPE_IDENTITY(), @@IDENTITY) AS int) as id');
+        $q = $conn->query('select cast(coalesce(scope_identity(), @@identity) AS int) as id');
         if($q) {
             list($insertId) = $q->fetch(PDO::FETCH_NUM);
             return $insertId;
