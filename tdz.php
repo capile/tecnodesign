@@ -1876,10 +1876,24 @@ class tdz
                 $i = $i + (26 * floor($ni/26));
                 $ni = $ni%26;
             }
-            $n.=chr(97+$ni);
+            $n=chr(97+$ni).$n;
         }
         $n .= chr(97+$i);
         return $n;
+    }
+
+    public function letterToNumber($s)
+    {
+        $s0 = $s;
+        $s = preg_replace('/[^a-z]+/', '', strtolower($s));
+        $i = null;
+        while($s) {
+            $c = ord($s[0]) - 96;
+            $i += $c*pow(26,strlen($s)-1);
+            $s = substr($s, 1);
+        }
+        if($i) $i--;
+        return $i;
     }
 
     /**
