@@ -2,7 +2,7 @@
 /**
  * Static file rendering and optimization
  *
- * PHP version 5.3
+ * PHP version 5.6
  *
  * @category  Asset
  * @package   Studio
@@ -197,16 +197,16 @@ class Tecnodesign_Studio_Asset
 
     public function parseLess($fs, $outputFile)
     {
-        static $parser;
-        if(is_null($parser) && class_exists('lessc')) {
+        $parser = null;
+        if(class_exists('lessc')) {
             $parser = new lessc();
             $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
             $parser->registerFunction('dechex', function($a){
                 return dechex($a[1]);
             });
+        } else {
+            return $this->build($fs, $outputFile);
         }
-
-        if(!$parser) return $this->build($fs, $outputFile);
 
         if(is_array($fs) && count($fs)>1) {
             $importDir = array();
@@ -237,22 +237,23 @@ class Tecnodesign_Studio_Asset
             $parser->checkedCompile($fs, $outputFile);
         }
 
-        if(substr(phpversion(), 0, 2)==='5.') $parser = null;
+        $parser = null;
 
     }
 
     public function parseScss($fs, $outputFile)
     {
-        static $parser;
+        $parser = null;
         if(is_null($parser) && class_exists('scssc')) {
             $parser = new scssc();
             //$parser->setVariables(array('assets-url'=>'"'.tdz::$assetsUrl.'"'));
             $parser->registerFunction('dechex', function($a){
                 return dechex($a[1]);
             });
+        } else {
+            tdz::debug('not found????');
+            return $this->build($fs, $outputFile);
         }
-
-        if(!$parser) return $this->build($fs, $outputFile);
 
         if(is_array($fs) && count($fs)>1) {
             $importDir = array();
@@ -278,7 +279,7 @@ class Tecnodesign_Studio_Asset
 
         tdz::save($outputFile, $parser->compile($fs));
 
-        if(substr(phpversion(), 0, 2)==='5.') $parser = null;
+        $parser = null;
     }
 
 
