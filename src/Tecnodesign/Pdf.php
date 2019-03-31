@@ -6,31 +6,16 @@
  * to make the PDF creation process as simple as possible, with many resources
  * available.
  *
- * PHP version 5.2
+ * PHP version 5.6
  *
  * @category  Pdf
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Pdf.php 1180 2013-02-05 18:06:25Z capile $
- * @link      http://tecnodz.com/
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
 
-
-/**
- * PDF creation and manipulation
- *
- * Implements setter and getter methods for easy manipulation of PDF properties and
- * contents.
- *
- * @category  Pdf
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
 class Tecnodesign_Pdf implements ArrayAccess
 {
     /**

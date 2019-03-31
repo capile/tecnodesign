@@ -22,19 +22,12 @@
  */
 define('K_TCPDF_EXTERNAL_CONFIG', 1);
 define('K_CELL_HEIGHT_RATIO', 1.25);
-if(!($p=tdz::autoload('TCPDF'))) {
-    Tecnodesign_App_Install::dep('TCPDF');
-    $p=tdz::autoload('TCPDF');
-}
-if(!class_exists('FPDI', true)) {
-    Tecnodesign_App_Install::dep('FPDI');
-}
 
 /**
  * Installation path (/var/www/tcpdf/).
  * By default it is automatically calculated but you can also set it as a fixed string to improve performances.
  */
-if(!defined('K_PATH_MAIN')) define ('K_PATH_MAIN', dirname(realpath($p)));
+if(!defined('K_PATH_MAIN')) define ('K_PATH_MAIN', TDZ_VAR);
 
 /**
  * URL path to tcpdf installation folder (http://localhost/tcpdf/).
@@ -47,7 +40,7 @@ if(!defined('K_PATH_URL')) define ('K_PATH_URL', '');
  * path for PDF fonts
  * use K_PATH_MAIN.'fonts/old/' for old non-UTF8 fonts
  */
-if(!defined('K_PATH_FONTS')) define ('K_PATH_FONTS', K_PATH_MAIN.'fonts/');
+if(!defined('K_PATH_FONTS') && is_dir(K_PATH_MAIN.'/fonts/')) define ('K_PATH_FONTS', K_PATH_MAIN.'/fonts/');
 
 /**
  * cache directory for temporary files (full path)
@@ -67,12 +60,12 @@ if(!defined('K_PATH_URL_CACHE')) define ('K_PATH_URL_CACHE', '/cache/');
 /**
  *images directory
  */
-if(!defined('K_PATH_IMAGES')) define ('K_PATH_IMAGES', TDZ_VAR.'/images/');
+if(!defined('K_PATH_IMAGES') && is_dir(TDZ_VAR.'/images/')) define ('K_PATH_IMAGES', TDZ_VAR.'/images/');
 
 /**
  * blank image
  */
-if(!defined('K_BLANK_IMAGE')) define ('K_BLANK_IMAGE', K_PATH_IMAGES.'_blank.png');
+if(!defined('K_BLANK_IMAGE') && file_exists(TDZ_VAR.'/images/_blank.png')) define ('K_BLANK_IMAGE', K_PATH_IMAGES.'_blank.png');
 
 /**
  * page format
@@ -152,7 +145,7 @@ if(!defined('PDF_MARGIN_RIGHT')) define ('PDF_MARGIN_RIGHT', 15);
 /**
  * default main font name
  */
-if(!defined('PDF_FONT_NAME_MAIN')) define ('PDF_FONT_NAME_MAIN', 'helvetica');
+if(!defined('PDF_FONT_NAME_MAIN')) define ('PDF_FONT_NAME_MAIN', 'dejavusans');
 
 /**
  * default main font size
@@ -162,7 +155,7 @@ if(!defined('PDF_FONT_SIZE_MAIN')) define ('PDF_FONT_SIZE_MAIN', 10);
 /**
  * default data font name
  */
-if(!defined('PDF_FONT_NAME_DATA')) define ('PDF_FONT_NAME_DATA', 'helvetica');
+if(!defined('PDF_FONT_NAME_DATA')) define ('PDF_FONT_NAME_DATA', 'dejavusans');
 
 /**
  * default data font size
@@ -223,7 +216,7 @@ if(!defined('K_TCPDF_CALLS_IN_HTML')) define('K_TCPDF_CALLS_IN_HTML', true);
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_Pdf_Wrapper extends FPDI
+class Tecnodesign_Pdf_Wrapper extends \setasign\Fpdi\TcpdfFpdi
 {
     private $Parent;
    
@@ -388,7 +381,7 @@ class Tecnodesign_Pdf_Wrapper extends FPDI
      * @see ImageEPS()
      * @see ImageSVG()
      */
-    public function addPdf($file, $x='', $y='', $w='', $h='')
+    public function addPdf($file, $x=null, $y=null, $w=null, $h=null)
     {
         $pagecount = $this->setSourceFile($file);
         $tplIdx = $this->importPage(1);
