@@ -2788,7 +2788,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $ff=array();
         $dest = (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])?($this->action):('list');
         $fo=array(
-            'class'=>'tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
+            'class'=>'z-form tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
             'action'=>$this->link($dest, false),
             'buttons'=>array('submit'=>tdz::t('Search', 'interface'),

@@ -441,7 +441,7 @@ class Tecnodesign_Excel
         if(isset($style['padding'])) $s['alignment']['indent'] = $style['padding'];
         if(isset($style['text-align'])) $s['alignment']['horizontal'] = $style['text-align'];
         if(isset($style['vertical-align'])) $s['alignment']['vertical'] = $style['vertical-align'];
-        if(isset($style['number-format'])) $s['numberformat']['code'] = $style['number-format'];
+        if(isset($style['number-format'])) $s['numberFormat']['formatCode'] = $style['number-format'];
         $b=array();
         if(isset($style['border']) && $style['border']) $b['outline'] = $style['border'];
         if(isset($style['border-top']) && $style['border-top']) $b['top'] = $style['border-top'];
