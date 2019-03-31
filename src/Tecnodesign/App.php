@@ -494,9 +494,9 @@ class Tecnodesign_App
             foreach($src as $i=>$n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
                 if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=$projectRoot.'/node_modules/'.$n.'/'.$n.'.'.$from)
-                   || file_exists($f=$projectRoot.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
-                   || file_exists($f=$projectRoot.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
                    || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)

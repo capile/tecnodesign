@@ -3120,14 +3120,19 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
     unset($d);
 }
 
+if(!defined('TDZ_PROJECT_ROOT')) {
+    define('TDZ_PROJECT_ROOT', file_exists(TDZ_APP_ROOT.'/composer.json') ?TDZ_APP_ROOT :dirname(TDZ_APP_ROOT));
+}
+
 spl_autoload_register('tdz::autoload', true, true);
 if(is_null(tdz::$lib)) {
     tdz::$lib = array();
     if(TDZ_ROOT!=TDZ_APP_ROOT) {
         tdz::$lib[]=TDZ_APP_ROOT.'/lib';
         tdz::$lib[] = dirname(TDZ_ROOT);
-    } else {
-        tdz::$lib[] = TDZ_ROOT.'/vendor';
+    }
+    if(is_dir($d=TDZ_PROJECT_ROOT.'/vendor') && !in_array($d, tdz::$lib)) {
+        tdz::$lib[] = $d;
     }
 }
 tdz::autoloadParams('tdz');

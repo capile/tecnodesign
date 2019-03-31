@@ -113,6 +113,7 @@ class Tecnodesign_Studio_Asset
             $files = array($files);
         }
         if($optimize) {
+            $cmdoutput=null;
             $cacheDir = ($app=tdz::getApp()) ?$app->tecnodesign['cache-dir'] :null;
             if(!$cacheDir) $cacheDir = TDZ_VAR.'/cache/minify';
             if(!is_dir($cacheDir)) {
@@ -320,7 +321,7 @@ class Tecnodesign_Studio_Asset
                 else if (isset(static::$optimizeTemplates[$m[1]])) $ext = $m[1];
                 else continue;
 
-                if((isset($m[2]) && $m[2]) || preg_match('#^(http:)?//#', $url) || !(file_exists($f=$root.$url) || (file_exists($f=$url) && (substr($url, 0, strlen($root))==$root || substr($url, 0, strlen(TDZ_ROOT))==TDZ_ROOT )) )) {
+                if((isset($m[2]) && $m[2]) || preg_match('#^(http:)?//#', $url) || !(file_exists($f=$root.$url) || (file_exists($f=$url) && (substr($url, 0, strlen($root))==$root || substr($url, 0, strlen(TDZ_PROJECT_ROOT))==TDZ_PROJECT_ROOT )) )) {
                     // not to be compressed, just add to output
                     $r .= sprintf(static::$optimizeTemplates[$ext], tdz::xml($url));
                 } else {
