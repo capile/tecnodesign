@@ -1,0 +1,24 @@
+{
+    "title": "Spreadsheet Manipulation",
+    "type": "object",
+    "properties": {
+        "template" : { "type": "string" }, 
+        "style" : { "type": "string" },    
+        "properties" : { "type": "array" },
+        "firstcol" : { "type": "string" }, 
+        "firstrow" : { "type": "string" }, 
+        "col" : { "type": "string" },
+        "row" : { "type": "string" },
+        "data" : { "type": "object" },
+        "saveas" : { "type": "string" },
+        "_template" : { "alias": "template" }, 
+        "_style" : { "alias": "style" },    
+        "_properties" : { "alias": "properties" },
+        "_firstcol" : { "alias": "firstcol" }, 
+        "_firstrow" : { "alias": "firstrow" }, 
+        "_col" : { "alias": "col" },
+        "_row" : { "alias": "row" },
+        "_data" : { "alias": "data" },
+        "_saveas" : { "alias": "saveas" }
+    }
+}

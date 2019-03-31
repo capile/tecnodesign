@@ -2,36 +2,20 @@
 /**
  * Tecnodesign Excel
  *
- * Create a excel sheet 
+ * Manages spreadsheets and reports 
  *
- * PHP version 5.2
- *
- * @category  Excel
- * @package   Tecnodesign
- * @author    Mirela Lisboa, Tecnodesign <ti@tecnodz.com>
- * @copyright 2012 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Excel.php 1265 2013-07-21 17:21:51Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Excel
- *
- * Create a excel sheet
+ * PHP version 5.6
  *
  * @category  Excel
  * @package   Tecnodesign
- * @author    Mirela Lisboa, Tecnodesign <ti@tecnodz.com>
+ * @author    Guilherme Capilé, Mirela Lisboa, Tecnodesign <ti@tecnodz.com>
  * @copyright 2012 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
-
-if(!class_exists('PHPExcel', true)) Tecnodesign_App_Install::dep('PHPExcel');
-
-class Tecnodesign_Excel 
+class Tecnodesign_Excel
 {
+    const SCHEMA_PROPERTY='meta';
     const TYPE_STRING2      = 'str';
     const TYPE_STRING       = 's';
     const TYPE_IMAGE        = 'i';
@@ -42,73 +26,59 @@ class Tecnodesign_Excel
     const TYPE_INLINE       = 'inlineStr';
     const TYPE_ERROR        = 'e';
 
-    private $_cols;
-    
+    public static 
+        $meta,
+        $defaultWriter='xlsx',
+        $writers=array(
+            'xlsx' => 'PhpOffice\PhpSpreadsheet\Writer\Xlsx',
+            'xls'  => 'PhpOffice\PhpSpreadsheet\Writer\Xls',
+            'html' => 'PhpOffice\PhpSpreadsheet\Writer\Html',
+            'pdf'  => 'PhpOffice\PhpSpreadsheet\Writer\Pdf',
+            'ods'  => 'PhpOffice\PhpSpreadsheet\Writer\Ods',
+            'csv'  => 'PhpOffice\PhpSpreadsheet\Writer\Csv',
+        );
+
     /**
      * Configurations
      */
-    private $_template      = '';       //File name with complete path
-    private $_style;                    //CSS Stylesheet
-    private $_properties    = array();  //excel properties
-    private $_firstcol      = 'A';
-    private $_firstrow      = '1';
-    private $_col           = 'A';
-    private $_row           = '1';
-    private $_data          = array();
-    private $_saveas        = TDZ_VAR;
+    public 
+        $template,                 //File name with complete path
+        $style,                    //CSS Stylesheet
+        $properties    = array(),  //excel properties
+        $firstcol      = 'A',
+        $firstrow      = '1',
+        $col           = 'A',
+        $row           = '1',
+        $data          = array(),
+        $saveas        = TDZ_VAR;
     
-    /**
-     * Objects
-     */
-    private $excel;
-    private $sheet;
-    private $sheetNum=0;
-    protected $x, $y;
+    protected 
+        $excel,
+        $sheets=array(),
+        $sheet,
+        $sheetNum=0,
+        $x,
+        $y;
+
     public static $headerFooter=array('OddHeader', 'OddFooter', 'EvenHeader', 'EvenFooter', 'FirstHeader', 'FirstFooter');
     
     public function __construct($config=array())
     {
-        //A:CZ 103 columns
-        $rcol = range('A','C');
-        $az = range('A','Z');
-        $this->_cols = $az;
-        foreach ($rcol as $v) {            
-            foreach($az as $vaz) {                
-                $this->_cols[] = $v.$vaz;
-            }
-        }        
-        
-        $this->setAllConfig($config);
+        if($config) {
+            if(!static::$meta) static::$meta = Tecnodesign_Schema::loadSchema('Tecnodesign_Excel');
+            $Schema = static::$meta;
+            $Schema::apply($this, $config, $Schema);
+        }
+
         $this->init();        
     }
     
     public function language($lang)
     {
         if(class_exists('Locale')) Locale::setDefault(substr($lang, 0, 2).strtoupper(substr($lang, 2)));
-        return PHPExcel_Settings::setLocale($lang);
+        return \PhpOffice\PhpSpreadsheet\Settings::setLocale($lang);
     }
 
-
-    /**
-     * Set configurations
-     * @param array $config 
-     */
-    public function setAllConfig($config)
-    {
-        if(!is_array($config))
-            throw new Exception('Unable to use non-array configuration');
-        
-        foreach ($config as $k => $v) {
-            $this->setConfig($k,$v);
-        }
-    }
-    
-    public function setConfig($name, $value) 
-    {
-        $cfg = '_'.$name;        
-        $this->$cfg = $value;
-    }
-    
     /**
      * Initializes internal objects 
      */
@@ -118,44 +88,30 @@ class Tecnodesign_Excel
         /**
          * Verify is template exists and file format is correct
          */
-        if ($this->_template != '' && !file_exists($this->_template)) {
-            throw new Exception('Unable to load template file: '.$this->_template);
-            $this->_template = '';            
-        }
-        
-        if ($this->_template != '') {
+        if (isset($this->template) && $this->template) {
+            if(!file_exists($this->template)) throw new Exception('Unable to load template file: '.$this->template);
             /**
              * xlsx = Excel2007
              * xls = Excel5
              * ods = OOCalc 
              */            
-            $sheettype = PHPExcel_IOFactory::identify($this->_template);            
-        }        
-        
-        /**
-         * Create a Excel objects
-         */
-        if ($sheettype != '') {
-            $reader = PHPExcel_IOFactory::createReader($sheettype);		
-            $this->excel = $reader->load($this->_template);            
-            
+            $sheettype = \PhpOffice\PhpSpreadsheet\IOFactory::identify($this->template);            
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($sheettype);		
+            $this->excel = $reader->load($this->template);            
+            $this->sheet = $this->excel->getActiveSheet();        
+            //Posiciona o cursor na primeira linha livre
+            $this->firstrow = $this->sheet->getHighestRow()+1;
         } else {
-            $this->excel = new PHPExcel();
-            $this->excel->setActiveSheetIndex(0);
+            $this->excel = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $this->sheet = $this->excel->getActiveSheet();        
         }
         
-        if (count($this->_properties) > 0) {
+        if (count($this->properties) > 0) {
             $this->setProperties();
         }
        
-        $this->sheet = $this->excel->getActiveSheet();        
-        
-        //Posiciona o cursor na primeira linha livre
-        if ($sheettype != '') {
-            $this->setConfig('firstrow',$this->sheet->getHighestRow()+1);
-        }
         //require_once 'PHPExcel/Cell/AdvancedValueBinder.php';
-        PHPExcel_Cell::setValueBinder( new PHPExcel_Cell_AdvancedValueBinder() );
+        //PHPExcel_Cell::setValueBinder( new PHPExcel_Cell_AdvancedValueBinder() );
     }
 
     public function page($p=array())
@@ -185,7 +141,7 @@ class Tecnodesign_Excel
      */
     public function setProperty($name, $value) 
     {
-        $this->_properties[$name] = $value;
+        $this->properties[$name] = $value;
         $this->setProperties();
     }
     
@@ -207,7 +163,7 @@ class Tecnodesign_Excel
     public function setColWidth($col, $tam) 
     {
         if (is_int($col)) {
-            $col = $this->getColLetter($col);
+            $col = tdz::numberToLetter($col);
         }
         $this->sheet->getColumnDimension($col)->setWidth($tam);
     }
@@ -218,7 +174,7 @@ class Tecnodesign_Excel
     private function setProperties() 
     {       
         $class = $this->excel->getProperties();
-        foreach($this->_properties as $k => $v) {
+        foreach($this->properties as $k => $v) {
             $prop = (str_replace(' ','',(ucwords(str_replace('_',' ',$k)))));
             $method = 'set'.$prop;             
             if (method_exists($class,$method)) {
@@ -232,7 +188,7 @@ class Tecnodesign_Excel
     
     public function addData($data, $purge=false)
     {
-        $this->_data += $data;
+        $this->data += $data;
         if($purge) {
             $this->compositeExcel();
         }
@@ -240,18 +196,12 @@ class Tecnodesign_Excel
     
     public function getColLetter($idx) 
     {
-        if(isset($this->_cols[$idx])) {
-            return $this->_cols[$idx];
-        }
+        return tdz::numberToLetter($idx, true);
     }
     
     private function getColIndex($letter) 
     {
-        $ret = array_search($letter, $this->_cols);
-        if ($ret === false) {
-            $ret = -1; 
-        }
-        return $ret;                 
+        return tdz::letterToNumber($letter);
     }
 
     public static function cell($c, $to=null)
@@ -313,7 +263,7 @@ class Tecnodesign_Excel
             }
         } else {
             if(isset($s['number-format']) && $s['number-format']=='@') {
-                $this->sheet->setCellValueExplicit($c,$v);
+                $this->sheet->setCellValueExplicit($c,$v, self::TYPE_NUMERIC);
             } else {
                 $this->sheet->setCellValue($c,$v);
                 if(substr($v, 0, 8)=='https://' || substr($v, 0, 7)=='http://') {
@@ -332,33 +282,31 @@ class Tecnodesign_Excel
     
     private function compositeExcel() 
     {
-        if(count($this->_data)==0) return;
-        foreach($this->_data as $r => $c) {
-            $this->_col = $this->_firstcol;
-            $colidx = $this->getColIndex($this->_col);
+        if(!$this->data || !is_array($this->data)) return;
+        foreach($this->data as $r => $c) {
+            $this->col = $this->firstcol;
+            $colidx = tdz::letterToNumber($this->col);
             foreach ($c as $ck => $cv) {
-                if (is_string($ck) && in_array($ck, $this->_cols)) {
-                    $this->_col = $ck;
-                    $colidx = $this->getColIndex($this->_col);
+                if (is_string($ck) && preg_match('/^[A-Z]+$/', $ck)) {
+                    $this->col = $ck;
+                    $colidx = tdz::letterToNumber($this->col);
                 } else {
-                    $this->_col = $this->getColLetter($colidx);
+                    $this->col = tdz::numberToLetter($colidx, true);
                     $colidx++;
                 }
-                $cell = $this->_col.$this->_row;
-                //var_dump($cell,$cv);
-                $this->sheet->setCellValue($cell,$cv);               
-                unset($ck, $cv, $cell);
+                $this->sheet->setCellValue($this->col.$this->row,$cv);               
+                unset($ck, $cv);
             }
             unset($r, $c, $collidx);
-            $this->_row++;
+            $this->row++;
         }
         $this->applyStylesheet();
-        $this->_data = array();
+        $this->data = array();
     }    
 
     public function addSheet($i=null)
     {
-        if(count($this->_data)>0) {
+        if($this->data) {
             $this->sheetNum++;
             $this->compositeExcel();
         }
@@ -368,7 +316,6 @@ class Tecnodesign_Excel
         $this->sheet = $this->excel->createSheet($i);
     }
     
-    protected $_sheets=array();
     public function sheet($s)
     {
         $n = $this->excel->getSheetCount();
@@ -381,14 +328,14 @@ class Tecnodesign_Excel
             }
         } else {
             $s = (string) $s;
-            if(isset($this->_sheets[$s])) {
-                $this->sheet = $this->excel->setActiveSheetIndex($this->_sheets[$s]);
+            if(isset($this->sheets[$s])) {
+                $this->sheet = $this->excel->setActiveSheetIndex($this->sheets[$s]);
             } else {
-                if(in_array($this->excel->getActiveSheetIndex(), $this->_sheets)) {
+                if(in_array($this->excel->getActiveSheetIndex(), $this->sheets)) {
                     // new sheet
                     $this->addSheet();
                 }
-                $this->_sheets[$s] = $this->excel->getActiveSheetIndex();
+                $this->sheets[$s] = $this->excel->getActiveSheetIndex();
                 $this->sheet->setTitle("$s");
             }
         }
@@ -405,11 +352,11 @@ class Tecnodesign_Excel
 
     public function addStylesheet($style=null, $add=true)
     {
-        if($this->_style && !is_array($this->_style)) $this->_style = tdz::parseCss($this->_style);
+        if($this->style && !is_array($this->style)) $this->style = tdz::parseCss($this->style);
         if(!is_null($style)) {
             $style = tdz::parseCss($style);
-            if($this->_style) $this->_style = ($add)?(tdz::mergeRecursive($style, $this->_style)):(tdz::mergeRecursive($this->_style, $style));
-            else $this->_style = $style;
+            if($this->style) $this->style = ($add)?(tdz::mergeRecursive($style, $this->style)):(tdz::mergeRecursive($this->style, $style));
+            else $this->style = $style;
         }
     }
 
@@ -421,8 +368,8 @@ class Tecnodesign_Excel
     public function applyStylesheet($style=null)
     {
         if(is_null($style)) $this->addStylesheet($style);
-        if($this->_style) {
-            foreach($this->_style as $sel=>$rules) {
+        if($this->style) {
+            foreach($this->style as $sel=>$rules) {
                 $this->setStyle($sel, $rules);
             }
         }
@@ -432,7 +379,6 @@ class Tecnodesign_Excel
      * Set style on column
      * @param string $cols -- Sintaxe: 'A1' (unique column) or 'A1:D1' (range of columns)
      * @param array $sytle -- array of the format
-     * @internal See ../PHPExcel/docs/PHPExcel developer documentation.pdf, page 25.
      */
     public function setStyle($c, $style)
     {
@@ -485,11 +431,12 @@ class Tecnodesign_Excel
             else {
                 $p = ($style['background'][0]=='#')?(substr($style['background'],1)):($style['background']);
                 $p = (strlen($p)==6)?(array('rgb'=>$p)):(array('argb'=>$p));
-                $s['fill']['color'] = $p;
+                $s['fill']['startColor'] = $p;
                 unset($p);
             }
-            if(!isset($s['fill']['type'])) $s['fill']['type'] = 'solid';
+            if(!isset($s['fill']['fillType'])) $s['fill']['fillType'] = 'solid';
             if(!isset($s['fill']['rotation'])) $s['fill']['rotation'] = 90;
+            if(!isset($s['fill']['endColor'])) $s['fill']['endColor'] = $s['fill']['startColor'];
         }
         if(isset($style['padding'])) $s['alignment']['indent'] = $style['padding'];
         if(isset($style['text-align'])) $s['alignment']['horizontal'] = $style['text-align'];
@@ -519,8 +466,9 @@ class Tecnodesign_Excel
             $s['alignment']['wrap'] = $wrap;
         }
 
-        if(count($s)>0)
-          $c->applyFromArray($s);
+        if(count($s)>0) {
+            $c->applyFromArray($s);
+        }
 
 
         unset($c, $s);
@@ -530,23 +478,23 @@ class Tecnodesign_Excel
     {
         $style = (isset($c['style']))?($this->val($c['style'])):(array());
         $on = '::nth-child('.((int)$x).')';
-        if(isset($this->_style[$on])) $style += $this->_style[$on];
+        if(isset($this->style[$on])) $style += $this->style[$on];
         if(isset($c['use'])) {
             if($x!==false && $y!==false) {
                 $ox = ($x%2)?($c['use'].':odd'):($c['use'].':even');
                 $oy = ($y%2)?(':odd '.$c['use']):(':even '.$c['use']);
                 $o = ($y%2)?(':odd '.$ox):(':even '.$ox);
-                if(isset($this->_style[$oy.$on])) $style += $this->_style[$oy.$on];
-                if(isset($this->_style[$c['use'].$on])) $style += $this->_style[$c['use'].$on];
-                if(isset($this->_style[$o])) $style += $this->_style[$o];
-                if(isset($this->_style[$ox])) $style += $this->_style[$ox];
-                if(isset($this->_style[$oy])) $style += $this->_style[$oy];
+                if(isset($this->style[$oy.$on])) $style += $this->style[$oy.$on];
+                if(isset($this->style[$c['use'].$on])) $style += $this->style[$c['use'].$on];
+                if(isset($this->style[$o])) $style += $this->style[$o];
+                if(isset($this->style[$ox])) $style += $this->style[$ox];
+                if(isset($this->style[$oy])) $style += $this->style[$oy];
                 //tdz::log(array($on, $oy.$on, $c['use'].$on, $o, $ox, $oy, $c['use']));
             }
-            if(isset($this->_style[$c['use']]))$style += $this->_style[$c['use']];
+            if(isset($this->style[$c['use']]))$style += $this->style[$c['use']];
         }
-        if($cn && !is_numeric($cn) && isset($this->_style[$cn])) {
-            $style += $this->_style[$cn];
+        if($cn && !is_numeric($cn) && isset($this->style[$cn])) {
+            $style += $this->style[$cn];
         }
         return $style;
     }
@@ -603,21 +551,20 @@ class Tecnodesign_Excel
         }
         if($download && !$keepFile && $filename) {
             $download = $filename;
-            $file = tempnam($this->_saveas, $filename); 
+            $file = tempnam($this->saveas, $filename); 
         } else {
-            $file = ($filename && substr($filename, 0, 1)!='/')?($this->_saveas.'/'.$filename):($filename);
+            $file = ($filename && substr($filename, 0, 1)!='/')?($this->saveas.'/'.$filename):($filename);
         }
-	
-        if ($format == 'xlsx') {            
-            return $this->renderXlsx($file, $download, $keepFile);
-        } elseif ($format == 'xls') {
-            return $this->renderXls($file, $download, $keepFile);
-        } elseif ($format == 'pdf') {
-            return $this->renderPdf($file, $download, $keepFile);
-        } elseif ($format == 'csv') {
-            return $this->renderCsv($file, $download, $keepFile);
-        } elseif ($format == 'html') {
-            return $this->renderHtml($file, $download, $keepFile);
+
+        if(method_exists($this, $m='render'.tdz::camelize($format, true))) {
+            return $this->$m($file, $download, $keepFile);
+        } else if(isset(static::$writers[$format])) {
+            $cn = static::$writers[$format];
+            $writer = new $cn($this->excel);
+            $writer->save($file);
+            $this->clearAllObjects();
+            $this->download($download, $file, $keepFile);
+            return $file;
         } else {
             return "Error: unsupported export format!";
         }		
@@ -625,7 +572,8 @@ class Tecnodesign_Excel
 
     private function renderHtml($file=null, $download=true, $keepFile=false)
     {
-        $w = new PHPExcel_Writer_HTML($this->excel);
+        $cn = static::$writers['html'];
+        $w = new $cn($this->excel);
         $w->setImagesRoot('');
         $w->setEmbedImages(true);
         if($file) {
@@ -649,59 +597,10 @@ class Tecnodesign_Excel
         return $file;
     }
     
-    private function renderXlsx($file, $download=true, $keepFile=false)
-    {
-        $writer = new PHPExcel_Writer_Excel2007($this->excel);
-        $writer->save($file);
-        $this->clearAllObjects();
-        $this->download($download, $file, $keepFile);
-        return $file;
-    }
-    
-    private function renderXls($file, $download=true, $keepFile=false)
-    {
-        $writer = new PHPExcel_Writer_Excel5($this->excel);
-        $writer->save($file);
-        $this->clearAllObjects();
-        $this->download($download, $file, $keepFile);
-        return $file;
-    }
-
     public function setGrid($v=true)
     {
         $this->sheet->setShowGridlines($v);
         return $this;
-    }
-    /**
-     * @TODO: Aprimorar -- não funciona com template de outro formato;
-     */
-    private function renderPdf($file, $download=true, $keepFile=false)
-    {
-        if(!class_exists('Dompdf\Dompdf') || !PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_DOMPDF, dirname(TDZ_ROOT).'/dompdf')) {
-            if(!class_exists('TCPDF') || !PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_TCPDF, dirname(TDZ_ROOT).'/TCPDF-src')) {
-                new Tecnodesign_Pdf();
-                PHPExcel_Settings::setPdfRenderer(PHPExcel_Settings::PDF_RENDERER_TCPDF, dirname(TDZ_ROOT).'/TCPDF-src');
-            }
-
-        }
-
-        $writer = PHPExcel_IOFactory::createWriter($this->excel, 'PDF');
-        $writer->save($file);
-        $this->clearAllObjects();
-        $this->download($download, $file, $keepFile);
-        return $file;
-    }
-    
-    /**
-     * @TODO: Aprimorar -- não funciona com template de outro formato;
-     */
-    private function renderCsv($file, $download=true, $keepFile=false)
-    {
-        $writer = new PHPExcel_Writer_CSV($this->excel);
-        $writer->save($file);
-        $this->clearAllObjects();
-        $this->download($download, $file, $keepFile);
-        return $file;
     }
 
     private function download($download, $file, $keepFile=false)
@@ -717,7 +616,8 @@ class Tecnodesign_Excel
     
     private function clearAllObjects()
     {
-        unset($this->excel, $this->sheet);
+        $this->excel=null;
+        $this->sheet=null;
     }
 
 
@@ -831,13 +731,13 @@ class Tecnodesign_Excel
         }
         $t = null;
         if(isset($c['type'])) {
-            if($c['type']=='formula') $t = Tecnodesign_Excel::TYPE_FORMULA;
-            else if($c['type']=='string' || $c['type']=='text') $t = Tecnodesign_Excel::TYPE_STRING;
+            if($c['type']=='formula') $t = static::TYPE_FORMULA;
+            else if($c['type']=='string' || $c['type']=='text') $t = static::TYPE_STRING;
             else if($c['type']=='date') {
                 $t = '';
-            } else if($c['type']=='number') $t = Tecnodesign_Excel::TYPE_NUMERIC;
+            } else if($c['type']=='number') $t = static::TYPE_NUMERIC;
             else if($c['type']=='image') {
-                $t = Tecnodesign_Excel::TYPE_IMAGE;
+                $t = static::TYPE_IMAGE;
                 $v = tdz::getApp()->tecnodesign['document-root'].'/'.$v;
             } else if($c['type']=='loop') {
                 if(is_array($v) && is_array($c['loop'])) {
@@ -908,7 +808,7 @@ class Tecnodesign_Excel
                             $sty=$this->style($x, $y, $c);
                             $ty=$t;
                             if(isset($sty['type'])) {
-                                if($sty['type']=='string' || $sty['type']=='text') $ty = Tecnodesign_Excel::TYPE_STRING;
+                                if($sty['type']=='string' || $sty['type']=='text') $ty = static::TYPE_STRING;
                             }
                             $this->setCell(array($this->x-1+$x, $this->y-1+$y), $cvv, $ty, $sty);
                             $this->x+$x;
@@ -921,7 +821,7 @@ class Tecnodesign_Excel
                         $sty=$this->style($this->x, $this->y, $c, $y);
                         $ty = $t;
                         if(isset($sty['type'])) {
-                            if($sty['type']=='string' || $sty['type']=='text') $ty = Tecnodesign_Excel::TYPE_STRING;
+                            if($sty['type']=='string' || $sty['type']=='text') $ty = static::TYPE_STRING;
                         }
                         $this->setCell(array($this->x-1, $this->y-1), $cv, $ty, $sty);
                         $this->x++;
@@ -932,7 +832,7 @@ class Tecnodesign_Excel
                 if(isset($y)) $this->y+=$y;
             } else {
                 $comment = (isset($c['comment']))?($this->val($c['comment'])):(null);
-                if(is_null($t) && !is_numeric($v)) $t = Tecnodesign_Excel::TYPE_STRING;
+                if(is_null($t) && !is_numeric($v)) $t = static::TYPE_STRING;
                 if(isset($to)) {
                     $this->setCell(array($this->x-1, $this->y-1), $v, $t, $this->style($this->x, $this->y, $c), $comment);
                     $to = $this->cell(array($this->x-1, $this->y-1), array($to[0]-1, $to[1]-1));

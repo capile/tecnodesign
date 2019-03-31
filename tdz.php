@@ -1863,8 +1863,8 @@ class tdz
         return $r;
     }
 
-    public static function numberToLetter($i) { return tdz::letter($i); }
-    public static function letter($i)
+    public static function numberToLetter($i, $uppercase=false) { return tdz::letter($i, $uppercase); }
+    public static function letter($i, $uppercase=false)
     {
         $n='';
         if(!is_int($i)) $i=(int)$i;
@@ -1879,7 +1879,7 @@ class tdz
             $n=chr(97+$ni).$n;
         }
         $n .= chr(97+$i);
-        return $n;
+        return $uppercase ?strtoupper($n) :$n;
     }
 
     public function letterToNumber($s)
