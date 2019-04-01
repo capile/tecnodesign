@@ -444,6 +444,7 @@ class Tecnodesign_App
     {
         if($tpl && strpos($tpl, '<')!==false) return $tpl;
         if(static::$assets) {
+            static::$assets = array_unique(static::$assets);
             foreach(static::$assets as $i=>$n) {
                 static::asset($n);
                 unset(static::$assets[$i], $i, $n);
@@ -468,7 +469,9 @@ class Tecnodesign_App
      */
     public function asset($component)
     {
-        if(is_null(tdz::$assetsUrl)) return;
+        static $loaded=array();
+        if(is_null(tdz::$assetsUrl) || isset($loaded[$component])) return;
+        $loaded[$component] = true;
 
         if(substr($component, 0, 1)=='!') {
             $component = substr($component, 1);
