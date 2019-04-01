@@ -33,10 +33,8 @@ class Tecnodesign_Mail
     public static 
         $config=null,
         $mailer='swiftMailer',
-        $haltOnError=false,
-        $dependencies=array(
-          'Swift_SmtpTransport'=>'lib/vendor/Swift-src/lib/swift_required.php',
-        );
+        $haltOnError=false;
+
     protected static $_headers=array(
         'Id'=>false,
         'ReturnPath'=>false,
@@ -424,14 +422,8 @@ class Tecnodesign_Mail
          * http://swiftmailer.org/
          */
         if (!class_exists('Swift_SmtpTransport')) {
-            try {
-                foreach(static::$dependencies as $src) {
-                    if(substr($src, 0, 1)!='/') require_once TDZ_APP_ROOT.'/'.$src;
-                    else require_once $src;
-                }
-            } catch (Exception $e) {
-                $this->error($e);
-            }
+            $this->error('Could not load mailer package.');
+            return false;
         }
         $transport = false;
         $config = self::$config;
