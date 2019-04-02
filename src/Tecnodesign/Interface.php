@@ -2897,6 +2897,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         'fieldset'=>$fieldset,
                         'class'=>'tdz-search-input tdz-'.$type.'-input',
                     );
+                    if(isset($fd['attributes'])) $fo['fields'][$slug]['attributes'] = $fd['attributes'];
                     if(isset($post[$slug])) $active=true;
                 } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
                     if(!isset($cb))
