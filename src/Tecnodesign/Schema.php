@@ -236,6 +236,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
             $add = $scope['__default'] + $add;
             unset($scope['__default']);
         }
+
         foreach($scope as $n=>$def) {
             $base = $add;
             $ref = $this;
@@ -303,11 +304,12 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 else if(is_string($def)) $n = $def;
             }
 
-            if(strpos($n, ' ')) $n = substr($n, strrpos($n, ' ')+1);
+            $bind = (is_array($def) && isset($def['bind'])) ?$def['bind'] :$n;
+            if(strpos($bind, ' ')) $bind = substr($bind, strrpos($bind, ' ')+1);
 
             if($ref->patternProperties) {
                 foreach($ref->patternProperties as $re=>$addDef) {
-                    if(preg_match($re, $n)) {
+                    if(preg_match($re, $bind)) {
                         if(!is_string($def)) $def = $addDef;
                         else $base += $addDef;
                     }
@@ -318,8 +320,8 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
             if(is_array($def)) {
                 if($base) $def += $base;
                 if($overlay && isset($def['bind'])) {
-                    if(isset($ref->overlay[$n])) {
-                        $def = $ref->overlay[$n] + $def;
+                    if(isset($ref->overlay[$bind])) {
+                        $def = $ref->overlay[$bind] + $def;
                     }
                 }
                 if(isset($def['credential'])) {
