@@ -192,6 +192,7 @@ class Tecnodesign_Query_Ldap
     {
         $select = $this->select();
         if(!is_array($select)) $select = array();
+        if(!$select) $select[] = '*';
         if(static::$fetchOperationalAttributes) $select[]='+';
         $select = array_values(array_unique($select));
         $where = $this->getWhere($this->_where);
@@ -226,7 +227,7 @@ class Tecnodesign_Query_Ldap
         while($e && (!$i1 || $i<$i1)) {
             if($i>=$i0) {
                 if($a = ldap_get_attributes($conn, $e)) {
-                    $r[] = ($cn)?(new $cn($prop+static::entry($a, ldap_get_dn($conn, $e)), false, false)):(static::entry($a, ldap_get_dn($conn, $e)));
+                    $r[] = ($cn)?($cn::__set_state($prop+static::entry($a, ldap_get_dn($conn, $e)), false, false)):(static::entry($a, ldap_get_dn($conn, $e)));
                 } else {
                     break;
                 }
@@ -279,7 +280,7 @@ class Tecnodesign_Query_Ldap
             $this->addSelect($o);
         }
         if(!$this->_select && $this->_scope) {
-            $this->_select = $this->schema()->properties($this->_scope, null, null, false);
+            $this->_select = ($this->_scope==='*') ?array('*') :$this->schema()->properties($this->_scope, null, null, false);
         }
         return $this->_select;
     }
@@ -674,7 +675,7 @@ class Tecnodesign_Query_Ldap
 
     protected function valuesToSave($M, $new=null)
     {
-        $odata = $M->asArray('save', null, null, true);
+        $odata = $M->asArray('save', null, null, false);
         $data = array();
         $fs = $M::$schema['columns'];
         if(!$fs) $fs = array_flip(array_keys($odata));
@@ -697,20 +698,13 @@ class Tecnodesign_Query_Ldap
                 continue;
             }
 
-            if($v!==$original) {
+            if($v!=$original) {
                 $M->setOriginal($fn, $v);
-                if($v && is_string($v) && isset($fv['serialize']) && isset($fv['multiple']) && $fv['multiple']) {
-                    \tdz::log('unserialize: '.$v);
-                    $v = tdz::unserialize($v, $fv['serialize']);
-                } else if(!$v) {
-                    $v = array();
-                }
                 $data[$fn] = $v;
             }
             unset($fn, $fv, $v, $original);
         }
         unset($fs);
-
         return $data;
     }
 

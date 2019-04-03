@@ -992,7 +992,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     if(is_array($v) && $serialize && isset($schema['columns'][$fn]['serialize'])) {
                         $v = tdz::serialize($v, $schema['columns'][$fn]['serialize']);
                     } else if($serialize===false && is_string($v) && isset($schema['columns'][$fn]['serialize'])) {
-                        $v = tdz::unserialize($v, $schema['columns'][$fn]['serialize']);
+                        $nv = tdz::unserialize($v, $schema['columns'][$fn]['serialize']);
+                        if($nv!==false && $nv!==null) $v = $nv;
                     }
                     if(!tdz::isempty($v) || $valueFormat!==false) {
                         $result[$k] = $v;
