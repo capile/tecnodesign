@@ -64,6 +64,16 @@ class Tecnodesign_Query_Sql
                 $db = Tecnodesign_Query::database($n);
                 if(!$n && is_array($db)) $db = array_shift($db); 
                 $db += array('username'=>null, 'password'=>null, 'options'=>static::$options);
+                $db['options'][PDO::ATTR_ERRMODE]=PDO::ERRMODE_EXCEPTION;
+
+                if(isset($db['options']['command'])) {
+                    $cmd = $db['options']['command'];
+                    unset($db['options']['command']);
+                } else if(isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+                    $cmd = $db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND];
+                } else {
+                    $cmd = null;
+                }
                 $level = 'connect';
                 static::$conn[$n] = new \PDO($db['dsn'], $db['username'], $db['password'], $db['options']);
                 if(!static::$conn[$n]) {
@@ -72,9 +82,8 @@ class Tecnodesign_Query_Sql
                     if(!$tries) return false;
                     return static::connect($n, $exception, $tries);
                 }
-                if(isset($db['options']['command']) || isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+                if($cmd) {
                     $level = 'initialize';
-                    $cmd = isset($db['options']['command']) ?$db['options']['command'] :$db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND];
                     static::$conn[$n]->exec($cmd);
                 }
             } catch(Exception $e) {

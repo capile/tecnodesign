@@ -2,7 +2,7 @@
 /**
  * Database abstraction
  *
- * PHP version 5.3
+ * PHP version 5.6
  *
  * @category  Database
  * @package   Model

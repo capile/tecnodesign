@@ -24,6 +24,7 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
         static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
 
         // check if database exists or needs to be overwriten by file
+        if(is_null(tdz::$database)) Tecnodesign_Query::database();
         if(static::$schema && ($db = static::$schema->database) && !isset(tdz::$database[$db])) {
             if(substr($db, 0, 1)==='_' && isset(tdz::$database[substr($db,1)])) {
                 static::$schema->database = substr($db,1);
