@@ -77,6 +77,33 @@ function initCheckLabel(e)
     }
 }
 
+function initAutoSubmit(e)
+{
+    /*jshint validthis: true */
+    if(!this.getAttribute('data-auto-submit')) {
+        this.setAttribute('data-auto-submit',1);
+        var L=this.querySelectorAll('input,select,textarea'), i=L.length,found=false,t, nn, a;
+        while(i--) {
+            t=L[i].getAttribute('type');
+            nn=L[i].nodeName.toLowerCase();
+            if(t && (t==='submit' || t==='button')) continue;
+            Z.bind(L[i], (nn==='select' || t==='checkbox' || t==='radio') ?'input' :'change', autoSubmit);
+            found=true;
+        }
+        if(!found) return;
+        this.className+=' z-no-button';
+    }
+}
+
+function autoSubmit(e)
+{
+    /*jshint validthis: true */
+    Z.stopEvent(e);
+    if(this.form) this.form.submit(e);
+    else if(this.submit) this.submit(e);
+    return false;
+}
+
 function initCleanup(o)
 {
     /*jshint validthis: true */
@@ -1022,5 +1049,6 @@ function Form(o)
 // default modules loaded into Z
 window['Z.Form.Form'] = Form;
 window['Z.Form.CheckLabel']=initCheckLabel;
+window['Z.Form.AutoSubmit']=initAutoSubmit;
 
 })();

@@ -484,13 +484,13 @@
                     t = t.replace(/\?(.*)$/, '')+'?'+Z.formData(this, false);
                 }
                 urls.push(t);
-            } else {
-                urls.push(this.getAttribute('href'));
+            } else if((t=this.getAttribute('href'))) {
+                urls.push(t);
             }
         }
         i=urls.length;
         var o, H, B,SA=((typeof(I)=='object') && ('className' in I) && _reStandalone.test(I.className));
-        while(i-- > 0) {
+        while(i--) {
             var url = urls[i].replace(/(\/|\/?\?.+)$/, '');
             t=new Date().getTime();
             if((url in _loading) && t-_loading[url]<2000) continue;

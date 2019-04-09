@@ -14,7 +14,12 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 {
     const QUOTE='[]';
 
-    public static $textToVarchar=2147483647, $microseconds=3;
+    public static 
+        $textToVarchar=2147483647,
+        $microseconds=3,
+        $options=array(
+            'command'=>'SET CONCAT_NULL_YIELDS_NULL ON;SET QUOTED_IDENTIFIER ON;'
+        );
     /**
      * Returns the last inserted ID from a insert call
      * returns true if successful

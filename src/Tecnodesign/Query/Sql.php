@@ -72,9 +72,10 @@ class Tecnodesign_Query_Sql
                     if(!$tries) return false;
                     return static::connect($n, $exception, $tries);
                 }
-                if(isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+                if(isset($db['options']['command']) || isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
                     $level = 'initialize';
-                    static::$conn[$n]->exec($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND]);
+                    $cmd = isset($db['options']['command']) ?$db['options']['command'] :$db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND];
+                    static::$conn[$n]->exec($cmd);
                 }
             } catch(Exception $e) {
                 tdz::log('[INFO] Could not '.$level.' to '.$n.":\n  {$e->getMessage()}\n".$e);
@@ -159,11 +160,11 @@ class Tecnodesign_Query_Sql
         $this->_alias = array($sc['className']=>'a');
         $quote = static::QUOTE;
         if(isset($sc['view']) && $sc['view']) {
-            $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].') as a' :$sc['view'] )." as {$quote[0]}a{$quote[1]}";
+            $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].')' :$sc['view'] );
         } else {
-            $this->_from = $sc['tableName']." as {$quote[0]}a{$quote[1]}";
+            $this->_from = $sc['tableName'];
         }
-        if(!isset($sc['tableName']) || !$sc['tableName']) \tdz::debug(__METHOD__, var_export($sc, true));
+        $this->_from .= " as {$quote[0]}a{$quote[1]}";
         if(isset($sc['defaults']['find'])) $this->filter($sc['defaults']['find']);
         unset($sc);
         $this->filter($options);
@@ -443,7 +444,7 @@ class Tecnodesign_Query_Sql
                 $ta = $this->_alias[$sc['className']];
             }
         }
-        if($ta=='a' && !in_array($ta, $this->_alias)) {
+        if($ta==='a' && !in_array($ta, $this->_alias)) {
             $this->_alias[$sc['className']] = $ta;
         }
         $found=false;
