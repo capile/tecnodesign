@@ -1,0 +1,21 @@
+---
+all:
+  tecnodesign:
+    lib-dir: [ vendor, data/examples/football-data/lib ]
+    schema-dir: [ schema, data/examples/football-data/schema ]
+    routes:
+      /examples/football-data:
+        class: Tecnodesign_Interface
+        method: app
+        static: true
+        additional-params: true
+    export:
+      Tecnodesign_Interface:
+        dir: [ examples/football-data/interface ]
+      tdz:
+        log: 5
+        database:
+          football-data:
+            dsn: 'https://api.football-data.org/v2'
+            class: FootballData\Api
+

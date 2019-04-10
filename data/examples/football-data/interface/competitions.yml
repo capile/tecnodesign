@@ -1,0 +1,5 @@
+---
+all:
+  title: Competitions
+  model: FootballData\Competitions
+  

@@ -1,0 +1,14 @@
+---
+title: Football Compatitions
+className: FootballData\Competitions
+database: football-data
+tableName: competitions
+properties:
+  id: { type: int, primary: true }
+  area: { type: object }
+  name: { type: string }
+  code: { type: string }
+  plan: { type: string }
+  currentSeason: { type: object }
+  numberOfAvailableSeasons: { type: int }
+  lastUpdated: { type: datetime }
