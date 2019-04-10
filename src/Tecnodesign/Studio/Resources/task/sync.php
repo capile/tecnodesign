@@ -41,6 +41,7 @@ if(!file_exists($db) || $force) {
     tdz::setConnection('', $conn);
 }
 
+if(is_null(tdz::$database)) Tecnodesign_Query::database();
 tdz::$database = array('studio'=>tdz::$database['studio']) + tdz::$database;
 if(substr($source, -1)=='/') $source = substr($source, 0, strlen($source)-1);
 $l = strlen($source);

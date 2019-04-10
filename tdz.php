@@ -248,119 +248,35 @@ class tdz
         if(is_null(tdz::$_connection)) {
             tdz::$_connection = array();
         }
-        if(!is_array($db)) {
-            if(is_object($db)) {
-                if($db instanceof PDO) {
-                    return $db;
-                }
-                $db='';
-            }
-            $name = (string)$db;
-            if(isset(tdz::$_connection[$name])) {
-                //tdz::$_connection[$name] = null;
-                return tdz::$_connection[$name];
-            }
-
-            if(is_null(tdz::$database)) {
-                if(is_null($app)) {
-                    $app = tdz::getApp();
-                }
-                if($app && $app->database) {
-                    tdz::$database = $app->database;
-                }
-
-                if(!tdz::$database) {
-                    if($dbo=Tecnodesign_Cache::get('tdz/connect/'.$name, true)) {
-                        $db = $dbo;
-                        unset($dbo);
-                    } else if(file_exists($f=TDZ_APP_ROOT.'/config/databases.yml')) {
-                        $C = Tecnodesign_Yaml::load($f);
-                        tdz::$database = array();
-                        if(isset($C[tdz::$_env])) {
-                            tdz::$database = $C[tdz::$_env]; 
-                        }
-                        if(isset($C['all'])) {
-                            tdz::$database += $C['all']; 
-                        }
-                        unset($C);
-                    }
-                }
-            }
-            if(isset(tdz::$database[$name])) {
-                $db = tdz::$database[$name];
-                Tecnodesign_Cache::set('tdz/connect/'.$name, $db, true);
-            }
-            if(!is_array($db)) {
-                if($db && isset(tdz::$database[$db])) {
-                    $db = tdz::$database[$db];
-                } else {
-                    $db=array_values(tdz::$database);
-                    if(!isset($db['dsn'])) {
-                        $db = array_shift($db);
-                    }
-                }
-            }
-        } else {
+        if(is_null(tdz::$database)) Tecnodesign_Query::database();
+        if(is_array($db)) {
             $name = md5(implode(':',$db));
-            if(isset(tdz::$_connection[$name])) {
-                //tdz::$_connection[$name] = null;
-                return tdz::$_connection[$name];
-            }
+            if(!isset(tdz::$database[$name])) tdz::$database[$name] = $db;
+        } else if(!$db) {
+            foreach(tdz::$database as $name=>$db) break;
+        } else {
+            $name = $db;
         }
-        if(!is_array($db)) {
-            return false;
-        }
-        $params = array('username'=>null, 'password'=>null, 'dsn'=>'', 'options'=>array());
-        $mysql=false;
-        $mssql=false;
-        $pgsql=false;
-        if(isset($db['dsn'])) {
-            if(substr($db['dsn'], 0, 6)=='mysql:') {
-                $mysql=true;
-                $params['options'][PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES utf8';
-                $params['options'][PDO::ATTR_PERSISTENT] = true;
-            } else if(substr($db['dsn'], 0, 7)=='sqlite:') {
-                if(!isset($app)) {
-                    $app = tdz::getApp();
+        $msg = 'Could not find database driver.';
+        if(!isset(tdz::$_connection[$name])) {
+            try {
+                if($H=Tecnodesign_Query::databaseHandler($name)) {
+                    tdz::$_connection[$name] = $H::connect($name);
                 }
-                $db['dsn'] = str_replace(array('$APPS_DIR', '$DATA_DIR'), array($app->tecnodesign['apps-dir'], $app->tecnodesign['data-dir']), $db['dsn']);
-            } else if(substr($db['dsn'], 0, 6)=='dblib:') {
-                $mssql=true;
+            } catch(Exception $e) {
+                $msg = $e->getMessage();
             }
         }
-        $db += $params;
-        $db['options'][PDO::ATTR_ERRMODE]=PDO::ERRMODE_EXCEPTION;
-        try
-        {
-            $conn=@new PDO($db['dsn'],$db['username'],$db['password'], $db['options']);
-            self::$connection = $name;
-            if($mysql && isset($db['options'][PDO::MYSQL_ATTR_INIT_COMMAND])) {
-                $conn->exec('SET CHARACTER SET utf8');
-            }
-            if(isset($db['command'])) {
-                if(!is_array($db['command'])) $db['command']=array($db['command']);
-                foreach($db['command'] as $q) {
-                    @$conn->exec($q);
-                }
-            }
-            tdz::$_connection[$name]=$conn;
-            if(!isset(tdz::$_connection[''])) {
-                tdz::$_connection['']=$conn;
-            }
-            
-        } catch(PDOException $e) {
-            $msg = $e->getMessage();
-            tdz::log('Error in '.__METHOD__.":\n  ".$msg.'('.$e->getLine().')');
-            if(self::$connectRetries--) {
-                tdz::log('retrying...');
-                return tdz::connect($name, $app, $throw);
-            }
+        if(!isset(tdz::$_connection[$name]) || !tdz::$_connection[$name]) {
             if($throw) {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not connect to database. Reasons are: %s', 'exception'), $msg));
             }
             return false;
         }
-        return $conn;
+        if(!isset(tdz::$_connection[''])) {
+            tdz::$_connection['']=tdz::$_connection[$name];
+        }
+        return tdz::$_connection[$name];
     }
 
     public static function setConnection($name=false, $dbh=null)

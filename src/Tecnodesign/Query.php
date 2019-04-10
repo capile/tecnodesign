@@ -42,6 +42,19 @@ class Tecnodesign_Query implements \ArrayAccess
                     unset($C);
                 }
             }
+            if(tdz::$database) {
+                foreach(tdz::$database as $name=>$def) {
+                    if(isset($def['dsn']) && strpos($def['dsn'], '$')!==false) {
+                        if(!isset($s)) {
+                            $s = array('$APPS_DIR', '$DATA_DIR');
+                            $app = tdz::getApp();
+                            $r = array($app->tecnodesign['apps-dir'], $app->tecnodesign['data-dir']);
+                            unset($app);
+                        }
+                        tdz::$database[$name]['dsn'] = str_replace($s, $r, $def['dsn']);
+                    }
+                }
+            }
         }
         if(!is_null($db)) {
             if(isset(tdz::$database[$db])) return tdz::$database[$db];

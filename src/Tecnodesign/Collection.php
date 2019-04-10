@@ -107,6 +107,18 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      */
     public function setQuery($sql, $conn=null, $key=null)
     {
+        if(is_object($sql) || (is_null($sql) && is_object($this->_query))) {
+            if(is_null($sql)) {
+                $this->_items = $this->getItem(0, $this->_max);
+                $this->_query = null;
+                $this->_count = count($this->_items);
+            } else {
+                $this->_query = $sql;
+                $this->_count = $sql->count();
+            }
+            return $this;
+        }
+
         if(!$sql) {
             if($this->_statement) {
                 // must fetch the objects and remove the query
@@ -122,11 +134,6 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             return $this;
         }
         
-        if(is_object($sql)) {
-            $this->_query = $sql;
-            $this->_count = $sql->count();
-            return $this;
-        }
 
 
         if(!$conn) {
@@ -582,7 +589,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
 
     public function getItems($offset=0, $limit=10000)
     {
-        return $this->getItem($offset, $limit, false);
+        return $this->getItem($offset, $limit, false, false);
     }
     
     public function getNamedItem($p)
@@ -605,8 +612,9 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         return $ret;
     }
     
-    public function getItem($offset=null, $limit=1, $asCollection=false)
+    public function getItem($offset=null, $limit=1, $asCollection=false, $single=true)
     {
+        $offset0 = $offset;
         if(is_null($offset)) $offset = $this->_current;
         $p = (int)$offset;
         $ret = null;
@@ -634,6 +642,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                 } else {
                     $ret = $this->_query->fetchArray($this->_offset, $this->_max);
                 }
+                if($single && is_int($offset0) && $limit===1 && $ret) $ret = array_shift($ret);
             } else {
                 $q=$this->_queryStatement();
                 if($this->_driver!='dblib' && get_class($q)=='PDO') { // lost original connection
@@ -873,22 +882,10 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         $ret = null;
         if (isset($this->$name)) {
             $ret = $this->$name;
-        } else if($this->_statement && $this->_keyStatement) {
+        } else if($this->_query && $this->_queryKey) {
             return $this->getNamedItem($name);
-        /*} else if(!is_int($name)) {
-            $ret = new Tecnodesign_Collection;
-            if($this->_count) {
-                foreach($this as $i=>$o) {
-                    if(is_object($o)) {
-                        $add = $o->$name;
-                        if(!is_null($add)) {
-                            $ret->add($o->$name);
-                        }
-                    }
-                }
-            }*/
-        } else if($this->_statement && is_numeric($name) && (int)$name >=0 && (int)$name < $this->_count) {
-            return $this->getItem((int)$name);
+        } else if($this->_query && is_int($name) && $name >=0 && $name < $this->_count) {
+            return $this->getItem($name);
         }
         return $ret;
     }
@@ -902,7 +899,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      */
     public function offsetExists($name)
     {
-        return (in_array($name, $this->_items) || ($this->_statement && $this->_keyStatement && $this->getNamedItem($name)) || ($this->_statement && is_numeric($name) && (int)$name >=0 && (int)$name < $this->_count));
+        return (in_array($name, $this->_items) || ($this->_query && $this->_queryKey && $this->getNamedItem($name)) || ($this->_query && is_numeric($name) && (int)$name >=0 && (int)$name < $this->_count));
     }
     
     /**
@@ -915,11 +912,6 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      */
     public function offsetGet($name)
     {
-        if($this->_statement && $this->_keyStatement) {
-            return $this->getNamedItem($name);
-        } else if($this->_statement && is_numeric($name) && (int)$name >=0 && (int)$name < $this->_count) {
-            return $this->getItem($name);
-        }
         return $this->__get($name);
     }
     

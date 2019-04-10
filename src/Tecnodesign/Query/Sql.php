@@ -64,6 +64,16 @@ class Tecnodesign_Query_Sql
                 $db = Tecnodesign_Query::database($n);
                 if(!$n && is_array($db)) $db = array_shift($db); 
                 $db += array('username'=>null, 'password'=>null, 'options'=>static::$options);
+                $db['options'][PDO::ATTR_ERRMODE]=PDO::ERRMODE_EXCEPTION;
+
+                if(isset($db['options']['command'])) {
+                    $cmd = $db['options']['command'];
+                    unset($db['options']['command']);
+                } else if(isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+                    $cmd = $db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND];
+                } else {
+                    $cmd = null;
+                }
                 $level = 'connect';
                 static::$conn[$n] = new \PDO($db['dsn'], $db['username'], $db['password'], $db['options']);
                 if(!static::$conn[$n]) {
@@ -72,9 +82,9 @@ class Tecnodesign_Query_Sql
                     if(!$tries) return false;
                     return static::connect($n, $exception, $tries);
                 }
-                if(isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
+                if($cmd) {
                     $level = 'initialize';
-                    static::$conn[$n]->exec($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND]);
+                    static::$conn[$n]->exec($cmd);
                 }
             } catch(Exception $e) {
                 tdz::log('[INFO] Could not '.$level.' to '.$n.":\n  {$e->getMessage()}\n".$e);
@@ -159,11 +169,11 @@ class Tecnodesign_Query_Sql
         $this->_alias = array($sc['className']=>'a');
         $quote = static::QUOTE;
         if(isset($sc['view']) && $sc['view']) {
-            $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].') as a' :$sc['view'] )." as {$quote[0]}a{$quote[1]}";
+            $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].')' :$sc['view'] );
         } else {
-            $this->_from = $sc['tableName']." as {$quote[0]}a{$quote[1]}";
+            $this->_from = $sc['tableName'];
         }
-        if(!isset($sc['tableName']) || !$sc['tableName']) \tdz::debug(__METHOD__, var_export($sc, true));
+        $this->_from .= " as {$quote[0]}a{$quote[1]}";
         if(isset($sc['defaults']['find'])) $this->filter($sc['defaults']['find']);
         unset($sc);
         $this->filter($options);
@@ -443,7 +453,7 @@ class Tecnodesign_Query_Sql
                 $ta = $this->_alias[$sc['className']];
             }
         }
-        if($ta=='a' && !in_array($ta, $this->_alias)) {
+        if($ta==='a' && !in_array($ta, $this->_alias)) {
             $this->_alias[$sc['className']] = $ta;
         }
         $found=false;
