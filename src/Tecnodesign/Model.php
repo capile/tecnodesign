@@ -2636,8 +2636,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      */
     public function __unset($name)
     {
-        unset($this->$name);
+        if(isset($this->$name)) unset($this->$name);
     }
+
     public function offsetUnset($name)
     {
         return $this->__unset($name);
