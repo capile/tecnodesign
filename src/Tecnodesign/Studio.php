@@ -673,6 +673,7 @@ class Tecnodesign_Studio
     {
         $cid = tdz::getApp()->studio['connection'];
         if(is_null($db)) $db=TDZ_VAR.'/'.self::$index;
+        if(is_null(tdz::$database)) Tecnodesign_Query::database();
         tdz::$database[$cid] = array('dsn'=>'sqlite:'.$db);
         tdz::$database = array('studio'=>array('dsn'=>'sqlite:'.$db))+tdz::$database;
         $conn = tdz::connect($cid);

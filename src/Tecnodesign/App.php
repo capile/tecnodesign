@@ -78,6 +78,9 @@ class Tecnodesign_App
         foreach ($this->_vars['tecnodesign']['routes'] as $url=>$route) {
             $this->_vars['tecnodesign']['routes'][$url]=$this->getRouteConfig($route);
         }
+        if(isset($this->_vars['tecnodesign']['default-route'])) {
+            $this->_vars['tecnodesign']['routes']['/']=$this->getRouteConfig($this->_vars['tecnodesign']['default-route']);
+        }
         foreach ($this->_vars['tecnodesign'] as $name=>$value) {
             if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
                 if(is_array($value)) {
@@ -221,7 +224,7 @@ class Tecnodesign_App
         self::request();
         if(isset($this->_vars['tecnodesign']['export'])) {
             foreach($this->_vars['tecnodesign']['export'] as $cn=>$toExport) {
-                if(!tdz::classFile($cn)) {
+                if($cn!=='tdz' && !tdz::classFile($cn)) {
                     $cn = 'Tecnodesign_'.tdz::camelize($cn, true);
                     if(!tdz::classFile($cn)) {
                         return false;

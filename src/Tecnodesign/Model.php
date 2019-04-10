@@ -13,8 +13,9 @@
  * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com
  */
-class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
+class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign_AutoloadInterface
 {
+    const SCHEMA_PROPERTY='schema';
     public static $schema = array(
         'database'=>null,
         'tableName'=>null,
@@ -58,6 +59,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     private $_collection;
 
     protected static $stats=array();
+
+    public static function staticInitialize()
+    {
+        static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+    }
+
     /**
      * Class constructor: you can create a new instance based on an associative array with the values
      */

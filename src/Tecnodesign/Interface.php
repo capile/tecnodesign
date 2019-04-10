@@ -384,7 +384,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 $sf = (static::$share===true || static::$share===1)?('interface-shared'):(tdz::slug(static::$share, '_', true));
                 if(!in_array($sf, static::$dir)) static::$dir[] = $sf;
             }
-
             $I = static::currentInterface($p);
             if($ext && !in_array($ext, static::$formats)) {
                 return static::error(400, static::t('errorNotSupported'));
@@ -3225,6 +3224,7 @@ class Tecnodesign_Interface implements ArrayAccess
             else $a = $c->$m($a);
             unset($c, $m);
         }
+
         return $a;
     }
 

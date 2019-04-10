@@ -12,5 +12,6 @@ all:
     controller-options:
       class: Tecnodesign_Studio
       static: true
-    routes:
-      '.*': run
+      additional-params: true
+      layout: layout
+    default-route: run

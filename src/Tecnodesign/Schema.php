@@ -23,16 +23,16 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         $errorMinorThan='%s is less than the expected minimum %s',
         $errorGreaterThan='%s is more than the expected maximum %s',
         $errorMandatory='%s is mandatory and should not be a blank value.',
-        $error;
+        $error,
+        $timeout=300;
 
     public static $meta;
 
     public static function loadSchema($cn, $meta=null)
     {
-        static $timeout = 300;
         // load from cache
         $ckey = 'schema/'.$cn;
-        if($Schema=Tecnodesign_Cache::get($ckey, $timeout)) {
+        if($Schema=Tecnodesign_Cache::get($ckey, static::$timeout)) {
             return $Schema;
         }
 
@@ -60,7 +60,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         if($src) {
             $schemaClass = get_called_class();
             $Schema = new $schemaClass($src);
-            Tecnodesign_Cache::set($ckey, $Schema, $timeout);
+            Tecnodesign_Cache::set($ckey, $Schema, static::$timeout);
         } else {
             $Schema = null;
         }
@@ -70,14 +70,13 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
 
     public static function loadSchemaRef($ref)
     {
-        $dirs = tdz::getApp()->config('schema-dir');
+        $dirs = tdz::getApp()->config('tecnodesign', 'schema-dir');
         if(!$dirs) {
             $dirs = array();
         } else if(!is_array($dirs)) {
             $dirs = array($dirs);
         }
-        if(substr($ref, 0, 12)=='Tecnodesign_')
-        array_unshift($dirs, TDZ_ROOT.'/schema');
+        if(substr($ref, 0, 12)=='Tecnodesign_' && !in_array(TDZ_ROOT.'/schema', $dirs)) array_unshift($dirs, TDZ_ROOT.'/schema');
 
         $src = array();
         $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);
