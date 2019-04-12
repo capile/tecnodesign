@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignTest;
+namespace TecnodesignTest\Unit;
 
 use Tecnodesign_Yaml;
 
