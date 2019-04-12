@@ -252,6 +252,8 @@ class tdz
         if(is_array($db)) {
             $name = md5(implode(':',$db));
             if(!isset(tdz::$database[$name])) tdz::$database[$name] = $db;
+        } else if(!$db && isset(tdz::$_connection[''])) {
+            $name = '';
         } else if(!$db) {
             foreach(tdz::$database as $name=>$db) break;
         } else {
@@ -317,24 +319,24 @@ class tdz
      *
      * @return array resultados com os valores associados
      */
-    public static function query($sql)
+    public static function query($sql, $conn=null)
     {
         $ret = array();
         $sqls = (is_array($sql))?($sql):(array($sql));
         $arg = func_get_args();
+        array_shift($arg);
         try {
             foreach($sqls as $sql) {
-                $conn=tdz::connect();
+                $conn = ($conn && count($arg)==1) ?$conn :tdz::connect();
                 if (!$conn) {
                     throw new Tecnodesign_Exception(tdz::t('Could not connect to database server.'));
                 }
                 $query = $conn->query($sql);
                 $result=array();
-                if ($query && count($arg)==1) {
+                if ($query && count($arg)<=1) {
                     if(preg_match('/^\s*(insert|update|delete|replace|set|begin|commit|create|alter|drop) /i', $sql)) $result = true;
                     else $result = @$query->fetchAll(PDO::FETCH_ASSOC);
                 } else if($query) {
-                    array_shift($arg);
                     $result = call_user_func_array(array($query, 'fetchAll'), $arg);
                 }
                 if(!isset($ret[0])) {
