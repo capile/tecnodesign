@@ -16,7 +16,10 @@
         "ext-mbstring": "*"
     },
     "extra": {
-        "foxy": true
+        "foxy": true,
+        "branch-alias": {
+            "dev-master": "2.2.x-dev"
+        }
     },
     "autoload" : {
         "psr-0": {
