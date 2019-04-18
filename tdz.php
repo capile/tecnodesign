@@ -255,7 +255,10 @@ class tdz
         } else if(!$db && isset(tdz::$_connection[''])) {
             $name = '';
         } else if(!$db) {
-            foreach(tdz::$database as $name=>$db) break;
+            //@todo why is that?!
+            foreach(tdz::$database as $name=>$db) {
+                break;
+            }
         } else {
             $name = $db;
         }
@@ -645,11 +648,11 @@ class tdz
         $qs = '';
         if (!empty($arg)) {
             array_walk(
-                $arg, create_function(
-                    '&$v,$k', '$v = urlencode($k)."=".urlencode($v);'
-                )
+                $arg, static function (&$v,$k) {
+                   $v = urlencode($k) . '=' . urlencode($v);
+                }
             );
-            $qs = implode("&", $arg);
+            $qs = implode('&', $arg);
         }
         $uri = '';
         if(isset($_SERVER['REDIRECT_STATUS']) && $_SERVER['REDIRECT_STATUS']=='200' && isset($_SERVER['REDIRECT_URL'])) {
@@ -2332,7 +2335,7 @@ class tdz
             //           [year    ] -[month   ] -[day     ]  T[hour and minute     ]  :[seconds ][mseconds]   [timezone                  ]
             $m[3] = ($m[3]=='')?(1):((int)$m[3]);
             $m[5] = ($m[5]=='')?(1):((int)$m[5]);
-            return @mktime((int)$m[7], (int)$m[8], (int)$m[10], $m[3], $m[5], (int)$m[1], -1);
+            return @mktime((int)$m[7], (int)$m[8], (int)$m[10], $m[3], $m[5], (int)$m[1]);
         } elseif (strpos($date,"/") > 0 && (self::$dateFormat != '' && (self::$timeFormat != '' || !$showtime))){
             $format = self::$dateFormat.(($showtime)?(' '.self::$timeFormat):(''));
             $dtcomp = preg_split('%[- /.:]%', $date);
@@ -2354,7 +2357,7 @@ class tdz
                     }
                 }
             }
-            return mktime((int)$hour, (int)$minute, (int)$second, (int)$month, (int)$day, (int)$year, -1);
+            return mktime((int)$hour, (int)$minute, (int)$second, (int)$month, (int)$day, (int)$year);
         } else {
             return @strtotime($date);
         }
