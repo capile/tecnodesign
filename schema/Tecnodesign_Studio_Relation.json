@@ -1,0 +1,166 @@
+{
+    "database": "studio",
+    "tableName": "tdz_relations",
+    "className": "Tecnodesign_Studio_Relation",
+    "properties": {
+        "id": {
+            "bind": "id",
+            "type": "int",
+            "increment": "auto",
+            "null": false,
+            "primary": true
+        },
+        "parent": {
+            "bind": "parent",
+            "type": "int",
+            "null": true
+        },
+        "entry": {
+            "bind": "entry",
+            "type": "int",
+            "null": false
+        },
+        "position": {
+            "bind": "position",
+            "type": "int",
+            "null": true
+        },
+        "version": {
+            "bind": "version",
+            "type": "int",
+            "null": true
+        },
+        "created": {
+            "bind": "created",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "updated": {
+            "bind": "updated",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "expired": {
+            "bind": "expired",
+            "format": "datetime",
+            "type": "string",
+            "null": true
+        }
+    },
+    "relations": {
+        "Child": {
+            "local": "entry",
+            "foreign": "id",
+            "type": "one",
+            "className": "Tecnodesign_Studio_Entry"
+        },
+        "Parent": {
+            "local": "parent",
+            "foreign": "id",
+            "type": "one",
+            "className": "Tecnodesign_Studio_Entry"
+        },
+        "Entry": {
+            "local": [
+                "entry",
+                "parent"
+            ],
+            "foreign": [
+                "id",
+                "id"
+            ],
+            "type": "one",
+            "className": "Tecnodesign_Studio_Entry"
+        }
+    },
+    "scope": [],
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ],
+        "active-records": "`expired` is null",
+        "after-insert": [
+            "actAs"
+        ],
+        "after-update": [
+            "actAs"
+        ],
+        "after-delete": [
+            "actAs"
+        ]
+    },
+    "overlay": {
+        "perfil": {
+            "bind": "perfil",
+            "type": "select",
+            "choices": "Perfil"
+        },
+        "ingresso": {
+            "bind": "ingresso",
+            "type": "select",
+            "choices": "Turma"
+        },
+        "conclusao": {
+            "bind": "conclusao"
+        },
+        "ativo": {
+            "bind": "ativo"
+        }
+    },
+    "actAs": {
+        "before-insert": {
+            "auto-increment": [
+                "id"
+            ],
+            "timestampable": [
+                "created",
+                "updated"
+            ],
+            "sortable": [
+                "position"
+            ]
+        },
+        "before-update": {
+            "timestampable": [
+                "updated"
+            ],
+            "sortable": [
+                "position"
+            ]
+        },
+        "before-delete": {
+            "timestampable": [
+                "updated"
+            ],
+            "soft-delete": [
+                "expired"
+            ],
+            "sortable": [
+                "position"
+            ]
+        },
+        "after-insert": {
+            "versionable": [
+                "version"
+            ]
+        },
+        "after-update": {
+            "versionable": [
+                "version"
+            ]
+        },
+        "after-delete": {
+            "versionable": [
+                "version"
+            ]
+        }
+    }
+}

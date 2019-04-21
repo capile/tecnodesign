@@ -1,0 +1,105 @@
+{
+    "database": "studio",
+    "tableName": "tdz_users",
+    "properties": {
+        "id": {
+            "bind": "id",
+            "type": "int",
+            "min": 0,
+            "increment": "auto",
+            "primary": true,
+            "required": true
+        },
+        "login": {
+            "bind": "login",
+            "type": "string",
+            "size": "100",
+            "required": true
+        },
+        "name": {
+            "bind": "name",
+            "type": "string",
+            "size": "200",
+            "required": false
+        },
+        "password": {
+            "bind": "password",
+            "type": "string",
+            "size": "100",
+            "required": false
+        },
+        "email": {
+            "bind": "email",
+            "type": "string",
+            "size": "100",
+            "required": false
+        },
+        "details": {
+            "bind": "details",
+            "type": "string",
+            "size": 0,
+            "required": false
+        },
+        "accessed": {
+            "bind": "accessed",
+            "format": "datetime",
+            "type": "string",
+            "required": false
+        },
+        "created": {
+            "bind": "created",
+            "format": "datetime",
+            "type": "string",
+            "required": true
+        },
+        "updated": {
+            "bind": "updated",
+            "format": "datetime",
+            "type": "string",
+            "required": true
+        },
+        "expired": {
+            "bind": "expired",
+            "format": "datetime",
+            "type": "string",
+            "required": false
+        }
+    },
+    "scope": [],
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ]
+    },
+    "actAs": {
+        "before-insert": {
+            "auto-increment": [
+                "id"
+            ],
+            "timestampable": [
+                "created",
+                "updated",
+                "expired"
+            ]
+        },
+        "before-update": {
+            "timestampable": [
+                "updated",
+                "expired"
+            ]
+        },
+        "before-delete": {
+            "timestampable": [
+                "updated",
+                "expired"
+            ]
+        }
+    },
+    "overlay": []
+}

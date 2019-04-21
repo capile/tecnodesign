@@ -1,8 +1,8 @@
 <?php
 /**
- * Studio Content backwards compatibility pointer 
+ * Studio Permission control backwards compatibility pointer 
  *
- * Contents might be added to entries.
+ * Permissions are all the roles for individual resources (that override the configuration).
  *
  * PHP version 5.6
  *
@@ -13,6 +13,6 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class tdzContentDisplay extends Tecnodesign_Studio_ContentDisplay
+class TdzPermissions extends Tecnodesign_Studio_Permission
 {
 }

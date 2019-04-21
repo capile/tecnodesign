@@ -1,0 +1,104 @@
+{
+    "database": "studio",
+    "tableName": "tdz_contents_display",
+    "className": "Tecnodesign_Studio_ContentDisplay",
+    "properties": {
+        "content": {
+            "bind": "content",
+            "type": "int",
+            "null": false,
+            "primary": true
+        },
+        "link": {
+            "bind": "link",
+            "type": "string",
+            "size": "200",
+            "null": false,
+            "primary": true
+        },
+        "version": {
+            "bind": "version",
+            "type": "int",
+            "null": true
+        },
+        "display": {
+            "bind": "display",
+            "type": "int",
+            "max": 128,
+            "null": false
+        },
+        "created": {
+            "bind": "created",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "updated": {
+            "bind": "updated",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "expired": {
+            "bind": "expired",
+            "format": "datetime",
+            "type": "string",
+            "null": true
+        }
+    },
+    "relations": {
+        "Content": {
+            "local": "content",
+            "foreign": "id",
+            "type": "one",
+            "className": "Tecnodesign_Studio_Content"
+        }
+    },
+    "scope": [],
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ],
+        "active-records": "`expired` is null"
+    },
+    "overlay": {
+        "content_type": {
+            "bind": "content_type",
+            "type": "select",
+            "choices": "Tecnodesign_Studio::config('content_types')",
+            "class": "studio-field-content-type"
+        },
+        "content": {
+            "bind": "content",
+            "type": "hidden",
+            "class": "studio-field-content"
+        }
+    },
+    "actAs": {
+        "before-insert": {
+            "timestampable": [
+                "created",
+                "updated"
+            ]
+        },
+        "before-update": {
+            "timestampable": [
+                "updated"
+            ]
+        },
+        "before-delete": {
+            "timestampable": [
+                "updated"
+            ],
+            "soft-delete": [
+                "expired"
+            ]
+        }
+    }
+}

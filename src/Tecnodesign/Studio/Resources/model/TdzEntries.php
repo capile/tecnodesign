@@ -1,8 +1,8 @@
 <?php
 /**
- * Studio Content backwards compatibility pointer 
+ * Studio Entries backwards compatibility pointer 
  *
- * Contents might be added to entries.
+ * Entries are each page/resource within e-Studio.
  *
  * PHP version 5.6
  *
@@ -13,6 +13,6 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class tdzContentDisplay extends Tecnodesign_Studio_ContentDisplay
+class TdzEntries extends Tecnodesign_Studio_Entry
 {
 }

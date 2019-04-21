@@ -2,72 +2,19 @@
 /**
  * Tecnodesign_Studio_Content table description
  *
- * PHP version 5.3
+ * PHP version 5.6
  *
- * @category  Model
- * @package   Studio
+ * @category  App
+ * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
- * @link      http://tecnodz.com/
- * @version   SVN: $Id$
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
-
-/**
- * Tecnodesign_Studio_Content table description
- *
- * @category  Model
- * @package   Studio
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @link      http://tecnodz.com/
- */
-class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Model
+class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Studio_Model
 {
-    /**
-     * Tecnodesign_Model schema
-     *
-     * Remove the comment below to disable automatic schema updates
-     */
-    //--tdz-schema-start--2012-02-29 19:44:01
-    public static $schema = array (
-      'database' => 'studio',
-      'tableName' => 'tdz_contents_display',
-      'className' => 'tdzContentDisplay',
-      'columns' => array (
-        'content' => array ( 'type' => 'int', 'null' => false, 'primary' => true, ),
-        'link' => array ( 'type' => 'string', 'size'=>200, 'null' => false, 'primary' => true, ),
-        'version' => array ( 'type' => 'int', 'null' => false, 'primary' => true, ),
-        'display' => array ( 'type' => 'bool', 'null' => false, ),
-        'created' => array ( 'type' => 'datetime', 'null' => false, ),
-        'updated' => array ( 'type' => 'datetime', 'null' => false, ),
-        'expired' => array ( 'type' => 'datetime', 'null' => true, ),
-      ),
-      'relations' => array (
-        'Content' => array ( 'local' => 'content', 'foreign' => 'id', 'type' => 'one', 'className' => 'tdzContent', ),
-      ),
-      'scope' => array (
-      ),
-      'order' => array(
-        'version'=>'desc',
-      ),
-      'events' => array (
-        'before-insert' => array ( 'actAs', ),
-        'before-update' => array ( 'actAs', ),
-        'before-delete' => array ( 'actAs', ),
-        'active-records' => '`expired` is null',
-      ),
-      'form' => array (
-        'content_type'=>array('bind'=>'content_type', 'type'=>'select', 'choices'=>'Tecnodesign_Studio::config(\'content_types\')', 'class'=>'studio-field-content-type'),
-        'content'=>array('bind'=>'content', 'type'=>'hidden', 'class'=>'studio-field-content'),
-      ),
-      'actAs' => array (
-        'before-insert' => array ( 'timestampable' => array ( 'created', 'updated' ), ),
-        'before-update' => array ( 'timestampable' => array ( 'updated', ), ),
-        'before-delete' => array ( 'timestampable' => array ( 'updated', ), 'soft-delete' => array ( 'expired', ), ),
-      ),
-    );
+    public static $schema;
     protected $id, $created, $entry, $slot, $content_type, $content, $position, $published, $show_at, $hide_at, $expired, $Entry;
-    //--tdz-schema-end--
     protected static $content_types=null;
     protected $subposition;
     
@@ -101,7 +48,7 @@ class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Model
         return $content;
     }
 
-    public function getForm($scope)
+    public function getForm($scope = NULL, $pk = false)
     {
         $cn = get_called_class();
         if(!isset($cn::$schema['e-studio-configured'])) {

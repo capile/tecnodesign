@@ -1,0 +1,143 @@
+{
+    "database": "studio",
+    "tableName": "tdz_tags",
+    "className": "Tecnodesign_Studio_Tag",
+    "properties": {
+        "id": {
+            "bind": "id",
+            "type": "int",
+            "increment": "auto",
+            "null": false,
+            "primary": true
+        },
+        "entry": {
+            "bind": "entry",
+            "type": "int",
+            "null": true
+        },
+        "tag": {
+            "bind": "tag",
+            "type": "string",
+            "size": "100",
+            "null": false
+        },
+        "slug": {
+            "bind": "slug",
+            "type": "string",
+            "size": "100",
+            "null": false
+        },
+        "version": {
+            "bind": "version",
+            "type": "int",
+            "null": true
+        },
+        "created": {
+            "bind": "created",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "updated": {
+            "bind": "updated",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "expired": {
+            "bind": "expired",
+            "format": "datetime",
+            "type": "string",
+            "null": true
+        }
+    },
+    "relations": {
+        "Entry": {
+            "local": "entry",
+            "foreign": "id",
+            "type": "one",
+            "className": "Tecnodesign_Studio_Entry"
+        },
+        "Perfil": {
+            "local": "perfil",
+            "foreign": "id",
+            "type": "one"
+        }
+    },
+    "scope": {
+        "link": [
+            "tag",
+            "slug"
+        ]
+    },
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ],
+        "active-records": "`expired` is null",
+        "after-insert": [
+            "actAs"
+        ],
+        "after-update": [
+            "actAs"
+        ],
+        "after-delete": [
+            "actAs"
+        ]
+    },
+    "overlay": [],
+    "actAs": {
+        "before-insert": {
+            "auto-increment": [
+                "id"
+            ],
+            "timestampable": [
+                "created",
+                "updated"
+            ],
+            "sortable": [
+                "ordem"
+            ]
+        },
+        "before-update": {
+            "timestampable": [
+                "updated"
+            ],
+            "sortable": [
+                "ordem"
+            ]
+        },
+        "before-delete": {
+            "timestampable": [
+                "updated"
+            ],
+            "sortable": [
+                "ordem"
+            ],
+            "soft-delete": [
+                "expired"
+            ]
+        },
+        "after-insert": {
+            "versionable": [
+                "version"
+            ]
+        },
+        "after-update": {
+            "versionable": [
+                "version"
+            ]
+        },
+        "after-delete": {
+            "versionable": [
+                "version"
+            ]
+        }
+    }
+}

@@ -1,18 +1,16 @@
-<?php
+<?php 
 /**
- * Studio Content backwards compatibility pointer 
+ * Tecnodesign command line layout
  *
- * Contents might be added to entries.
- *
- * PHP version 5.6
+ * PHP version 5.4
  *
  * @category  App
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
+ * @copyright 2019 Tecnodesign
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class tdzContentDisplay extends Tecnodesign_Studio_ContentDisplay
-{
-}
+
+if(isset($response)) echo $response;
+echo $data;

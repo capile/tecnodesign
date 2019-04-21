@@ -1,7 +1,9 @@
 ---
 title: Properties
-description: Metaschema of each Schema property
+description: Metaschema of each Model property
+className: Tecnodesign_Schema_Property
 type: object
+patternProperties: '/.*/'
 properties:
   bind:
     title: Classname or property name to read/update when using the property 
@@ -30,9 +32,7 @@ properties:
     default: false
   'null':
     type: bool
-    trigger:
-      true: { required: false }
-      false: { required: true }
+    alias: '!required'
   mandatory:
     alias: required
   type:
@@ -112,39 +112,39 @@ properties:
   choices: 
     title: List of valid values for this property
     description: should be either an object of keys=>labels or a Model to fetch the options or an URI to retrieve the options from
-  default: ~
-  properties: ~
-  items: ~
-  trigger: ~
-  scope: ~
-  increment: ~
-  primary: ~
-
-  size: ~
-  min_size: ~
-  decimal: ~
-  serialize: ~
-  disabled: ~
-  readonly: ~
-  multiple: ~
-
-  choicesFilter: ~
-  fieldset: ~
-  html_labels: ~
-
-  id: ~
-  prefix: ~
-  attributes: ~
-  before: ~
-  after: ~
-  template: ~
-  rules: ~
-  dataprop: ~
-  messages: ~
-  accept: ~
-  error: ~
-
-  toAdd: ~
-  next: ~
-  value: ~
-  query: ~
+#  default: ~
+#  properties: ~
+#  items: ~
+#  trigger: ~
+#  scope: ~
+#  increment: ~
+#  primary: ~
+#
+#  size: ~
+#  min_size: ~
+#  decimal: ~
+#  serialize: ~
+#  disabled: ~
+#  readonly: ~
+#  multiple: ~
+#
+#  choicesFilter: ~
+#  fieldset: ~
+#  html_labels: ~
+#
+#  id: ~
+#  prefix: ~
+#  attributes: ~
+#  before: ~
+#  after: ~
+#  template: ~
+#  rules: ~
+#  dataprop: ~
+#  messages: ~
+#  accept: ~
+#  error: ~
+#
+#  toAdd: ~
+#  next: ~
+#  value: ~
+#  query: ~

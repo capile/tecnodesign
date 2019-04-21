@@ -1306,7 +1306,7 @@ class tdz
     public static function output($s, $format=null, $exit=true)
     {
         tdz::unflush();
-        if($format=='json') {
+        if($format==='json') {
             if(!is_string($s)) {
                 $s = json_encode($s, JSON_FORCE_OBJECT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             }

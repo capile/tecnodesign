@@ -18,4 +18,10 @@ class Tecnodesign_Query_Mysql extends Tecnodesign_Query_Sql
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ),
     $tableDefault='ENGINE=InnoDB DEFAULT CHARSET=utf8';
+
+    public function getTablesQuery($database=null, $enableViews=null)
+    {
+        if(is_null($database)) $database = $this->schema('database');
+        return 'select table_name, table_comment, create_time, update_time from information_schema.tables where table_schema='.tdz::sql($this->getDatabaseName($database));
+    }
 }

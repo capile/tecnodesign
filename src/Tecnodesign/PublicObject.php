@@ -70,6 +70,26 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         $n = null;
         return $n;
     }
+
+    public function __get($name)
+    {
+        return $this->offsetGet($name);
+    }
+
+    public function __set($name, $value)
+    {
+        return $this->offsetSet($name, $value);
+    }
+
+    public function batchSet($values, $skipValidation=false)
+    {
+        foreach($values as $name=>$value) {
+            if($skipValidation) $this->$name = $value;
+            else $this->__set($name, $value);
+        }
+        return $this;
+    }
+
     /**
      * ArrayAccess abstract method. Sets parameters to the PDF.
      *
@@ -86,10 +106,12 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         } else if(property_exists(get_called_class(), $schema = static::SCHEMA_PROPERTY)) {
             // validate schema, when available
             $Schema = static::$$schema;
-            if(isset($Schema->properties[$name])) {
-                $value = $Schema::validateProperty($Schema->properties[$name], $value, $name);
-            } else if(!isset($Schema->patternProperties) || !preg_match($Schema->patternProperties, $name)) {
-                throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
+            if($Schema) {
+                if(isset($Schema->properties[$name])) {
+                    $value = $Schema::validateProperty($Schema->properties[$name], $value, $name);
+                } else if(!isset($Schema->patternProperties) || !preg_match($Schema->patternProperties, $name)) {
+                    throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this).'????'.var_export($Schema, true)));
+                }
             }
             $this->$name = $value;
         } else if(!property_exists($this, $name)) {

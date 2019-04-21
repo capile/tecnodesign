@@ -13,6 +13,6 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class tdzContentDisplay extends Tecnodesign_Studio_ContentDisplay
+class TdzContents extends Tecnodesign_Studio_Content
 {
 }

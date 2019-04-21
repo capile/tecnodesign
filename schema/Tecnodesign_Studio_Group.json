@@ -1,0 +1,102 @@
+{
+    "title": "*Groups",
+    "database": "studio",
+    "tableName": "tdz_groups",
+    "className": "Tecnodesign_Studio_Group",
+    "properties": {
+        "id": {
+            "bind": "id",
+            "type": "int",
+            "increment": "auto",
+            "null": false,
+            "primary": true
+        },
+        "name": {
+            "bind": "name",
+            "type": "string",
+            "size": "200",
+            "null": false
+        },
+        "priority": {
+            "type": "int",
+            "required": true
+        },
+        "created": {
+            "bind": "created",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "updated": {
+            "bind": "updated",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "expired": {
+            "bind": "expired",
+            "format": "datetime",
+            "type": "string",
+            "null": true
+        },
+        "description": {
+            "bind": "description",
+            "type": "string",
+            "size": 0,
+            "null": true
+        }
+    },
+    "relations": {
+        "Credential": {
+            "local": "id",
+            "foreign": "groupid",
+            "type": "one",
+            "className": "Tecnodesign_Studio_Credential"
+        }
+    },
+    "scope": [],
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ],
+        "active-records": "`expired` is null"
+    },
+    "actAs": {
+        "before-insert": {
+            "auto-increment": [
+                "id"
+            ],
+            "timestampable": [
+                "created",
+                "updated"
+            ]
+        },
+        "before-update": {
+            "timestampable": [
+                "updated"
+            ]
+        },
+        "before-delete": {
+            "timestampable": [
+                "updated"
+            ],
+            "soft-delete": [
+                "expired"
+            ]
+        }
+    },
+    "overlay": {
+        "name": {
+            "bind": "name"
+        },
+        "priority": {
+            "bind": "priority"
+        }
+    }
+}

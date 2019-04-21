@@ -26,11 +26,17 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         $error,
         $timeout=300;
 
-    public static $meta;
+    public static $meta, $schemaDir;
 
     public static function loadSchema($cn, $meta=null)
     {
         // load from cache
+        $ref = null;
+        if($p=strpos($cn, '#')) {
+            $ref = substr($cn, $p+1);
+            $cn = substr($cn, 0, $p);
+        }
+        unset($p);
         $ckey = 'schema/'.$cn;
         if($Schema=Tecnodesign_Cache::get($ckey, static::$timeout)) {
             return $Schema;
@@ -44,7 +50,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 if(is_object($d)) { // force a new object
                     $d = (array) $d;
                 }
-                $src = $src ?array_merge_recursive($d, $src) :($d);
+                $src = $src ?tdz::mergeRecursive($d, $src) :($d);
                 unset($d);
             }
         }
@@ -58,6 +64,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         }
 
         if($src) {
+            static::expandSchemaRefs($src); 
             $schemaClass = get_called_class();
             $Schema = new $schemaClass($src);
             Tecnodesign_Cache::set($ckey, $Schema, static::$timeout);
@@ -68,19 +75,44 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         return $Schema;
     }
 
+    public static function expandSchemaRefs(&$src)
+    {
+        foreach($src as $i=>$o) {
+            if(is_array($o) && isset($o['ref'])) {
+                if(class_exists($o['ref']) && is_subclass_of($o['ref'], 'Tecnodesign_Schema')) {
+                    $cn = $o['ref'];
+                    $src[$i] = $cn::loadSchema($cn, $o);
+                } else if($ref=static::loadSchemaRef($o['ref'])) {
+                    $src[$i] += $ref;
+                    $src[$i]['refid'] = $o['ref'];
+                    unset($src[$i]['ref']);
+                }
+            } else if(is_array($o) && isset($o['ref'])) {
+                \tdz::debug('not found: ', $o, static::$schemaDir);
+            }
+            if(is_array($o)) {
+                $src[$i] = static::expandSchemaRefs($src[$i]);
+            }
+            unset($i, $o);
+        }
+        return $src;
+    }
+
     public static function loadSchemaRef($ref)
     {
-        $dirs = tdz::getApp()->config('tecnodesign', 'schema-dir');
-        if(!$dirs) {
-            $dirs = array();
-        } else if(!is_array($dirs)) {
-            $dirs = array($dirs);
+        if(is_null(static::$schemaDir)) {
+            static::$schemaDir = tdz::getApp()->config('tecnodesign', 'schema-dir');
+            if(!static::$schemaDir) {
+                static::$schemaDir = array();
+            } else if(!is_array(static::$schemaDir)) {
+                static::$schemaDir = array(static::$schemaDir);
+            }
         }
-        if(substr($ref, 0, 12)=='Tecnodesign_' && !in_array(TDZ_ROOT.'/schema', $dirs)) array_unshift($dirs, TDZ_ROOT.'/schema');
+        if(substr($ref, 0, 12)=='Tecnodesign_' && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) array_unshift(static::$schemaDir, TDZ_ROOT.'/schema');
 
         $src = array();
         $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);
-        foreach($dirs as $dir) {
+        foreach(static::$schemaDir as $dir) {
             if(file_exists($f=$dir.'/'.$fname.'.json')) {
                 if($d=json_decode(file_get_contents($f), true)) {
                     $src = $src ?array_merge_recursive($src, $d) :$d;
@@ -97,50 +129,52 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         return $src;
     }
 
-    public static function apply($Model, $values, $meta=null)
+    public static function apply($Model, $values, $meta=null, $throw=true)
     {
+        // move this to validateProperty of type object
         $allowUndeclared = false;
         if(is_object($Model)) {
-            if(!$meta && ($Model instanceof Tecnodesign_Model)) $meta = $Model::$schema['columns'];
-            if($Model instanceof Tecnodesign_Schema) {
-                $allowUndeclared = true;
+            if(!$meta) {
+                if(defined(get_class($Model).'::SCHEMA_PROPERTY')) {
+                    $n = $Model::SCHEMA_PROPERTY;
+                    $meta = $Model::$$n;
+                }
+                if(!$meta) $meta = [];
+                if(!isset($meta['type'])) $meta['type'] = 'object';
             }
         } else if(is_array($Model)) {
+            if(!$meta) $meta = array('type'=>'array');
             $arr = $Model;
             $Model = false;
         } else {
+            if(!$meta) $meta = array('type'=>'string');
             $Model = false;
             $arr = array();
         }
-        if(is_object($meta) && ($meta instanceof Tecnodesign_Schema)) {
-            $meta = $meta->properties;
-        }
 
-        foreach($values as $name=>$value) {
-            if($meta) {
-                $i = 10;
-                while(isset($meta[$name]['alias']) && $i--) {
-                    $name = $meta[$name]['alias'];
-                }
-                unset($i);
-                if(isset($meta[$name])) {
-                    $value = static::validateProperty($meta[$name], $value, $name);
-                }
-            } else if($allowUndeclared!==true) {
-                unset($name, $value);
-                continue;
+        try {
+            $values = static::validateProperty($meta, $values);
+        } catch(\Exception $e) {
+            \tdz::log('[INFO] Could not apply values: '.$e->getMessage());
+            if($throw) throw new Tecnodesign_Exception($e->getMessage());
+        }
+        if($Model && method_exists($Model, 'batchSet')) {
+            $Model->batchSet($values, true);
+        } else if(is_array($values)) {
+            foreach($values as $n=>$v) {
+                if($Model) $Model->$n = $v;
+                else if($arr) $arr[$n] = $v;
             }
-            if($Model) $Model->$name = $value;
-            else if($arr) $arr[$name] = $value;
-            unset($name, $value);
         }
-
-        return ($Model)?($Model):($arr);
+        if($Model) return $Model;
+        else if($arr) return $arr;
+        else return $values;
     }
 
     public static function validateProperty($def, $value, $name=null)
     {
-        if(!isset($def['type']) || $def['type']=='string') {
+        if(!isset($def['type'])) $def['type'] = 'string';
+        if($def['type']=='string') {
             if(is_array($value)) {
                 if(isset($def['serialize'])) {
                     $value = tdz::serialize($value, $def['serialize']);
@@ -166,7 +200,63 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 $label = (isset($def['label']))?($def['label']):(tdz::t(ucwords(str_replace('_', ' ', $name)), 'labels'));
                 throw new Tecnodesign_Exception(sprintf(tdz::t(static::$errorInvalid, 'exception'), $label).' '.sprintf(tdz::t(static::$errorGreaterThan, 'exception'), $value, $def['max']));
             }
-        } else if(substr($def['type'], 0,4)=='date') {
+        } else if($def['type']==='object' || $def['type']==='array') {
+            if(!is_object($value) && !is_array($value)) {
+                $value = [$value];
+            }
+            $nreg = (isset($def['patternProperties'])) ?$def['patternProperties'] :null;
+            if(isset($def['item'])) {
+                $item = $def['item'];
+                if(is_string($item)) {
+                    foreach($value as $i=>$o) {
+                        // type object should validate keys, if patternProperties is present, or is an object
+                        if($nreg && !preg_match($nreg, $i)) {
+                            unset($value[$i]);
+                        } else {
+                            $value[$i] = new $item($o);
+                        }
+                    }
+                }
+                unset($item);
+            } else if(isset($def['properties']) || $nreg) {
+                // if its an array, validate recursively (treat as schema)
+                $meta = (isset($def['properties'])) ?$def['properties'] :null;
+                foreach($value as $n=>$pvalue) {
+                    if(isset($meta[$n]['alias'])) {
+                        unset($value[$n]);
+                        $i = 10;
+                        while(isset($meta[$n]['alias']) && $i--) {
+                            if(substr($meta[$n]['alias'], 0, 1)==='!') {
+                                $pvalue = !$pvalue;
+                                $n = substr($meta[$n]['alias'], 1);
+                            } else {
+                                $n = $meta[$n]['alias'];
+                            }
+                        }
+                        unset($i);
+
+                    }
+                    if(isset($meta[$n])) {
+                        if(isset($meta[$n]['trigger'][$pvalue])) {
+                            $trigger = $meta[$n]['trigger'][$pvalue];
+                            if(!is_array($trigger)) {
+                                $trigger = array($n=>$trigger);
+                            }
+                            foreach($trigger as $tname=>$tvalue) {
+                                $value[$tname] = $tvalue;
+                            }
+                            unset($trigger);
+                        } else {
+                            $value[$n] = static::validateProperty($meta[$n], $pvalue, $n);
+                        }
+                    } else if($nreg && !preg_match($nreg, $n)) {
+                        unset($value[$n]);
+                    }
+                }
+            }
+        }
+
+        if(substr($def['type'], 0,4)=='date' || (isset($def['format']) && substr($def['type'], 0,4)=='date')) {
             if($value) {
                 $time = false;
                 $d = false;
@@ -192,11 +282,20 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 }
             }
         }
+
         // @TODO: write other validators
         if(($value==='' || $value===null) && isset($def['default'])) {
             $value = $def['default'];
         }
-        if (($value==='' || $value===null) && isset($def['null']) && !$def['null']) {
+
+        if(isset($def['required']) && $def['required']) {
+            $nullable = false;
+        } else if(isset($def['null']) && !$def['null']) {
+            $nullable = false;
+        } else {
+            $nullable = true;
+        }
+        if (($value==='' || $value===null) && !$nullable) {
             $label = (isset($def['label']))?($def['label']):(tdz::t(ucwords(str_replace('_', ' ', $name)), 'labels'));
             throw new Tecnodesign_Exception(sprintf(tdz::t(static::$errorMandatory, 'exception'), $label));
         } else if($value==='') {

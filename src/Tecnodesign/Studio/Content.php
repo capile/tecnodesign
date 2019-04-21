@@ -10,7 +10,7 @@
  * @copyright 2014 Tecnodesign
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_Studio_Content extends Tecnodesign_Model
+class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 {
    /**
      * Configurable behavior
@@ -31,66 +31,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Model
         $multiviewContentType=array('widget','php','md'), // which entry types can be previewed
         $disableExtensions=array();                  // disable the preview of selected extensions
 
-    /**
-     * Tecnodesign_Model schema
-     */
-    //--tdz-schema-start--2014-12-27 18:32:23
-    public static $schema = array (
-      'database' => 'studio',
-      'tableName' => 'tdz_contents',
-      'label' => '*Contents',
-      'className' => 'tdzContent',
-      'columns' => array (
-        'id' => array ( 'type' => 'string', 'increment' => 'auto', 'null' => false, 'primary' => true, ),
-        'entry' => array ( 'type' => 'string', 'null' => true, ),
-        'slot' => array ( 'type' => 'string', 'size' => '50', 'null' => true, ),
-        'content_type' => array ( 'type' => 'string', 'size' => '100', 'null' => true, ),
-        'content' => array ( 'type' => 'string', 'size' => '', 'null' => true, ),
-        'position' => array ( 'type' => 'string', 'size'=>250, 'null' => true, ),
-        'published' => array ( 'type' => 'datetime', 'null' => true, ),
-        'version' => array ( 'type' => 'int', 'null' => true, ),
-        'created' => array ( 'type' => 'datetime', 'null' => false, ),
-        'updated' => array ( 'type' => 'datetime', 'null' => false, ),
-        'expired' => array ( 'type' => 'datetime', 'null' => true, ),
-      ),
-      'relations' => array (
-        'ContentDisplay' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'tdzContentDisplay', ),
-        'Entry' => array ( 'local' => 'entry', 'foreign' => 'id', 'type' => 'one', 'className' => 'tdzEntry', ),
-        'ContentAttributes' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'tdzAttributes', ),
-        'MetaAttributes' => array ( 'local' => 'id', 'foreign' => 'content', 'type' => 'many', 'className' => 'tdzAttributes', ),
-      ),
-      'scope' => array (
-        'string'=>array('id', 'slot', 'Entry.link _url'),
-      ),
-      'order' => array (
-        'slot' => 'asc',
-        'position' => 'asc',
-        'version' => 'desc',
-      ),
-      'events' => array (
-        'before-insert' => array ( 'actAs', ),
-        'before-update' => array ( 'actAs', ),
-        'before-delete' => array ( 'actAs', ),
-        'after-insert' => array ( 'actAs', ),
-        'after-update' => array ( 'actAs', ),
-        'after-delete' => array ( 'actAs', ),
-        'active-records' => '`expired` is null',
-      ),
-      'form' => array (
-        'content_type' => array ( 'bind' => 'content_type', 'type' => 'select', 'class' => 'studio-field-content-type s-inline', 'attributes'=>array('data-callback'=>'contentType')),
-        'content' => array ( 'bind' => 'content', 'type' => 'textarea', 'class' => 'studio-field-content' ),
-      ),
-      'actAs' => array (
-        'before-insert' => array ( 'auto-increment' => array ( 'id', ), 'timestampable' => array ( 'created', 'updated', ), 'sortable' => array ( 'position', ), ),
-        'before-update' => array ( 'auto-increment' => array ( 'version', ), 'timestampable' => array ( 'updated', ), 'sortable' => array ( 'position', ), ),
-        'before-delete' => array ( 'auto-increment' => array ( 'version', ), 'timestampable' => array ( 'updated', ), 'soft-delete' => array ( 'expired', ), 'sortable' => array ( 'position', ), ),
-        'after-insert' => array ( 'versionable' => array ( 'version', ), ),
-        'after-update' => array ( 'versionable' => array ( 'version', ), ),
-        'after-delete' => array ( 'versionable' => array ( 'version', ), ),
-      ),
-    );
+    public static $schema;
     protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry, $ContentAttributes, $MetaAttributes;
-    //--tdz-schema-end--
     protected static $content_types=null;
     protected $show_at, $hide_at, $modified;
     public $pageFile, $attributes, $subposition;

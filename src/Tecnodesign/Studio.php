@@ -1,6 +1,6 @@
 <?php
 /**
- * e-Studio: Tecnodesign's Content Management System
+ * Tecnodesign Studio
  *
  * Stand-alone Content Management System.
  *

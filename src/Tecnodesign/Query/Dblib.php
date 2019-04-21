@@ -190,4 +190,11 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
         }
     }
 
+    public function getTablesQuery($database=null, $enableViews=null)
+    {
+        if(is_null($database)) $database = $this->schema('database');
+        return 'select table_name from information_schema.tables where table_catalog='.tdz::sql($this->getDatabaseName($database))
+            . ((!$enableViews) ?' and table_type=\'BASE TABLE\'' :'');
+    }
+
 }

@@ -15,3 +15,10 @@ all:
       additional-params: true
       layout: layout
     default-route: run
+    routes:
+      schema:
+        class: Tecnodesign_Database
+        method: exportSchema
+        static: true
+        additional-params: false
+        layout: cli

@@ -1,6 +1,6 @@
 
-Tecnodesign Application Development Framework 
-=============================================
+Tecnodesign Studio 
+==================
 
 This is a framework developed by Tecnodesign to build web applications and websites. It comes with a powerful MVC structure and several additional modules.
 

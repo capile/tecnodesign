@@ -67,7 +67,9 @@ class Tecnodesign_Query implements \ArrayAccess
     {
         static $H = array();
         $n = '';
-        if((is_string($s) && $s && property_exists($s, 'schema')) || $s instanceof Tecnodesign_Model) {
+        if(is_string($s) && static::database($s)) {
+            $n = $s;
+        } else if((is_string($s) && $s && property_exists($s, 'schema')) || $s instanceof Tecnodesign_Model) {
             $n = $s::$schema['database'];
             if(is_object($s)) {
                 $s = (isset($s::$schema['className']))?($s::$schema['className']):(get_class($s));

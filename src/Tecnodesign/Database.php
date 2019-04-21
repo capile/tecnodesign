@@ -4,28 +4,14 @@
  *
  * Basic and simple ORM based on PDO methods only
  *
- * PHP version 5.3
+ * PHP version 5.6
  *
  * @category  Database
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Database.php 1296 2013-12-04 23:26:15Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Database
- *
- * Basic and simple ORM based on PDO methods only
- *
- * @category  Database
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @link      https://tecnodz.com/
  */
 class Tecnodesign_Database
 {
@@ -48,44 +34,12 @@ class Tecnodesign_Database
      */
     public static function getTables($db=null)
     {
-        if (is_null($db) || !is_array($db)) {
-            $dbs = tdz::$database;
-            if(is_null($db)) {
-                $dbnames = array_keys($dbs);
-                $dbn = $dbnames[0];
-            } else {
-                $dbn = $db;
-            }
-        } else if(is_array($db)) {
-            foreach(tdz::$database as $dbn=>$dbo) {
-                if($dbo['dsn']==$db['dsn']) break;
-                unset($dbn, $dbo);
-            }
-        } else {
-            $dbn = $db;
-            $db = tdz::$database[$dbn];
+        if (is_null($db)) {
+            $db = array_keys(Tecnodesign_Query::database())[0];
         }
-        $tables = array();
-        $conn = tdz::connect($dbn);
-        if(preg_match('/\;dbname=([^\;]+)/', $db['dsn'], $m)){
-            $dbname = $m[1];
-            $driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-            if($driver=='dblib') {
-                $sql = "select table_name from information_schema.tables where table_catalog='{$dbname}'".((!self::$enableViews)?(" and table_type='BASE TABLE'"):(''));
-                $tables = $conn->query($sql)->fetchAll(PDO::FETCH_COLUMN);
-            } else {
-                // mysql detailed query
-                $tables = $conn->query("select table_name, table_comment, create_time, update_time from information_schema.tables where table_schema='{$dbname}'")->fetchAll();
-            }
-        }
-        if(!$tables || count($tables)==0){
-            if(!isset($driver)) {
-                $driver = (isset($db['dsn']))?(preg_replace('/\:.*/', '', $db['dsn'])):(null);
-            }
-            $q = ($driver=='sqlite')?('select name from sqlite_master where type=\'table\''):('show tables');
-            $tables = $conn->query($q)->fetchAll(PDO::FETCH_COLUMN);
-        }
-        return $tables;
+        $H = Tecnodesign_Query::handler($db);
+        if(!method_exists($H, 'getTables')) return [];
+        return $H->getTables($db);
     }
 
     /**
@@ -135,15 +89,15 @@ class Tecnodesign_Database
     
     public static function className($tn, $db=null)
     {
-        $models = self::getModels($db);
-        if(isset($models[$tn])) {
+        if($db && ($models = self::getModels($db)) && isset($models[$tn])) {
             return $models[$tn];
         } else {
             $p = self::$classPrefix;
             if(!is_null(self::$ns) && self::$ns) {
                 $p = self::$ns.'\\'.$p;
             }
-            return $p.ucfirst(tdz::camelize($tn));
+
+            return (class_exists($cn=$p.tdz::camelize($tn))) ?$cn :$p.tdz::camelize($tn, true);
         }
     }
     
@@ -233,6 +187,50 @@ class Tecnodesign_Database
         }
     }
     
+
+    public static function exportSchema($tns=array(), $dbs=null)
+    {
+        if(TDZ_CLI && !$tns && ($r=Tecnodesign_App::response('route')) && $r['class']===get_called_class() && $r['method']==='exportSchema') {
+            // parse cmdline args -- expect table names
+            $tns = Tecnodesign_App::request('argv');
+            if(!is_array($tns)) $tns = [];
+            $output = true;
+            if(!class_exists('tdzEntry')) {
+                if(!in_array($libdir = dirname(__FILE__).'/Studio/Resources/model', tdz::$lib)) tdz::$lib[]=$libdir;
+                unset($libdir);
+            }
+        }
+
+        if(is_null($dbs) || !is_array($dbs)) {
+            $dbs = Tecnodesign_Query::database();
+        }
+        if(!$dbs) return false;
+
+        $res = [];
+        foreach($dbs as $db=>$dbo) {
+            if(isset($dbo['sync']) && !$dbo['sync']) continue;
+            self::$database = $db;
+            self::$dbo = $dbo;
+            $H = Tecnodesign_Query::handler($db);
+            if(!method_exists($H, 'getTables') || !method_exists($H, 'getTableSchema')) continue;
+            $tables = $H->getTables($db);
+            if(!$tables) continue;
+            if($tns) $tables = array_intersect($tables, $tns);
+            if(!$tables) continue;
+
+            foreach($tables as $tn) {
+                $res[] = $H->getTableSchema($tn);
+            }            
+        }
+
+        if(isset($output)) {
+            echo json_encode($res, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            return Tecnodesign_App::end();
+        }
+
+        return $res;
+    }
+
     /**
      * Syncronizes the application models with the database
      */

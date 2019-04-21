@@ -1,11 +1,11 @@
 {
-    "database": "_studio",
+    "title": "*Entries",
+    "database": "studio",
     "tableName": "tdz_entries",
-    "label": "*Entries",
-    "className": "tdzEntry",
-    "columns": {
+    "className": "Tecnodesign_Studio_Entry",
+    "properties": {
         "id": {
-            "type": "int",
+            "type": "string",
             "increment": "auto",
             "null": false,
             "primary": true
@@ -152,7 +152,11 @@
         ],
         "active-records": "`expired` is null"
     },
-    "form": {
+    "overlay": {
+        "id": {
+            "bind": "id",
+            "type": "string",
+        },
         "type": {
             "bind": "type",
             "type": "select",

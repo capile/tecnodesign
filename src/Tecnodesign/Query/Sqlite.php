@@ -73,4 +73,9 @@ class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
             }
         }
     }
+
+    public function getTablesQuery($database=null, $enableViews=null)
+    {
+        return 'select name from sqlite_master where type=\'table\'';
+    }
 }

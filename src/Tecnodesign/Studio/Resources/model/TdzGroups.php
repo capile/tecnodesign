@@ -1,8 +1,6 @@
 <?php
 /**
- * Studio Content backwards compatibility pointer 
- *
- * Contents might be added to entries.
+ * Group backwards compatibility pointer 
  *
  * PHP version 5.6
  *
@@ -13,6 +11,6 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class tdzContentDisplay extends Tecnodesign_Studio_ContentDisplay
+class TdzGroups extends Tecnodesign_Studio_Group
 {
 }

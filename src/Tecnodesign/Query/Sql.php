@@ -39,11 +39,25 @@ class Tecnodesign_Query_Sql
         $_transaction, 
         $_last;
 
+    public static $schemaBehaviors=array(
+        'uid'=>array('before-insert', 'before-update', 'before-delete'),
+        'timestampable'=>array('before-insert', 'before-update', 'before-delete'),
+        'insertable'=>array('before-update', 'before-delete'),
+        'sortable'=>array('before-insert', 'before-update', 'before-delete'),
+        'versionable'=>array('after-insert', 'after-update', 'after-delete'),
+        'soft-delete'=>array('active-records', 'before-delete'),
+        'auto-increment'=>array('before-insert'),
+    );
+    public static $schemaProperties=array('serialize','alias');
+
     public function __construct($s=null)
     {
         if($s) {
             if(is_object($s)) {
                 $this->_schema = get_class($s);
+            } else if(is_string($s) && Tecnodesign_Query::databaseHandler($s)===get_called_class()) {
+                // connection name
+                $this->_schema = new Tecnodesign_Schema_Model(array('database'=>$s));
             } else {
                 $this->_schema = $s;
             }
@@ -131,11 +145,16 @@ class Tecnodesign_Query_Sql
     public function schema($prop=null)
     {
         $cn = $this->_schema;
+        $schema = (is_string($this->_schema)) ?$cn::$schema :$this->_schema;
         if($prop) {
-            if(isset($cn::$schema[$prop])) return $cn::$schema[$prop];
-            return null;
+            $ret = null;
+            if(isset($schema[$prop])) $ret = $schema[$prop];
+            unset($schema);
+
+            return $ret;
         }
-        return $cn::$schema;
+
+        return $schema;
     }
 
     public function scope($o=null, $sc=null)
@@ -144,23 +163,6 @@ class Tecnodesign_Query_Sql
         if($o==='uid') return $cn::pk(null, true);
         return $cn::scope($o);
     }
-
-    public function getDatabaseName($n=null)
-    {
-        if(!$n) $n = $this->schema('database');
-        $db = Tecnodesign_Query::database($n);
-        if($db && isset($db['dsn']) && preg_match('/(^|;)dbname=([^\;]+)/', $db['dsn'], $m)) {
-            $n = $m[2];
-        }
-        return $n;
-    }
-
-    public static function getTables($n='')
-    {
-        if(is_string($n)) $n = self::connect($n);
-        return $n->query('show tables')->fetchAll(\PDO::FETCH_COLUMN);
-    }
-
 
     public function find($options=array(), $asArray=false)
     {
@@ -1102,7 +1104,7 @@ class Tecnodesign_Query_Sql
                 . '`'.$fn.'` ';
             if($fd['type']=='string') {
                 $q .= 'varchar('
-                    . ((isset($fd['size']))?($fd['size']):(255))
+                    . ((isset($fd['size']))?((int)$fd['size']):(255))
                     . ')';
             } else if(isset($fd['data-type'])) {
                 $q .= $fd['data-type'];
@@ -1222,4 +1224,298 @@ class Tecnodesign_Query_Sql
         }
         return tdz::$variables['timestamp'][$cn];
     }
+
+
+    public function getDatabaseName($n=null)
+    {
+        if(!$n) $n = $this->schema('database');
+        $db = Tecnodesign_Query::database($n);
+        if($db && isset($db['dsn']) && preg_match('/(^|;)dbname=([^\;]+)/', $db['dsn'], $m)) {
+            $n = $m[2];
+        }
+        return $n;
+    }
+
+    public function getTables($database=null)
+    {
+        if(is_null($database)) $database = $this->schema('database');
+        $query = $this->getTablesQuery($database);
+        $conn = static::connect($database);
+        return $conn->query($query)->fetchAll(\PDO::FETCH_COLUMN);
+    }
+
+    public function getTablesQuery($database=null, $enableViews=null)
+    {
+        return 'show tables';
+    }
+
+    public function getTableSchemaQuery($table, $database=null, $enableViews=null)
+    {
+        return 'show full columns from '.\tdz::sql($table, false);
+    }
+
+    public function getColumnSchema($fd, $base=array())
+    {
+        $protected = array('type', 'min', 'max', 'length', 'null');// , 'increment'
+        if(is_array($base) && count($base)>0) {
+            foreach ($protected as $remove) {
+                if(isset($base[$remove])) {
+                    unset($base[$remove]);
+                }
+            }
+        } else {
+            $base = array();
+        }
+        $f=array(
+            'bind'=>trim(strtolower($fd['Field'])),
+        );
+        // find type and limits
+        // date and datetime
+        $type = trim(strtolower($fd['Type']));
+        $desc = '';
+        $unsigned = false;
+        if(preg_match('/\s*\(([0-9\,]+)\)\s*(signed|unsigned)?.*/', $type, $m)) {
+            $desc = trim($m[1]);
+            $type = substr($type, 0, strlen($type) - strlen($m[0]));
+            if(isset($m[2]) && $m[2]=='unsigned') {
+                $unsigned = true;
+            }
+        }
+        if ($type=='datetime' || $type=='date') {
+            $f['format'] = $type;
+            $f['type'] = 'string';
+        //} else if($type=='tinyint' && $desc=='1') {
+        //    $f['type'] = 'bool';
+        } else if($type=='bit') {
+            $f['type'] = 'bool';
+        } else if(substr($type, -3)=='int') {
+            $f['type'] = 'int';
+            if($unsigned) {
+                $f['min'] = 0;
+            }
+            if ($type=='tinyint') {
+                $f['max'] = ($unsigned)?(255):(128);
+            }
+            if($fd['Extra']=='auto_increment') {
+                $f['increment']='auto';
+            }
+        } else if($type=='float') {
+            $f['type'] = 'number';
+            $f['size'] = (int) 10;
+            $f['decimal'] = (int) 2;
+        } else if($type=='decimal') {
+            $f['type'] = 'number';
+            $desc = explode(',',$desc);
+            $f['size'] = (int)$desc[0];
+            $f['decimal'] = (int)$desc[1];
+        } else if($type=='double') {
+            $f['type'] = 'number';
+            $f['size'] = (int) 10;
+            $f['decimal'] = (int) 2;
+        } else if(substr($type, -4)=='text') {
+            $f['type'] = 'string';
+            $f['size'] = (int)$desc;
+        } else if($type=='varchar') {
+            $f['type'] = 'string';
+            $f['size'] = $desc;
+        } else if($type=='char') {
+            $f['type'] = 'string';
+            $f['size'] = (int)$desc;
+            $f['min_size'] = $desc;
+        } else if(substr($type, 0, 4)=='enum') {
+            $f['type'] = 'string';
+            $choices = array();
+            preg_match_all('/\'([^\']+)\'/', $type, $m);
+            foreach($m[1] as $v) {
+                $choices[$v]=$v;
+            }
+            $f['choices']=$choices;
+        } else {
+            tdz::debug(__METHOD__.'???', $fd, $type, $desc, $m);
+        }
+        $f['null'] = ($fd['Null']=='YES');
+        if($fd['Key']=='PRI') {
+            $f['primary']=true;
+        }
+        $f += $base;
+        
+        return $f;
+    }
+
+    public function getTableSchema($table, $schema=null, $Model=null)
+    {
+        if(is_null($schema)) {
+            $schema = $this->schema();
+            if(!$schema->className) {
+                if(class_exists($cn=Tecnodesign_Database::className($table))) {
+                    $schema = $cn::$schema;
+                }
+            }
+        }
+        $schema->tableName = $table;
+        $conn = static::connect($schema->database);
+
+        $raw = $conn->query($this->getTableSchemaQuery($table))->fetchAll(\PDO::FETCH_ASSOC);
+        if(!$raw) {
+            exit("No tables to update!\n");
+            return false;
+        }
+
+        $properties = $schema->properties ?$schema->properties :[];
+        $overlay = $schema->overlay ?$schema->overlay :[];
+        $events = $schema->actAs ?$schema->actAs :[];
+        $se = $schema->events ?$schema->events :[];
+        $reprop = '/('.implode('|',static::$schemaProperties).'):\s*([^,\s\;]+)([,\s\;]+)?/';
+        foreach($raw as $i=>$o) {
+            $fd = $this->getColumnSchema($o);
+            if(isset($fd['bind'])) {
+                $fn = $fd['bind'];
+            } else {
+                $fn = array_values($o)[0];
+            }
+            if($Model && isset($fd['default']) && $fd['default']!='') {
+                $Model[$fn]=$fd['default'];
+            }
+            $properties[$fn] = $fd;
+            if(isset($o['Comment']) && $o['Comment']!='') {
+                if(preg_match_all($reprop, $o['Comment'], $m)) {
+                    foreach($m[1] as $k=>$v) {
+                        $properties[$fn][$v] = $m[2][$k];
+                        unset($k, $v);
+                    }
+                    str_replace($m[0], '', $o['Comment']);
+                    unset($m);
+                    if(trim($o['Comment'])=='') continue;
+                }
+
+                foreach(static::$schemaBehaviors as $bn=>$e) {
+                    if(strpos($o['Comment'], $bn)!==false) {
+                        if(isset($overlay[$fn])) unset($overlay[$fn]);
+
+                        $found=array();
+                        foreach($e as $en) {
+                            if(strpos($o['Comment'], $en)!==false) {
+                                $found[]=$en;
+                            }
+                        }
+                        if(count($found)>0) {
+                            $e = $found;
+                        }
+                        foreach($e as $en) {
+                            if($en=='active-record') {
+                                $events[$en][]=$fn;
+                            } else {
+                                if(!isset($events[$en][$bn]) || !in_array($fn, $events[$en][$bn])) $events[$en][$bn][]=$fn;
+                                $se[$en][0]='actAs';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $schema->properties = $properties;
+        if(!$schema->scope) $schema->scope=array();
+        if(!$overlay) {
+            $cn = ($schema->className) ?$schema->className :tdz::camelize($schema->tableName, true);
+            if(method_exists($cn, 'formFields')) {
+                $cn::$schema =& $schema;
+                $cn::formFields();
+            }
+        }
+        if(count($se)>0) {
+            if(isset($se['active-records'])) {
+                if(isset($events['active-records']['soft-delete'])) {
+                    $sd = $events['active-records']['soft-delete'];
+                    unset($events['active-records']);
+                } else if(isset($events['before-delete']['soft-delete'])) {
+                    $sd = $events['before-delete']['soft-delete'];
+                } else {
+                    $sd = null;
+                }
+                if($sd) $se['active-records'] = '`'.implode('` is null and `', $sd).'` is null';
+            }
+        }
+
+        $schema->events = $se;
+        $schema->actAs = $events;
+        $schema->overlay = $overlay;
+
+        $this->getRelationSchema($schema);        
+
+        return $schema;
+    }
+
+    public function getRelationSchemaQuery($table, $database=null, $enableViews=null)
+    {
+        $dbname = tdz::sql($database);
+        $tn = tdz::sql($table);
+        return "select constraint_name as fk, ordinal_position as pos, table_name as tn, column_name as f, referenced_table_name as ref, referenced_column_name as ref_f from information_schema.key_column_usage where table_schema={$dbname} and referenced_table_name is not null and (table_name={$tn} or referenced_table_name={$tn}) order by 2, 1";
+    }
+
+
+    public function getRelationSchema(&$schema)
+    {
+        $conn = static::connect($schema->database);
+        $dbname = $this->getDatabaseName($schema->database);
+        $tn = $schema->tableName;
+        $rels = $conn->query($this->getRelationSchemaQuery($tn, $dbname, true))->fetchAll(\PDO::FETCH_ASSOC);
+        if(!$rels) {
+            return false;
+        }
+
+        $r = array();
+        foreach ($rels as $rel) {
+            if ($rel['tn']==$tn) {
+                $ref = $rel['ref'];
+                $local = $rel['f'];
+                $type = 'one';
+                $foreign = $rel['ref_f'];
+            } else {
+                $ref = $rel['tn'];
+                $local = $rel['ref_f'];
+                $type = 'many';
+                $foreign = $rel['f'];
+            }
+            $class = Tecnodesign_Database::className($ref, $schema->database);
+            if(class_exists($class)) {
+                if(($cn=$class::$schema->className) && $cn!=$class) {
+                    $class = $cn;
+                }
+            } else {
+                tdz::log("[INFO] $class does not exist!\n", tdz::$lib);
+                continue;
+            }
+            $alias = $class;
+            if(preg_match('/^__([a-z0-9]+)__$/i', $rel['fk'], $m)) {
+                $alias = $m[1];
+            } else if(strpos($alias, '_')!==false || strpos($alias, '\\')!==false) {
+                $alias = preg_replace('/.*[_\\\\]([^_\\\\]+)$/', '$1', $alias);
+            }
+            if (isset($r[$alias])) {
+                if(!is_array($r[$alias]['local'])) {
+                    $r[$alias]['local']=array($r[$alias]['local']);
+                    $r[$alias]['foreign']=array($r[$alias]['foreign']);
+                }
+                $r[$alias]['local'][]=$local;
+                $r[$alias]['foreign'][]=$foreign;
+            } else {
+                $r[$alias]['local']=$local;
+                $r[$alias]['foreign']=$foreign;
+            }
+            $r[$alias]['type']=$type;
+            if($alias!=$class){
+                //$r[$class]=$r[$alias];
+                $r[$alias]['className']=$class;
+            }
+        }
+
+        if($schema->relations) {
+            $schema->relations += $r;
+        } else {
+            $schema->relations = $r;
+        }
+        return $schema;
+    }
+    
 }

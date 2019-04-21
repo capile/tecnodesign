@@ -1,8 +1,8 @@
 <?php
 /**
- * Studio Content backwards compatibility pointer 
+ * Studio Tag backwards compatibility pointer 
  *
- * Contents might be added to entries.
+ * Tags are added to entries to filter or create a tag cloud.
  *
  * PHP version 5.6
  *
@@ -13,6 +13,6 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class tdzContentDisplay extends Tecnodesign_Studio_ContentDisplay
+class TdzTags extends Tecnodesign_Studio_Tag
 {
 }

@@ -21,7 +21,7 @@
  * @copyright 2011 Tecnodesign
  * @link      http://tecnodz.com/
  */
-class Tecnodesign_Studio_Attributes extends Tecnodesign_Model
+class Tecnodesign_Studio_Attributes extends Tecnodesign_Studio_Model
 {
     /**
      * Tecnodesign_Model schema

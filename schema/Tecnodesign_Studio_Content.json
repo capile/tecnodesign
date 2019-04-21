@@ -1,0 +1,212 @@
+{
+    "title": "*Contents",
+    "database": "studio",
+    "tableName": "tdz_contents",
+    "className": "Tecnodesign_Studio_Content",
+    "properties": {
+        "id": {
+            "bind": "string",
+            "type": "int",
+            "increment": "auto",
+            "null": false,
+            "primary": true
+        },
+        "entry": {
+            "bind": "entry",
+            "type": "int",
+            "null": true
+        },
+        "slot": {
+            "bind": "slot",
+            "type": "string",
+            "size": "50",
+            "null": true
+        },
+        "content_type": {
+            "bind": "content_type",
+            "type": "string",
+            "size": "100",
+            "null": true
+        },
+        "content": {
+            "bind": "content",
+            "type": "string",
+            "size": 0,
+            "null": true
+        },
+        "position": {
+            "bind": "position",
+            "type": "int",
+            "null": true
+        },
+        "published": {
+            "bind": "published",
+            "format": "datetime",
+            "type": "string",
+            "null": true
+        },
+        "version": {
+            "bind": "version",
+            "type": "int",
+            "null": true
+        },
+        "created": {
+            "bind": "created",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "updated": {
+            "bind": "updated",
+            "format": "datetime",
+            "type": "string",
+            "null": false
+        },
+        "expired": {
+            "bind": "expired",
+            "format": "datetime",
+            "type": "string",
+            "null": true
+        },
+        "show_at": {
+            "bind": "show_at",
+            "type": "string",
+            "size": 0,
+            "null": true
+        },
+        "hide_at": {
+            "bind": "hide_at",
+            "type": "string",
+            "size": 0,
+            "null": true
+        }
+    },
+    "relations": {
+        "ContentDisplay": {
+            "local": "id",
+            "foreign": "content",
+            "type": "many",
+            "className": "Tecnodesign_Studio_ContentDisplay"
+        },
+        "Entry": {
+            "local": "entry",
+            "foreign": "id",
+            "type": "one",
+            "className": "Tecnodesign_Studio_Entry"
+        },
+        "ContentAttributes": {
+            "local": "id",
+            "foreign": "content",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Attributes"
+        },
+        "MetaAttributes": {
+            "local": "id",
+            "foreign": "content",
+            "type": "many",
+            "className": "Tecnodesign_Studio_Attributes"
+        }
+    },
+    "scope": {
+        "string": [
+            "id",
+            "slot",
+            "Entry.link _url"
+        ]
+    },
+    "events": {
+        "before-insert": [
+            "actAs"
+        ],
+        "before-update": [
+            "actAs"
+        ],
+        "before-delete": [
+            "actAs"
+        ],
+        "after-insert": [
+            "actAs"
+        ],
+        "after-update": [
+            "actAs"
+        ],
+        "after-delete": [
+            "actAs"
+        ],
+        "active-records": "`expired` is null"
+    },
+    "overlay": {
+        "id": {
+            "bind": "id",
+            "type": "string",
+        },
+        "content_type": {
+            "bind": "content_type",
+            "type": "select",
+            "class": "studio-field-content-type s-inline",
+            "attributes": {
+                "data-callback": "contentType"
+            }
+        },
+        "content": {
+            "bind": "content",
+            "type": "textarea",
+            "class": "studio-field-content"
+        }
+    },
+    "actAs": {
+        "before-insert": {
+            "auto-increment": [
+                "id",
+                "entry"
+            ],
+            "timestampable": [
+                "created",
+                "updated"
+            ],
+            "sortable": [
+                "position"
+            ]
+        },
+        "before-update": {
+            "auto-increment": [
+                "version"
+            ],
+            "timestampable": [
+                "updated"
+            ],
+            "sortable": [
+                "position"
+            ]
+        },
+        "before-delete": {
+            "auto-increment": [
+                "version"
+            ],
+            "timestampable": [
+                "updated"
+            ],
+            "soft-delete": [
+                "expired"
+            ],
+            "sortable": [
+                "position"
+            ]
+        },
+        "after-insert": {
+            "versionable": [
+                "version"
+            ]
+        },
+        "after-update": {
+            "versionable": [
+                "version"
+            ]
+        },
+        "after-delete": {
+            "versionable": [
+                "version"
+            ]
+        }
+    }
+}

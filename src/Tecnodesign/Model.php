@@ -96,10 +96,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
     public function __destruct()
     {
-        unset($this->_collection, $this->_forms, $this->_query);
-        foreach(static::$schema['relations'] as $rn=>$rel) {
-            $this->unsetRelation($rn);
-            unset($rn, $rel);
+        unset($this->_forms, $this->_query);
+        if(static::$schema && static::$schema->relations) {
+            foreach(static::$schema->relations as $rn=>$rel) {
+                $this->unsetRelation($rn);
+                unset($rn, $rel);
+            }
         }
 
         @self::$stats[get_class($this)]--;
@@ -2538,6 +2540,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public function __set($name, $value)
     {
         return $this->safeSet($name, $value);
+    }
+
+    public function batchSet($values, $skipValidation=false)
+    {
+        foreach($values as $name=>$value) {
+            $this->safeSet($name, $value, $skipValidation);
+        }
+        return $this;
     }
 
     public function safeSet($name, $value, $skipValidation=false)

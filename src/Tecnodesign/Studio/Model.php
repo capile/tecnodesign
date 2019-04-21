@@ -2,7 +2,7 @@
 /**
  * Studio and application configuration
  *
- * PHP version 5.4+
+ * PHP version 5.6
  *
  * @category  Model
  * @package   Studio
@@ -32,5 +32,6 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
                 tdz::$database[$db] = array('dsn'=>$dbs[$db]);
             }
         }
+        parent::staticInitialize();
     }
 }

@@ -13,7 +13,7 @@
  * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      https://tecnodz.com/
  */
-class Tecnodesign_Schema_Model extends Tecnodesign_Schema
+class Tecnodesign_Schema_Property extends Tecnodesign_Schema
 {
     public static $meta;
 }
