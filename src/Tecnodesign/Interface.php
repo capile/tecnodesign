@@ -469,8 +469,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function current()
     {
         if(is_null(self::$instances) || !self::$instances) return null;
-        $id = array_pop(array_keys(self::$instances));
-        return self::$instances[$id];
+        return array_values(self::$instances)[0];
     }
 
     private function register()
@@ -2831,16 +2830,17 @@ class Tecnodesign_Interface implements ArrayAccess
                         $fd = array('type'=>'text');
                     }
                 } else if(isset($fd0)) {
-                    $fd = array_merge($fd, $fd0);
+                    $fd = array_merge((array)$fd, $fd0);
                     unset($fd0);
                 }
-                if(!isset($fd['type'])) $fd['type']='text';
+                if(!isset($fd['type'])) $fd['type']='string';
                 $slug=tdz::slug($label);
                 $fns[$slug]=$fn;
 
-                if(substr($fd['type'],0,4)=='date') {
+                if($fd['type']==='string' && isset($fd['format']) && substr($fd['format'],0,4)=='date') {
                     $fo['fields'][$slug.'-0']=array(
                         'type'=>$fd['type'],
+                        'format'=>$fd['format'],
                         'label'=>$label,
                         'id'=>$slug.'-0',
                         //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'),
@@ -2850,6 +2850,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     );
                     $fo['fields'][$slug.'-1']=array(
                         'type'=>$fd['type'],
+                        'format'=>$fd['format'],
                         'label'=>'',
                         'id'=>$slug.'-1',
                         'placeholder'=>tdz::t('To', 'interface'),
@@ -2931,7 +2932,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $ff['q'][$slug]=$label;
                     if(!isset($fo['fields']['q'])) {
                         $fo['fields']['q']=array(
-                            'type'=>'text',
+                            'type'=>'string',
                             'size'=>'200',
                             'label'=>'',
                             'placeholder'=>tdz::t('Search for', 'interface'),
@@ -2941,7 +2942,8 @@ class Tecnodesign_Interface implements ArrayAccess
                     } else {
                         if(!isset($fo['fields']['w'])) {
                             $fo['fields']['w']=array(
-                                'type'=>'checkbox',
+                                'type'=>'string',
+                                'format'=>'checkbox',
                                 'choices'=>$ff['q'],
                                 'label'=>tdz::t('Search at', 'interface'),
                                 'multiple'=>true, 'fieldset'=>$fieldset,
