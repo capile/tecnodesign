@@ -10,4 +10,5 @@ data/web/_/z-*
 composer.lock
 .idea/
 codecept*
+!codeception.yml
 package-lock.json
