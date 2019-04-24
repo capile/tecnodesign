@@ -33,7 +33,7 @@ class Tecnodesign_Excel
             'xlsx' => 'PhpOffice\PhpSpreadsheet\Writer\Xlsx',
             'xls'  => 'PhpOffice\PhpSpreadsheet\Writer\Xls',
             'html' => 'PhpOffice\PhpSpreadsheet\Writer\Html',
-            'pdf'  => 'PhpOffice\PhpSpreadsheet\Writer\Pdf',
+            'pdf'  => 'PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf',
             'ods'  => 'PhpOffice\PhpSpreadsheet\Writer\Ods',
             'csv'  => 'PhpOffice\PhpSpreadsheet\Writer\Csv',
         );
