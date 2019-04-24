@@ -157,7 +157,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
      *
      * return array $schema array
      */
-    public static function schema($cn=null, $base=array(), $object=false)
+    public static function schema($cn=null, $base=array())
     {
         if(is_null($cn) || !class_exists($cn)) {
             $cn = get_called_class();
@@ -192,11 +192,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
         }
 
-        if($object) {
-            static $schemas=array();
-            if(!isset($schemas[$cn])) $schemas[$cn] = new Tecnodesign_Schema($schema);
-            return $schemas[$cn];
-        }
         return $schema;
     }
 
@@ -443,10 +438,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $fn = substr($fn, strrpos($fn, ' ')+1);
                 }
                 if(isset(static::$schema['form'][$fn])) {
-                    $fd += static::$schema['form'][$fn];
+                    $fd += (array)static::$schema['form'][$fn];
                 }
                 if(isset(static::$schema['columns'][$fn])) {
-                    $fd += static::$schema['columns'][$fn];
+                    $fd += (array)static::$schema['columns'][$fn];
                 }
                 if(isset($fn0)) {
                     if(!isset($fd['bind'])) $fd['bind'] = $fn0;
@@ -512,7 +507,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $d = array('bind'=>$s);
         }
         if($d && $applyForm && isset($cn::$schema['form'][$s])) {
-            $d = array_merge($d, $cn::$schema['form'][$s]);
+            $d = array_merge((array)$d, (array)$cn::$schema['form'][$s]);
         }
         return $d;
     }
@@ -977,7 +972,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             foreach($scope as $fn=>$fv) {
                 if(is_string($fv) && isset($schema['columns'][$fv]['bind']) && $schema['columns'][$fv]['bind']!=$fv) {
                     $fv = $schema['columns'][$fv]['bind'];
-                } else if(is_array($fv)) {
+                } else if(is_array($fv) || is_object($fv)) {
                     $fv = (isset($fv['bind']))?($fv['bind']):($fn);
                 }
                 if(strpos($fv, ' ')) {
@@ -2223,14 +2218,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 }
                 unset($choices);
             } else if(isset($fd['type'])) {
-                if(substr($fd['type'],0,4)=='date') {
+                if(isset($fd['format']) && substr($fd['format'],0,4)=='date') {
                     if($t=strtotime($v)) {
-                        $df = ($fd['type']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
+                        $df = ($fd['format']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
                         $v = date($df, $t);
                     }
                 } else if(substr($fd['type'], 0, 3)=='int') {
                     if(is_numeric($v)) $v = (int)$v;
-                } else if($fd['type']=='float' || $fd['type']=='decimal') {
+                } else if($fd['type']=='number') {
                     if(preg_match('/^[^0-9]*(\.[0-9]+)?$/', $v)) $v = (float)$v;
                 }
             }
@@ -2316,9 +2311,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 if(is_array($val)) $val = array_shift($val);
             }
             unset($choices);
-        } else if(substr($fd['type'],0,4)=='date') {
+        } else if(isset($fd['format']) && substr($fd['format'],0,4)=='date') {
             if($t=strtotime($val)) {
-                $df = ($fd['type']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
+                $df = ($fd['format']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
                 $val = date($df, $t);
             }
             unset($t, $df);

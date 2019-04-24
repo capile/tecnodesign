@@ -46,6 +46,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $prefix=false,          // prefix to be added to the form field, useful for CSRF and subforms
         $id=false,              // field ID, usually automatically created from key index
         $type='text',           // field type, must have a corresponding function render$Type
+        $format,                // field format, must have a corresponding function render$Type
         $form,                  // form instance id
         $bind,                  // model this field is conected to, accepts relations
         $alias,                 // supports bind from the model side
@@ -1421,8 +1422,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             unset($M, $m);
         }
+        $type = ($this->format) ?$this->format :$this->type;
         if(!$input) {
-            $m = 'render' . ucfirst($this->type);
+            $m = 'render' . ucfirst($type);
             if (!method_exists($this, $m)) {
                 $m = 'renderText';
             }

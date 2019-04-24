@@ -55,9 +55,9 @@ class Tecnodesign_Query_Sql
         if($s) {
             if(is_object($s)) {
                 $this->_schema = get_class($s);
-            } else if(is_string($s) && Tecnodesign_Query::databaseHandler($s)===get_called_class()) {
-                // connection name
-                $this->_schema = new Tecnodesign_Schema_Model(array('database'=>$s));
+            //} else if(is_string($s) && Tecnodesign_Query::databaseHandler($s)===get_called_class()) {
+            //    // connection name
+            //    $this->_schema = new Tecnodesign_Schema_Model(array('database'=>$s));
             } else {
                 $this->_schema = $s;
             }
@@ -598,7 +598,7 @@ class Tecnodesign_Query_Sql
                     $fn = $ta.'.'.$fn;
                 }
             } else {
-                tdz::log("[INFO] Cannot find by [{$ofn}] at [{$sc['tableName']}]");
+                tdz::log("[INFO] Cannot find by [{$ofn}] at [{$sc['tableName']}]", var_export($sc, true));
                 throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
             }
         }
@@ -840,7 +840,7 @@ class Tecnodesign_Query_Sql
             return (int) $v;
         } else if(isset($d['type']) && $d['type']=='bool') {
             return ($v && $v>0)?(1):(0);
-        } else if(isset($d['type']) && $d['type']=='datetime') {
+        } else if(isset($d['format']) && $d['format']=='datetime') {
             $ms = (int) static::$microseconds;
             if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2}) ?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
                 if(!isset($m[3]) || !$m[3]) {

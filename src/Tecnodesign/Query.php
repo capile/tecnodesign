@@ -85,10 +85,17 @@ class Tecnodesign_Query implements \ArrayAccess
     public static function databaseHandler($n)
     {
         $dbs = self::database();
-        if(!isset($dbs[$n])) {
+        if(isset($dbs[$n])) {
+            $db = $dbs[$n];
+        } else if((is_string($n) && $n && property_exists($n, 'schema')) || $n instanceof Tecnodesign_Model) {
+            $n = $n::$schema['database'];
+            if(isset($dbs[$n])) {
+                $db = $dbs[$n];
+            }
+        }
+        if(!isset($db)) {
             throw new Tecnodesign_Exception(['There\'s no %s database configured', $n]);
         }
-        $db = $dbs[$n];
         $cn = (isset($db['class']))?($db['class']):('Tecnodesign_Query_'.ucfirst(substr($db['dsn'], 0, strpos($db['dsn'], ':'))));
         unset($dbs, $db);
         return $cn;
