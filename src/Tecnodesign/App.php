@@ -84,10 +84,10 @@ class Tecnodesign_App
         foreach ($this->_vars['tecnodesign'] as $name=>$value) {
             if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
                 if(is_array($value)) {
-                    foreach($this->_vars['tecnodesign'][$name] as $i=>$value) {
-                        if(substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':') {
+                    foreach($value as $i=>$dvalue) {
+                        if(substr($dvalue, 0, 1)!='/' && substr($dvalue, 1, 1)!=':') {
                             $save = true;
-                            $this->_vars['tecnodesign'][$name][$i]=str_replace('\\', '/', realpath($base.'/'.$value));
+                            $this->_vars['tecnodesign'][$name][$i]=str_replace('\\', '/', realpath($base.'/'.$dvalue));
                         }
                     }
                 } else {
@@ -445,7 +445,7 @@ class Tecnodesign_App
 
     public function runTemplate($tpl, $variables=null, $cache=false)
     {
-        if($tpl && strpos($tpl, '<')!==false) return $tpl;
+        if($tpl && is_string($tpl) && strpos($tpl, '<')!==false) return $tpl;
         if(static::$assets) {
             static::$assets = array_unique(static::$assets);
             foreach(static::$assets as $i=>$n) {

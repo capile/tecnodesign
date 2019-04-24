@@ -115,12 +115,12 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         foreach(static::$schemaDir as $dir) {
             if(file_exists($f=$dir.'/'.$fname.'.json')) {
                 if($d=json_decode(file_get_contents($f), true)) {
-                    $src = $src ?array_merge_recursive($src, $d) :$d;
+                    $src = $src ?tdz::mergeRecursive($src, $d) :$d;
                 }
             }
             if(file_exists($f=$dir.'/'.$fname.'.yml')) {
                 if($d=Tecnodesign_Yaml::load($f)) {
-                    $src = $src ?array_merge_recursive($src, $d) :$d;
+                    $src = $src ?tdz::mergeRecursive($src, $d) :$d;
                 }
             }
             unset($dir, $f, $d);
