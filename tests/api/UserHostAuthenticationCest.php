@@ -10,6 +10,9 @@ class UserHostAuthenticationCest
     public function notAuthenticated(ApiTester $I)
     {
         // change cache key to force a new app config
+        if(file_exists($f=TDZ_ROOT . '/data/config/user-host-admin.yml')) {
+            unlink($f);
+        }
         file_put_contents(TDZ_ROOT . '/.appkey', 'app-noauth');
         touch(TDZ_ROOT . '/app.yml');
 
