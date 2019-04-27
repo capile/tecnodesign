@@ -2235,7 +2235,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             return $this->renderRelation($this->getRelation($fn, null, $scope, false, $xmlEscape), $fn, $fd, $xmlEscape);
         }
         if($xmlEscape) {
-            if(!is_int($v) && !is_float($v)) { 
+            if(!is_int($v) && !is_float($v)) {
                 $v = str_replace(array('  ', "\n"), array('&#160; ', '<br />'), tdz::xml($v));
             }
         }
@@ -2553,7 +2553,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if(isset(static::$schema['columns'][$name]) && !array_key_exists($name, $this->_original)) {
             $this->_original[$name] = $this->$name;
         }
-        @list($firstName,$ref)=explode('.', $name, 2);
+        if (strpos($name, '.') !== false) {
+            list($firstName, $ref) = explode('.', $name, 2);
+        } else {
+            $firstName = $name;
+            $ref = null;
+        }
 
         if (method_exists($this, $m='set'.$mn)) {
             $this->$m($value);

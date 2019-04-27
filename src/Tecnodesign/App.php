@@ -471,7 +471,7 @@ class Tecnodesign_App
      * Currently they are loaded from TDZ_ROOT/src/Tecnodesign/Resources/assets but this should be evolved to a modular structure directly under src
      * and external components should also be loaded (example: font-awesome, d3 etc)
      */
-    public function asset($component)
+    public static function asset($component)
     {
         static $loaded=array();
         if(is_null(tdz::$assetsUrl) || isset($loaded[$component])) return;
