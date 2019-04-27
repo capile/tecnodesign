@@ -320,9 +320,10 @@ class Tecnodesign_App
         if(!self::$_request['shell']) {
             if(!headers_sent()) {
                 if(!isset(self::$_response['headers']['content-length'])) {
-                    if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
+                    if (PHP_SAPI !== 'cli-server'
+                        && isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
                         self::$result = gzencode(self::$result, 9);
-                        self::$_response['headers']['content-encoding'] = (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip'))?('x-gzip'):('gzip');
+                        self::$_response['headers']['content-encoding'] = strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip') ? 'x-gzip' : 'gzip';
                     }
                     self::$_response['headers']['content-length'] = strlen(self::$result);
                 }
