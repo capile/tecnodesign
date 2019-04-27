@@ -10,3 +10,4 @@ require 'vendor/autoload.php';
  * @todo create a decent init to avoid constants creation
  */
 require 'tdz.php';
+

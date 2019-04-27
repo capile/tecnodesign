@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignTest;
+namespace TecnodesignUnitTest;
 
 class MailTest extends \PHPUnit\Framework\TestCase
 {
