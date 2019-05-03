@@ -4,225 +4,55 @@
     "tableName": "tdz_entries",
     "className": "Tecnodesign_Studio_Entry",
     "properties": {
-        "id": {
-            "type": "string",
-            "increment": "auto",
-            "null": false,
-            "primary": true
-        },
-        "title": {
-            "type": "string",
-            "size": "200",
-            "null": true
-        },
-        "summary": {
-            "type": "string",
-            "size": "",
-            "null": true
-        },
-        "link": {
-            "type": "string",
-            "size": "200",
-            "null": true
-        },
-        "source": {
-            "type": "string",
-            "size": "200",
-            "null": true
-        },
-        "format": {
-            "type": "string",
-            "size": "100",
-            "null": true
-        },
-        "published": {
-            "type": "datetime",
-            "null": true
-        },
-        "language": {
-            "type": "string",
-            "size": "10",
-            "null": true
-        },
-        "type": {
-            "type": "string",
-            "size": "100",
-            "null": true
-        },
-        "master": {
-            "type": "string",
-            "size": "100",
-            "null": true
-        },
-        "version": {
-            "type": "int",
-            "null": true
-        },
-        "created": {
-            "type": "datetime",
-            "null": false
-        },
-        "updated": {
-            "type": "datetime",
-            "null": false
-        },
-        "expired": {
-            "type": "datetime",
-            "null": true
-        }
+        "id": { "type": "string", "increment": "auto", "required": true, "primary": true },
+        "title": { "type": "string", "size": 200 },
+        "summary": { "type": "string" },
+        "link": { "type": "string", "size": 200 },
+        "source": { "type": "string", "size": 200 },
+        "format": { "type": "string", "size": 100 },
+        "published": { "type": "datetime" },
+        "language": { "type": "string", "size": 10 },
+        "type": { "type": "string", "size": 100 },
+        "master": { "type": "string", "size": 100 },
+        "version": { "type": "int" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true },
+        "expired": { "type": "datetime" }
     },
     "relations": {
-        "Tag": {
-            "local": "id",
-            "foreign": "entry",
-            "type": "many",
-            "className": "tdzTag"
-        },
-        "Content": {
-            "local": "id",
-            "foreign": "entry",
-            "type": "many",
-            "className": "tdzContent"
-        },
-        "Permission": {
-            "local": "id",
-            "foreign": "entry",
-            "type": "many",
-            "className": "tdzPermission"
-        },
-        "Child": {
-            "local": "id",
-            "foreign": "entry",
-            "type": "many",
-            "className": "tdzRelation"
-        },
-        "Parent": {
-            "local": "id",
-            "foreign": "parent",
-            "type": "many",
-            "className": "tdzRelation"
-        },
-        "Relation": {
-            "local": "id",
-            "foreign": "entry",
-            "type": "many",
-            "className": "tdzRelation"
-        },
-        "Children": {
-            "local": "id",
-            "foreign": "parent",
-            "type": "many",
-            "className": "tdzRelation"
-        }
+        "Tag": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Tag" },
+        "Content": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Content" },
+        "Permission": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Permission" },
+        "Child": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Parent": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Relation": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Children": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" }
     },
     "scope": {
-        "link": [
-            "id",
-            "link",
-            "title"
-        ],
-        "studio-new": [
-            "type",
-            "title",
-            "link",
-            "summary",
-            "published"
-        ],
-        "studio-edit": [
-            "type",
-            "title",
-            "link",
-            "summary",
-            "published",
-            "contents"
-        ]
+        "link": [ "id", "link", "title" ],
+        "studio-new": [ "type", "title", "link", "summary", "published" ],
+        "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ]
     },
     "order": {
         "version": "desc"
     },
     "events": {
-        "before-insert": [
-            "actAs"
-        ],
-        "before-update": [
-            "actAs"
-        ],
-        "before-delete": [
-            "actAs"
-        ],
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
         "active-records": "`expired` is null"
     },
     "overlay": {
-        "id": {
-            "bind": "id",
-            "type": "string",
-        },
-        "type": {
-            "bind": "type",
-            "type": "select",
-            "choices": "Tecnodesign_Studio::config('entry_types')",
-            "fieldset": "*Properties",
-            "class": "studio-left"
-        },
-        "title": {
-            "bind": "title",
-            "fieldset": "*Properties",
-            "class": "studio-clear",
-            "required": true
-        },
-        "link": {
-            "bind": "link",
-            "attributes": {
-                "data-type": "url"
-            },
-            "fieldset": "*Properties"
-        },
-        "summary": {
-            "bind": "summary",
-            "type": "html",
-            "fieldset": "*Properties",
-            "class": "studio-clear"
-        },
-        "published": {
-            "bind": "published",
-            "type": "datetime",
-            "fieldset": "*Properties",
-            "class": "studio-left"
-        },
-        "contents": {
-            "bind": "Content",
-            "type": "form",
-            "fieldset": "*Content"
-        }
+        "type": { "bind": "type", "format": "select", "choices": "Tecnodesign_Studio::config('entry_types')", "fieldset": "*Properties", "class": "studio-left" },
+        "title": { "bind": "title", "fieldset": "*Properties", "class": "studio-clear", "required": true },
+        "link": { "bind": "link", "attributes": { "data-type": "url" }, "fieldset": "*Properties" },
+        "summary": { "bind": "summary", "format": "html", "fieldset": "*Properties", "class": "studio-clear" },
+        "published": { "bind": "published", "format": "datetime", "fieldset": "*Properties", "class": "studio-left" },
+        "contents": { "bind": "Content", "format": "form", "fieldset": "*Content" }
     },
     "actAs": {
-        "before-insert": {
-            "auto-increment": [
-                "id"
-            ],
-            "timestampable": [
-                "created",
-                "updated"
-            ]
-        },
-        "before-update": {
-            "auto-increment": [
-                "version"
-            ],
-            "timestampable": [
-                "updated"
-            ]
-        },
-        "before-delete": {
-            "auto-increment": [
-                "version"
-            ],
-            "timestampable": [
-                "updated"
-            ],
-            "soft-delete": [
-                "expired"
-            ]
-        }
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "auto-increment": [ "version" ], "timestampable": [ "updated" ] },
+        "before-delete": { "auto-increment": [ "version" ], "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
     }
 }

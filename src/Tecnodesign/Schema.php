@@ -24,12 +24,13 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         $errorGreaterThan='%s is more than the expected maximum %s',
         $errorMandatory='%s is mandatory and should not be a blank value.',
         $error,
-        $timeout=300;
+        $timeout;//300
 
     public static $meta, $schemaDir;
 
     public static function loadSchema($cn, $meta=null)
     {
+        static $schemas=[];
         // load from cache
         $ref = null;
         if($p=strpos($cn, '#')) {
@@ -37,8 +38,11 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
             $cn = substr($cn, 0, $p);
         }
         unset($p);
+        if(array_key_exists($cn, $schemas)) {
+            return $schemas[$cn];
+        }
         $ckey = 'schema/'.$cn;
-        if($Schema=Tecnodesign_Cache::get($ckey, static::$timeout)) {
+        if(is_int(static::$timeout) && ($Schema=Tecnodesign_Cache::get($ckey, static::$timeout))) {
             return $Schema;
         }
 
@@ -64,13 +68,16 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         }
 
         if($src) {
-            static::expandSchemaRefs($src); 
             $schemaClass = get_called_class();
+            static::expandSchemaRefs($src); 
             $Schema = new $schemaClass($src);
-            Tecnodesign_Cache::set($ckey, $Schema, static::$timeout);
         } else {
             $Schema = null;
         }
+        if(is_int(static::$timeout)) {
+            Tecnodesign_Cache::set($ckey, $Schema, static::$timeout);
+        }
+        $schemas[] = $Schema;
 
         return $Schema;
     }
@@ -87,8 +94,6 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                     $src[$i]['refid'] = $o['ref'];
                     unset($src[$i]['ref']);
                 }
-            } else if(is_array($o) && isset($o['ref'])) {
-                \tdz::debug('not found: ', $o, static::$schemaDir);
             }
             if(is_array($o)) {
                 $src[$i] = static::expandSchemaRefs($src[$i]);
@@ -114,7 +119,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);
         foreach(static::$schemaDir as $dir) {
             if(file_exists($f=$dir.'/'.$fname.'.json')) {
-                if($d=json_decode(file_get_contents($f), true)) {
+                if($d=json_decode(file_get_contents($f), true, 512)) {
                     $src = $src ?tdz::mergeRecursive($src, $d) :$d;
                 }
             }
@@ -575,4 +580,5 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         // dependencies
         // propertyNames
     }
+
 }

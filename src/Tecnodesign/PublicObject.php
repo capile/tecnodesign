@@ -25,8 +25,8 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         $schema = static::SCHEMA_PROPERTY;
         if(!is_null($o) && property_exists(get_called_class(), $schema)) {
             if(is_object($o) && ($o instanceof ArrayAccess)) $o = (array) $o;
-            $schemaClass = (static::$$schema)?(get_class(static::$$schema)):('Tecnodesign_Schema');
-            if(is_array($o)) $schemaClass::apply($this, $o, static::$$schema);
+            $schemaClass = (static::${$schema})?(get_class(static::${$schema})):('Tecnodesign_Schema');
+            if(is_array($o)) $schemaClass::apply($this, $o, static::${$schema});
         }
     }
 
@@ -34,8 +34,8 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
     {
         $schema = static::SCHEMA_PROPERTY;
         if(property_exists(get_called_class(), $schema)) {
-            $schemaClass = (static::$$schema)?(get_class(static::$$schema)):('Tecnodesign_Schema');
-            static::$$schema = $schemaClass::loadSchema(get_called_class());
+            $schemaClass = (static::${$schema})?(get_class(static::${$schema})):('Tecnodesign_Schema');
+            static::${$schema} = $schemaClass::loadSchema(get_called_class());
         }
     }
 
@@ -51,6 +51,41 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         unset($Schema);
         return $name;
     } 
+
+    public function value($serialize=null)
+    {
+        $schema = static::SCHEMA_PROPERTY;
+        $r = null;
+        if(property_exists(get_called_class(), $schema)) {
+            $Schema = static::${$schema};
+            $type = $Schema->type;
+            if(!$type && $Schema->properties) {
+                $type = 'object';
+            } else if(!$type) {
+                $type = 'string';
+            }
+            if($type==='object') {
+                $r = [];
+                if($Schema->properties) {
+                    foreach($Schema->properties as $name=>$def) {
+                        if(isset($this->$name)) $r[$name] = $this->$name;
+                    }
+                }
+            } else {
+                $r = array_values((array)$this);
+                if($type==='string') {
+                    $r = (string) array_shift($r);
+                } else if($type==='int') {
+                    $r = (int) array_shift($r);
+                }
+            }
+        }
+        if($serialize) {
+            return tdz::serialize($r, $serialize);
+        }
+
+        return $r;
+    }
 
     /**
      * ArrayAccess abstract method. Gets stored parameters.

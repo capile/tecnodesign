@@ -13,7 +13,7 @@
 class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_AutoloadInterface
 {
     const SCHEMA_PROPERTY='schema';
-    public static $schema, $allowNewProperties = true;
+    public static $allowNewProperties = true;
 
     public static function staticInitialize()
     {
@@ -21,7 +21,7 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
             '_studio' => 'file:web/*',
             '_studio-config' => 'file:config/*.yml',
         );
-        static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+        parent::staticInitialize();
 
         // check if database exists or needs to be overwriten by file
         if(is_null(tdz::$database)) Tecnodesign_Query::database();
@@ -32,6 +32,5 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
                 tdz::$database[$db] = array('dsn'=>$dbs[$db]);
             }
         }
-        parent::staticInitialize();
     }
 }
