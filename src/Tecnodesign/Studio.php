@@ -61,9 +61,6 @@ class Tecnodesign_Studio
     {
         self::$app = tdz::getApp();
         if(static::$webInterface) {
-            if(!self::$app->studio && tdz::scriptName()==='/' && tdz::getUser()->isSuperAdmin()) {
-                return tdz::redirect(self::$home.'/config');
-            }
             Tecnodesign_App::$assets[] = '!Z.Studio';
             Tecnodesign_App::$assets[] = '!Z.Interface';
         }

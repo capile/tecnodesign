@@ -4,35 +4,20 @@
  *
  * Automatic translation methods.
  *
- * PHP version 5.3
+ * PHP version 5.6
  *
  * @category  Translation
  * @package   Tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
  * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Translate.php 1184 2013-02-20 15:40:12Z capile $
- * @link      http://tecnodz.com/
- */
-
-/**
- * Tecnodesign Translation
- *
- * A collection is an extended array which extends its unknown properties to its
- * collected items.
- *
- * @category  Collection
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
  * @link      http://tecnodz.com/
  */
 class Tecnodesign_Translate
 {
-    public static $method='bing', $apiKey=null, $clientId=null, $sourceLanguage='en', $forceTranslation;
-    protected static $_t=null;
-    protected $_from='en', $_lang='en', $_table=null, $_keys=array();
+    public static $method='bing', $apiKey, $clientId, $sourceLanguage='en', $forceTranslation;
+    protected static $_t;
+    protected $_from='en', $_lang='en', $_table=[], $_keys=[];
 
     public function __construct($language=null)
     {
@@ -56,8 +41,9 @@ class Tecnodesign_Translate
         if(is_null($to)) {
             $to = tdz::$lang;
         }
-        if(self::$forceTranslation!=true && $to==self::$sourceLanguage)
+        if(self::$forceTranslation!==true && ($to==self::$sourceLanguage || (!self::$apiKey && !self::$clientId))) {
             return $message;
+        }
         
         if(!isset(self::$_t[$to])) {
             if(is_null(self::$_t)) {
@@ -88,9 +74,6 @@ class Tecnodesign_Translate
         }
         if(is_null($table)) {
             $table = 'default';
-        }
-        if (is_null($this->_table)) {
-            $this->_table = array();
         }
         if(!isset($this->_table[$table][$message])) {
             if(!isset($this->_table[$table])) {
@@ -127,8 +110,7 @@ class Tecnodesign_Translate
             throw new Tecnodesign_Exception('Translation application needs a valid API key.');
         }
         $utext = urlencode(str_replace('%s', '§', $text));
-        $resp = file_get_contents("http://api.microsofttranslator.com/V2/Ajax.svc/GetTranslations?from={$from}&to={$to}&appId={$appid}&maxTranslations=1&text={$utext}");
-        tdz::log(__METHOD__.', '.__LINE__, "http://api.microsofttranslator.com/V2/Ajax.svc/GetTranslations?from={$from}&to={$to}&appId={$appid}&maxTranslations=1&text={$utext}", $resp);
+        $resp = file_get_contents("https://api.microsofttranslator.com/V2/Ajax.svc/GetTranslations?from={$from}&to={$to}&appId={$appid}&maxTranslations=1&text={$utext}");
         $json = json_decode(substr($resp,3),true);
         if(!$json) {
             throw new Tecnodesign_Exception('Could not translate message. Results are: '.$resp);
@@ -147,7 +129,7 @@ class Tecnodesign_Translate
         }
         $appid = 'Bearer+'.urlencode(self::microsoftToken());
         $utext = urlencode(str_replace('%s', '§', $text));
-        $resp = file_get_contents("http://api.microsofttranslator.com/V2/Ajax.svc/Translate?from={$from}&to={$to}&appId={$appid}&text={$utext}");
+        $resp = file_get_contents("https://api.microsofttranslator.com/V2/Ajax.svc/Translate?from={$from}&to={$to}&appId={$appid}&text={$utext}");
         $json = json_decode(substr($resp,3),true);
         if(!$json) {
             throw new Tecnodesign_Exception('Could not translate message. Results are: '.$resp);
@@ -167,7 +149,7 @@ class Tecnodesign_Translate
             $req = http_build_query(array(
                 'client_id'=>self::$clientId,
                 'client_secret'=>self::$apiKey,
-                'scope'=>'http://api.microsofttranslator.com',
+                'scope'=>'https://api.microsofttranslator.com',
                 'grant_type'=>'client_credentials',
             ));
              
@@ -199,8 +181,3 @@ class Tecnodesign_Translate
         return $t;
     }
 }
-
-/*
- 
-
- *  */
