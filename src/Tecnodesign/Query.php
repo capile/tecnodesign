@@ -70,9 +70,9 @@ class Tecnodesign_Query implements \ArrayAccess
         if(is_string($s) && static::database($s)) {
             $n = $s;
         } else if((is_string($s) && $s && property_exists($s, 'schema')) || $s instanceof Tecnodesign_Model) {
-            $n = $s::$schema['database'];
+            $n = $s::$schema->database;
             if(is_object($s)) {
-                $s = (isset($s::$schema['className']))?($s::$schema['className']):(get_class($s));
+                $s = (isset($s::$schema->className))?($s::$schema->className):(get_class($s));
             }
         }
         if(!isset($H[$n])) {
@@ -88,7 +88,7 @@ class Tecnodesign_Query implements \ArrayAccess
         if(isset($dbs[$n])) {
             $db = $dbs[$n];
         } else if((is_string($n) && $n && property_exists($n, 'schema')) || $n instanceof Tecnodesign_Model) {
-            $n = $n::$schema['database'];
+            $n = $n::$schema->database;
             if(isset($dbs[$n])) {
                 $db = $dbs[$n];
             }

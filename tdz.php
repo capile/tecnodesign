@@ -449,6 +449,27 @@ class tdz
         return array();
     }
 
+    public static function expandVariables($a)
+    {
+        if(!is_array($a) && !is_object($a)) {
+            if(preg_match_all('/\$(([A-Z0a-z-9\_]+\:\:)?[A-Z0a-z-9\_]+)/', $a, $m)) {
+                foreach($m[1] as $i=>$o) {
+                    if(defined($o)) {
+                        $a = str_replace($m[0][$i], constant($o), $a);
+                    }
+                    unset($m[1][$i], $m[0][$i], $i, $o);
+                }
+                unset($m);
+            }
+        } else {
+            foreach($a as $i=>$o) {
+                $a[$i] = tdz::expandVariables($o);
+                unset($i, $o);
+            }
+        }
+        return $a;
+    }
+
     public static function replace($s, $r, $r2=null)
     {
         if(is_array($s)) {

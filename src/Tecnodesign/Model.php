@@ -1471,7 +1471,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public static function connect($conn=null, $Q=null)
     {
         if(!$conn) {
-            $conn = static::$schema['database'];
+            $conn = static::$schema->database;
         }
         if(is_null($Q)) $Q = static::queryHandler();
         $C = $Q->connect($conn);
@@ -1515,7 +1515,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         try {
             $this->_query = static::queryHandler();
             if(!$conn) {
-                $conn = $this->_query->connect($cn::$schema['database']);
+                $conn = $this->_query->connect($cn::$schema->database);
             }
 
             if($conn && is_object($conn) && method_exists($conn, 'setAttribute')) {

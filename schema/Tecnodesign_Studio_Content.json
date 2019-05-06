@@ -4,7 +4,7 @@
     "tableName": "tdz_contents",
     "className": "Tecnodesign_Studio_Content",
     "properties": {
-        "id": { "bind": "string", "type": "int", "increment": "auto", "required": true, "primary": true },
+        "id": { "bind": "id", "type": "string", "increment": "auto", "required": true, "primary": true },
         "entry": { "bind": "entry", "type": "int" },
         "slot": { "bind": "slot", "type": "string", "size": 50 },
         "content_type": { "bind": "content_type", "type": "string", "size": 100 },

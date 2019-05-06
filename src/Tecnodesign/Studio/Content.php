@@ -12,12 +12,6 @@
  */
 class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 {
-   /**
-     * Configurable behavior
-     * This is only available for customizing Studio, please use the tdzContent class
-     * within your lib folder (not TDZ_ROOT!) or .ini files
-     */
-
     public static 
         $contentType = array(
             'html'=>'HTML',

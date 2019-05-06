@@ -15,8 +15,7 @@ class Tecnodesign_Studio
 {
     /**
      * These are the basic configuration settings. Update them by creating a 
-     * configuration file named: config/autoload.Tecnodesign_Studio.ini
-     * (only if necessary)
+     * configuration file named: config/autoload.Tecnodesign_Studio.yml
      */
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
@@ -32,7 +31,8 @@ class Tecnodesign_Studio
         $home='/_studio',   // configurable, where to load E-Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
         $uploadDir,         // deprecated, use tdz::uploadDir
-        $index='studio.db', // configurable, relative to TDZ_VAR
+        $index,             // deprecated, use indexDatabase to configure a local database for indexes
+        $indexDatabase='sqlite:$TDZ_VAR/studio.db', // studio database to index when there's no studio database
         $response=array(    // configurable, this will be added to the App response (passed to the template)
         ),
         $status,
@@ -41,7 +41,7 @@ class Tecnodesign_Studio
         $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
         $allowedExtensions=array('.html');
-    const VERSION = 2.2; // should match the development branch 
+    const VERSION = 2.3;    // should match the development branch 
 
     /**
      * This is a Tecnodesign_App, the constructor is loaded once and then cached (until configuration changes)

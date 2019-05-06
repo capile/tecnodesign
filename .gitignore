@@ -11,3 +11,4 @@
 /.idea/
 /codecept*
 /package-lock.json
+data/studio.db
