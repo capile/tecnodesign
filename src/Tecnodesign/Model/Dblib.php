@@ -29,7 +29,7 @@
  */
 class Tecnodesign_Model_Dblib
 {
-    
+
     public static $behaviors=array(
         'uid'=>array('before-insert', 'before-update', 'before-delete'),
         'timestampable'=>array('before-insert', 'before-update', 'before-delete'),
@@ -139,9 +139,9 @@ class Tecnodesign_Model_Dblib
             $fcode[] = '$'.$fn;
         }
         $indent = 2;
-        $code = "//--tdz-schema-start--".date('Y-m-d H:i:s')."\npublic static \$schema = ".preg_replace('/\n'.str_repeat('  ', $indent).'( |\))+/e', '" ".trim("$1")', preg_replace('/(=>)\s+/', '=> ', var_export($schema, true)));
+        $code = "//--tdz-schema-start--".date('Y-m-d H:i:s')."\npublic static \$schema = ".preg_replace('/\n'.str_repeat('  ', $indent).'( |\))+/', '" ".trim("$1")', preg_replace('/(=>)\s+/', '=> ', var_export($schema, true)));
         $code .= ";\nprotected ".implode(', ', $fcode).";\n";
-        
+
         if(preg_match_all('/array \( (([0-9]+) \=\> \'[^\']*\', )+\)/', $code, $m)) {
             $r=array();
             foreach($m[0] as $l) {
@@ -167,8 +167,8 @@ class Tecnodesign_Model_Dblib
         }
         return $code;
     }
-    
-    
+
+
     public static function parseColumn($fd, $base=array(), $o)
     {
         $protected = array('type', 'min', 'max', 'length', 'null');// , 'increment'
@@ -245,12 +245,12 @@ class Tecnodesign_Model_Dblib
             $f['primary']=true;
         }
         $f += $base;
-        
+
         return $f;
     }
 
-    
-    
+
+
     public static function parseRelations($s=array())
     {
         $tn = $s['tableName'];

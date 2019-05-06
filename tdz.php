@@ -255,7 +255,10 @@ class tdz
         } else if(!$db && isset(tdz::$_connection[''])) {
             $name = '';
         } else if(!$db) {
-            foreach(tdz::$database as $name=>$db) break;
+            //@todo why is that?!
+            foreach(tdz::$database as $name=>$db) {
+                break;
+            }
         } else {
             $name = $db;
         }
@@ -645,11 +648,11 @@ class tdz
         $qs = '';
         if (!empty($arg)) {
             array_walk(
-                $arg, create_function(
-                    '&$v,$k', '$v = urlencode($k)."=".urlencode($v);'
-                )
+                $arg, static function (&$v,$k) {
+                   $v = urlencode($k) . '=' . urlencode($v);
+                }
             );
-            $qs = implode("&", $arg);
+            $qs = implode('&', $arg);
         }
         $uri = '';
         if(isset($_SERVER['REDIRECT_STATUS']) && $_SERVER['REDIRECT_STATUS']=='200' && isset($_SERVER['REDIRECT_URL'])) {
@@ -1781,37 +1784,52 @@ class tdz
         return $r;
     }
 
-    public static function numberToLetter($i, $uppercase=false) { return tdz::letter($i, $uppercase); }
-    public static function letter($i, $uppercase=false)
+    /**
+     * @param string $number
+     * @param bool $uppercase
+     * @return string
+     *
+     * @deprecated use numberToLetter() instead
+     */
+    public static function letter($number, $uppercase = false)
     {
-        $n='';
-        if(!is_int($i)) $i=(int)$i;
-        if($i<0) $i=0;
-        while($i>25) {
-            $ni=floor($i/26) -1;
-            $i=$i%26;
-            if($ni>25) {
-                $i = $i + (26 * floor($ni/26));
-                $ni = $ni%26;
-            }
-            $n=chr(97+$ni).$n;
-        }
-        $n .= chr(97+$i);
-        return $uppercase ?strtoupper($n) :$n;
+        return self::numberToLetter($number, $uppercase);
     }
 
-    public function letterToNumber($s)
+    /**
+     * @param int $number
+     * @param bool $uppercase
+     * @return string
+     */
+    public static function numberToLetter($number, $uppercase = false)
     {
-        $s0 = $s;
-        $s = preg_replace('/[^a-z]+/', '', strtolower($s));
-        $i = null;
-        while($s) {
-            $c = ord($s[0]) - 96;
-            $i += $c*pow(26,strlen($s)-1);
-            $s = substr($s, 1);
+        if (!is_int($number)) {
+            $number = (int)$number;
         }
-        if($i) $i--;
-        return $i;
+        if ($number < 0) {
+            $number = 0;
+        }
+        $return = '';
+        for ($i = 1; $number >= 0 && $i < 10; $i++) {
+            $return = chr(0x41 + ($number % (26 ** $i) / (26 ** ($i - 1)))) . $return;
+            $number -= 26 ** $i;
+        }
+        return $uppercase ? $return : strtolower($return);
+    }
+
+    /**
+     * @param string $letter
+     * @return int
+     */
+    public static function letterToNumber($letter)
+    {
+        $letter = preg_replace('/[^A-Z]+/', '', strtoupper($letter));
+        $r = 0;
+        $l = strlen($letter);
+        for ($i = 0; $i < $l; $i++) {
+            $r += (26 ** $i) * (ord($letter[$l - $i - 1]) - 0x40);
+        }
+        return ($r > 0) ? $r - 1 : $r;
     }
 
     /**
@@ -2317,7 +2335,7 @@ class tdz
             //           [year    ] -[month   ] -[day     ]  T[hour and minute     ]  :[seconds ][mseconds]   [timezone                  ]
             $m[3] = ($m[3]=='')?(1):((int)$m[3]);
             $m[5] = ($m[5]=='')?(1):((int)$m[5]);
-            return @mktime((int)$m[7], (int)$m[8], (int)$m[10], $m[3], $m[5], (int)$m[1], -1);
+            return @mktime((int)$m[7], (int)$m[8], (int)$m[10], $m[3], $m[5], (int)$m[1]);
         } elseif (strpos($date,"/") > 0 && (self::$dateFormat != '' && (self::$timeFormat != '' || !$showtime))){
             $format = self::$dateFormat.(($showtime)?(' '.self::$timeFormat):(''));
             $dtcomp = preg_split('%[- /.:]%', $date);

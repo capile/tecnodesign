@@ -1,0 +1,67 @@
+dn: cn=module{0},cn=config
+changetype: modify
+add: olcModuleLoad
+olcModuleLoad: {3}syncprov.la
+olcModuleLoad: {4}pw-sha2.la
+
+dn: olcOverlay={0}memberof,olcDatabase={1}{{ LDAP_BACKEND }},cn=config
+changetype: add
+objectClass: olcOverlayConfig
+objectClass: olcMemberOf
+olcOverlay: memberof
+olcMemberOfDangling: ignore
+olcMemberOfRefInt: TRUE
+olcMemberOfGroupOC: groupOfNames
+olcMemberOfMemberAD: member
+olcMemberOfMemberOfAD: memberOf
+
+
+# people
+dn: ou=people,dc=example,dc=com
+objectClass: organizationalUnit
+ou: people
+description: Everyone
+
+dn: uid=admin,ou=people,dc=example,dc=com
+cn: admin
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: postfixAccount
+uid: admin
+o: Tecnodesign
+displayName: Studio Administrator
+givenName: Studio
+sn: Administrator
+mail: admin@example.com
+userPassword: {SSHA256}xxx
+
+dn: uid=unprivileged,ou=people,dc=example,dc=com
+cn: unprivileged
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: postfixAccount
+uid: unprivileged
+o: Tecnodesign
+displayName: Studio User
+givenName: Studio
+sn: User
+mail: unprivileged@example.com
+userPassword: {SSHA256}xxx
+
+
+# groups
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+description: Authorization Groups
+
+dn: cn=administrators,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: administrators
+description: Administrators
+member: uid=admin,ou=people,dc=example,dc=com
+
