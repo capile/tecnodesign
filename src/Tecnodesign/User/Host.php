@@ -51,7 +51,7 @@ class Tecnodesign_User_Host extends Tecnodesign_PublicObject
         return self::authenticate();
     }
 
-    public function find($id)
+    public static function find($id)
     {
         if($r=self::authenticate()) {
             if(isset(Tecnodesign_User::$cfg['ns']['host']['className'])) {
