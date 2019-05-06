@@ -625,7 +625,7 @@ class Tecnodesign_Studio
             $tpl['slots'] = array_keys($tpl);
             tdz::$variables+=$tpl;
         }
-        $d = TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/templates/';
+        $d = TDZ_ROOT.'/src/Tecnodesign/Resources/templates/';
         if(is_null(tdz::$tplDir)) {
             tdz::$tplDir = array(Tecnodesign_Studio::$app->tecnodesign['templates-dir'], $d);
         } else  if(!in_array($d, tdz::$tplDir)) {
