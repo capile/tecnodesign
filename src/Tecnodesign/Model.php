@@ -1250,7 +1250,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
         if($fn) {
             if(isset($this->$relation)) {
-              return $this->$relation[$fn];
+              return $this->{$relation[$fn]};
             }
         } else if(!$asCollection && is_object($this->$relation) && $this->$relation instanceof Tecnodesign_Collection) {
             return $this->$relation->getItems();
@@ -1456,7 +1456,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if(isset($this->$rn)) {
             if(is_array($this->$rn)) {
                 foreach($this->$rn as $i=>$o) {
-                    unset($this->$rn[$i], $i, $o);
+                    unset($this->{$rn[$i]}, $i, $o);
                 }
             }
             $this->$rn = null;

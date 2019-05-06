@@ -51,7 +51,7 @@ class tdz
         "\xc2\x9e" => "\xc5\xbe",
         "\xc2\x9f" => "\xc5\xb8"
             );
-    public static  
+    public static
         $formats = array(
             'swf' => 'application/x-shockwave-flash',
             'pdf' => 'application/pdf',
@@ -166,15 +166,15 @@ class tdz
         $logDir,
         $noeval
         ;
-    
+
     /**
      * Application Startup, see Tecnodesign_App
-     * 
+     *
      * @param mixed  $s          configuration file name or its contents parsed
      * @param string $siteMemKey name of the application, used to create a virtual space in memory
      * @param type $env          environment. used to retrieve configuration parameters
-     * 
-     * @return Tecnodesign_App 
+     *
+     * @return Tecnodesign_App
      */
     public static function app($s, $siteMemKey=false, $env='prod')
     {
@@ -192,10 +192,10 @@ class tdz
         }
         return new Tecnodesign_App($s, $siteMemKey, $env);
     }
-    
+
     /**
      * Current application retrieval
-     * 
+     *
      * @return Tecnodesign_App
      */
     public static function getApp()
@@ -210,7 +210,7 @@ class tdz
 
     /**
      * Current user retrieval
-     * 
+     *
      * @return Tecnodesign_User
      */
     public static function getUser()
@@ -235,13 +235,13 @@ class tdz
     }
 
     /**
-     * PDO Connection class. Uses $app configuration if $db connection parameters 
+     * PDO Connection class. Uses $app configuration if $db connection parameters
      * are not sent.
-     * 
+     *
      * @param mixed           $db   PDO dsn, username and password arguments. Optionally
      *                              the $app database name can be provided.
      * @param Tecnodesign_App $app  failback Tecnodesign_Application to look at configuration
-     * @return PDO 
+     * @return PDO
      */
     public static function connect($db=false, $app=null, $throw=false)
     {
@@ -255,7 +255,10 @@ class tdz
         } else if(!$db && isset(tdz::$_connection[''])) {
             $name = '';
         } else if(!$db) {
-            foreach(tdz::$database as $name=>$db) break;
+            //@todo why is that?!
+            foreach(tdz::$database as $name=>$db) {
+                break;
+            }
         } else {
             $name = $db;
         }
@@ -297,10 +300,10 @@ class tdz
         return $ret;
     }
 
-    
+
     /**
      * Translator shortcut
-     * 
+     *
      * @param mixed  $message message or array of messages to be translated
      * @param string $table   translation file to be used
      * @param string $to      destination language, defaults to tdz::$lang
@@ -311,7 +314,7 @@ class tdz
         list($cn, $m) = explode('::', tdz::$translator);
         return $cn::$m($message, $table, $to, $from);
     }
-    
+
     /**
      * Shortcut for SQL Queries
      *
@@ -351,15 +354,15 @@ class tdz
         }
         return $ret;
     }
-    
-    
+
+
     /**
      * Configuration loader
-     * 
+     *
      * loads cascading configuration files.
-     * 
+     *
      * Syntax: tdz::config($env='prod', $section=null, $cfg1, $cfg2...)
-     * 
+     *
      * @return array Configuration
      */
     public static function config()
@@ -483,7 +486,7 @@ class tdz
         }
         return $s;
     }
-    
+
     /**
      * Request method to get current script name. May act as a setter if a string is
      * passed. Also returns absolute script name (according to $_SERVER[REQUEST_URI])
@@ -498,7 +501,7 @@ class tdz
             if($a[0]===false) {
                 tdz::$real_script_name=null;
                 $a[0]=true;
-            }            
+            }
             if($a[0] === true) {
                 if (is_null(tdz::$real_script_name)) {
                     if(isset($_SERVER['REDIRECT_STATUS']) && $_SERVER['REDIRECT_STATUS']=='200' && isset($_SERVER['REDIRECT_URL'])) {
@@ -526,7 +529,7 @@ class tdz
                 }
                 unset($qspos);
                 tdz::$script_name = $a[0];
-                if(isset($a[2]) && $a[2]===true) 
+                if(isset($a[2]) && $a[2]===true)
                     tdz::$real_script_name = $a[0];
             }
         } else if (is_null(tdz::$script_name)) {
@@ -580,7 +583,7 @@ class tdz
         return $css;
     }
 
-    
+
     /**
      * Compress Javascript & CSS
      */
@@ -588,14 +591,14 @@ class tdz
     {
         return Tecnodesign_Studio_Asset::minify($s, $root, $compress, $before, $raw, $output);
     }
-    
+
     public static function og()
     {
     }
 
     /**
      * Camelizes strings as class names
-     * 
+     *
      * @param string $s
      * @return string Camelized Class name
      */
@@ -610,7 +613,7 @@ class tdz
 
     /**
      * Uncamelizes strings as underscore_separated_names
-     * 
+     *
      * @param string $s
      * @return string Uncamelized function/table name
      */
@@ -660,17 +663,17 @@ class tdz
             return tdz::xml((string)$v);
         }
     }
-    
+
     public static function requestUri($arg=array())
     {
         $qs = '';
         if (!empty($arg)) {
             array_walk(
-                $arg, create_function(
-                    '&$v,$k', '$v = urlencode($k)."=".urlencode($v);'
-                )
+                $arg, static function (&$v,$k) {
+                   $v = urlencode($k) . '=' . urlencode($v);
+                }
             );
-            $qs = implode("&", $arg);
+            $qs = implode('&', $arg);
         }
         $uri = '';
         if(isset($_SERVER['REDIRECT_STATUS']) && $_SERVER['REDIRECT_STATUS']=='200' && isset($_SERVER['REDIRECT_URL'])) {
@@ -728,8 +731,8 @@ class tdz
         if(substr($c2, 0, 1)=='#')$c2=substr($c2,1);
         $c1a=array( hexdec(substr($c1,0,2)), hexdec(substr($c1,2,2)), hexdec(substr($c1,4,2)) );
         $c2a=array( hexdec(substr($c2,0,2)), hexdec(substr($c2,2,2)), hexdec(substr($c2,4,2)) );
-        $c=array( 
-            substr('0'.dechex(round($c1a[0]+(($c2a[0] - $c1a[0])*$i))),-2), 
+        $c=array(
+            substr('0'.dechex(round($c1a[0]+(($c2a[0] - $c1a[0])*$i))),-2),
             substr('0'.dechex(round($c1a[1]+(($c2a[1] - $c1a[1])*$i))),-2),
             substr('0'.dechex(round($c1a[2]+(($c2a[2] - $c1a[2])*$i))),-2),
         );
@@ -762,7 +765,7 @@ class tdz
 
     public static function isMobile()
     {
-        $useragent = (isset($_SERVER['HTTP_USER_AGENT'])) ? 
+        $useragent = (isset($_SERVER['HTTP_USER_AGENT'])) ?
                         ($_SERVER['HTTP_USER_AGENT']) : ('');
         $ssearch1 = '/android|avantgo|blackberry|blazer|compal|elaine|fennec|'.
                     'hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|'.
@@ -820,12 +823,12 @@ class tdz
 
     /**
      * XML Escaping
-     * 
+     *
      * Use this method to print content inside HTML/XML tags and attributes.
-     * 
+     *
      * @param string $s text to be escaped
      * @param bool   $q escape quotes as well (defaults to true)
-     * 
+     *
      * @return string escaped string
      */
     public static function xml($s, $q=true)
@@ -850,7 +853,7 @@ class tdz
             if(strpos($s, $c)!==false) return $r;
         }
     }
-    
+
     public static function render($d, $scope=null, $class='tdz-render', $translate=false, $xmlEscape=true)
     {
         $cn = false;
@@ -1039,9 +1042,9 @@ class tdz
         $tdzres = '';
         if(isset($a['callback'])) {
             if(isset($a['arguments'])) {
-                $tdzres .= call_user_func_array($a['callback'], $a['arguments']); 
+                $tdzres .= call_user_func_array($a['callback'], $a['arguments']);
             } else {
-                $tdzres .= call_user_func($a['callback']); 
+                $tdzres .= call_user_func($a['callback']);
             }
         }
         ob_start();
@@ -1065,7 +1068,7 @@ class tdz
         };
 
         ob_end_clean();
-        
+
         if ($script_name) {
             $_SERVER['SCRIPT_NAME'] = $script_name;
         }
@@ -1164,9 +1167,9 @@ class tdz
         if (!$if_modified_since && !$if_none_match) {
             return;
         }
-        if ($if_none_match && $if_none_match != $etag 
+        if ($if_none_match && $if_none_match != $etag
             && $if_none_match != '"' . $etag . '"'
-        ) { 
+        ) {
             return; // etag is there but doesn't match
         }
         if ($if_modified_since && $if_modified_since != $lastModified) {
@@ -1240,7 +1243,7 @@ class tdz
             }
         }
         if (!isset($pager['pages'])) {
-            $firstp = ($pager['page'] > ceil($maxpages * .5)) ? 
+            $firstp = ($pager['page'] > ceil($maxpages * .5)) ?
                     ($pager['page'] - ceil($maxpages * .5)) : (1);
             if ($firstp + $maxpages > $pager['last-page']) {
                 $firstp = $pager['last-page'] - $maxpages + 1;
@@ -1333,7 +1336,7 @@ class tdz
             }
             $format = 'application/json; charset=UTF8';
         }
-        
+
         if ($format != '') {
             @header('content-type: ' . $format);
         } else {
@@ -1346,7 +1349,7 @@ class tdz
             exit();
         }
     }
-    
+
     public static function cacheControl($set=null, $expires=null)
     {
         if(!is_null($set) && is_string($set)) {
@@ -1427,10 +1430,10 @@ class tdz
         }
         if ($gzip) {
             $gzf=TDZ_VAR . '/cache/download/' . md5_file($file);
-            if (!file_exists($gzf) || filemtime($gzf) > $lastmod) {                
+            if (!file_exists($gzf) || filemtime($gzf) > $lastmod) {
                 $s = file_get_contents($file);
                 $gz = gzencode($s, 9);
-                tdz::save($gzf, $gz, true);                
+                tdz::save($gzf, $gz, true);
             }
             $gze = 'gzip';
             if (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip') !== false)
@@ -1542,7 +1545,7 @@ class tdz
         }
         return tdz::$variables['upload-dir'];
     }
-    
+
     public static function postData($post=null)
     {
         $nf = (!is_null($post))?($post):($_POST);
@@ -1595,7 +1598,7 @@ class tdz
         }
         return $a;
     }
-    
+
 
     /**
      * Debugging method
@@ -1772,7 +1775,7 @@ class tdz
 
     /**
      * Text to Slug
-     * 
+     *
      * @param string $str Text to convert to slug
      *
      * @return string slug
@@ -1789,7 +1792,7 @@ class tdz
     }
 
     public static function textToSlug($str, $accept=''){return tdz::slug($str, $accept);}
-    
+
     public static function timeToNumber($t)
     {
         $t = explode(':', $t);
@@ -1802,37 +1805,52 @@ class tdz
         return $r;
     }
 
-    public static function numberToLetter($i, $uppercase=false) { return tdz::letter($i, $uppercase); }
-    public static function letter($i, $uppercase=false)
+    /**
+     * @param string $number
+     * @param bool $uppercase
+     * @return string
+     *
+     * @deprecated use numberToLetter() instead
+     */
+    public static function letter($number, $uppercase = false)
     {
-        $n='';
-        if(!is_int($i)) $i=(int)$i;
-        if($i<0) $i=0;
-        while($i>25) {
-            $ni=floor($i/26) -1;
-            $i=$i%26;
-            if($ni>25) {
-                $i = $i + (26 * floor($ni/26));
-                $ni = $ni%26;
-            }
-            $n=chr(97+$ni).$n;
-        }
-        $n .= chr(97+$i);
-        return $uppercase ?strtoupper($n) :$n;
+        return self::numberToLetter($number, $uppercase);
     }
 
-    public function letterToNumber($s)
+    /**
+     * @param int $number
+     * @param bool $uppercase
+     * @return string
+     */
+    public static function numberToLetter($number, $uppercase = false)
     {
-        $s0 = $s;
-        $s = preg_replace('/[^a-z]+/', '', strtolower($s));
-        $i = null;
-        while($s) {
-            $c = ord($s[0]) - 96;
-            $i += $c*pow(26,strlen($s)-1);
-            $s = substr($s, 1);
+        if (!is_int($number)) {
+            $number = (int)$number;
         }
-        if($i) $i--;
-        return $i;
+        if ($number < 0) {
+            $number = 0;
+        }
+        $return = '';
+        for ($i = 1; $number >= 0 && $i < 10; $i++) {
+            $return = chr(0x41 + ($number % (26 ** $i) / (26 ** ($i - 1)))) . $return;
+            $number -= 26 ** $i;
+        }
+        return $uppercase ? $return : strtolower($return);
+    }
+
+    /**
+     * @param string $letter
+     * @return int
+     */
+    public static function letterToNumber($letter)
+    {
+        $letter = preg_replace('/[^A-Z]+/', '', strtoupper($letter));
+        $r = 0;
+        $l = strlen($letter);
+        for ($i = 0; $i < $l; $i++) {
+            $r += (26 ** $i) * (ord($letter[$l - $i - 1]) - 0x40);
+        }
+        return ($r > 0) ? $r - 1 : $r;
     }
 
     /**
@@ -1856,7 +1874,7 @@ class tdz
 
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
-    
+
     public static function formatNumber($number, $decimals=2) {return tdz::number($number, $decimals);}
     public static function number($number, $decimals=2)
     {
@@ -1881,7 +1899,7 @@ class tdz
                 $class = 'odd';
             }
             else if ($empty && trim(strip_tags($value)) == '') {
-                
+
             } else {
                 $ll = false;
                 $s .= '<tr class="' . $class . '"><th>' . $label . '</th><td>' . $value . '</td></tr>';
@@ -1931,7 +1949,7 @@ class tdz
     {
         return preg_replace('#<(/?[a-z][a-z0-9\:\-]*)(\s|[a-z0-9\-\_]+\=("[^"]*"|\'[^\']*\')|[^>]*)*(/?)>#i', '<$1$2>', strip_tags($s, '<p><ul><li><ol><table><th><td><br><br/><div><strong><em><details><summary>'));
     }
-    
+
     public static function buildUrl($url, $parts=array())
     {
         if (!is_array($url)) {
@@ -1987,7 +2005,7 @@ class tdz
                     )unset($urls[$k]);
             }
             return implode(', ', $urls);
-        }        
+        }
         if ($url == '') {
             $s = '';
         } elseif (preg_match('/^mailto\:\/*(.*)/', $url, $m)) {// email
@@ -2016,7 +2034,7 @@ class tdz
      * @return string
      * @author Milian Wolff <mail@milianw.de>
      */
-    
+
     public static function wordwrap($str, $width, $break, $cut = false) {
         if (!$cut) {
             $regexp = '#^(?:[\x00-\x7F]|[\xC0-\xFF][\x80-\xBF]+){'.$width.',}\b#U';
@@ -2076,7 +2094,7 @@ class tdz
                                 // the salt is the first 2
                                 // characters for DES encryption
                                 $salt=substr($fpass,0,2);
-                                
+
                                 // use the salt to encode the
                                 // submitted password
                                 $test_pw=crypt($pass,$salt);
@@ -2106,7 +2124,7 @@ class tdz
         @header('www-authenticate: Basic realm="Restricted access, please provide your credentials."');
         exit('<html><title>401 Unauthorized</title><body><h1>Forbidden</h1><p>Restricted access, please provide your credentials.</p></body></html>');
     }
-    
+
     public static function env()
     {
         return tdz::$_env;
@@ -2192,7 +2210,7 @@ class tdz
      * @param mixed  $data   data to be decrypted
      * @param string $salt   (optional) the key to encrypt the data
      * @param string $alg    (optional) the algorithm to use
-     * 
+     *
      * @return mixed the encoded information
      */
     public static function decrypt($r, $salt=null, $alg=null)
@@ -2226,22 +2244,22 @@ class tdz
     }
 
     /**
-     * Dynamic hashing and checking 
-     * 
-     * Will return an hashed version of string using the MD5 method, instead of the 
-     * common DES encryption algorithm. It's useful for cross-platforms encryptions, 
-     * since the MD5 checksum can be found in many other environments (even not 
+     * Dynamic hashing and checking
+     *
+     * Will return an hashed version of string using the MD5 method, instead of the
+     * common DES encryption algorithm. It's useful for cross-platforms encryptions,
+     * since the MD5 checksum can be found in many other environments (even not
      * Unix/GNU).
-     * 
-     * The results are hashes and cannot be unencrypted. To check if a new text 
+     *
+     * The results are hashes and cannot be unencrypted. To check if a new text
      * matches the encrypted version, provide this as the salt, and the result
      * should be the same as the encrypted text.
-     * 
+     *
      * @param   string $str   the text to be encrypted
      * @param   string $salt  the encrypted text or a randomic salt
      * @param   string $type  hash type, can be either a hash_algos() or a string length
      *                        (from 40 to 80) for the hash size
-     * 
+     *
      * @return  string        an encrypted version of $str
      */
     public static function hash($str, $salt=null, $type=40)
@@ -2260,7 +2278,7 @@ class tdz
                 $h = hash($type, $str);
                 if ($salt != null && strcasecmp($h, $salt)==0) {
                     return $salt;
-                } 
+                }
             }
             return $h;
         } else {
@@ -2283,8 +2301,8 @@ class tdz
             return $salt . $m($str.$salt);
         }
     }
-    
-    
+
+
     public static function sameHost()
     {
         if(TDZ_CLI) {
@@ -2295,7 +2313,7 @@ class tdz
         }
         return true;
     }
-    
+
     public static function countryNames($s=null)
     {
         $d = tdz::database('countryNames', tdz::$lang);
@@ -2304,8 +2322,8 @@ class tdz
         }
         return $d;
     }
-    
-    
+
+
     public static function database($table, $language=null)
     {
         $file = TDZ_ROOT.'/src/Tecnodesign/Resources/database/'.$table.'.yml';
@@ -2335,11 +2353,11 @@ class tdz
     {
         $hour=$minute=$second=0;
         if(preg_match('/^([0-9]{4})(-([0-9]{2})(-([0-9]{2})(\T([0-9]{2})\:([0-9]{2})(\:([0-9]{2})(\.[0-9]+)?)?(Z|([-+])([0-9]{2})\:([0-9]{2}))?)?)?)?$/', trim($date), $m)){
-            //           [year    ] -[month   ] -[day     ]  T[hour and minute     ]  :[seconds ][mseconds]   [timezone                  ]            
+            //           [year    ] -[month   ] -[day     ]  T[hour and minute     ]  :[seconds ][mseconds]   [timezone                  ]
             $m[3] = ($m[3]=='')?(1):((int)$m[3]);
-            $m[5] = ($m[5]=='')?(1):((int)$m[5]);            
-            return @mktime((int)$m[7], (int)$m[8], (int)$m[10], $m[3], $m[5], (int)$m[1], -1);
-        } elseif (strpos($date,"/") > 0 && (self::$dateFormat != '' && (self::$timeFormat != '' || !$showtime))){            
+            $m[5] = ($m[5]=='')?(1):((int)$m[5]);
+            return @mktime((int)$m[7], (int)$m[8], (int)$m[10], $m[3], $m[5], (int)$m[1]);
+        } elseif (strpos($date,"/") > 0 && (self::$dateFormat != '' && (self::$timeFormat != '' || !$showtime))){
             $format = self::$dateFormat.(($showtime)?(' '.self::$timeFormat):(''));
             $dtcomp = preg_split('%[- /.:]%', $date);
             $frmtcomp = preg_split('%[- /.:]%', $format);
@@ -2360,8 +2378,8 @@ class tdz
                     }
                 }
             }
-            return mktime((int)$hour, (int)$minute, (int)$second, (int)$month, (int)$day, (int)$year, -1);
-        } else {            
+            return mktime((int)$hour, (int)$minute, (int)$second, (int)$month, (int)$day, (int)$year);
+        } else {
             return @strtotime($date);
         }
     }
@@ -2373,7 +2391,7 @@ class tdz
         }
         return date($s, $t);
     }
-    
+
     public static function dateDiff($start, $end='', $showtime=false)
     {
         $tstart = (is_int($start))?($start):(@strtotime($start));
@@ -2425,7 +2443,7 @@ class tdz
         $ipu = explode('.', $ip);
         foreach ($ipu as &$v)
             $v = str_pad(decbin($v), 8, '0', STR_PAD_LEFT);
-        
+
         $ipu = join('', $ipu);
         $res = false;
         if($cidrs) {
@@ -2444,7 +2462,7 @@ class tdz
             }
         }
         return $res;
-    }    
+    }
 
     /**
      * Validate an email address.
@@ -2479,7 +2497,7 @@ class tdz
                 // domain part has two consecutive dots
                 $isValid = false;
             } else if (!preg_match('/^(\\\\.|[A-Za-z0-9!#%&`_=\\/$\'*+?^{}|~.-])+$/', str_replace("\\\\","",$local))) {
-                // character not valid in local part unless 
+                // character not valid in local part unless
                 // local part is quoted
                 if (!preg_match('/^"(\\\\"|[^"])+"$/', str_replace("\\\\","",$local))) {
                     $isValid = false;
@@ -2526,7 +2544,7 @@ class tdz
      * @return bool              true on success, false on error
      * @uses    xdb_pathtofile
      */
-    public static function save($file, $contents, $recursive=false, $mask=0666) 
+    public static function save($file, $contents, $recursive=false, $mask=0666)
     {
         if ($file=='') {
             return false;
@@ -2542,16 +2560,16 @@ class tdz
             }
         }
         $tmpfile = tempnam($dir, '.' . basename($file));
-        
+
         try {
-            $fd = fopen($tmpfile, 'wb');            
-            fwrite($fd, $contents);            
+            $fd = fopen($tmpfile, 'wb');
+            fwrite($fd, $contents);
             fclose($fd);
-            
+
             if (!chmod($tmpfile, $mask)) {
                 throw new Exception("File \"".$file."\" could not be saved -- permission denied");
             }
-            
+
             if (!rename($tmpfile, $file)) {
                 throw new Exception("File \"".$file."\" could not be saved -- permission denied");
             }
@@ -2572,8 +2590,8 @@ class tdz
             $app->runInstall();
         }
     }
-    
-    
+
+
     public static function mail($to, $subject='', $message='', $headers=null, $attach=null)
     {
         try {
@@ -2607,9 +2625,9 @@ class tdz
             return false;
         }
     }
-    
-    
-    
+
+
+
     public static function map()
     {
         $a = func_get_args();
@@ -2746,7 +2764,7 @@ class tdz
         $ns=dechex($num);
         return $ns;
       }
-    
+
     /**
      * Make questions at command line
      */
@@ -2852,7 +2870,7 @@ class tdz
     }
     /**
      * Tecnodesign autoloader. Searches for classes under TDZ_ROOT
-     * 
+     *
      * @param string $class class name to be loaded.
      *
      * @return void
@@ -2875,10 +2893,10 @@ class tdz
         } else {
             foreach(tdz::$lib as $libi=>$d) {
                 if(substr($d, -1)=='/') tdz::$lib[$libi]=substr($d, 0, strlen($d)-1);
-                if (file_exists($f=$d.'/'.$c.'.php') || 
-                    file_exists($f=$d.'/'.$c.'/'.$c.'.php') || 
-                    file_exists($f=$d.'/'.$c.'/'.$c.'.inc.php') || 
-                    file_exists($f = $d.'/'.$c.'.class.php') || 
+                if (file_exists($f=$d.'/'.$c.'.php') ||
+                    file_exists($f=$d.'/'.$c.'/'.$c.'.php') ||
+                    file_exists($f=$d.'/'.$c.'/'.$c.'.inc.php') ||
+                    file_exists($f = $d.'/'.$c.'.class.php') ||
                     file_exists($f=$d.'/'.$c.'/'.strtolower($c).'.php')
                 ) {
                     return $f;
@@ -2950,27 +2968,27 @@ class tdz
         }
         return $v;
     }
-    
+
     /**
      * rmdir
-     * 
+     *
      * Remove a directory recursively
-     * 
+     *
      * @param string $dir directory name
      */
     public static function rmdirr($dir)
     {
-        if (is_dir($dir)) { 
+        if (is_dir($dir)) {
             try {
-                $files = array_diff(scandir($dir), array('.','..')); 
-                foreach ($files as $file) { 
-                    (is_dir("$dir/$file")) ? tdz::rmdirr("$dir/$file") : unlink("$dir/$file"); 
-                } 
+                $files = array_diff(scandir($dir), array('.','..'));
+                foreach ($files as $file) {
+                    (is_dir("$dir/$file")) ? tdz::rmdirr("$dir/$file") : unlink("$dir/$file");
+                }
                 return rmdir($dir);
             } catch (Exception $e) {
-                throw new Tecnodesign_Exception('Error '.$e.' ('.__METHOD__.' - '.__LINE.')');                
+                throw new Tecnodesign_Exception('Error '.$e.' ('.__METHOD__.' - '.__LINE.')');
                 return false;
-            }        
+            }
         }
     }
 
@@ -3033,8 +3051,8 @@ if (!defined('TDZ_APP_ROOT')) {
     }
 }
 if (!defined('TDZ_VAR')) {
-    if(is_dir($d='./data/Tecnodesign') 
-        || is_dir($d='./data') 
+    if(is_dir($d='./data/Tecnodesign')
+        || is_dir($d='./data')
         || is_dir($d=TDZ_APP_ROOT.'/data/Tecnodesign')
         || is_dir($d=TDZ_APP_ROOT.'/data')
         ) {

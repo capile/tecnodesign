@@ -50,7 +50,7 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
         }
         unset($Schema);
         return $name;
-    } 
+    }
 
     public function value($serialize=null)
     {
@@ -130,7 +130,7 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
      *
      * @param string $name  parameter name, should start with lowercase
      * @param mixed  $value value to be set
-     * 
+     *
      * @return void
      */
     public function offsetSet($name, $value)
@@ -153,7 +153,7 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
             throw new Tecnodesign_Exception(array(tdz::t('Column "%s" is not available at %s.','exception'), $name, get_class($this)));
         } else {
             $this->$name = $value;
-        } 
+        }
         unset($m);
         return $this;
     }
@@ -180,7 +180,7 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
     public function offsetUnset($name)
     {
         $schema = static::SCHEMA_PROPERTY;
-        if(isset(static::$$schema[$name]['alias'])) $name = static::$$schema[$name]['alias'];
+        if(isset(static::${$schema}[$name]['alias'])) $name = static::${$schema}[$name]['alias'];
         return $this->offsetSet($name, null);
     }
 }

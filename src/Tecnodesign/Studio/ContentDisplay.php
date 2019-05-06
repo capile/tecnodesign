@@ -359,12 +359,12 @@ class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Studio_Model
         $app = tdz::getApp();
         if(isset($code['master']) && file_exists($app->tecnodesign['templates-dir'].'/'.$code['master'].'.php')) {
             $code['master']=$app->tecnodesign['templates-dir'].'/'.$code['master'].'.php';
-        } else if(isset($code['master']) && file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/'.$code['master'].'.php')) {
-            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/'.$code['master'].'.php';
+        } else if(isset($code['master']) && file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates/'.$code['master'].'.php')) {
+            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates/'.$code['master'].'.php';
         } else if(file_exists($app->tecnodesign['templates-dir'].'/tdz_feed.php')) {
             $code['master']=$app->tecnodesign['templates-dir'].'/tdz_feed.php';
-        } else if(file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/tdz_feed.php')) {
-            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Studio/Resources/templates/tdz_feed.php';
+        } else if(file_exists(TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates/tdz_feed.php')) {
+            $code['master']=TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates/tdz_feed.php';
         } else {
             unset($code['master']);
         }

@@ -2,7 +2,6 @@
 
 namespace TecnodesignAcceptanceTest;
 
-
 class StudioCest
 {
     public function docsPageWorks(AcceptanceTester $I)
