@@ -1116,12 +1116,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             return str_replace($s, $r, $k);
         }
         $s=$rp.'.'.$rrn.'.';
+        $pre = null;
+        if(preg_match('/^[\|\&]/i', $k, $m)) {
+            $pre = $m[0];
+            $k = substr($k, strlen($m[0]));
+        }
         if(strpos($k, '.')) {
             if(substr($k, 0, strlen($s))==$s) {
                 $k = substr($k, strlen($s));
             }
         }
-        return $rrn.'.'.$k;
+        return $pre.$rrn.'.'.$k;
     }
 
     public function getRelationQuery($relation, $part=null, $scope=null)
