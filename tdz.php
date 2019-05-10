@@ -263,7 +263,7 @@ class tdz
             $name = $db;
         }
         $msg = 'Could not find database driver.';
-        if(!isset(tdz::$_connection[$name])) {
+        if(!isset(tdz::$_connection[$name]) || !tdz::$_connection[$name]) {
             try {
                 if($H=Tecnodesign_Query::databaseHandler($name)) {
                     tdz::$_connection[$name] = $H::connect($name);

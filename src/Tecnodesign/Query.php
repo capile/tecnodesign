@@ -66,6 +66,7 @@ class Tecnodesign_Query implements \ArrayAccess
     public static function handler($s=null)
     {
         static $H = array();
+        static $C = array();
         $n = '';
         if((is_string($s) && $s && property_exists($s, 'schema')) || $s instanceof Tecnodesign_Model) {
             $n = $s::$schema['database'];
@@ -73,11 +74,16 @@ class Tecnodesign_Query implements \ArrayAccess
                 $s = (isset($s::$schema['className']))?($s::$schema['className']):(get_class($s));
             }
         }
+
         if(!isset($H[$n])) {
             $H[$n] = self::databaseHandler($n);
         }
         $cn = $H[$n];
-        return new $cn($s);
+
+        if(!isset($C[$s]) || !$C[$s]) {
+            $C[$s] = new $cn($s);
+        }
+        return $C[$s];
     }
 
     public static function databaseHandler($n)
