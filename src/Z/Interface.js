@@ -541,7 +541,17 @@
                 u=this.children[this.children.length -1].getAttribute('href');
             } else {
                 t=Z.node(Z.parentNode(this.parentNode, '.tdz-i-scope-block'), this.parentNode);
-                while(t && t.parentNode.className.search(/\btdz-i-scope-block\b/)>-1) t=t.parentNode;
+                var ss, sn;
+                if(this.href && (ss=this.href.match(/[\?\&](scope=[^\&]+)/)) && ss.length>0) {
+                    sn = new RegExp('/\b'+ss[1].replace('=', '-')+'\b/');
+                    console.log(sn);
+                }
+                if(!sn || t.className.search(sn)===false) {
+                    while(t && t.parentNode.className.search(/\btdz-i-scope-block\b/)>-1) {
+                        t=t.parentNode;
+                        if(sn && t.className.search(sn)!==false) break;
+                    }
+                }
                 u=this.getAttribute('href');
             }
             var a=new Date().getTime();

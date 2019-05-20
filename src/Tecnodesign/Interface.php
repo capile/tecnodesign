@@ -1979,7 +1979,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if(!$o) $o = $this->model();
         if(!$scope) {
-            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
+            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema['scope'][$rs])) && !isset(static::$actionsAvailable[$rs])) {
                 $scope = $rs;
                 unset($rs);
             } else if(isset($this->options['scope'][$this->action])) {
