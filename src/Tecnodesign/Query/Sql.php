@@ -476,7 +476,8 @@ class Tecnodesign_Query_Sql
             } else {
                 if(!$noalias && isset($sc['columns'][$fn]['type']) && $sc['columns'][$fn]['type']=='string' && isset($sc['columns'][$fn]['size']) && $this::$textToVarchar && $this::$textToVarchar<=$sc['columns'][$fn]['size']) {
                     if(!$this->_selectDistinct) $this->_selectDistinct=array();
-                    $this->_selectDistinct[$ta.'.'.$fn] = 'cast('.$ta.'.'.$fn.' as varchar(max)) _'.$fn;
+                    $scn = $sc['className'];
+                    $this->_selectDistinct[$ta.'.'.$fn] = 'cast('.$ta.'.'.$fn.' as varchar(max)) '.((!property_exists($scn, $fn) && !$scn::$allowNewProperties) ?'_' :'' ).$fn;
                 }
                 $fn = $ta.'.'.$fn;
             }
