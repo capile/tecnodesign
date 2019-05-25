@@ -1180,7 +1180,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if($scope) {
             $r['select']=$rcn::columns($scope, null, 3, true);
         }
-        if(isset($sc['order'])) $r['orderBy'] = $sc['order'];
+        if(isset($sc->orderBy)) $r['orderBy'] = $sc->orderBy;
         unset($sc, $rel);
 
         if($part) {
@@ -1732,9 +1732,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
         }
         if(!is_null($orderBy)) $q['orderBy'] = $orderBy;
-        else if(isset(static::$schema['order'])) $q['orderBy'] = static::$schema['order'];
+        else if(isset(static::$schema->orderBy)) $q['orderBy'] = static::$schema->orderBy;
         if(!is_null($groupBy) && !is_bool($groupBy)) $q['groupBy'] = $groupBy;
-        else if(isset(static::$schema['group-by'])) $q['groupBy'] = static::$schema['group-by'];
+        else if(isset(static::$schema->groupBy)) $q['groupBy'] = static::$schema->groupBy;
         $q['limit'] = $limit;
         $Q = static::query($q);
         if(!$Q) {
@@ -1999,11 +1999,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             $qsb=($qsb)?('?'.$qsb.'&'):('?');
             if(!(($sf=Tecnodesign_App::request('get', 'o')) && is_numeric($sf) && $sf<count($labels))) {
-                $sf = (isset($schema['order']))?(array_keys($schema['order'])):(array(''));
+                $sf = (isset($schema->orderBy))?(array_keys($schema->orderBy)):(array(''));
                 $sf=$sf[0];
             }
             if(!(($sd=Tecnodesign_App::request('get', 'd')) && ($sd=='asc' || $sd=='desc'))) {
-                $sd=(isset($schema['order'][$sf]))?($schema['order'][$sf]):('asc');
+                $sd=(isset($schema->orderBy[$sf]))?($schema->orderBy[$sf]):('asc');
             }
             $qslink = $qs;
         }

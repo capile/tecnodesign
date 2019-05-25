@@ -20,7 +20,9 @@
         "relations": { "type": "object" },
         "events": { "type": "object" },
         "actAs": { "type": "object" },
+        "order": { "alias": "orderBy" },
         "orderBy": { "type": "object" },
+        "group-by": { "alias": "groupBy" },
         "groupBy": { "type": "object" },
         "columns": { "alias": "properties" },
         "form": { "alias": "overlay" }
