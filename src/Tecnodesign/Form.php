@@ -24,7 +24,7 @@ class Tecnodesign_Form implements ArrayAccess
     protected $id, $method = 'post', $action = '', $model, $err, $prefix = '';
     public $buttons = array('submit' => '*Send'), $attributes = array('class' => 'z-form');
     private static $_instances;
-    public static $assets='Z.Form,moment,pikaday';
+    public static $assets='Z.Form,moment,pikaday-time';
 
     private $_uid;
 

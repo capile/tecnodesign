@@ -500,6 +500,7 @@ class Tecnodesign_App
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
                    || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
@@ -507,6 +508,16 @@ class Tecnodesign_App
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
                 ) {
+                    if(substr($f, -13)=='/package.json') {
+                        if(($pkg = json_decode(file_get_contents($f), true)) && isset($pkg['main']) && substr($pkg['main'], -1*strlen($to))==$to && file_exists($f2=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$pkg['main'])) {
+                            $f = $f2;
+                        } else {
+                            unset($src[$i], $f);
+                            continue;
+                        }
+                        unset($f2, $pkg);
+                    }
+
                     $src[$i]=$f;
                     if($t===null) {
                         $t =  tdz::$assetsUrl.'/'.tdz::slug($n).'.'.$to;
@@ -523,7 +534,6 @@ class Tecnodesign_App
                 }
                 unset($f);
             }
-
             if($t) { // check and build
                 $build = true;
                 if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
