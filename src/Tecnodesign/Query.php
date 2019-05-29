@@ -79,7 +79,12 @@ class Tecnodesign_Query implements \ArrayAccess
             $H[$n] = self::databaseHandler($n);
         }
         $cn = $H[$n];
-        return new $cn($s);
+        $dk = $n.':'.$s;
+
+        if(!isset($C[$dk]) || !$C[$dk]) {
+            $C[$dk] = new $cn($s);
+        }
+        return $C[$dk];
     }
 
     public static function databaseHandler($n)

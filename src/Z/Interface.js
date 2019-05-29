@@ -543,7 +543,7 @@
                 t=Z.node(Z.parentNode(this.parentNode, '.tdz-i-scope-block'), this.parentNode);
                 var ss, sn;
                 if(this.href && (ss=this.href.match(/[\?\&](scope=[^\&]+)/)) && ss.length>0) {
-                    sn = new RegExp('/\b'+ss[1].replace('=', '-')+'\b/');
+                    sn = new RegExp('\b'+ss[1].replace('=', '-')+'\b');
                     console.log(sn);
                 }
                 if(!sn || t.className.search(sn)===false) {
