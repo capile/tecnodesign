@@ -544,7 +544,6 @@
                 var ss, sn;
                 if(this.href && (ss=this.href.match(/[\?\&](scope=[^\&]+)/)) && ss.length>0) {
                     sn = new RegExp('\b'+ss[1].replace('=', '-')+'\b');
-                    console.log(sn);
                 }
                 if(!sn || t.className.search(sn)===false) {
                     while(t && t.parentNode.className.search(/\btdz-i-scope-block\b/)>-1) {

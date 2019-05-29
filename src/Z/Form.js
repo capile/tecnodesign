@@ -611,7 +611,6 @@ function uploadFile(file, U)
             if(ajax.length > 0) {
                 Z.ajax.apply(el, ajax.shift());
             }
-
         }
     };
 
