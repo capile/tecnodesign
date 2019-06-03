@@ -1441,9 +1441,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if($this->_relation && isset($this->_relation[$rn])) unset($this->_relation[$rn]);
         if(isset($this->$rn)) {
             if(is_array($this->$rn)) {
-                foreach($this->$rn as $i=>$o) {
-                    unset($this->{$rn[$i]}, $i, $o);
+                $a =& $this->$rn;
+                foreach($a as $i=>$o) {
+                    unset($a[$i], $i, $o);
                 }
+                unset($a);
             }
             $this->$rn = null;
         }
