@@ -222,6 +222,9 @@ class Tecnodesign_Model_Mysql
             $f['type'] = 'float';
             $f['size'] = (int) 10;
             $f['decimal'] = (int) 2;
+        } else if($type=='timestamp') {
+            $f['type'] = 'int';
+            $f['size'] = 10;
         } else if($type=='decimal') {
             $f['type'] = 'float';
             $desc = explode(',',$desc);
