@@ -41,13 +41,15 @@ foreach($fieldsets as $fn=>$fv) {
 foreach($buttons as $bn=>$label) {
     $bt = ($bn=='submit')?('submit'):('button');
     $a = ' type="'.$bt.'"';
+    $at = '';
     if(is_array($label)) {
         if(isset($label['attributes'])) {
             foreach($label['attributes'] as $n=>$v) {
-                $a .= ' '.tdz::xmlEscape($n).'="'.tdz::xmlEscape($v).'"';
+                $at .= ' '.tdz::xmlEscape($n).'="'.tdz::xmlEscape($v).'"';
                 unset($label['attributes'][$n], $n, $v);
             }
         }
+        $a .= $at;
         if(isset($label['label'])) $label = $label['label'];
         else $label = $bn;
     }
@@ -55,7 +57,7 @@ foreach($buttons as $bn=>$label) {
         $label = tdz::t(substr($label, 1), 'form');
     }
     if(strpos($bn, '/')!==false) {
-        echo '<a href="'.$bn.'">'.$label.'</a>';
+        echo '<a href="'.$bn.'"'.$at.'>'.$label.'</a>';
     } else if(substr($label,0,1)=='<') {
         echo $label;
     } else {
