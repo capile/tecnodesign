@@ -71,7 +71,7 @@ function initCheckLabel(e)
     if(!this.getAttribute('data-check-label')) {
         this.setAttribute('data-check-label',1);
         var l=Z.parentNode(this, 'label');
-        if(!l) l=this.parentNode; 
+        if(!l) l=this.parentNode;
         Z.bind(l, 'click', checkLabel);
         checkLabel(true);
     }
@@ -178,7 +178,7 @@ function datalistKeypress(e)
     } else if (e.keyCode == '40' || e.keyCode == '39') {
         // down arrow or right arrow
         m=1;
-    } else if(e.keyCode == '13' || e.keyCode=='9') {
+    } else if(e.keyCode == '13') {
         e.preventDefault();
         t = true;
     } else if(e.keyCode=='27') {
@@ -263,7 +263,7 @@ function datalistQuery(e)
         //u = formUrl(o.parents('form'));
         //if(('form' in o) && (o.form.getAttribute('method')+'').toLowerCase()=='get') u=o.form.action;
         if('form' in o) u=o.form.action;
-        else u=window.location.href; 
+        else u=window.location.href;
         h = {'z-action':'choices', 'z-target': encodeURIComponent(x), 'z-term': encodeURIComponent(v)};
     }
     if(u===false || u===true) u=window.location.href;
@@ -657,7 +657,7 @@ function uploadFile(file, U)
         }
     };
     var blob = file.slice(loaded,step);
-    reader.readAsDataURL(blob); 
+    reader.readAsDataURL(blob);
 }
 
 function removeUpload(e)
@@ -737,7 +737,7 @@ function formFilters(e)
     var reset=(this.className.search(/\btdz-a-filters\b/)<0);
     if(reset) this.className += ' tdz-a-filters';
 
-    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'), 
+    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'),
       tn, ltn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk, n;
     if(v && this.getAttribute('data-filter-value')) {
         var av=this.getAttribute('data-filter-value').split(/\s*\,\s*/g), avi=av.length,avf;
@@ -946,12 +946,12 @@ function subformAdd(e)
         }
     }
     if(!o) return false;
-    var tpl=o.getAttribute('data-template'), 
+    var tpl=o.getAttribute('data-template'),
         prefix=o.getAttribute('data-prefix'),
         _prefix=prefix.replace(/[\[\]\_]+/g, '_').replace(/_+$/, ''),
         sf=o.querySelectorAll('.item'),
-        i=sf.length, 
-        fmax=o.getAttribute('data-max'), 
+        i=sf.length,
+        fmax=o.getAttribute('data-max'),
         n,
         re;
 
@@ -1011,7 +1011,7 @@ function subformDel(e)
     }
 
     var sf=o.querySelectorAll('.item'),fmin=o.getAttribute('data-min');
-   
+
     if(!(fmin && sf.length<=fmin)) {
         el.parentNode.removeChild(el);
     }
