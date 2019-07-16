@@ -2887,10 +2887,12 @@ class Tecnodesign_Interface implements ArrayAccess
                     if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className']))
                         $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
                     else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($cn, $m)) $fd['choices']=$cn::$m();
+                    $fd['choicesFilter'] = (isset($fd['choicesFilter'])) ? ($fd['choicesFilter']) : (false);
 
                     $fo['fields'][$slug]=array(
                         'type'=>$type,
                         'choices'=>$fd['choices'],
+                        'choicesFilter' => $fd['choicesFilter'],
                         'multiple'=>((isset($fd['multiple']) && $fd['multiple']) || $type=='checkbox'),
                         'label'=>$label,
                         'placeholder'=>$label,

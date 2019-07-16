@@ -1243,7 +1243,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_string($choices) && class_exists($choices)) {
                 if($this->choicesFilter && is_subclass_of($choices, 'Tecnodesign_Model')) {
                     $cn = $choices;
-                    if(isset($cn::$schema['events']['active-records'])) {
+                    if(isset($cn::$schema['events']['active-records']) && $cn::$schema['events']['active-records'] != $this->choicesFilter) {
                         if(!is_array($cn::$schema['events']['active-records'])) $cn::$schema['events']['active-records']=array($cn::$schema['events']['active-records']);
                         if(!isset($cn::$schema['events']['original-active-records'])) $cn::$schema['events']['original-active-records']=$cn::$schema['events']['active-records'];
                         $cn::$schema['events']['active-records']=array_merge($cn::$schema['events']['active-records'],$this->choicesFilter);

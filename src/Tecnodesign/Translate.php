@@ -42,10 +42,10 @@ class Tecnodesign_Translate
         $this->_lang = $language;
         $this->_from = self::$sourceLanguage;
     }
-    
+
     /**
      * Translator shortcut
-     * 
+     *
      * @param mixed  $message message or array of messages to be translated
      * @param string $table   translation file to be used
      * @param string $to      destination language, defaults to tdz::$lang
@@ -56,9 +56,11 @@ class Tecnodesign_Translate
         if(is_null($to)) {
             $to = tdz::$lang;
         }
-        if(self::$forceTranslation!=true && $to==self::$sourceLanguage)
+
+        if(self::$forceTranslation!==true && $to==self::$sourceLanguage) {
             return $message;
-        
+        }
+
         if(!isset(self::$_t[$to])) {
             if(is_null(self::$_t)) {
                 self::$_t = new ArrayObject;
@@ -69,7 +71,7 @@ class Tecnodesign_Translate
         }
         return self::$_t[$to]->getMessage($message, $table);
     }
-    
+
     public function getMessage($message, $table=null)
     {
         if(is_array($message)) {
@@ -92,7 +94,7 @@ class Tecnodesign_Translate
         if (is_null($this->_table)) {
             $this->_table = array();
         }
-        if(!isset($this->_table[$table][$message])) {
+        if(!isset($this->_table[$table]['all'][$message])) {
             if(!isset($this->_table[$table])) {
                 $yml = TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml';
                 if(!file_exists($yml)) {
@@ -101,10 +103,10 @@ class Tecnodesign_Translate
                 $this->_table[$table] = Tecnodesign_Yaml::load($yml);
                 if(!is_array($this->_table[$table])) $this->_table[$table] = array();
             }
-            if(!isset($this->_table[$table][$message])) {
+            if(!isset($this->_table[$table]['all'][$message])) {
                 $yml = TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml';
                 $text = $message;
-                if($this->_from!=$this->_lang){
+                if($this->_from!=$this->_lang && (self::$apiKey || self::$clientId)){
                     $m = self::$method.'Translate';
                     try{
                         $text = self::$m($this->_from, $this->_lang, $text);
@@ -112,13 +114,13 @@ class Tecnodesign_Translate
                         tdz::log($e->getMessage());
                     }
                 }
-                $this->_table[$table][$message]=$text;
+                $this->_table[$table]['all'][$message]=$text;
                 Tecnodesign_Yaml::append($yml, array($message=>$text), 0);
             }
         }
-        return $this->_table[$table][$message];
+        return $this->_table[$table]['all'][$message];
     }
-    
+
     public static function bingTranslate($from, $to, $text)
     {
         // replace strings that need to be replaced for an uncommon character
@@ -156,21 +158,21 @@ class Tecnodesign_Translate
         $t = str_replace('§', '%s', html_entity_decode($t));
         return $t;
     }
-    
+
     public static function microsoftToken()
     {
         $tk = Tecnodesign_Cache::get('microsoft-translate');
         if(!$tk) {
             $url = 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13/';
             $curl = curl_init($url);
-            
+
             $req = http_build_query(array(
                 'client_id'=>self::$clientId,
                 'client_secret'=>self::$apiKey,
                 'scope'=>'http://api.microsofttranslator.com',
                 'grant_type'=>'client_credentials',
             ));
-             
+
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $req);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -187,7 +189,7 @@ class Tecnodesign_Translate
     }
 
 
-    
+
     public static function googleTranslate($from, $to, $text)
     {
         // replace strings that need to be replaced for an uncommon character
@@ -201,6 +203,6 @@ class Tecnodesign_Translate
 }
 
 /*
- 
+
 
  *  */
