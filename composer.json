@@ -1,48 +1,52 @@
 {
-  "name": "capile/tecnodesign",
-  "description": "PHP Framework",
-  "type": "library",
-  "license": "GPL-3.0-only",
-  "require": {
-    "php": ">=5.6",
-    "erusev/parsedown": "^1.7.1",
-    "leafo/lessphp": "^0.5.0",
-    "leafo/scssphp": "^0.7.7",
-    "matthiasmullie/minify": "^1.3.61",
-    "phpoffice/phpspreadsheet": "^1.6.0",
-    "swiftmailer/swiftmailer": "^5.4.12",
-    "mustangostang/spyc": "^0.6.2",
-    "foxy/foxy": "^1.0.0",
-    "ext-dom": "*",
-    "ext-mbstring": "*",
-    "ext-zlib": "*"
-  },
-  "extra": {
-    "foxy": true
-  },
-  "autoload": {
-    "psr-0": {
-      "": "src/"
+    "name": "capile/tecnodesign",
+    "description": "PHP Framework",
+    "type": "library",
+    "license": "GPL-3.0-only",
+    "require": {
+        "php": ">=5.6",
+        "erusev/parsedown": "^1.7.1",
+        "leafo/lessphp": "^0.5.0",
+        "leafo/scssphp": "^0.7.7",
+        "matthiasmullie/minify": "^1.3.61",
+        "phpoffice/phpspreadsheet": "^1.6.0",
+        "swiftmailer/swiftmailer": "^5.4.12 < 6.0",
+        "foxy/foxy": "^1.0.0",
+        "ext-dom": "*",
+        "ext-mbstring": "*"
+    },
+    "extra": {
+        "foxy": true,
+        "branch-alias": {
+            "dev-master": "2.2.x-dev"
+        }
+    },
+    "autoload" : {
+        "psr-0": {
+            "" : "src/"
+        }
+    },
+    "autoload-dev" : {
+        "psr-4": {
+            "TecnodesignTest\\Api\\" : "tests/api",
+            "TecnodesignTest\\Acceptance\\" : "tests/acceptance",
+            "TecnodesignTest\\Functional\\" : "tests/functional",
+            "TecnodesignTest\\Unit\\" : "tests/unit"
+        }
+    },
+    "require-dev": {
+        "mustangostang/spyc": "^0.6.2",
+        "league/html-to-markdown": "4.8.*",
+        "ext-yaml": "*"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --configuration=test/phpunit.xml"
+    },
+    "suggest" : {
+        "geshi/geshi": "Allows syntax highlight in markdown text",
+        "setasign/fpdi-tcpdf": "Allows PDF parsing and composition",
+        "mustangostang/spyc" : "Allows YAML processing when native support is not available",
+        "ext-yaml": "Needed to YAML processing natively",
+        "dapphp/securimage": "Enables the captcha form field type"
     }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "TecnodesignUnitTest\\": "tests/unit",
-      "TecnodesignAcceptanceTest\\": "tests/acceptance",
-      "TecnodesignApiTest\\": "tests/api"
-    }
-  },
-  "require-dev": {
-    "league/html-to-markdown": "4.8.*",
-    "ext-yaml": "*"
-  },
-  "scripts": {
-    "test": "vendor/bin/phpunit --configuration=test/phpunit.xml"
-  },
-  "suggest": {
-    "geshi/geshi": "Allows syntax highlight in markdown text",
-    "setasign/fpdi-tcpdf": "Allows PDF parsing and composition",
-    "mustangostang/spyc": "Allows YAML processing when native support is not available",
-    "ext-yaml": "Needed to YAML processing natively"
-  }
 }
