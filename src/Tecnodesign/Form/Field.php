@@ -35,7 +35,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $phoneInputType='tel',
         $enableMultipleText=true,
         $allowedProperties=array('on'),
-        $tmpDir='/tmp'
+        $tmpDir='/tmp',
+        $captchaTimeout=60,
+        $captchaCaseSensitive=false,
+        $defaultErrorMessage='This is not a valid value.'
         ;
 
     /**
@@ -1062,19 +1065,19 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $rules = array();
         $m = ucfirst($this->type);
         if (method_exists($this, 'check'.$m)) {
-            $rules[$this->type]='This is not a valid value.';
+            $rules[$this->type]=static::$defaultErrorMessage;
         }
         if($m!='None') {
             if($this->required) {
                 $rules['required']='Is mandatory and should not be blank.';
             }
             if($this->bind) {
-                $rules['model']='This is not a valid value.';
+                $rules['model']=static::$defaultErrorMessage;
             } else if ($this->form && $this->getModel() && method_exists($this->getModel(), ($m='validate'.tdz::camelize($this->id, true)))) {
-                $rules['model:'.$m]='This is not a valid value.';
+                $rules['model:'.$m]=static::$defaultErrorMessage;
             }
             if($this->choices) {
-                $rules['choices']='This is not a valid choice.';
+                $rules['choices']=static::$defaultErrorMessage;
             }
             if($this->min_size && $this->size) {
                 $rules['size']=array("Should have between %s and %s characters.", $this->min_size, $this->size);
@@ -2096,6 +2099,63 @@ class Tecnodesign_Form_Field implements ArrayAccess
         */
         return $this->renderText($arg);
     }
+
+    public function renderCaptcha(&$arg)
+    {
+        $arg['type']='text';
+        $text = null;
+        $img = Tecnodesign_Image::captcha($text, ['no_session'=>true, 'use_database'=>false, 'send_headers'=>false, 'no_exit'=>true]);
+        $input = null;
+        $this->value = '';
+
+        if($text && $img) {
+            $salt = tdz::salt(40, true);
+            $key = 'captcha/'.$salt;
+            $timeout = 60;
+            Tecnodesign_Cache::set($key, $text, static::$captchaTimeout);
+            $arg['name'] .= '['.$salt.']';
+            $input = '<img src="'.$img.'" />';
+        }
+
+        $input .= $this->renderText($arg);
+        return $input;
+    }
+
+    public function checkCaptcha($value, $message='')
+    {
+        if(is_array($value) && ($post=$value) || ($post=Tecnodesign_App::request('post', $this->id))) {
+            $exist = false;
+            foreach($post as $k=>$v) {
+                if($msg=Tecnodesign_Cache::get('captcha/'.$k)) {
+                    Tecnodesign_Cache::delete('captcha/'.$k);
+                    $exist = true;
+                    if(static::$captchaCaseSensitive) {
+                        if($msg===$v) {
+                            return $v;
+                        }
+                    } else {
+                        if(strtolower($msg)===strtolower($v)) {
+                            return $v;
+                        }
+                    }
+                }
+            }
+            if($exist) {
+                $error = 'The supplied code is invalid.';
+            } else {
+                $error = 'The supplied code is expired or doesn\'t exist.';
+            }
+        } else {
+            $error = 'You must supply a valid code.';
+        }
+
+        if($message===static::$defaultErrorMessage) $m = '';
+        else $m = tdz::t($message, 'exception');
+        $m .= ' '.tdz::t($error, 'exception');
+
+        throw new Tecnodesign_Exception(array($m, $this->getLabel(), $value));
+    }
+
 
     public function renderColor(&$arg)
     {

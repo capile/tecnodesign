@@ -46,6 +46,7 @@
         "geshi/geshi": "Allows syntax highlight in markdown text",
         "setasign/fpdi-tcpdf": "Allows PDF parsing and composition",
         "mustangostang/spyc" : "Allows YAML processing when native support is not available",
-        "ext-yaml": "Needed to YAML processing natively"
+        "ext-yaml": "Needed to YAML processing natively",
+        "dapphp/securimage": "Enables the captcha form field type"
     }
 }

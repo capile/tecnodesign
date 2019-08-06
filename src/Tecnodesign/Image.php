@@ -492,4 +492,33 @@ class Tecnodesign_Image
         }
         return $r;
     }
+
+
+    public static function captcha(&$text=null, $options=[])
+    {
+        if(class_exists('Securimage')) {
+            $C = new Securimage($options);
+            $cfg = tdz::getApp()->Securimage;
+            if(!$cfg) $cfg = [];
+            if($cfg) {
+                foreach($cfg as $k=>$v) {
+                    if(substr($k, -6)=='_color') {
+                        $C->$k = new Securimage_Color($v);
+                    } else {
+                        $C->$k = $v;
+                    }
+                }
+            }
+
+            $C->createCode();
+            ob_start();
+            $C->show();
+            $img = 'data:image/png;base64,'.base64_encode(ob_get_contents());
+            ob_end_clean();
+            $text = $C->getCode(null, true);
+
+            return $img;
+        }
+    }
+
 }

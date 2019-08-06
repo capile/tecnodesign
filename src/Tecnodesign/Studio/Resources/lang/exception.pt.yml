@@ -4,3 +4,12 @@ Looks like you don't have enough credentials to access this page. Please try log
 Oops, where is this page?: "Ôpa, onde foi parar esta página?"
 We haven't found the page you requested. Are you sure the address is correct?: "Não encontramos a página que você requisitou. Você tem certeza de que o endereço está correto?"
 "Could not connect to database. Reasons are: %s": "Não foi possível se conectar ao banco de dados. Os possíveis motivos são: %s"
+This is not a valid value.: Este valor não é válido.
+The supplied code is invalid.: O código informado não é válido.
+The supplied code is expired or doesn't exist.: O código informado expirou ou não existe. 
+You must supply a valid code.: Você deve fornecer um código válido.
+Is mandatory and should not be blank.: É obrigatório e não deve ser vazio.
+Should have between %s and %s characters.: Deve ter entre %s e %s caracteres.
+Should be smaller than %s characters.: Deve ter menos que %s caracteres.
+Should be greater than %s characters.: Deve ter pelo menos %s caracteres.
+Should be between %s and %s.: Deve ser entre %s e %s.
