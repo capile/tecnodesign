@@ -964,7 +964,7 @@ class Tecnodesign_Query_Sql
         $fs = $M::$schema['columns'];
         if(!$fs) $fs = array_flip(array_keys($odata));
         foreach($fs as $fn=>$fv) {
-            if(!is_array($fv)) $fv=array('null'=>true);
+            if(!is_array($fv) && !is_object($fv)) $fv=array('null'=>true);
             if(isset($fv['increment']) && $fv['increment']=='auto' && !isset($odata[$fn])) {
                 continue;
             }
@@ -1029,7 +1029,7 @@ class Tecnodesign_Query_Sql
                 continue;
             }
             if(isset($fv['alias'])) continue;
-            if(!is_array($fv)) $fv=array('null'=>true);
+            if(!is_array($fv) && !is_object($fv)) $fv=array('null'=>true);
 
             if (!isset($odata[$fn]) && $original===false) {
                 continue;
