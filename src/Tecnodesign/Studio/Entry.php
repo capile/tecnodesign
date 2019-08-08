@@ -522,7 +522,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             if(is_null($pat)) {
                 $pat = '{,.'.tdz::$lang.'}{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
             }
-            $pages = self::glob(str_replace('.', '{-,.}', $f).$pat);
+            $pages = self::glob(str_replace('.', '[-.]', $f).$pat);
 
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
