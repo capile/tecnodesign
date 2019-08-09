@@ -84,10 +84,12 @@ class Tecnodesign_Translate
                     file_exists($yml=TDZ_VAR.'/translate/'.$l.'/'.$table.'.yml') ||
                     file_exists($yml=TDZ_VAR.'/translate/'.$table.'.'.$this->_lang.'.yml') ||
                     file_exists($yml=TDZ_VAR.'/translate/'.$table.'.'.$l.'.yml') ||
+                    file_exists($yml=TDZ_VAR.'/studio/'.$table.'.'.$l.'.yml') ||
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$this->_lang.'/'.$table.'.yml') ||
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$l.'/'.$table.'.yml') ||
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$table.'.'.$this->_lang.'.yml') ||
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$table.'.'.$l.'.yml') || 
+                    file_exists($yml=TDZ_ROOT.'/data/studio/'.$table.'.'.$l.'.yml') || 
                     (($yml=TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml') && false)
                 ) {
 
