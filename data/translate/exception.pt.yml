@@ -13,3 +13,13 @@ Should have between %s and %s characters.: Deve ter entre %s e %s caracteres.
 Should be smaller than %s characters.: Deve ter menos que %s caracteres.
 Should be greater than %s characters.: Deve ter pelo menos %s caracteres.
 Should be between %s and %s.: Deve ser entre %s e %s.
+The supplied code is expired or doesn't exist.: O código informado expirou ou não existe.
+Relation "%s" is not available at %s.: 'O relacionamento "%s" não está disponível em %s.'
+This is not a valid e-mail address.: Este endereço de e-mail não é válido.
+"%s is mandatory and should not be blank.": '%s é obrigatório e não deve estar em branco.'
+Column "%s" is not available at %s.: 'Coluna "%s" não está disponível em %s.'
+This is not a valid choice.: Esta não é uma escolha válida.
+Could not save %s.: 'Não foi possível salvar %s.'
+Issues are: Erros
+Could not insert new record at %s.: 'Não foi possível inserir novo registro no %s.'
+"%s should not be null.": '%s não deve ser nulo.'
