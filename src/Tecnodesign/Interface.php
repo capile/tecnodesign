@@ -133,7 +133,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $className='Tecnodesign_Interface';
 
 
-    protected $uid, $model, $action, $id, $search, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source;
+    protected $uid, $model, $action, $id, $search, $searchError, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source;
     protected static
         $instances=array(),
         $is=0,
@@ -2739,7 +2739,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public function count()
     {
         $r = 0;
-        if($cn=$this->getModel()) {
+        if(!$this->searchError && ($cn=$this->getModel())) {
             $sql = true;
             $Q = null;
             if(method_exists($cn, 'queryHandler')) {
@@ -2799,6 +2799,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $active = false;
         $noq = false;
         $scopes = 1;
+        if(isset($this->searchError)) $this->searchError = null;
         if(isset($scope['q']) && is_array($scope['q'])) {
             $scopes++;
             $addScope = array($scope);
@@ -3075,6 +3076,9 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
             $this->text['searchCount'] = $this->count();
+        } else if($active) {
+            $this->searchError = $F->getError(true);
+            $this->text['searchCount'] = 0;
         }
         $this->text['searchForm'] = $F;
         return (isset($this->text['searchCount']))?($this->text['searchCount']):($this->text['count']);
