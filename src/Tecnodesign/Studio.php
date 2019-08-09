@@ -803,7 +803,7 @@ class Tecnodesign_Studio
      */
     public static function templateFile($tpl)
     {
-        if(!in_array($d=TDZ_ROOT.'/src/Tecnodesign/App/Resources/templates', tdz::templateDir())) {
+        if(!in_array($d=TDZ_ROOT.'/src/Tecnodesign/Resources/templates', tdz::templateDir())) {
             tdz::$tplDir[] = $d;
         }
         unset($d);
