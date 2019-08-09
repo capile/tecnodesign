@@ -823,40 +823,11 @@ class Tecnodesign_Studio
 
     public static function t($s, $alt=null, $table='lang')
     {
-        static $T;
         if(!$table) $table = 'lang';
-        if(is_null($T)) {
-            if(!$T)$T=array();
+        if(!($translated = Tecnodesign_Translate::message($s, $table)) || ($translated===$s && $alt)) {
+            $translated = $alt;
         }
-        if(!isset($T[$table])) {
-            $lang = substr(tdz::$lang, 0, 2);
-            $ckey = 'studio/lang/'.$table.'.'.$lang;
-            $T[$table] = false;//(self::$cacheTimeout)?(Tecnodesign_Cache::get($ckey, self::$cacheTimeout)):(array());
-            if(!$T[$table]) {
-                if(file_exists($f=self::$app->tecnodesign['data-dir'].'/'.$ckey.'.yml')) {
-                    $T[$table] = Tecnodesign_Yaml::load($f);
-                } else {
-                    $T[$table] = array();
-                }
-                if(file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/lang/'.$table.'.'.$lang.'.yml') || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/lang/'.$table.'.en.yml')) {
-                    if(!$T[$table]) $T[$table] = array();
-                    $trans = Tecnodesign_Yaml::load($f);
-                    if($trans)
-                        $T[$table] += $trans;
-                }
-                if(self::$cacheTimeout) Tecnodesign_Cache::set($ckey, $T[$table], self::$cacheTimeout);
-            }
-            unset($lang, $ckey);
-        }
-        if(isset($T[$table][$s])) {
-            return $T[$table][$s];
-        } else if($alt) {
-            //tdz::log('[Translate] no record for '.$s.' in '.$table.'.'.substr(tdz::$lang, 0, 2));
-            return $alt;
-        } else {
-            //tdz::log('[Translate] no record or alternative for '.$table.'.'.substr(tdz::$lang, 0, 2).'.yml: '.$s.': "'.$s.'"');
-            return Tecnodesign_Translate::message($s, $table);
-        }
+        return $translated;
     }
 
 
