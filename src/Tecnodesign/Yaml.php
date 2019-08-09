@@ -227,20 +227,12 @@ class Tecnodesign_Yaml
             throw new \InvalidArgumentException('$append must be an array');
         }
 
-        // verify it has the 'all' key
-        if (!array_key_exists('all', $append)) {
-            $append = ['all' => $append];
-        }
-
         $yamlArray = self::load($yaml);
         $yamlMerged = array_replace_recursive($yamlArray, $append);
         if ($yamlMerged !== $yamlArray) {
             self::save($yaml, $yamlMerged, $timeout);
         }
 
-        /**
-         * @todo necessary for PHP < 7
-         */
         unset($yaml, $append, $timeout, $yamlArray);
 
         return $yamlMerged;
