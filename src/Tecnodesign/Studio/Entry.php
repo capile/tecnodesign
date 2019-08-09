@@ -507,7 +507,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(substr(basename($url),0,1)=='.') return;
         $P=null;
         if(!$multiview) {
-            $f = tdzEntry::file(static::$pageDir.$url, false);
+            $f = tdzEntry::file(static::$pageDir.str_replace('.', '[-.]', $url), false);
             if(substr($f, -1)=='/') {
                 $f.=static::$indexFile;
             } else if(is_dir($f)) {
@@ -522,7 +522,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             if(is_null($pat)) {
                 $pat = '{,.'.tdz::$lang.'}{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
             }
-            $pages = self::glob(str_replace('.', '[-.]', $f).$pat);
+            $pages = self::glob($f.$pat);
 
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
@@ -737,7 +737,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             $u = substr($u, 0, strlen($u)-strlen($m[0]));
         }
 
-        if(strpos($u, '.')) $u = str_replace('.', '-', $u);
+        if(strpos($u, '.')) $u = str_replace('.', '[-.]', $u);
 
         static $pat;
         if(is_null($pat)) {
