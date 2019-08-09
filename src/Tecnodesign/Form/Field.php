@@ -36,7 +36,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $enableMultipleText=true,
         $allowedProperties=array('on'),
         $tmpDir='/tmp',
-        $captchaTimeout=60,
+        $captchaTimeout=3600,
         $captchaCaseSensitive=false,
         $defaultErrorMessage='This is not a valid value.'
         ;
