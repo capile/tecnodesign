@@ -15,8 +15,8 @@
  */
 class Tecnodesign_Translate
 {
-    public static $method='bing', $apiKey, $clientId, $sourceLanguage='en', $forceTranslation;
-    protected static $_t;
+    public static $method=null, $apiKey=null, $clientId=null, $sourceLanguage='en', $forceTranslation;
+    protected static $_t=null;
     protected $_from='en', $_lang='en', $_table=[], $_keys=[];
 
     public function __construct($language=null)
@@ -47,7 +47,7 @@ class Tecnodesign_Translate
         
         if(!isset(self::$_t[$to])) {
             if(is_null(self::$_t)) {
-                self::$_t = new ArrayObject;
+                self::$_t = [];
             }
             if(!isset(self::$_t[$to])) {
                 self::$_t[$to] = new Tecnodesign_Translate($to);
@@ -76,18 +76,35 @@ class Tecnodesign_Translate
             $table = 'default';
         }
         if(!isset($this->_table[$table][$message])) {
-            if(!isset($this->_table[$table])) {
-                $yml = TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml';
-                if(!file_exists($yml)) {
+            if(!isset($this->_table[$table]) || !isset($this->_table[$table][$message])) {
+                $l = preg_replace('/\-.*/', '', $this->_lang);
+
+                if(
+                    file_exists($yml=TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml') ||
+                    file_exists($yml=TDZ_VAR.'/translate/'.$l.'/'.$table.'.yml') ||
+                    file_exists($yml=TDZ_VAR.'/translate/'.$table.'.'.$this->_lang.'.yml') ||
+                    file_exists($yml=TDZ_VAR.'/translate/'.$table.'.'.$l.'.yml') ||
+                    file_exists($yml=TDZ_ROOT.'/data/translate/'.$this->_lang.'/'.$table.'.yml') ||
+                    file_exists($yml=TDZ_ROOT.'/data/translate/'.$l.'/'.$table.'.yml') ||
+                    file_exists($yml=TDZ_ROOT.'/data/translate/'.$table.'.'.$this->_lang.'.yml') ||
+                    file_exists($yml=TDZ_ROOT.'/data/translate/'.$table.'.'.$l.'.yml') || 
+                    (($yml=TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml') && false)
+                ) {
+
+                } else {
                     tdz::save($yml, '--- automatic translation index, please update', true);
                 }
+            }
+            if(!isset($this->_table[$table])) {
                 $this->_table[$table] = Tecnodesign_Yaml::load($yml);
+                if(isset($this->_table[$table]['all']) && count($this->_table[$table])===1) {
+                    $this->_table[$table] = $this->_table[$table]['all'];
+                }
                 if(!is_array($this->_table[$table])) $this->_table[$table] = array();
             }
             if(!isset($this->_table[$table][$message])) {
-                $yml = TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml';
                 $text = $message;
-                if($this->_from!=$this->_lang){
+                if($this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){
                     $m = self::$method.'Translate';
                     try{
                         $text = self::$m($this->_from, $this->_lang, $text);
@@ -96,7 +113,9 @@ class Tecnodesign_Translate
                     }
                 }
                 $this->_table[$table][$message]=$text;
-                Tecnodesign_Yaml::append($yml, array($message=>$text), 0);
+                if(substr($yml, 0, strlen(TDZ_VAR))===TDZ_VAR) {
+                    Tecnodesign_Yaml::append($yml, array($message=>$text), 0);
+                }
             }
         }
         return $this->_table[$table][$message];
