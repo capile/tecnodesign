@@ -53,7 +53,7 @@ class Tecnodesign_Yaml
      */
     public static $cache = true;
 
-    private static $autoInstall = true;
+    private static $autoInstall = false;
 
     const PARSE_NATIVE = 'php-yaml';
     const PARSE_SPYC = 'Spyc';

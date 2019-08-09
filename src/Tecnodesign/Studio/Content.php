@@ -120,7 +120,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
     {
         // should be valid json
         if(substr($this->content, 0,1)!='{') {
-            tdz::debug(__METHOD__, var_Export($this, true));
             $this->content = json_encode(Tecnodesign_Yaml::load($this->content),true);
         }
         return $this->content;
@@ -261,7 +260,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             $cn::$schema['scope']['e-studio'][]='hide_at';
         }
         $cn::$schema['scope'][$scope]=$cn::$schema['scope']['e-studio'];
-        tdz::debug($cn::$schema);
         return parent::getForm($scope);
     }
 
