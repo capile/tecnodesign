@@ -2106,7 +2106,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $text = null;
         $img = Tecnodesign_Image::captcha($text, ['no_session'=>true, 'use_database'=>false, 'send_headers'=>false, 'no_exit'=>true]);
         $input = null;
-        $this->value = '';
+        $arg['value'] = $this->value = '';
 
         if($text && $img) {
             $salt = tdz::salt(40, true);
@@ -2131,11 +2131,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $exist = true;
                     if(static::$captchaCaseSensitive) {
                         if($msg===$v) {
-                            return $v;
+                            return true;
                         }
                     } else {
                         if(strtolower($msg)===strtolower($v)) {
-                            return $v;
+                            return true;
                         }
                     }
                 }
