@@ -367,7 +367,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
                 unset($tg, $fn);
                 if($value===false && $outputError) {
-                    if(count($this->errors)==0) {
+                    if(count($this->error)==0) {
                         $msg = sprintf(tdz::t($message, 'exception'), $this->getLabel(), $value);
                         $this->error[$msg]=$msg;
                         throw(new Tecnodesign_Exception($msg));
@@ -504,14 +504,14 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $count=0;
             foreach($value as $k=>$v) {
                 if(!tdz::isempty($v)) {
-                    if(!$this->checkChoices($v, $message)) {
+                    if(tdz::isempty($this->checkChoices($v, $message))) {
                         return false;
                     } else {
                         $count++;
                     }
                 }
             }
-            if($count==0 && $this->required) {
+            if($count===0 && $this->required) {
                 return false;
             } else {
                 if($join) {
@@ -969,9 +969,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $value = false;
             }
         }
-        if(!$value && $this->bind && ($schema=$this->getSchema()) && isset($schema['columns'][$this->bind])) {
+        if(tdz::isempty($value) && $this->bind && ($schema=$this->getSchema()) && isset($schema['columns'][$this->bind])) {
             $value=$this->getModel()->{$this->bind};
-            if(!$value) $value=null;
+            if(tdz::isempty($value)) $value=null;
         }
         return $value;
     }
@@ -1187,7 +1187,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $value = $this->checkFile($value);
         }
         if($this->multiple) {
-            if(is_array($value)) $value = array_filter($value);
+            if(is_array($value)) $value = array_filter($value, ['tdz','notEmpty']);
             if(tdz::isempty($value)) $value = null;
         } else if($this->type!='form') {
             if(is_array($value)) {
@@ -2189,7 +2189,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 } else {
                     $value = preg_split('/\s*\,\s*/', $value, null, PREG_SPLIT_NO_EMPTY);
                 }
-            } else if(!$value) {
+            } else if(tdz::empty($value)) {
                 $value = array();
             }
             $s = '';
@@ -2477,7 +2477,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $label = $valueConfig;
             }
 
-            if (in_array($value, $oValue,false)) {
+            if($value===0) $value = "0";
+            if (in_array($value, $oValue, false)) {
                 $attrs .= ' checked="checked"';
                 $styleClasses = ' on';
             }

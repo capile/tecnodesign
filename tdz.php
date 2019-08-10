@@ -636,7 +636,7 @@ class tdz
         if(is_array($v)) {
             $r = '';
             foreach($v as $a) {
-                $r .= (($r)?($del):('')).tdz::implode($a, $del);
+                $r .= ((!tdz::empty($r))?($del):('')).tdz::implode($a, $del);
                 unset($a);
             }
             return $r;
@@ -1079,6 +1079,11 @@ class tdz
     public static function isempty($a)
     {
         return is_null($a) || $a===false || $a==='' || $a===array();
+    }
+
+    public static function notEmpty($a)
+    {
+        return !tdz::isempty($a);
     }
 
     public static function fixEncoding($s, $encoding='UTF-8')
