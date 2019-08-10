@@ -38,7 +38,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $tmpDir='/tmp',
         $captchaTimeout=3600,
         $captchaCaseSensitive=false,
-        $defaultErrorMessage='This is not a valid value.'
+        $defaultErrorMessage='This is not a valid value for "%s".'
         ;
 
     /**
@@ -1070,7 +1070,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         if($m!='None') {
             if($this->required) {
-                $rules['required']='Is mandatory and should not be blank.';
+                $rules['required']='"%s" is mandatory and should not be blank.';
             }
             if($this->bind) {
                 $rules['model']=static::$defaultErrorMessage;
