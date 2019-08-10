@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Form v2.2 | (c) 2018 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.3 | (c) 2018 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -457,8 +457,6 @@ function initDatepicker()
     if(_PickerT) clearTimeout(_PickerT);
     _PickerT = setTimeout(cleanupDatepicker, 500);
 }
-
-Z.initDatepicker = initDatepicker;
 
 function cleanupDatepicker()
 {
@@ -1023,6 +1021,7 @@ function subformDel(e)
 function Form(o)
 {
     var q='Form.Form';
+    if(!('initDatePicker' in Z)) Z.initDatepicker = initDatepicker;
     if(q in Z.modules) {
         delete(Z.modules[q]);
         Z.load('z-form.css');

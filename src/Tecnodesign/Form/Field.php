@@ -673,10 +673,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     unset($O, $R[$i], $i);
                 }
             }
-        } else if($this->bind && $this->serialize && ($fo=$this->getSubForm())) {
+        } else if($this->bind && ($fo=$this->getSubForm())) {
             if(!$value) {
                 $value = array();
-            } else if(!is_array($value)) {
+            } else if(!is_array($value) && !is_object($value)) {
                 $value = tdz::unserialize($value, $this->serialize);
             }
             $p0 = $fo['prefix'];
@@ -1583,7 +1583,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     unset($model, $i);
                 }
             }
-        } else if($this->serialize && ($fo=$this->getSubForm())) {
+        } else if($fo=$this->getSubForm()) {
 
             // input for javascript
             $prefix = $this->getName();
