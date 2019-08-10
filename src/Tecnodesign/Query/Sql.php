@@ -734,10 +734,10 @@ class Tecnodesign_Query_Sql
                         $v = $this->getWhere($nv, 'or');
                         if($v) $r .= "({$v})";
 
-                    } else if(!$v && $cop=='=') {
+                    } else if(tdz::isempty($v) && $cop=='=') {
                         $r .= (($cnot)?(' not'):(' '))."({$fn}=".self::escape($v)." or {$fn} is null)";
 
-                    } else if(!$v && $cop=='<>') {
+                    } else if(tdz::isempty($v) && $cop=='<>') {
                         $r .= " ({$fn}<>".self::escape($v)." and {$fn} is not null)";
 
                     } else if($cop=='^' || $cop=='$' || $cop=='*') {
@@ -1332,7 +1332,8 @@ class Tecnodesign_Query_Sql
             }
             $f['choices']=$choices;
         } else {
-            tdz::debug(__METHOD__.'???', $fd, $type, $desc, $m);
+            $f['type'] = 'string';
+            //tdz::debug(__METHOD__.'???', $fd, $type, $desc, $m);
         }
         $f['null'] = ($fd['Null']=='YES');
         if($fd['Key']=='PRI') {

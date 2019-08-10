@@ -3034,7 +3034,7 @@ class Tecnodesign_Interface implements ArrayAccess
                                     . '<span class="'.static::$attrTermClass.'">'.(($c1)?(tdz::t('Yes', 'interface')):(tdz::t('No', 'interface'))).'</span>';
                     }
                 } else if($ff[$k]=='choices') {
-                    if(!$v || !is_object($F[$k0])) continue;
+                    if(tdz::isempty($v) || !is_object($F[$k0])) continue;
                     $this->search[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
