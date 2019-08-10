@@ -636,7 +636,7 @@ class tdz
         if(is_array($v)) {
             $r = '';
             foreach($v as $a) {
-                $r .= ((!tdz::empty($r))?($del):('')).tdz::implode($a, $del);
+                $r .= ((!tdz::isempty($r))?($del):('')).tdz::implode($a, $del);
                 unset($a);
             }
             return $r;
