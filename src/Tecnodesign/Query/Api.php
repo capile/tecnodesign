@@ -290,7 +290,7 @@ class Tecnodesign_Query_Api
                      . $k.'='.urlencode($this->_scope);
                 unset($k);
             }
-            if($this->_select && ($cn=$this->_schema) && implode(',',$this->_select)===implode(',',$cn::columns($this->_scope))) {
+            if($this->_select && ($cn=$this->_schema) && implode(',',$this->_select)===implode(',',$cn::columns($this->_scope, null, 0, true))) {
                 $this->_select=null;
             }
         }
