@@ -33,7 +33,7 @@ class Tecnodesign_Form implements ArrayAccess
      */
     public static $enableStyles = false;
 
-    public function __construct($formConfig)
+    public function __construct($formConfig=[])
     {
         if (isset($formConfig['id'])) {
             $id = $formConfig['id'];
@@ -189,13 +189,13 @@ class Tecnodesign_Form implements ArrayAccess
         return $this->_uid;
     }
 
-    public static function instance($id)
+    public static function instance($id=null, $newForm=[])
     {
         if(!$id) {
             $id = array_shift(array_keys((array)self::$_instances));
         }
         if(!isset(self::$_instances[$id])) {
-            self::$_instances[$id] = new Tecnodesign_Form();
+            self::$_instances[$id] = new Tecnodesign_Form($newForm);
         }
         return self::$_instances[$id];
      }

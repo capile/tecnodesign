@@ -537,6 +537,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $M = $this->getModel();
         $schema = $M::schema();
         $sid = $scope = (!$this->scope)?('subform'):($this->scope);
+        $errors=[];
 
         if(!isset($schema['relations'][$this->bind]) && $this->choices && is_string($this->choices) && isset($schema['relations'][$this->choices]) && $schema['relations'][$this->choices]['local']==$this->bind) {
             $this->bind = $this->choices;
@@ -574,12 +575,14 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
                 if(!is_array($rel['foreign'])) {
                     $fk[] = $rel['foreign'];
-                    $add[$rel['foreign']] = $M->{$rel['local']};
+                    $fkv = $M->{$rel['local']};
+                    if(!tdz::isempty($fkv)) $add[$rel['foreign']] = $fkv;
                 } else {
                     $fk = $rel['foreign'];
                     foreach($rel['foreign'] as $i=>$fn) {
                         $ln = $rel['local'][$i];
-                        $add[$fn] = $M->{$ln};
+                        $fkv = $M->{$ln};
+                        if(!tdz::isempty($fkv)) $add[$fn] = $fkv;
                     }
                 }
                 if(count($add) > 0) {
@@ -616,7 +619,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $O = $R[$i];
                     if(is_array($O)) {
                         $v += $O;
-                        $O = new $cn($O, false, false);
+                        $O = new $cn($O, null, false);
                     } else {
                         // check if $pk changed, if it did, remove old record
                         if($pk = $O->getPk(true)) {
@@ -633,7 +636,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                             if($pkdel) {
                                 $R[microtime()]=$O;
                                 unset($O);
-                                $O = new $cn($v, true, false);
+                                $O = new $cn($v, null, false);
                             } else {
                                 $v += $O->asArray();
                             }
@@ -644,11 +647,15 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     unset($R[$i]);
                 } else {
                     $v += $add;
-                    $O = new $cn(null, true, false);
+                    $O = new $cn(null, null, false);
                 }
                 try {
-                    $F = $O->getForm($sid, true);
-                    $F->prefix = $this->getName().'['.$i.']';
+                    $fid = $this->getName().'['.$i.']';
+                    if(!($F=Tecnodesign_Form::getInstance($fid))) {
+                        $F = $O->getForm($sid, true);
+                        $F->prefix = $fid;
+                        $F->register($fid);
+                    }
                     if(is_array($new)) {
                         foreach($new as $fn) $F[$fn]->disabled=true;
                     } else if($new) {
@@ -685,9 +692,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
             foreach($value as $i=>$o) {
                 unset($value[$i]);
                 $fo['id'] = $p0.'['.$i.']';
-                $F = new Tecnodesign_Form($fo);
+                $F = Tecnodesign_Form::instance($fo['id'], $fo);
                 if(!$F->validate($o)) {
                     $valid = false;
+                    $errors[$fo['id']] = $F->getError();
                     break;
                 } else {
                     $value[$i] = $F->getData();
@@ -697,7 +705,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $valid = false;
         }
         if(!$valid) {
-            $this->setError(sprintf(tdz::t($message, 'exception'), $this->getLabel()));
+            $err = sprintf(tdz::t($message, 'exception'), $this->getLabel());
+            if($errors) $err .= implode('', $errors);
+            $this->setError($err);
             //throw new Tecnodesign_Exception(array(tdz::t($message, 'exception'), $this->getLabel(), $value));
             //return false;
         }
@@ -1588,7 +1598,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             // input for javascript
             $prefix = $this->getName();
             $fo['id'] = $prefix.'[§]';
-            $form = new Tecnodesign_Form($fo);
+            $form = Tecnodesign_Form::instance($fo['id'], $fo);
             $jsinput = '<div class="item">';
             foreach($form->fields as $fn=>$f) {
                 $jsinput .= $f->render();
@@ -1606,7 +1616,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(is_array($value)) {
                 foreach($value as $i=>$o) {
                     $fo['id'] = $prefix.'['.$i.']';
-                    $form = new Tecnodesign_Form($fo);
+                    $form = Tecnodesign_Form::instance($fo['id'], $fo);
                     $input .= '<div class="item '.(($i%2)?('even'):('odd')).'">';
                     foreach($form->fields as $fn=>$f) {
                         if($f->bind) {

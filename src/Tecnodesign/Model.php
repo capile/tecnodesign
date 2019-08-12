@@ -551,7 +551,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     unset($fo['fields'][$fn]);
                 }
             }
-            if($pk) {
+            if($pk && !$this->isNew()) {
                 $pk = static::pk();
                 if(is_array($pk)) {
                     foreach($pk as $k) {
