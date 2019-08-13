@@ -168,7 +168,7 @@ class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInter
     public function offsetExists($name)
     {
         $name = $this->resolveAlias($name);
-        return property_exists($this, $name);
+        return isset($this->$name);
     }
 
     /**

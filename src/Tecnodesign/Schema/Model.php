@@ -4,7 +4,7 @@
  *
  * This is the meta-schema for Tecnodesign_Model, to validate all model schemas
  *
- * PHP version 5.4
+ * PHP version 5.6+
  *
  * @category  Model
  * @package   Tecnodesign
@@ -16,4 +16,6 @@
 class Tecnodesign_Schema_Model extends Tecnodesign_Schema
 {
     public static $meta;
+
+    //protected $database, $className, $tableName, $view, $title, $properties, $patternProperties, $overlay, $scope, $relations, $events, $actAs, $orderBy, $groupBy;
 }

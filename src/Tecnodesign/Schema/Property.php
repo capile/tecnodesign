@@ -15,5 +15,5 @@
  */
 class Tecnodesign_Schema_Property extends Tecnodesign_Schema
 {
-    public static $meta;
+    public static $meta, $allowUndeclared = true;
 }

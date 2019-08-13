@@ -23,6 +23,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         $errorMinorThan='%s is less than the expected minimum %s',
         $errorGreaterThan='%s is more than the expected maximum %s',
         $errorMandatory='%s is mandatory and should not be a blank value.',
+        $allowUndeclared,
         $error,
         $timeout;//300
 
@@ -215,7 +216,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 if(is_string($item)) {
                     foreach($value as $i=>$o) {
                         // type object should validate keys, if patternProperties is present, or is an object
-                        if($nreg && !preg_match($nreg, $i)) {
+                        if($nreg && !preg_match($nreg, $i) && !static::$allowUndeclared) {
                             unset($value[$i]);
                         } else {
                             $value[$i] = new $item($o);
@@ -254,7 +255,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                         } else {
                             $value[$n] = static::validateProperty($meta[$n], $pvalue, $n);
                         }
-                    } else if($nreg && !preg_match($nreg, $n)) {
+                    } else if($nreg && !preg_match($nreg, $n) && !static::$allowUndeclared) {
                         unset($value[$n]);
                     }
                 }

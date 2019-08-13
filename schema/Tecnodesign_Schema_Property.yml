@@ -13,6 +13,10 @@ properties:
     title: Property alias
     description: If used, should completely replace the property, useful for deprecated properties
     type: string
+  primary:
+    title: Primary keys
+    description: Describes which properties are the primary key
+    type: bool
   title:
     title: Label to use for the property
     description: Full text label to use, can be translated if starts with *, otherwise is a derivation of the property key
@@ -75,6 +79,10 @@ properties:
       checkbox: { format: checkbox }
       select: { format: select }
       csrf: { format: csrf }
+  default:
+    title: Default value
+    description: Describes the property default value
+    type: string
   format:
     title: How to represent/display the property externally
     description: Handles the form and display formats for the property
@@ -112,18 +120,21 @@ properties:
   choices: 
     title: List of valid values for this property
     description: should be either an object of keys=>labels or a Model to fetch the options or an URI to retrieve the options from
-#  default: ~
+  increment:
+    type: string
+  size:
+    type: int
+  min_size:
+    type: int
+  decimal:
+    type: string
+  serialize:
+    type: string
 #  properties: ~
 #  items: ~
 #  trigger: ~
 #  scope: ~
-#  increment: ~
-#  primary: ~
 #
-#  size: ~
-#  min_size: ~
-#  decimal: ~
-#  serialize: ~
 #  disabled: ~
 #  readonly: ~
 #  multiple: ~

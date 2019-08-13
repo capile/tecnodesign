@@ -677,7 +677,7 @@ class Tecnodesign_Query_Ldap
     {
         $odata = $M->asArray('save', null, null, false);
         $data = array();
-        $fs = $M::$schema['columns'];
+        $fs = $M::$schema->properties;
         if(!$fs) $fs = array_flip(array_keys($odata));
         foreach($fs as $fn=>$fv) {
             if(!is_array($fv)) $fv=array('null'=>true);
@@ -688,7 +688,7 @@ class Tecnodesign_Query_Ldap
                 continue;
             }
             $original=$M->getOriginal($fn, null, false);
-            if($original===null) continue;
+            if(!$new && $original===null) continue;
 
             if(array_key_exists($fn, $odata)) {
                 $v = $odata[$fn];

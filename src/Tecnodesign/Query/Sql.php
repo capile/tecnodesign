@@ -513,7 +513,7 @@ class Tecnodesign_Query_Sql
                             $this->_distinct = ' distinct';
                         }
 
-                        if(isset($rsc['view'])) {
+                        if(isset($rsc['view']) && $rsc['view']) {
                             $jtn = (strpos($rsc['view'], ' '))?('('.$rsc['view'].')'):($rsc['view']);
                         } else if(isset($rsc['database']) && $rsc['database']!=$this->schema('database')) {
                             $jtn = $this->getDatabaseName($rsc['database']).'.'.$rsc['tableName'];
@@ -1018,13 +1018,16 @@ class Tecnodesign_Query_Sql
     {
         $odata = $M->asArray('save', null, null, true);
         $data = array();
+        $pks = [];
 
-        $fs = $M::$schema['columns'];
-        if(!$fs) $fs = array_flip(array_keys($odata));
+        $fs = $M::$schema->properties;
+        if(!$fs) {
+            $fs = array_flip(array_keys($odata));
+        }
         $sql = '';
         foreach($fs as $fn=>$fv) {
             $original=$M->getOriginal($fn, false);
-            if(isset($fv['primary']) && $fv['primary']) {
+            if($fv->primary) {
                 $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
                 continue;
             }
@@ -1053,8 +1056,11 @@ class Tecnodesign_Query_Sql
             unset($fs[$fn], $fn, $fv, $v);
         }
         if($sql) {
-            $tn = $M::$schema['tableName'];
+            $tn = $M::$schema->tableName;
             $wsql = '';
+            if(!$pks) {
+                $pks = $M->getPk(true);
+            }
             foreach($pks as $fn=>$fv) {
                 $wsql .= (($wsql!='')?(' and '):(''))
                        . "{$fn}={$fv}";

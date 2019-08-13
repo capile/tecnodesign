@@ -4,7 +4,7 @@
  *
  * Full database abstraction ORM.
  *
- * PHP version 5.4
+ * PHP version 5.6+
  *
  * @category  Model
  * @package   Tecnodesign
@@ -220,7 +220,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if($array) return $pk;
         else if(count($pk)==1) $pk = $pk[0];
 
-        if($update) static::$schema->scope['uid']=$pk;
+        if($update) static::$schema['scope']['uid']=$pk;
         return $pk;
     }
 
@@ -310,6 +310,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
                 if(isset(static::$schema->overlay[$fn])) {
                     $fd+=static::$schema->overlay[$fn];
+                    if(isset(static::$schema->properties[$fn])) {
+                        $fd+=static::$schema->properties[$fn]->value();
+                    }                    
                     if (!isset($fd['label']) && !is_int($label)) {
                         $fd['label']=$label;
                     }
@@ -367,9 +370,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             } else {
                 if (!isset(static::$schema->scope[$scope])) {
                     $labels = array();
-                    if(!isset(static::$schema->properties)) {
-                        \tdz::debug(__METHOD__, get_called_class(), var_Export($this, true), var_Export(static::$schema, true));
-                    }
                     foreach(static::$schema->properties as $fn=>$fd) {
                         if (!$fd->increment) {
                             $labels[static::fieldLabel($fn)] = $fn;
