@@ -67,6 +67,7 @@ class Tecnodesign_Markdown extends Parsedown
 
     function text($text)
     {
+        $level = @error_reporting(E_ALL & ~E_NOTICE);
         $markup = parent::text($text);
 
         # merge consecutive dl elements
@@ -77,6 +78,7 @@ class Tecnodesign_Markdown extends Parsedown
             $Element = $this->buildFootnoteElement();
             $markup .= "\n" . $this->element($Element);
         }
+        error_reporting($level);
 
         return $markup;
     }
