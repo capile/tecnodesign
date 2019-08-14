@@ -2199,7 +2199,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 } else {
                     $value = preg_split('/\s*\,\s*/', $value, null, PREG_SPLIT_NO_EMPTY);
                 }
-            } else if(tdz::empty($value)) {
+            } else if(tdz::isempty($value)) {
                 $value = array();
             }
             $s = '';
