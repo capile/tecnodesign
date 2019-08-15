@@ -569,6 +569,7 @@ class Tecnodesign_Query_Sql
                                     $this->_from .= ' and '.$ar;
                                 }
                             }
+                            $rsc['events']['active-records'] = $ar;
                             unset($ar);
                         }
                     } else {
@@ -647,7 +648,6 @@ class Tecnodesign_Query_Sql
             }
         }
         if($add) $w += $add;
-
         $op = '=';
         $not = false;
         static $cops = array('>=', '<=', '<>', '!', '!=', '>', '<');
@@ -809,7 +809,7 @@ class Tecnodesign_Query_Sql
             if(isset($this::$errorCallback) && $this::$errorCallback) {
                 return call_user_func($this::$errorCallback, $e, func_get_args(), $this);
             }
-            tdz::log('[INFO] Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n ".$this);
+            tdz::log('[WARNING] Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n {$this}\n  ".$e);
             return false;
         }
     }
@@ -841,7 +841,7 @@ class Tecnodesign_Query_Sql
             return (int) $v;
         } else if(isset($d['type']) && $d['type']=='bool') {
             return ($v && $v>0)?(1):(0);
-        } else if(isset($d['format']) && $d['format']=='datetime') {
+        } else if((isset($d['format']) && $d['format']=='datetime') || (isset($d['type']) && $d['type']=='datetime')) {
             $ms = (int) static::$microseconds;
             if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2}) ?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
                 if(!isset($m[3]) || !$m[3]) {
@@ -851,6 +851,15 @@ class Tecnodesign_Query_Sql
                 } else {
                     return "'{$m[2]}T{$m[3]}'";
                 }
+            } else if($t=strtotime($v)) {
+                return '\''.date('Y-m-d\TH:i:s', $t).'\'';
+            }
+        } else if((isset($d['format']) && $d['format']=='date') || (isset($d['type']) && $d['type']=='date')) {
+            $ms = (int) static::$microseconds;
+            if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2}) ?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
+                return "'{$m[2]}'";
+            } else if($t=strtotime($v)) {
+                return '\''.date('Y-m-d\TH:i:s', $t).'\'';
             }
         } else if(is_array($v)) {
             if(isset($d['serialize'])) {
@@ -1410,7 +1419,7 @@ class Tecnodesign_Query_Sql
                             $e = $found;
                         }
                         foreach($e as $en) {
-                            if($en=='active-record') {
+                            if($en=='active-records') {
                                 $events[$en][]=$fn;
                             } else {
                                 if(!isset($events[$en][$bn]) || !in_array($fn, $events[$en][$bn])) $events[$en][$bn][]=$fn;

@@ -2879,7 +2879,6 @@ class Tecnodesign_Interface implements ArrayAccess
                             unset($post[$slug]);
                         }
                     }
-
                 } else if(isset($fd['choices'])) {
                     $ff[$slug]='choices';
                     if(!isset($fd['type']))$fd['type']='checkbox';
