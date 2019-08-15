@@ -628,7 +628,9 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                     $climit = $this->_count;
                 }
                 for($i=$p;$i < $climit;$i++) {
-                    $ret[]=$this->{$this->_items[$i]};
+                    if(!isset($this->_items[$i])) \tdz::log(__METHOD__.' --> '.$i, var_export($this, true));
+                    $item = $this->_items[$i];
+                    $ret[]=$this->$item;
                 }
             } else {
                 $ret = $this->{$this->_items[$p]};

@@ -298,7 +298,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                         $col = static::column($m[1], true);
                         if($col) {
                             static::$schema->overlay[$fn] = $col;
-                            if(isset(static::$schema->overlay[$fn]['bind'])) static::$schem->overlay[$fn]['bind'] = $fn; // or $m[1]?
+                            if(isset(static::$schema->overlay[$fn]['bind'])) static::$schema->overlay[$fn]['bind'] = $fn; // or $m[1]?
                         }
                         unset($col);
                     }
@@ -1255,7 +1255,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
         if($fn) {
             if(isset($this->$relation)) {
-              return $this->{$relation[$fn]};
+              return $this->$relation[$fn];
             }
         } else if(!$asCollection && is_object($this->$relation) && $this->$relation instanceof Tecnodesign_Collection) {
             return $this->$relation->getItems();
@@ -1443,11 +1443,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             unset($value);
         } else {
-            if(!$O || !($O instanceof Tecnodesign_Model)) {
-                $O = new $cn($O);
-            }
-            foreach($value as $k=>$v){
-                $O[$k] = $v;
+            if(is_object($value) && ($value instanceof Tecnodesign_Model)) {
+                $O = $value;
+            } else {
+                if(!$O || !($O instanceof Tecnodesign_Model)) {
+                    $O = new $cn($O);
+                }
+                foreach($value as $k=>$v){
+                    $O[$k] = $v;
+                }
             }
         }
         $this->$relation = $O;
@@ -2492,7 +2496,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $ret = $this->$m();
         } else if(!isset(static::$schema['columns'][$firstName]) && strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
             if($dot && isset($this->$firstName)) {
-                return $this->$firstName->$ref;
+                if(is_object($this->$firstName)) return $this->$firstName->$ref;
+                else if(isset($this->$firstName[$ref])) return $this->$firstName[$ref];
             } else if($dot && isset(static::$schema['relations'][$firstName])) {
                 return $this->getRelation($firstName, $ref);
             } else if(isset($this->$name)) {
