@@ -1068,7 +1068,7 @@ class Tecnodesign_Query_Sql
             $tn = $M::$schema->tableName;
             $wsql = '';
             if(!$pks) {
-                $pks = $M->getPk(true);
+                $pks = tdz::sql($M->getPk(true));
             }
             foreach($pks as $fn=>$fv) {
                 $wsql .= (($wsql!='')?(' and '):(''))
