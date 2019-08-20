@@ -320,7 +320,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 } else if($fd && isset($fd['type'])) {
                     $sfo[$fid] = $fd;
                 } else if(substr($fn, 0, 1)=='_' || (static::$allowNewProperties && substr($fn, 0, 2)!='--')) {
-                    $sfo[$fid] = array('type'=>'text','bind'=>$fn, 'label'=>$label);
+                    $sfo[$fid] = $fd + array('type'=>'text','bind'=>$fn, 'label'=>$label);
                 } else if($allowText) {
                     if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
                         $class = $label;
