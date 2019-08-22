@@ -148,31 +148,25 @@ class Tecnodesign_Markdown extends Parsedown
 
     #
     # Definition List
-
     protected function blockDefinitionList($Line, $Block)
     {
-        if (!isset($Block) || $Block['type']!=='Paragraph') {
+        if (!isset($Block) || isset($Block['type'])) {
             return;
         }
-
         $Element = array(
             'name' => 'dl',
-            'elements' => array(),
+            'handler' => 'elements',
+            'text' => array(),
         );
-
-        $terms = explode("\n", $Block['element']['handler']['argument']);
-
-        foreach ($terms as $term) {
-            $Element['elements'] []= array(
+        $terms = explode("\n", $Block['element']['text']);
+        foreach ($terms as $term)
+        {
+            $Element['text'] []= array(
                 'name' => 'dt',
-                'handler' => array(
-                    'function' => 'lineElements',
-                    'argument' => $term,
-                    'destination' => 'elements'
-                ),
+                'handler' => 'line',
+                'text' => $term,
             );
         }
-
         $Block['element'] = $Element;
         $Block = $this->addDdElement($Line, $Block);
         return $Block;
@@ -180,53 +174,40 @@ class Tecnodesign_Markdown extends Parsedown
 
     protected function blockDefinitionListContinue($Line, array $Block)
     {
-        if ($Line['text'][0] === ':') {
+        if ($Line['text'][0] === ':')
+        {
             $Block = $this->addDdElement($Line, $Block);
             return $Block;
-        } else {
-            if (isset($Block['interrupted']) and $Line['indent'] === 0) {
+        }
+        else
+        {
+            if (isset($Block['interrupted']) and $Line['indent'] === 0)
+            {
                 return;
             }
-
-            if (isset($Block['interrupted'])) {
-                $Block['dd']['handler']['function'] = 'textElements';
-                $Block['dd']['handler']['argument'] .= "\n\n";
-                $Block['dd']['handler']['destination'] = 'elements';
+            if (isset($Block['interrupted']))
+            {
+                $Block['dd']['handler'] = 'text';
+                $Block['dd']['text'] .= "\n\n";
                 unset($Block['interrupted']);
             }
-
             $text = substr($Line['body'], min($Line['indent'], 4));
-            $Block['dd']['handler']['argument'] .= "\n" . $text;
-
+            $Block['dd']['text'] .= "\n" . $text;
             return $Block;
         }
     }
 
     #
     # Header
-
     protected function blockHeader($Line)
     {
         $Block = parent::blockHeader($Line);
-
-        if (isset($Block['element']['handler']['argument']) && preg_match('/[ #]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['handler']['argument'], $matches, PREG_OFFSET_CAPTURE)) {
+        if (preg_match('/[ #]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['text'], $matches, PREG_OFFSET_CAPTURE))
+        {
             $attributeString = $matches[1][0];
             $Block['element']['attributes'] = $this->parseAttributeData($attributeString);
-            $Block['element']['handler']['argument'] = substr($Block['element']['handler']['argument'], 0, $matches[0][1]);
+            $Block['element']['text'] = substr($Block['element']['text'], 0, $matches[0][1]);
         }
-        if(!isset($Block['element']['attributes']['id'])) {
-            if(isset($Block['element']['text'])) {
-                $text = $Block['element']['text'];
-            } else if(isset($Block['element']['handler']['argument'])) {
-                $text = strip_tags($this->text($Block['element']['handler']['argument']));
-            } else {
-                $text = '';
-            }
-            if($text!=='') {
-                $Block['element']['attributes']['id'] = tdz::slug($text);
-            }
-        }
-
         return $Block;
     }
 
@@ -315,17 +296,15 @@ class Tecnodesign_Markdown extends Parsedown
 
     #
     # Setext
-
     protected function blockSetextHeader($Line, array $Block = null)
     {
         $Block = parent::blockSetextHeader($Line, $Block);
-
-        if (isset($Block['element']['handler']['argument']) && preg_match('/[ ]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['handler']['argument'], $matches, PREG_OFFSET_CAPTURE)) {
+        if (preg_match('/[ ]*{('.$this->regexAttribute.'+)}[ ]*$/', $Block['element']['text'], $matches, PREG_OFFSET_CAPTURE))
+        {
             $attributeString = $matches[1][0];
             $Block['element']['attributes'] = $this->parseAttributeData($attributeString);
-            $Block['element']['handler']['argument'] = substr($Block['element']['handler']['argument'], 0, $matches[0][1]);
+            $Block['element']['text'] = substr($Block['element']['text'], 0, $matches[0][1]);
         }
-
         return $Block;
     }
 
@@ -350,11 +329,12 @@ class Tecnodesign_Markdown extends Parsedown
             $Element = array(
                 'name' => 'sup',
                 'attributes' => array('id' => 'fnref'.$this->DefinitionData['Footnote'][$name]['count'].':'.$name),
-                'element' => array(
+                'handler' => 'element',
+                'text' => array(
                     'name' => 'a',
                     'attributes' => array('href' => '#fn:'.$name, 'class' => 'footnote-ref'),
                     'text' => $this->DefinitionData['Footnote'][$name]['number'],
-                ),
+                ),                
             );
 
             return array(
@@ -379,6 +359,24 @@ class Tecnodesign_Markdown extends Parsedown
         }
 
         return $Link;
+    }
+
+    #
+    # ~
+    #
+
+    protected function unmarkedText($text)
+    {
+        $text = parent::unmarkedText($text);
+        if (isset($this->DefinitionData['Abbreviation']))
+        {
+            foreach ($this->DefinitionData['Abbreviation'] as $abbreviation => $meaning)
+            {
+                $pattern = '/\b'.preg_quote($abbreviation, '/').'\b/';
+                $text = preg_replace($pattern, '<abbr title="'.$meaning.'">'.$abbreviation.'</abbr>', $text);
+            }
+        }
+        return $text;
     }
 
     #
@@ -698,58 +696,6 @@ class Tecnodesign_Markdown extends Parsedown
     }
 
     #
-    # ~
-    #
-
-    private $currentAbreviation;
-    private $currentMeaning;
-
-    protected function insertAbreviation(array $Element)
-    {
-        if (isset($Element['text']))
-        {
-            $Element['elements'] = self::pregReplaceElements(
-                '/\b'.preg_quote($this->currentAbreviation, '/').'\b/',
-                array(
-                    array(
-                        'name' => 'abbr',
-                        'attributes' => array(
-                            'title' => $this->currentMeaning,
-                        ),
-                        'text' => $this->currentAbreviation,
-                    )
-                ),
-                $Element['text']
-            );
-
-            unset($Element['text']);
-        }
-
-        return $Element;
-    }
-
-    protected function inlineText($text)
-    {
-        $Inline = parent::inlineText($text);
-
-        if (isset($this->DefinitionData['Abbreviation']))
-        {
-            foreach ($this->DefinitionData['Abbreviation'] as $abbreviation => $meaning)
-            {
-                $this->currentAbreviation = $abbreviation;
-                $this->currentMeaning = $meaning;
-
-                $Inline['element'] = $this->elementApplyRecursiveDepthFirst(
-                    array($this, 'insertAbreviation'),
-                    $Inline['element']
-                );
-            }
-        }
-
-        return $Inline;
-    }
-
-    #
     # Util Methods
     #
 
@@ -757,102 +703,70 @@ class Tecnodesign_Markdown extends Parsedown
     {
         $text = substr($Line['text'], 1);
         $text = trim($text);
-
         unset($Block['dd']);
-
         $Block['dd'] = array(
             'name' => 'dd',
-            'handler' => array(
-                'function' => 'lineElements',
-                'argument' => $text,
-                'destination' => 'elements'
-            ),
+            'handler' => 'line',
+            'text' => $text,
         );
-
         if (isset($Block['interrupted']))
         {
-            $Block['dd']['handler']['function'] = 'textElements';
-
+            $Block['dd']['handler'] = 'text';
             unset($Block['interrupted']);
         }
-
-        $Block['element']['elements'] []= & $Block['dd'];
-
+        $Block['element']['text'] []= & $Block['dd'];
         return $Block;
     }
+
 
     protected function buildFootnoteElement()
     {
         $Element = array(
             'name' => 'div',
             'attributes' => array('class' => 'footnotes'),
-            'elements' => array(
-                array('name' => 'hr'),
+            'handler' => 'elements',
+            'text' => array(
+                array(
+                    'name' => 'hr',
+                ),
                 array(
                     'name' => 'ol',
-                    'elements' => array(),
+                    'handler' => 'elements',
+                    'text' => array(),
                 ),
             ),
         );
-
         uasort($this->DefinitionData['Footnote'], 'self::sortFootnotes');
-        foreach ($this->DefinitionData['Footnote'] as $definitionId => $DefinitionData) {
+        foreach ($this->DefinitionData['Footnote'] as $definitionId => $DefinitionData)
+        {
             if ( ! isset($DefinitionData['number'])) {
                 continue;
             }
             $text = $DefinitionData['text'];
-            $textElements = parent::textElements($text);
+            $text = parent::text($text);
             $numbers = range(1, $DefinitionData['count']);
-            $backLinkElements = array();
-            foreach ($numbers as $number) {
-                $backLinkElements[] = array('text' => ' ');
-                $backLinkElements[] = array(
-                    'name' => 'a',
-                    'attributes' => array(
-                        'href' => "#fnref$number:$definitionId",
-                        'rev' => 'footnote',
-                        'class' => 'footnote-backref',
-                    ),
-                    'rawHtml' => '&#8617;',
-                    'allowRawHtmlInSafeMode' => true,
-                    'autobreak' => false,
-                );
+            $backLinksMarkup = '';
+            foreach ($numbers as $number)
+            {
+                $backLinksMarkup .= ' <a href="#fnref'.$number.':'.$definitionId.'" rev="footnote" class="footnote-backref">&#8617;</a>';
             }
-            unset($backLinkElements[0]);
-            $n = count($textElements) -1;
-            if ($textElements[$n]['name'] === 'p') {
-                $backLinkElements = array_merge(
-                    array(
-                        array(
-                            'rawHtml' => '&#160;',
-                            'allowRawHtmlInSafeMode' => true,
-                        ),
-                    ),
-                    $backLinkElements
-                );
-                unset($textElements[$n]['name']);
-                $textElements[$n] = array(
-                    'name' => 'p',
-                    'elements' => array_merge(
-                        array($textElements[$n]),
-                        $backLinkElements
-                    ),
-                );
-            } else {
-                $textElements[] = array(
-                    'name' => 'p',
-                    'elements' => $backLinkElements
-                );
+            $backLinksMarkup = substr($backLinksMarkup, 1);
+            if (substr($text, - 4) === '</p>')
+            {
+                $backLinksMarkup = '&#160;'.$backLinksMarkup;
+                $text = substr_replace($text, $backLinksMarkup.'</p>', - 4);
             }
-            $Element['elements'][1]['elements'] []= array(
+            else
+            {
+                $text .= "\n".'<p>'.$backLinksMarkup.'</p>';
+            }
+            $Element['text'][1]['text'] []= array(
                 'name' => 'li',
                 'attributes' => array('id' => 'fn:'.$definitionId),
-                'elements' => array_merge(
-                    $textElements
-                ),
+                'handler'=>'text',
+                'text' => "\n".$text."\n",
             );
         }
-
         return $Element;
     }
     
