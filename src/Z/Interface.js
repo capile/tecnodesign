@@ -646,6 +646,7 @@
                 if(R[i]==H || R[i]==I) continue;
                 R[i].className = R[i].className.replace(/\btdz-i-(title-)?active\b\s*/g, '').trim();
             }
+            document.title = Z.text(H);
         }
 
         checkMessages(I);

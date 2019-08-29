@@ -295,8 +295,9 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(isset($this->options[$opt]) && $this->options[$opt]!=static::$$opt) static::$$opt = (bool) $this->options[$opt];
             }
             unset($d['options']);
+            if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
+            //if(isset($this->options['order-by'])) $this->orderBy = $this->options['order-by'];
         }
-
     }
 
     public function checkScope($a=array())

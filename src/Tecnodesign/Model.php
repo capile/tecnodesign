@@ -417,7 +417,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 } else if(isset(static::$schema->properties[$fn]['type'])) {
                     $ftype = static::$schema->properties[$fn]['type'];
                 } else {
-                    $ftype = null;
+                    $ftype = 'string';
                 }
                 if(!in_array($ftype,$type)) {
                     unset($scope[$k]);
@@ -890,17 +890,24 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if(is_null($this->_new)) {
             $schema = $this->schema();
             $pks=array();
+            $auto = false;
             foreach($schema['columns'] as $fn=>$fv) {
                 if(isset($fv['primary']) && $fv['primary']) {
-                    $pks[$fn]=(!is_null($this->$fn));
+                    if(isset($fv['increment']) && $fv['increment']) $auto = true;
+                    $pks[$fn] = $this->$fn;
                 }
             }
             $hasPk=true;
             foreach ($pks as $pk) {
-                if(!$pk) {
+                if(tdz::isempty($pk)) {
                     $hasPk = false;
                     break;
                 }
+            }
+            if($hasPk && !$auto) {
+                $found = static::find($pks,1,array_keys($pks));
+                if($found) $hasPk = false;
+                unset($found);
             }
             $this->_new = !$hasPk;
         }
@@ -1380,7 +1387,6 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 else $map[$pk] = $i;
                 unset($i, $R, $pk);
             }
-
             if(!is_array($value)) $value = array();
             foreach($value as $i=>$v) {
                 // try direct comparison first -- if it's $v is in $ro, there's nothing to do
