@@ -1333,6 +1333,18 @@ class Tecnodesign_Interface implements ArrayAccess
         return tdz::templateFile(func_get_args());
     }
 
+    public function referer()
+    {
+        if(($url=Tecnodesign_App::request('headers', 'z-referer')) || ($url=Tecnodesign_App::request('headers', 'referer'))) {
+            $ref = parse_url($url);
+            if($ref && (!isset($ref['host']) || $ref['host']==Tecnodesign_App::request('hostname')) && substr($ref['path'], 0, strlen($this::$base)+1)==$this::$base.'/') {
+                return $url;
+            }
+        }
+
+        return $this->link(false, true);
+    }
+
     public function link($a=null, $id=null, $ext=true, $qs=null)
     {
         if(is_null($this->url)) {

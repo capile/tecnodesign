@@ -400,7 +400,7 @@
         /*jshint validthis: true */
         //Z.trace('loadInterface');
         _init = true;
-        var I, m=false, t, q, urls=[], l, i,u,data,h={'Tdz-Action':'Interface'};
+        var I, m=false, t, q, urls=[], l, i,u,data,h={'Tdz-Action':'Interface', 'z-action':'Interface'};
         if(typeof(e)=='string') {
             urls.push(e);
         } else {
@@ -515,6 +515,11 @@
             _loading[url]=t;
             Z.blur(B);
             //Z.trace('loadInterface: ajax request');
+            if(I) {
+                h['z-referer'] = I.getAttribute('data-url');
+                if(I.getAttribute('data-qs')) h['z-referer'] += '?'+ I.getAttribute('data-qs');
+            }
+
             Z.ajax((urls[i].search(/\?/)>-1)?(urls[i].replace(/\&+$/, '')+'&ajax='+t):(urls[i]+'?ajax='+t), data, setInterface, interfaceError, 'html', o, h);
 
             _load++;
@@ -553,11 +558,16 @@
                 }
                 u=this.getAttribute('href');
             }
-            var a=new Date().getTime();
+            var a=new Date().getTime(), h={'Tdz-Action':'Interface','z-action': 'Interface'}, I=Z.parentNode('.tdz-i[data-url].tdz-i-active');
+            if(I) {
+                h['z-referer'] = I.getAttribute('data-url');
+                if(I.getAttribute('data-qs')) h['z-referer'] += '?'+ I.getAttribute('data-qs');
+            }
+
             u=(u.search(/\?/)>-1)?(u.replace(/\&+$/, '')+'&ajax='+a):(u+'?ajax='+a);
             //Z.trace('loadAction: ajax request');
             Z.blur(t);
-            Z.ajax(u, null, loadAction, interfaceError, 'html', t, {'Tdz-Action':'Interface'});
+            Z.ajax(u, null, loadAction, interfaceError, 'html', t, h);
         } else {
             //Z.trace('loadAction: ajax response start');
             var f = document.createElement('div');
