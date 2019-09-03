@@ -1027,7 +1027,6 @@ class Tecnodesign_Query_Sql
     {
         $odata = $M->asArray('save', null, null, true);
         $data = array();
-        $pks = [];
 
         $fs = $M::$schema->properties;
         if(!$fs) {
@@ -1036,11 +1035,7 @@ class Tecnodesign_Query_Sql
         $sql = '';
         foreach($fs as $fn=>$fv) {
             $original=$M->getOriginal($fn, false);
-            if($fv->primary) {
-                $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
-                continue;
-            }
-            if(isset($fv['alias'])) continue;
+            if($fv->primary || $fv->alias) continue;
             if(!is_array($fv) && !is_object($fv)) $fv=array('null'=>true);
 
             if (!isset($odata[$fn]) && $original===false) {
@@ -1067,9 +1062,7 @@ class Tecnodesign_Query_Sql
         if($sql) {
             $tn = $M::$schema->tableName;
             $wsql = '';
-            if(!$pks) {
-                $pks = tdz::sql($M->getPk(true));
-            }
+            $pks = tdz::sql($M->getPk(true));
             foreach($pks as $fn=>$fv) {
                 $wsql .= (($wsql!='')?(' and '):(''))
                        . "{$fn}={$fv}";
