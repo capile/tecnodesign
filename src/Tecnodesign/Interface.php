@@ -66,6 +66,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $listPagesOnTop     = true,
         $listPagesOnBottom  = true,
         $translate          = true,
+        $standalone         = false,
         $hitsPerPage        = 25,
         $attrListClass      = 'tdz-i-list',
         $attrPreviewClass   = 'tdz-i-preview',
@@ -226,6 +227,9 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->key = array_shift($this->key);
                     if($p=strrpos($this->key, ' ')) $this->key =substr($this->key, 0, $p);
                 }
+            }
+            if(isset($d['id']) && $d['id']) {
+                $this->id = $d['id'];
             }
         } else if(!$this->run) {
             return static::error(404, static::t('errorNotFound'));
@@ -853,8 +857,8 @@ class Tecnodesign_Interface implements ArrayAccess
         if(isset($this->actions[$a])) {
 
             if(isset($this->actions[$a]['identified']) && $this->actions[$a]['identified']) {
-                if(!isset($this->id) && $p) {
-                    $n = array_shift($p);
+                $n = ($p) ?array_shift($p) :null; 
+                if(!isset($this->id) && $n) {
                     if($n!=='') {
                         if(is_array($this->key)) {
                             $nc = explode(Tecnodesign_Model::$keySeparator, $n, count($this->key));
@@ -875,6 +879,8 @@ class Tecnodesign_Interface implements ArrayAccess
                     if($this->isOne()) {
                         $this->id = $this->model()->getPk();
                     }
+                } else if($n && $n!=$this->id) {
+                    return false;
                 }
                 if(tdz::isempty($this->id)) {
                     if(isset($n)) {
@@ -1235,7 +1241,19 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         $cn = $this->getModel();
         if(!tdz::isempty($this->id)) {
-            $r = $cn::find($this->search,0,'string',false,null,$this->groupBy);
+            $w = $this->search;
+            if(!tdz::isempty($this->id) && !tdz::isempty($this->key)) {
+                $w = [];
+                if(is_string($this->key)) {
+                    $w[$this->key] = $this->id;
+                } else {
+                    foreach($this->key as $k) {
+                        if(isset($this->id[$k])) $w[$k] = $this->id[$k];
+                    }
+                }
+            }
+
+            $r = $cn::find($w,0,'string',false,null,$this->groupBy);
             if($r) {
                 if(method_exists($cn, 'renderTitle')) {
                     $s = '';
@@ -1396,7 +1414,8 @@ class Tecnodesign_Interface implements ArrayAccess
     public function isOne()
     {
         if(!tdz::isempty($this->key)) {
-            if(!is_array($this->key)) {
+            if(!tdz::isempty($this->id)) return true;
+            else if(!is_array($this->key)) {
                 return isset($this->search[$this->key]);
             } else {
                 $set = true;
@@ -2759,6 +2778,17 @@ class Tecnodesign_Interface implements ArrayAccess
                     $sql = false;
                 }
             }
+
+            if(!tdz::isempty($this->id) && !tdz::isempty($this->key)) {
+                if(is_string($this->key)) {
+                    $this->search[$this->key] = $this->id;
+                } else {
+                    foreach($this->key as $k) {
+                        if(isset($this->id[$k])) $this->search[$k] = $this->id[$k];
+                    }
+                }
+            }
+
             if($sql) {
                 $pk = $cn::pk();
                 if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';

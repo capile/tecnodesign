@@ -612,7 +612,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
                 unset($fn);
             }
-
             foreach($value as $i=>$v) {
                 $v += $bnull;
                 if(isset($R[$i])) {
@@ -1116,6 +1115,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public static function properties($fd, $new=null)
     {
+        if(is_object($fd)) {
+            $fd = $fd->value();
+        }
         if(isset($fd['null'])) {
             $fd['required'] = !$fd['null'];
             unset($fd['null']);

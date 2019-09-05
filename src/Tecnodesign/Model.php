@@ -64,10 +64,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     {
         if(!isset(self::$stats[get_class($this)])) self::$stats[get_class($this)]=1;
         else self::$stats[get_class($this)]++;
-        $checkNew = false;
         if (is_array($vars)) {
             foreach($vars as $k=>$v) {
-                $checkNew = true;
                 $this->__set($k, $v);
                 unset($k, $v);
             }
@@ -891,9 +889,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $schema = $this->schema();
             $pks=array();
             $auto = false;
-            foreach($schema['columns'] as $fn=>$fv) {
-                if(isset($fv['primary']) && $fv['primary']) {
-                    if(isset($fv['increment']) && $fv['increment']) $auto = true;
+            foreach($schema->properties as $fn=>$fv) {
+                if(isset($fv->primary) && $fv->primary) {
+                    if($fv->increment) $auto = true;
                     $pks[$fn] = $this->$fn;
                 }
             }

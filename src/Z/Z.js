@@ -551,7 +551,7 @@ Z.node=function()
         if(t=='undefined' || !o) continue;
         else if(t=='string' && (o=document.querySelector(o))) return o;
         else if(t=='object' && ('nodeName' in o)) return o;
-        else if('jquery' in o) return o.get(0);
+        else if(t=='object' && ('jquery' in o)) return o.get(0);
     }
     return false;
 };

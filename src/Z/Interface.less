@@ -513,10 +513,10 @@ input.tdz-i-switch{
 input,select,textarea {
   font-size:1em;
   padding:0.25em 0;
-  @border: ((@colorTabActive + #ddd) * 0.5);
   color:#000;
   background:#fff;
-  border:1px solid @border;
+  border:none;
+  border-bottom:1px solid @colorBorder;
   width:100%;
 }
 input[type=text],input[type=search],input[type=url],input[type^=date] {
@@ -891,6 +891,60 @@ select, input {
     }
   }
 
+  .b1s2, .b1s3, .b2s3, .b1s4, .b3s4 {
+    display:block;
+    margin: 0;
+    padding: 0;
+    &:first-child {
+      padding-top: 1em;
+    }
+    &:last-child {
+      margin-bottom: 1em;
+    }
+    white-space: nowrap;
+    > dt, > .label {
+      white-space: normal;
+      display: inline-block;
+      width:48%;
+      font-size: 1em;
+      margin: 0 2% 0 0;
+      padding: 0.75em 0 0.75em 0;
+      text-align: right;
+      vertical-align: top;
+    }
+    > dd, > .input {
+      white-space: normal;
+      display: inline-block;
+      width:49%;
+      margin: 0;
+      padding: 0.75em 0;
+      input, select, textarea {
+        margin-top: -0.25em;
+        margin-bottom: -0.25em;
+      }
+    }
+    &.b1s3 {
+      > dt, > .label { width: 64% };
+      > dd, > .input { width: 34% };
+    }
+    &.b2s3 {
+      > dt, > .label { width: 31% };
+      > dd, > .input { width: 67% };
+    }
+    &.b1s4 {
+      > dt, > .label { width: 73% };
+      > dd, > .input { width: 25% };
+    }
+    &.b3s4 {
+      > dt, > .label { width: 23% };
+      > dd, > .input { width: 75% };
+    }
+  }
+
+  legend + .b1s2,legend + .b1s3,legend + .b2s3,legend + .b1s4,legend + .b3s4 {
+    margin-top: 1em;
+  }
+
   .i1s2, .i1s4, .i2s4, .i3s4, .i1s3, .i2s3 {
     display:inline-block;
     vertical-align:top;
@@ -1108,6 +1162,16 @@ th > input[type=checkbox], td > input[type=checkbox]{
     }
   }
   margin-bottom:2em;
+}
+
+.tdz-i-standalone {
+  .tdz-i-summary, .tdz-i-footer {
+    background: transparent;
+    padding:0;
+    color:@colorText;
+    &:before {display:none;}
+  }
+
 }
 
 .tdz-i-body .tdz-i-standalone .tdz-i-footer a:hover span {display:none;}

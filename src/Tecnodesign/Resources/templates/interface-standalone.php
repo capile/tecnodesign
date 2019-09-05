@@ -48,7 +48,7 @@ if($title) Tecnodesign_App::response('title', $title);
 
     ?><div class="tdz-i-summary tdz-i--<?php echo $Interface['action']; ?>"><?php
 
-        if(isset($summary)) {
+        if(!$Interface::$standalone && isset($summary)) {
             echo $summary;
             Tecnodesign_App::response('summary', $summary);
         }
@@ -135,9 +135,9 @@ if($title) Tecnodesign_App::response('title', $title);
 
 
     // .tdz-i-actions
-    ?><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
+    if(!$Interface::$standalone): ?><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
         echo $buttons; 
-    ?></div></div><?php 
+    ?></div></div><?php endif;
 
 
 ?></div><?php
