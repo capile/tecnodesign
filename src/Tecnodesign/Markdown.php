@@ -30,7 +30,7 @@ class Tecnodesign_Markdown extends Parsedown
         $syntaxHighlight='pygmentize',//'geshi',
         $cacheSyntaxHighlight=3600,
         $index=array(),
-        $indexElements=array(),
+        $indexElements=array('h1', 'h2', 'h3', 'h4'),
         $indexPrefix='',
         $base='';
     protected static $R;
@@ -633,8 +633,17 @@ class Tecnodesign_Markdown extends Parsedown
                         $index = 1;
                         static::$index[$Element['name']]=array();
                     }
-                    if(static::$indexPrefix) $index = static::$indexPrefix.$Element['name'].'_'.$index;
-                    else $index = $Element['name'].'_'.$index;
+
+                    if(isset($Element['text']) && substr($Element['name'], 0, 1)==='h') {
+                        $indexTxt = static::$indexPrefix.tdz::slug(strip_tags($this->text($Element['text'])), '_-', true);
+                        if(isset(static::$index[$Element['name']][$index])) {
+                            $indexTxt .= '_'.$index;
+                        }
+                        $index = $indexTxt;
+                        unset($indexTxt);
+                    } else {
+                        $index = static::$indexPrefix.$Element['name'].'_'.$index;
+                    }
                     $Element['attributes']['id']=$index;
                 } else {
                     $index = $Element['attributes']['id'];
