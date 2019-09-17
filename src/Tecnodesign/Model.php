@@ -871,8 +871,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(is_null($this->_new)) {
             $schema = $this->schema();
             $pks=array();
+            $auto = false;
             foreach($schema['columns'] as $fn=>$fv) {
                 if(isset($fv['primary']) && $fv['primary']) {
+                    if(isset($fv['increment']) && $fv['increment']) $auto = true;
                     $pks[$fn]=(!is_null($this->$fn));
                 }
             }
