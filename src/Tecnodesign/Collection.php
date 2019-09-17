@@ -620,7 +620,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         $ret = null;
         $this->_current = $p;//+$limit;
         if(tdz::$perfmon) tdz::$perfmon = microtime(true);
-        if(isset($this->_items[$p])) {
+        if(!$this->_query && isset($this->_items[$p])) {
             if($limit>1) {
                 $ret = array();
                 $climit = $p+$limit;
@@ -628,7 +628,9 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                     $climit = $this->_count;
                 }
                 for($i=$p;$i < $climit;$i++) {
-                    $ret[]=$this->{$this->_items[$i]};
+                    $item = $this->_items[$i];
+                    $ret[]=$this->$item;
+                    unset($item);
                 }
             } else {
                 $ret = $this->{$this->_items[$p]};
@@ -746,7 +748,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                         unset($q);
                     }
                 } catch(Exception $e) {
-                    tdz::log(__METHOD__.': '.$e->getMessage()."\n  ".$e->getFile().':'.$e->getLine());
+                    tdz::log(__METHOD__.': '.$e->getMessage()."\n  ".$e->getFile().':'.$e->getLine()."\n{$e}");
                 }
             }
         }
