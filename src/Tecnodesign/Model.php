@@ -904,7 +904,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             if($hasPk && !$auto) {
                 $found = static::find($pks,1,array_keys($pks));
-                if($found) $hasPk = false;
+                if(!$found) $hasPk = false;
                 unset($found);
             }
             $this->_new = !$hasPk;
