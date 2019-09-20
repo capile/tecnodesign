@@ -198,7 +198,7 @@ while($list || $worksheet) {
             }
             tdz::tune(__FILE__.': '.__LINE__);
             $d = $list->getItems($o, ($l-$o<100)?($l-$o):(100));
-            if(count($d)==0) break;
+            if(!$d || count($d)==0) break;
         }
         unset($d);
         $list=null;

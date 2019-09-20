@@ -617,17 +617,16 @@ class Tecnodesign_Interface implements ArrayAccess
         tdz::redirect($url);
     }
 
+    protected static $msg;
     public function message($m=null)
     {
-        static $msg='',$got=false;
         if($m) {
             tdz::getUser()->setMessage($m);
-            $msg .= $m;
-        } else if(!$got) {
-            $msg .= tdz::getUser()->getMessage(false, true);
-            $got=true;
+            static::$msg .= $m;
+        } else if(is_null(static::$msg)) {
+            static::$msg .= (string) tdz::getUser()->getMessage(false, true);
         }
-        return $msg;
+        return static::$msg;
     }
 
     public function getModel()
@@ -2065,7 +2064,8 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->redirect($this->link(), $oldurl);
                 }
                 $this->text['summary'] .= $msg;
-
+            } else {
+                $this->text['summary'] .= $this->message();
             }
             unset($post);
         } catch(Exception $e) {

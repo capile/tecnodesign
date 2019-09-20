@@ -58,7 +58,7 @@ if(isset($title)) Tecnodesign_App::response('title', $title);
                     Tecnodesign_App::response('summary', $summary);
                 }
 
-                echo tdz::getUser()->getMessage(false, true), (isset($app))?($app):('');
+                echo $Interface->message(), (isset($app))?($app):('');
 
                 if(isset($error)): 
                     ?><div class="tdz-error"><?php 
