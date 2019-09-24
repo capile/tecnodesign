@@ -262,7 +262,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     if ($fd->increment) {
                         continue;
                     }
-                    static::$schema->overlay[$fn]=array('bind'=>$fn);
+                    if(!isset(static::$schema->overlay[$fn]['bind'])) static::$schema->overlay[$fn]=array('bind'=>$fn);
                     if (isset($fk[$fn])) {
                         static::$schema->overlay[$fn]['format']='select';
                         static::$schema->overlay[$fn]['choices']=$fk[$fn];
@@ -307,7 +307,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 else $fid = $fn;
 
                 if(isset(static::$schema->overlay[$fn])) {
-                    $fd+=static::$schema->overlay[$fn];
+                    $fd=static::$schema->overlay[$fn]+$fd;
                     if(isset(static::$schema->properties[$fn])) {
                         $fd+=static::$schema->properties[$fn]->value();
                     }                    
