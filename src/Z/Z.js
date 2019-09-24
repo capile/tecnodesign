@@ -28,7 +28,6 @@ function initZ(d)
         else if((e=document.querySelector('script[src*=".js"]'))) _assetUrl = e.getAttribute('src').replace(/\/[^\/]+\.js.*/, '/');
         else _assetUrl = '/';
         if(_assetUrl.search(/^[a-z0-9]*?\:\/\//)>-1) Z.host=_assetUrl.replace(/^([a-z0-9]*?\:\/\/[^\/]+).*/, '$1');
-        console.log(Z.host);
     }
 
     var store=true;
