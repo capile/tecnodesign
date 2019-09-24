@@ -448,7 +448,7 @@ class Tecnodesign_Studio
     {
         self::$private=true;
         if(Tecnodesign_Studio::$checkOrigin) {
-            if(!Tecnodesign_Studio::$allowOrigin) Tecnodesign_Studio::$allowOrigin = [tdz::buildUrl('')];
+            if(is_array(Tecnodesign_Studio::$allowOrigin)) Tecnodesign_Studio::$allowOrigin[] = tdz::buildUrl('');
             $from = null;
             if(isset($_SERVER['HTTP_ORIGIN'])) $from = $_SERVER['HTTP_ORIGIN'];
             else if(isset($_SERVER['HTTP_REFERER'])) $from = $_SERVER['HTTP_REFERER'];
