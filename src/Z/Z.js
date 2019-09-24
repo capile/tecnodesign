@@ -1,5 +1,5 @@
 /*! Tecnodesign Z v2.2 | (c) 2018 Capile Tecnodesign <ti@tecnodz.com> */
-if(!('Z' in window)) window.Z={uid:'/_me',timeout:0,headers:{}};
+if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{}};
 (function(Z) {
 "use strict";
 var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
@@ -21,6 +21,16 @@ function initZ(d)
         Z.modules = defaultModules;
     }
 
+    if(!_assetUrl) {
+        var e=document.querySelector('script[src*="/z.js"]');
+        if(!e) e=document.querySelector('script[src*="/Z.js"]');
+        if(e) _assetUrl = e.getAttribute('src').replace(/\/z\.js.*/, '/');
+        else if((e=document.querySelector('script[src*=".js"]'))) _assetUrl = e.getAttribute('src').replace(/\/[^\/]+\.js.*/, '/');
+        else _assetUrl = '/';
+        if(_assetUrl.search(/^[a-z0-9]*?\:\/\//)>-1) Z.host=_assetUrl.replace(/^([a-z0-9]*?\:\/\/[^\/]+).*/, '$1');
+        console.log(Z.host);
+    }
+
     var store=true;
     if(!('user' in Z)) {
         Z.user=null;
@@ -36,6 +46,7 @@ function initZ(d)
            }
         }
         if(Z.uid && (_reWeb.test(window.location.origin) || _reWeb.test(Z.uid))) {
+            if(Z.host && !_reWeb.test(Z.uid)) Z.uid = Z.host + Z.uid;
             Z.ajax(Z.uid, null, initZ, null, 'json');
             return;
         }
@@ -147,12 +158,6 @@ function loadAsset(f, fn, args, ctx)
 {
     var T, o, r;
     if(f.indexOf('/')<0) {
-        if(!_assetUrl) {
-            var e=document.querySelector('script[src*="/z.js"]');
-            if(e) _assetUrl = e.getAttribute('src').replace(/\/z\.js.*/, '/');
-            else if((e=document.querySelector('script[src*=".js"]'))) _assetUrl = e.getAttribute('src').replace(/\/[^\/]+\.js.*/, '/');
-            else _assetUrl = '/';
-        }
         f=_assetUrl+f;
     }
     if(f.indexOf('.css')>-1) {
@@ -1055,7 +1060,8 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
     }
     //_ajax[url].r.onload = ajaxOnload;
     _ajax[url].r.open(m, url+qs, true);
-    _ajax[url].r.setRequestHeader('x-requested-with', "XMLHttpRequest");
+    _ajax[url].r.setRequestHeader('x-requested-with', 'XMLHttpRequest');
+    _ajax[url].r.withCredentials = true;
     var n;
     if('headers' in Z) {
         for(n in Z.headers) {

@@ -22,7 +22,8 @@ class Tecnodesign_Studio
         $automatedInstall,  // deprecated
         $webInterface,
         $checkOrigin=true,  // prevents sending user details to external origins, use 2 to prevent even to unknown origins
-        $private=array(),   // updated at runtime, indicates when a cache-control: private,nocache should be sent
+        $allowOrigin=[],
+        $private=[],        // updated at runtime, indicates when a cache-control: private,nocache should be sent
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
@@ -447,13 +448,24 @@ class Tecnodesign_Studio
     {
         self::$private=true;
         if(Tecnodesign_Studio::$checkOrigin) {
-            $allow = tdz::buildUrl('');
+            if(!Tecnodesign_Studio::$allowOrigin) Tecnodesign_Studio::$allowOrigin = [tdz::buildUrl('')];
             $from = null;
             if(isset($_SERVER['HTTP_ORIGIN'])) $from = $_SERVER['HTTP_ORIGIN'];
             else if(isset($_SERVER['HTTP_REFERER'])) $from = $_SERVER['HTTP_REFERER'];
             else if(Tecnodesign_Studio::$checkOrigin>1) return false;
-            if($from && substr($from, 0, strlen($allow))!=$allow) {
-                return false; 
+
+            if($from) {
+                $valid = false;
+                foreach(Tecnodesign_Studio::$allowOrigin as $allow) {
+                    if($allow==='*' || substr($from, 0, strlen($allow))==$allow) {
+                        $valid = true;
+                        @header('access-control-allow-origin: '.$allow);
+                        @header('access-control-allow-headers: x-requested-with');
+                        @header('access-control-allow-credentials: true');
+                        break; 
+                    }
+                }
+                if(!$valid) return false;
             }
         }
 
