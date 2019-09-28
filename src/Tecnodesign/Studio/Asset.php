@@ -287,7 +287,7 @@ class Tecnodesign_Studio_Asset
     /**
      * Compress Javascript & CSS
      */
-    public static function minify($s, $root=false, $compress=true, $before=true, $raw=false, $output=false)
+    public static function minify($src, $root=false, $compress=true, $before=true, $raw=false, $output=false)
     {
         if($root===false) {
             $root = TDZ_DOCUMENT_ROOT;
@@ -295,10 +295,13 @@ class Tecnodesign_Studio_Asset
 
         $assets = array(); // assets to optimize
         $r = ''; // other metadata not to messed with (unparseable code)
-        $f = (!is_array($s))?(array($s)):($s);
+        $f = (!is_array($src))?(array($src)):($src);
+        $s = '';
 
         foreach($f as $i=>$url) {
-            if(strpos($url, '<')!==false) {
+            if(is_array($url)) {
+                $r .= static::minify($url, $root, $compress, $before, $raw, (!is_numeric($i)) ?$i :false);
+            } else if(strpos($url, '<')!==false) {
                 // html code, must match a pattern
                 foreach(static::$optimizePatterns as $re=>$ext) {
                     if(preg_match_all($re, $url, $m) && $m[0]) {
@@ -331,7 +334,6 @@ class Tecnodesign_Studio_Asset
                 unset($f, $m);
             }
         }
-        $s = '';
         $updated = true;
         foreach($assets as $ext=>$fs) {
             if(is_string($output)) {

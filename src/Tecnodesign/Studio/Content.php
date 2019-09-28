@@ -520,17 +520,15 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
          * If the entry is not found, it should use current feed as a parameter
          */
         $o['script'] = Tecnodesign_Studio::templateFile((isset($code['master']))?($code['master']):(null), 'tdz_feed');
-        if(!is_numeric($o['variables']['entry'])) {
-            $o['variables']['entry']=$e;
-        }
-        $E = ($e instanceof tdzEntry)?($e):(tdzEntry::find($o['variables']['entry'],1));
+        $E = (is_object($e))?($e):(tdzEntry::find($e,1));
+        $o['variables']['entry']=$E;
         if($E) {
             $o['variables'] += $E->asArray();
             $f = array('Relation.parent'=>$E->id);
             if(!(Tecnodesign_Studio::$private && !Tecnodesign_Studio::$cacheTimeout)) {
                 $f['published<']=date('Y-m-d\TH:i:s');
             }
-            $o['variables']['entries'] = tdzEntry::find($f,0,'preview',(isset($code['hpp']) && $code['hpp']),($E->type=='page')?(array('Relation.position'=>'asc','published'=>'desc')):(array('published'=>'desc')));
+            $o['variables']['entries'] = tdzEntry::find($f,null,'preview',(isset($code['hpp']) && $code['hpp']),($E->type=='page')?(array('Relation.position'=>'asc','published'=>'desc')):(array('published'=>'desc')));
         }
         /*
         if(!Tecnodesign_Studio::$cacheTimeout || (!isset($code['hpp']) || !$code['hpp'])) {

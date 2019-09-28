@@ -1,9 +1,11 @@
 <?php
 if(!class_exists('tdz')) {
     $tdz = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/tdz.php';
+    if(file_exists($f=preg_replace('#/capile/tecnodesign/tdz.php$#', '/autoload.php', $tdz))) $tdz = $f;
     $env='dev';
     define('TDZ_CLI', true);
     require_once $tdz;
+    tdz::$log = 1;
     $argv = $_SERVER['argv'];
     while($arg=array_pop($argv)) {
         if(preg_match('/^[a-z0-9\-]+$/i', $arg) && file_exists($f=TDZ_APP_ROOT.'/config/'.$arg.'.yml')) {
@@ -473,17 +475,7 @@ if(!isset($tns['tdz_credentials'])) {
   created datetime not null{$comment_created},
   updated datetime not null{$comment_updated},
   expired datetime null default null{$comment_expired},
-  primary key (user,groupid),
-  constraint fk_tdz_credentials__user
-    foreign key (user)
-    references tdz_users (id)
-    on delete no action
-    on update no action,
-  constraint fk_tdz_credentials__groupid
-    foreign key (groupid)
-    references tdz_groups(id)
-    on delete no action
-    on update no action)",
+  primary key (user,groupid))",
   'create index user_idx on tdz_credentials(user asc)',
   'create index groupid_idx on tdz_credentials(groupid asc)',
     );

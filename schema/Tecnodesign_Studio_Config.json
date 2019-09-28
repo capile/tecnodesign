@@ -1,0 +1,30 @@
+{
+    "title": "*Configuration",
+    "database": "studio",
+    "tableName": "studio",
+    "className": "Tecnodesign_Studio_Config",
+    "properties": {
+        "uid": { "type": "string", "required": true, "primary": true },
+        "value": { "type": "string", "size": 8000 },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+    },
+    "scope": {
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

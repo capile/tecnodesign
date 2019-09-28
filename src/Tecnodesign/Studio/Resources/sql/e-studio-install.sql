@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS `tdz_entries` (
   INDEX `updated_idx` (`updated` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = utf8
-COMMENT = 'className: Tecnodesign_App_Studio_Entry';
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: Tecnodesign_Studio_Entry';
 
 
 -- -----------------------------------------------------
@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS `tdz_contents` (
     REFERENCES `tdz_entries` (`id`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = utf8
-COMMENT = 'className: Tecnodesign_App_Studio_Content';
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: Tecnodesign_Studio_Content';
 
 
 -- -----------------------------------------------------
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `tdz_contents_version` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
+DEFAULT CHARACTER SET = utf8mb4
 COMMENT = 'className: ~';
 
 
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `tdz_entries_version` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
+DEFAULT CHARACTER SET = utf8mb4
 COMMENT = 'className: ~';
 
 
@@ -160,8 +160,8 @@ CREATE TABLE IF NOT EXISTS `tdz_permissions` (
     REFERENCES `tdz_entries` (`id`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = utf8
-COMMENT = 'className: Tecnodesign_App_Studio_Permission';
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: Tecnodesign_Studio_Permission';
 
 
 -- -----------------------------------------------------
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS `tdz_permissions_version` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
+DEFAULT CHARACTER SET = utf8mb4
 COMMENT = 'className: ~';
 
 
@@ -215,8 +215,8 @@ CREATE TABLE IF NOT EXISTS `tdz_relations` (
     REFERENCES `tdz_entries` (`id`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = utf8
-COMMENT = 'className: Tecnodesign_App_Studio_Relation';
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: Tecnodesign_Studio_Relation';
 
 
 -- -----------------------------------------------------
@@ -243,7 +243,7 @@ CREATE TABLE IF NOT EXISTS `tdz_relations_version` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
+DEFAULT CHARACTER SET = utf8mb4
 COMMENT = 'className: ~';
 
 
@@ -271,8 +271,8 @@ CREATE TABLE IF NOT EXISTS `tdz_tags` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = utf8
-COMMENT = 'className: Tecnodesign_App_Studio_Tag';
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: Tecnodesign_Studio_Tag';
 
 
 -- -----------------------------------------------------
@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS `tdz_tags_version` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
+DEFAULT CHARACTER SET = utf8mb4
 COMMENT = 'className: ~';
 
 
@@ -323,7 +323,9 @@ CREATE TABLE IF NOT EXISTS `tdz_contents_display` (
     REFERENCES `tdz_contents` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: Tecnodesign_Studio_ContentDisplay';
 
 
 -- -----------------------------------------------------
@@ -346,8 +348,9 @@ CREATE TABLE IF NOT EXISTS `tdz_contents_display_version` (
     REFERENCES `tdz_contents_version` (`id` , `version`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COMMENT = 'className: ~';
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

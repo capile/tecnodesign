@@ -539,7 +539,7 @@ class Tecnodesign_Studio
             'type'=>tdzEntry::$previewEntryType,
             'expired'=>'',
         );
-        static $scope = array('id','title','link','source','master','format','updated','published','version');
+        static $scope = array('id','title','type','link','source','master','format','updated','published','version');
         self::$private = array();
         if(static::$response) static::addResponse(static::$response);
         if(is_null($published)) {
@@ -572,7 +572,7 @@ class Tecnodesign_Studio
             $f['published<'] = date('Y-m-d\TH:i:s');
         }
         $E=null;
-        if(self::$connection && $E=tdzEntry::find($f,1,$scope,false,array('type'=>'desc','version'=>'desc'))) {
+        if(self::$connection && $E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','version'=>'desc'))) {
             unset($f, $published);
             return $E;
         }

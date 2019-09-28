@@ -285,7 +285,6 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(count($merge)>0) {
             $layout .= "\n\$content = ".implode('.',$merge).';';
         }
-
         // in Tecnodesign_App::runTemplate
         $app = get_class(Tecnodesign_Studio::$app);
         if($app::$assets) {
