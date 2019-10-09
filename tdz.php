@@ -1917,20 +1917,18 @@ class tdz
         return $s;
     }
 
-    public static function markdown($s)
+    public static function markdown($s, $safe=true)
     {
         static $P;
         if(is_null($P)) {
             $cn = self::$markdown;
-            if(!class_exists($cn)) {
-                if(file_exists($f=TDZ_ROOT.'/src/'.$cn.'/'.$cn.'.php')) {
-                    require_once $f;
-                    unset($f);
-                }
-            }
             $P = new $cn();
         }
-        return $P->text($s);
+        if($safe && method_exists($P, 'safeText')) {
+            return $P->safeText($s);
+        } else {
+            return $P->text($s);
+        }
     }
 
     public static function text($s)

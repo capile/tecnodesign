@@ -23,7 +23,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $widgets = array(
         ),
         $multiviewContentType=array('widget','php','md'), // which entry types can be previewed
-        $disableExtensions=array();                  // disable the preview of selected extensions
+        $disableExtensions=array(),                  // disable the preview of selected extensions
+        $allowMarkdownExtensions=true;
 
     public static $schema;
     protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry, $ContentAttributes, $MetaAttributes;
@@ -455,7 +456,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
     public static function renderMd($code=null)
     {
-        return tdz::markdown(static::renderText($code));
+        return tdz::markdown(static::renderText($code), !static::$allowMarkdownExtensions);
     }
 
     public static function renderPhp($code=null, $e=null)

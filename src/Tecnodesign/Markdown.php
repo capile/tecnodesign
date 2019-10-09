@@ -37,7 +37,7 @@ class Tecnodesign_Markdown extends Parsedown
 
     protected $regexAttribute = '(?:[#.][-\w]+[ ]*)';
 
-    function __construct()
+    public function __construct()
     {
         if (version_compare(parent::version, '1.7.1') < 0) {
             throw new Exception('ParsedownExtra requires a later version of Parsedown');
@@ -65,7 +65,7 @@ class Tecnodesign_Markdown extends Parsedown
         if(static::$allBreaksEnabled) $this->breaksEnabled = true;
     }
 
-    function text($text)
+    public function text($text)
     {
         $level = @error_reporting(E_ALL & ~E_NOTICE);
         $markup = parent::text($text);
@@ -81,6 +81,30 @@ class Tecnodesign_Markdown extends Parsedown
         error_reporting($level);
 
         return $markup;
+    }
+
+    public function safeText($text)
+    {
+        $appBlock = false;
+        if(in_array('App', $this->BlockTypes['!'])) {
+            $appBlock = true;
+            if(count($this->BlockTypes['!'])===1) unset($this->BlockTypes['!']);
+            else $this->BlockTypes['!'] = array_diff($this->BlockTypes['!'], ['App']);
+        }
+        $appInline = false;
+        if(in_array('App', $this->InlineTypes['!'])) {
+            $appInline = true;
+            if(count($this->InlineTypes['!'])===1) unset($this->InlineTypes['!']);
+            else $this->InlineTypes['!'] = array_diff($this->InlineTypes['!'], ['App']);
+        }
+        $r = $this->text($text);
+        if($appBlock) {
+            $this->BlockTypes['!'][] = 'App';
+        }
+        if($appInline) {
+            $this->InlineTypes['!'][] = 'App';
+        }
+        return $r;
     }
 
     #
