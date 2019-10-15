@@ -1179,6 +1179,7 @@ class tdz
         @header('cache-control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
         @header('content-length: '.strlen($str));
 
+        @ob_end_clean();
         echo $str;
         tdz::flush();
 
