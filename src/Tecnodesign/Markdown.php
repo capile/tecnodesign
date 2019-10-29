@@ -1095,4 +1095,165 @@ class Tecnodesign_Markdown extends Parsedown
     {
         return $A['number'] - $B['number'];
     }
+
+
+    /**
+     * Fixing colspan
+     */
+    #
+    # Table
+    protected function blockTable($Line, array $Block = null)
+    {
+        if ( ! isset($Block) or isset($Block['type']) or isset($Block['interrupted']))
+        {
+            return;
+        }
+        if (strpos($Block['element']['text'], '|') !== false and chop($Line['text'], ' -:|') === '')
+        {
+            $alignments = array();
+            $divider = $Line['text'];
+            $divider = trim($divider);
+            $divider = trim($divider, '|');
+            $dividerCells = explode('|', $divider);
+            foreach ($dividerCells as $dividerCell)
+            {
+                $dividerCell = trim($dividerCell);
+                if ($dividerCell === '')
+                {
+                    continue;
+                }
+                $alignment = null;
+                if ($dividerCell[0] === ':')
+                {
+                    $alignment = 'left';
+                }
+                if (substr($dividerCell, - 1) === ':')
+                {
+                    $alignment = $alignment === 'left' ? 'center' : 'right';
+                }
+                $alignments []= $alignment;
+            }
+            # ~
+            $HeaderElements = array();
+            $header = $Block['element']['text'];
+            $header = trim($header);
+            $header = str_replace(array('|<|', '||'), array('|&lt;|','|<|'), $header);
+            $header = trim($header, '|');
+            $headerCells = explode('|', $header);
+            foreach ($headerCells as $index => $headerCell)
+            {
+                if($headerCell==='<') {
+                    $preindex = $index -1;
+                    while($preindex>=0) {
+                        if(isset($HeaderElements[$preindex])) {
+                            if(isset($HeaderElements[$preindex]['attributes']['colspan'])) {
+                                $HeaderElements[$preindex]['attributes']['colspan']++;
+                            } else {
+                                $HeaderElements[$preindex]['attributes']['colspan'] = 2;
+                            }
+                            break;
+                        }
+                        $preindex--;
+                    }
+                    continue;
+                }
+                $headerCell = trim($headerCell);
+                $HeaderElement = array(
+                    'name' => 'th',
+                    'text' => $headerCell,
+                    'handler' => 'line',
+                );
+                if (isset($alignments[$index]))
+                {
+                    $alignment = $alignments[$index];
+                    $HeaderElement['attributes'] = array(
+                        'style' => 'text-align: '.$alignment.';',
+                    );
+                }
+                $HeaderElements[$index]= $HeaderElement;
+            }
+            # ~
+            $Block = array(
+                'alignments' => $alignments,
+                'identified' => true,
+                'element' => array(
+                    'name' => 'table',
+                    'handler' => 'elements',
+                ),
+            );
+            $Block['element']['text'] []= array(
+                'name' => 'thead',
+                'handler' => 'elements',
+            );
+            $Block['element']['text'] []= array(
+                'name' => 'tbody',
+                'handler' => 'elements',
+                'text' => array(),
+            );
+            $Block['element']['text'][0]['text'] []= array(
+                'name' => 'tr',
+                'handler' => 'elements',
+                'text' => array_values($HeaderElements),
+            );
+            return $Block;
+        }
+    }
+
+    protected function blockTableContinue($Line, array $Block)
+    {
+        if (isset($Block['interrupted']))
+        {
+            return;
+        }
+        if ($Line['text'][0] === '|' or strpos($Line['text'], '|'))
+        {
+            $Elements = array();
+            $row = $Line['text'];
+            $row = trim($row);
+            $row = str_replace(array('|<|', '||'), array('|&lt;|','|<|'), $row);
+            $row = trim($row, '|');
+            $row = preg_replace('/^\s*\||\|\s*$/', '', $row);
+            preg_match_all('/(?:(\\\\[|])|[^|`]|`[^`]*+`|`)+/', $row, $matches);
+
+            foreach ($matches[0] as $index => $cell)
+            {
+                if($cell==='<') {
+                    // colspan
+                    $preindex = $index -1;
+                    while($preindex>=0) {
+                        if(isset($Elements[$preindex])) {
+                            if(isset($Elements[$preindex]['attributes']['colspan'])) {
+                                $Elements[$preindex]['attributes']['colspan']++;
+                            } else {
+                                $Elements[$preindex]['attributes']['colspan'] = 2;
+                            }
+                            break;
+                        }
+                        $preindex--;
+                    }
+                } else {
+                    $cell = trim($cell);
+                    $Element = array(
+                        'name' => 'td',
+                        'handler' => 'line',
+                        'text' => $cell,
+                    );
+                    if (isset($Block['alignments'][$index]))
+                    {
+                        $Element['attributes'] = array(
+                            'style' => 'text-align: '.$Block['alignments'][$index].';',
+                        );
+                    }
+                    $Elements[$index] = $Element;
+                }
+            }
+            $Element = array(
+                'name' => 'tr',
+                'handler' => 'elements',
+                'text' => array_values($Elements),
+            );
+            $Block['element']['text'][1]['text'] []= $Element;
+            return $Block;
+        }
+    }
 }
