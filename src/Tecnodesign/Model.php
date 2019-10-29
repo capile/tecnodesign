@@ -875,12 +875,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             foreach($schema['columns'] as $fn=>$fv) {
                 if(isset($fv['primary']) && $fv['primary']) {
                     if(isset($fv['increment']) && $fv['increment']) $auto = true;
-                    $pks[$fn]=(!is_null($this->$fn));
+                    $pks[$fn]=$this->$fn;
                 }
             }
             $hasPk=true;
             foreach ($pks as $pk) {
-                if(!$pk) {
+                if(tdz::isempty($pk)) {
                     $hasPk = false;
                     break;
                 }
