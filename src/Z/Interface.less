@@ -497,12 +497,12 @@ input.tdz-i-switch{
       color:@colorText + #999;
     }
   }
-  span.error {
+  span.error, .tdz-i-msg.tdz-i-error {
     display:inline-block;
     color:@error;
-    border:1px solid @error;
+    border:0.1em solid @error;
     padding:0.25em;
-    margin:0 0 0.5em 0;
+    margin: 0.25em 0;
     line-height:1em;
     .border(0.25em);
     background: @error + #ccc;
@@ -666,7 +666,9 @@ select, input {
 .tdz-i-msg {
   color:@msg;
   background:@msgBackground;
-  border:0.2em solid @msg;
+  border:0.1em solid @msg;
+  padding:0.25em;
+  display:inline-block;
   a:link, a:visited {
     color:@msg;
   }
@@ -683,8 +685,8 @@ select, input {
 .tdz-i-error {
   color:@error;
   background: @error + #ccc;
-  border:0.2em solid @error;
-  .border(@borderRadius);
+  border:0.1em solid @error;
+  .border(0.25em);
   line-height:1em;
   margin:0;
   padding:0.25em;
@@ -923,6 +925,9 @@ select, input {
         margin-top: -0.25em;
         margin-bottom: -0.25em;
       }
+      span.error {
+        margin: 1em 0 0 0;
+      }
     }
     &.b1s3 {
       > dt, > .label { width: 64% };
@@ -1047,27 +1052,27 @@ select, input {
 .tdz-i-label-action{
   display:none;
 }
-.tdz-i-actions a,.tdz-i-button,[class^="tdz-i--"], [class*=" tdz-i--"] {
+.tdz-i-actions a,.tdz-i-button,[class^="tdz-i--"], [class*=" tdz-i--"],[class^="z-i--"], [class*=" z-i--"] {
     .fontAwesomeBase();
     &:before {
       content: "\f105";
       min-width:1em;
     }
-    &.tdz-i--list:before          {content: "\f002";}
-    &.tdz-i--report:before        {content: "\f0ed";}
-    &.tdz-i--delete:before        {content: "\f014";}
-    &.tdz-i--update:before        {content: "\f044";}
-    &.tdz-i--preview:before       {content: "\f06e";}
-    &.tdz-i--search:before        {content: "\f002";}
-    &.tdz-i--new:before           {content: "\f196";}
-    &.tdz-i--instituicoes:before  {content: "\f0f7";}
-    &.tdz-i--contatos:before      {content: "\f007";}
-    &.tdz-i--fornecedores:before  {content: "\f0d1";}
-    &.tdz-i--refresh:before       {content: "\f021";}
-    &.tdz-i--close:before         {content: "\f00d";}
-    &.tdz-i--up:before            {content: "\f106";}
-    &.tdz-i--down:before          {content: "\f107";}
-    &.tdz-i--share:before         {content: "\f064";}
+    &.tdz-i--list:before         , &.z-i--list:before          {content: "\f002";}
+    &.tdz-i--report:before       , &.z-i--report:before        {content: "\f0ed";}
+    &.tdz-i--delete:before       , &.z-i--delete:before        {content: "\f014";}
+    &.tdz-i--update:before       , &.z-i--update:before        {content: "\f044";}
+    &.tdz-i--preview:before      , &.z-i--preview:before       {content: "\f06e";}
+    &.tdz-i--search:before       , &.z-i--search:before        {content: "\f002";}
+    &.tdz-i--new:before          , &.z-i--new:before           {content: "\f196";}
+    &.tdz-i--instituicoes:before , &.z-i--instituicoes:before  {content: "\f0f7";}
+    &.tdz-i--contatos:before     , &.z-i--contatos:before      {content: "\f007";}
+    &.tdz-i--fornecedores:before , &.z-i--fornecedores:before  {content: "\f0d1";}
+    &.tdz-i--refresh:before      , &.z-i--refresh:before       {content: "\f021";}
+    &.tdz-i--close:before        , &.z-i--close:before         {content: "\f00d";}
+    &.tdz-i--up:before           , &.z-i--up:before            {content: "\f106";}
+    &.tdz-i--down:before         , &.z-i--down:before          {content: "\f107";}
+    &.tdz-i--share:before        , &.z-i--share:before         {content: "\f064";}
 }
 
 .tdz-i-button, .tdz-i-link {
@@ -1172,7 +1177,41 @@ th > input[type=checkbox], td > input[type=checkbox]{
     color:@colorText;
     &:before {display:none;}
   }
+  .tdz-i-summary:after {
+    content: ' ';
+    display:block;
+    clear:both;
+    height:0;
+    padding:0;
+  }
 
+  .z-standalone-buttons {
+    text-align: right;
+    position: relative;
+    height: 0;
+    z-index:1;
+
+    a.z-i-a {
+      &:before {
+        margin-right:0.25em;
+      }
+      padding: 0.5em;
+      margin: 0 0 1em 1em;
+      line-height:1em;
+      min-height:1em;
+      border-radius:@borderRadius;
+      display:inline-block;
+    }
+    a.z-i-a, a.z-i-a:link, a.z-i-a:visited {
+      background: @colorTab;
+      color: @colorTabText;
+      text-decoration:none;
+    }
+    a.z-i-a:hover, a.z-i-a:active, a.z-i-a:focus {
+      background: @colorTabActive;
+      color: @colorTabActiveText;
+    }
+  }
 }
 
 .tdz-i-body .tdz-i-standalone .tdz-i-footer a:hover span {display:none;}

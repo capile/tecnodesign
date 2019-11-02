@@ -2268,6 +2268,13 @@ class tdz
      */
     public static function hash($str, $salt=null, $type=40)
     {
+        if($type===true) { // guess based on $salt
+            if(preg_match('/^\{([^\}]+)\}/', $salt, $m)) {
+                $type = $m[1];
+            } else {
+                $type = 40;
+            }
+        }
         if($type=='uuid') {
             return self::encrypt($str, $salt, 'uuid');
         } else if(is_string($type)) {

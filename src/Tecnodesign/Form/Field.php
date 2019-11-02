@@ -653,6 +653,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     if(!($F=Tecnodesign_Form::getInstance($fid))) {
                         $F = $O->getForm($sid, true);
                         $F->prefix = $fid;
+                        $F->setLimits(false);
                         $F->register($fid);
                     }
                     if(is_array($new)) {
@@ -692,6 +693,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 unset($value[$i]);
                 $fo['id'] = $p0.'['.$i.']';
                 $F = Tecnodesign_Form::instance($fo['id'], $fo);
+                $F->setLimits(false);
                 if(!$F->validate($o)) {
                     $valid = false;
                     $errors[$fo['id']] = $F->getError();
@@ -1601,6 +1603,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $prefix = $this->getName();
             $fo['id'] = $prefix.'[§]';
             $form = Tecnodesign_Form::instance($fo['id'], $fo);
+            $form->setLimits(false);
             $jsinput = '<div class="item">';
             foreach($form->fields as $fn=>$f) {
                 $jsinput .= $f->render();
@@ -1619,6 +1622,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 foreach($value as $i=>$o) {
                     $fo['id'] = $prefix.'['.$i.']';
                     $form = Tecnodesign_Form::instance($fo['id'], $fo);
+                    $form->setLimits(false);
                     $input .= '<div class="item '.(($i%2)?('even'):('odd')).'">';
                     foreach($form->fields as $fn=>$f) {
                         if($f->bind) {

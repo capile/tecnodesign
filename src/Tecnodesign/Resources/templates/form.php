@@ -2,7 +2,7 @@
 /**
  * Form template
  *
- * PHP version 5.2
+ * PHP version 5.6
  *
  * @category  Form
  * @package   Form
@@ -14,12 +14,32 @@
  */
 $fieldsets=array();
 $hasFieldset = false;
+$fs = '';
 foreach($fields as $fn=>$fo) {
     $fs = (string)$fo->fieldset;
     if(!$hasFieldset && $fs) $hasFieldset = true;
     if(!isset($fieldsets[$fs])) $fieldsets[$fs]='';
     $fieldsets[$fs] .= $fo->render();
 }
+
+if(!isset($before)) $before = '';
+if(isset($limits) && $limits) {
+    if(isset($limits['error']) && $limits['error']) {
+        $before .= '<p class="tdz-i-msg tdz-i-error">'.tdz::xml($limits['error']).'</p>';
+    } else if(isset($limits['warn']) && $limits['warn']) {
+        $before .= '<p class="tdz-i-msg tdz-i-warn">'.tdz::xml($limits['warn']).'</p>';
+    }
+    if(isset($limits['fields'])) {
+        foreach($limits['fields'] as $fn=>$fo) {
+            if(isset($fo->fieldset)) {
+                $fs = (string) $fo->fieldset;
+                if(!$hasFieldset && $fs) $hasFieldset = true;
+            }
+            $fieldsets[$fs] .= $fo->render();
+        }
+    }
+}
+
 if($hasFieldset) {
     $attributes['class'] .= ' z-fieldset';
 }
@@ -30,10 +50,11 @@ foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscap
 foreach($fieldsets as $fn=>$fv) {
     if($fn) {
         $fl = (substr($fn, 0, 1)=='*')?(tdz::t(substr($fn,1), 'form')):($fn);
-        echo '<fieldset id="'.tdz::slug($fn).'"><legend>'.$fl.'</legend>'.$fv.'</fieldset>';
+        echo '<fieldset id="'.tdz::slug($fn).'"><legend>'.$fl.'</legend>'.$before.$fv.'</fieldset>';
     } else {
-        echo $fv;
+        echo $before.$fv;
     }
+    if($before) $before = '';
 }
 
  ?>

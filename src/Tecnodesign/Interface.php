@@ -95,7 +95,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $share              = null,
         $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
         $headingTemplate    = '<hr /><h3>$LABEL</h3>',
-        $previewTemplate    = '<dl class="if--$ID tdz-i-field $CLASS"><dt>$LABEL$ERROR</dt><dd data-action-item="$ID">$INPUT</dd></dl>',
+        $previewTemplate    = '<dl class="if--$ID tdz-i-field $CLASS"><dt>$LABEL</dt><dd data-action-item="$ID">$INPUT$ERROR</dd></dl>',
         $updateTemplate,
         $newTemplate,
         $renderer           = 'renderPreview',
@@ -1957,40 +1957,46 @@ class Tecnodesign_Interface implements ArrayAccess
         try {
             if(($post=Tecnodesign_App::request('post')) || static::$format!='html') {
                 if(!$fo->validate($post) || !$post) {
-                    throw new Tecnodesign_Exception((!$post)?(static::t('errorNoInput')):($fo->getError()));
-                }
-                $oldurl = $this->link();
-                $o->save();
-                if(is_array($this->key)) {
-                    $this->search = $o->asArray($this->key);
-                    $this->id = implode('-', $this->search);
-                } else {
-                    $pk = $this->key;
-                    $this->id = $o->$pk;
-                    $this->search = array($pk=>$this->id);
-                }
-                $next = (static::$format!='html')?(null):('preview');
-                if(isset($this->options['next'])) {
-                    if(is_array($this->options['next'])) {
-                        if(isset($this->options['next'][$this->action])) {
-                            $next = $this->options['next'][$this->action];
-                        }
-                    } else {
-                        $next = $this->options['next'];
+                    $err = (!$post)?(static::t('errorNoInput')):($fo->getError());
+                    if(static::$format!='html') {
+                        throw new Tecnodesign_Exception($err);
                     }
-                }
-                if(!$next && isset($this->actions[$this->action]['next'])) {
-                    $next = $this->actions[$this->action]['next'];
-                }
-                if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
-                    if(!isset($this->actions[$next])) $next = null;
-                }
-                $this->text['success'] = sprintf(static::t('newSuccess'), $o::label(), $this->getTitle());
-                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
-                if($next) {
-                    $this->action = $next;
-                    $this->message($msg);
-                    $this->redirect($this->link(), $oldurl);
+                    if(static::$format!='html') $this->text['error'] = $err;
+                    $msg = '<div class="tdz-i-msg tdz-i-error">'.static::t('newError').'</div>';
+                } else {
+                    $oldurl = $this->link();
+                    $o->save();
+                    if(is_array($this->key)) {
+                        $this->search = $o->asArray($this->key);
+                        $this->id = implode('-', $this->search);
+                    } else {
+                        $pk = $this->key;
+                        $this->id = $o->$pk;
+                        $this->search = array($pk=>$this->id);
+                    }
+                    $next = (static::$format!='html')?(null):('preview');
+                    if(isset($this->options['next'])) {
+                        if(is_array($this->options['next'])) {
+                            if(isset($this->options['next'][$this->action])) {
+                                $next = $this->options['next'][$this->action];
+                            }
+                        } else {
+                            $next = $this->options['next'];
+                        }
+                    }
+                    if(!$next && isset($this->actions[$this->action]['next'])) {
+                        $next = $this->actions[$this->action]['next'];
+                    }
+                    if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
+                        if(!isset($this->actions[$next])) $next = null;
+                    }
+                    $this->text['success'] = sprintf(static::t('newSuccess'), $o::label(), $this->getTitle());
+                    $msg = '<div class="tdz-i-msg tdz-i-success">'.$this->text['success'].'</div>';
+                    if($next) {
+                        $this->action = $next;
+                        $this->message($msg);
+                        $this->redirect($this->link(), $oldurl);
+                    }
                 }
                 $this->text['summary'] .= $msg;
             }
@@ -2000,6 +2006,10 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->text['error'] = static::t('newError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
+        }
+        if(static::$standalone && isset($this->text['error']) && $this->text['error'] && is_object($fo)) {
+            $fo->before = '<div class="tdz-i-msg tdz-i-error">'.$this->text['error'].'</div>'.$fo->before;
+            $this->text['error'] = null;
         }
         return $fo;
     }
@@ -2026,42 +2036,49 @@ class Tecnodesign_Interface implements ArrayAccess
             $dontpost = (isset($_SERVER['HTTP_TDZ_ACTION']) && in_array($_SERVER['HTTP_TDZ_ACTION'], array('Upload','choices')));
 
             if(($post=Tecnodesign_App::request('post')) || static::$format!='html') {
+                $msg = '';
                 if(!$fo->validate($post) || !$post) {
-                    throw new Tecnodesign_Exception((!$post)?(static::t('errorNoInput')):($fo->getError()));
-                }
-                $oldurl = $this->link();
-                $pk = implode('-', $o->getPk(true));
-                $o->save();
-                $newpk = implode('-', $o->getPk(true));
-                // success message
-                $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), $this->getTitle());
-                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
-
-                $next = null;
-                if(isset($this->options['next'])) {
-                    if(is_array($this->options['next'])) {
-                        if(isset($this->options['next'][$this->action])) {
-                            $next = $this->options['next'][$this->action];
-                        }
-                    } else {
-                        $next = $this->options['next'];
+                    $err = (!$post)?(static::t('errorNoInput')):($fo->getError());
+                    if(static::$format!='html') {
+                        throw new Tecnodesign_Exception($err);
                     }
-                }
-                if(!$next && isset($this->actions[$this->action]['next'])) {
-                    $next = $this->actions[$this->action]['next'];
-                }
-                if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
-                    if(!isset($this->actions[$next])) $next = null;
-                }
+                    $this->text['error'] = static::t('updateError');
+                    $msg = '<div class="tdz-i-msg tdz-i-error">'.$this->text['error'].'</div>';
+                } else {
+                    $oldurl = $this->link();
+                    $pk = implode('-', $o->getPk(true));
+                    $o->save();
+                    $newpk = implode('-', $o->getPk(true));
+                    // success message
+                    $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), $this->getTitle());
+                    $msg = '<div class="tdz-i-msg tdz-i-success">'.$this->text['success'].'</div>';
 
-                if($newpk!=$pk) {
-                    $this->id = $newpk;
-                    if(!$next) $next = $this->action;
-                }
-                if($next) {
-                    $this->action = $next;
-                    $this->message($msg);
-                    $this->redirect($this->link(), $oldurl);
+                    $next = null;
+                    if(isset($this->options['next'])) {
+                        if(is_array($this->options['next'])) {
+                            if(isset($this->options['next'][$this->action])) {
+                                $next = $this->options['next'][$this->action];
+                            }
+                        } else {
+                            $next = $this->options['next'];
+                        }
+                    }
+                    if(!$next && isset($this->actions[$this->action]['next'])) {
+                        $next = $this->actions[$this->action]['next'];
+                    }
+                    if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
+                        if(!isset($this->actions[$next])) $next = null;
+                    }
+
+                    if($newpk!=$pk) {
+                        $this->id = $newpk;
+                        if(!$next) $next = $this->action;
+                    }
+                    if($next) {
+                        $this->action = $next;
+                        $this->message($msg);
+                        $this->redirect($this->link(), $oldurl);
+                    }
                 }
                 $this->text['summary'] .= $msg;
             } else {
@@ -2073,6 +2090,11 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->text['error'] = static::t('updateError');
             $this->text['errorMessage'] = $e->getMessage();
             $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
+        }
+
+        if(static::$standalone && isset($this->text['error']) && $this->text['error'] && is_object($fo)) {
+            $fo->before = '<div class="tdz-i-msg tdz-i-error">'.$this->text['error'].'</div>'.$fo->before;
+            $this->text['error'] = null;
         }
         return $fo;
     }
@@ -2485,6 +2507,26 @@ class Tecnodesign_Interface implements ArrayAccess
             if($id && !tdz::isempty($this->id)) $sid = $this->id;
             else if($id) $sid = '{id}';
             else $sid = false;
+            if(static::$standalone) {
+                if(!$id || $an==$this->action) continue;
+                if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
+                    if(isset($action['query']) && $action['query'] && $qs) {
+                        $qs = str_replace(',', '%3A', tdz::xmlEscape($qs));
+                    } else {
+                        $qs = '';
+                    }
+                    $href = 'href="'.$this->link($an, $sid).$qs.'"';
+                } else {
+                    $href = 'href="'.tdz::xmlEscape($this->link($an, ($id)?($sid):(false), true, $qs)).'"';
+                }
+                $ac = 'z-i-a z-i--'.$aa;
+                $s .= '<a '.$href.' class="'.$ac.'">'
+                    . '<span class="tdz-i-label">'
+                    . $label
+                    . '</span>'
+                    . '</a>';
+                continue;
+            }
             if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
                 if(isset($action['query']) && $action['query'] && $qs) {
                     $qs = str_replace(',', '%3A', tdz::xmlEscape($qs));

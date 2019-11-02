@@ -21,10 +21,24 @@ class Tecnodesign_Form implements ArrayAccess
      */
     protected $fields;
 
-    protected $id, $method = 'post', $action = '', $model, $err, $prefix = '';
-    public $buttons = array('submit' => '*Send'), $attributes = array('class' => 'z-form');
+    protected $id, $method = 'post', $action = '', $model, $err, $prefix = '', $limits;
+    public $buttons = array('submit' => '*Send'), $attributes = array('class' => 'z-form'), $before, $after;
     private static $_instances;
-    public static $assets='Z.Form,moment,pikaday-time';
+    public static $assets='Z.Form,moment,pikaday-time',
+        $enableLimits,
+        $defaultLimits=[
+            'requests'=>10,         // how many requests will be enabled per time set below
+            'time'=>60,             // time to measure requests rate limiting
+            'key'=>'session+ip',    // how to key the rate limiting, options are 'session', 'ip', 'user', 'url' or a combination of these (use + to rate limit both individually, | for combined)
+            'fieldname'=>'__req',   // field name to include for rate limiting
+            'fieldset'=>null,       // should rate-limiting be rendered within fieldsets? enter false to remove or the fieldset name to isolate in a proper fieldset
+            'attributes'=>null,     // attributes the fieldset field should use
+            'timeout'=>3600,        // how long to keep keys for rate limiting, also expires form after this number of seconds
+            'warn-level'=>0.5,      // after this threshold, warn user about rate limiting
+            'captcha-level'=>0.75,  // after this threshold, display a captcha in addition to the rate limiting
+            'error-status'=>null,   // http status to send when limit is reached, usually 429
+            'accept-failed'=>null,  // whether the form data should be accepted if it fails 
+        ];
 
     private $_uid;
 
@@ -43,6 +57,12 @@ class Tecnodesign_Form implements ArrayAccess
             $id = uniqid();
         }
         $this->register($id);
+
+        if(isset($formConfig['limits'])) {
+            $this->setLimits($formConfig['limits']);
+        } else if(static::$enableLimits) {
+            $this->setLimits(static::$enableLimits);
+        }
 
         if (isset($formConfig['buttons'])) {
             if (!$formConfig['buttons']) {
@@ -125,6 +145,170 @@ class Tecnodesign_Form implements ArrayAccess
         }
 
         Tecnodesign_App::$assets[] = static::$assets;
+    }
+
+    /**
+     * Rate limiting configuration
+     *
+     * Acceptable params are:
+     * requests (default: 10)          - how many requests will be enabled per time set below
+     * time  (default: 60)             - time to measure requests rate limiting
+     * key  (default: session+ip)      - how to key the rate limiting, options are 'session', 'ip', 'user', 'url' or a combination of these (use + to rate limit both individually, | for combined)
+     * fieldname  (default: __req)     - field name to include for rate limiting
+     * attributes (default: null)      - attributes for the should rate-limiting rendering
+     * timeout  (default: 3600)        - how long to keep keys for rate limiting, also expires form after this number of seconds
+     * warn-level (default: 0.5)       - after this threshold, warn user about rate limiting
+     * captcha-level (default: 0.75)   - after this threshold, display a captcha in addition to the rate limiting
+     *
+     * returns previous rate-limiting configuration
+     */
+    public function setLimits($limits=null)
+    {
+        $r = $this->limits;
+        if(!$limits && !is_array($limits)) {
+            $this->limits = null;
+        } else {
+            if(!is_array($limits)) $limits = [];
+            if(!$this->limits) $this->limits = static::$defaultLimits;
+            foreach(static::$defaultLimits as $k=>$v) {
+                if(array_key_exists($k, $limits)) $this->limits[$k] = $limits[$k];
+                unset($k, $v);
+            }
+        }
+        return $r;
+    }
+
+    /**
+     * Validates the rate limiting control fields
+     */
+    public function checkLimits($post=null)
+    {
+        if(!$this->limits) return true;
+        if(!isset($this->limits['keys'])) $this->getLimits();
+        if(isset($this->limits['error']) && $this->limits['error']) {
+            return false;
+        }
+        if($post && isset($post[$this->limits['fieldname']]) && ($pk=$post[$this->limits['fieldname']])) {
+            $timeout = $this->limits['timeout'];
+            if(!$timeout) $timeout = 3600;
+            $time = $this->limits['time'];
+            if(!$time) $time = 60;
+            if($timeout < $time) $timeout = $time;
+            $now = time();
+            $add = [];
+            if(($salt=Tecnodesign_Cache::get('f-limit-current', $timeout)) && $pk==$salt) {
+                Tecnodesign_Cache::delete('f-limit-current');
+                $salt = tdz::salt();
+                Tecnodesign_Cache::set('f-limit-current', $salt, $timeout);
+                $add[$salt] = [$now,0];
+                $fn = $this->limits['fieldname'];
+                $this->limits['fields'][$fn]->setValue($salt);
+            }
+            $valid = true;
+            foreach($this->limits['keys'] as $k=>$ks) {
+                $ks = Tecnodesign_Cache::get('f-limit/'.$k, $timeout) +$add;
+                if(isset($ks[$pk]) && $ks[$pk][1]==0 && $ks[$pk][0] + $time >= $now) {
+                    $ks[$pk][1] = 1;
+                    Tecnodesign_Cache::set('f-limit/'.$k, $ks, $timeout);
+                } else {
+                    $valid = false;
+                }
+            }
+            if($valid) return true;
+        }
+
+        $this->limits['error'] = tdz::t('This request is expired or invalid. Please try sending this request again.', 'exception');
+        return false;
+    }
+
+    /**
+     * Renders the rate limiting control fields
+     */
+    public function getLimits()
+    {
+        if(!$this->limits) return null;
+        // get existing keys and check the keys limits
+        $key = $this->limits['key'];
+        if(!$key) return;
+        $keys = preg_split('/\++/', $key, null, PREG_SPLIT_NO_EMPTY);
+        $timeout = $this->limits['timeout'];
+        if(!$timeout) $timeout = 3600;
+        $time = $this->limits['time'];
+        if(!$time) $time = 60;
+        if($timeout < $time) $timeout = $time;
+        $now = time();
+        //$post = Tecnodesign_App::request('post', $this->limits['fieldname']);
+        $salt = null;
+        $warn = false;
+        $captcha = false;
+
+        if(!isset($this->limits['keys'])) {
+            $this->limits['keys'] = [];
+            $this->limits['error'] = false;
+            $this->limits['warn'] = false;
+            $this->limits['captcha'] = false;
+            $this->limits['reqs'] = 0;
+            $this->limits['level'] = 0;
+            foreach($keys as $k) {
+                $ks=explode('|', $k);
+                $k = str_replace('|', '-', $k);
+                $session = in_array('session', $ks);
+                $user = in_array('user', $ks);
+
+                if($session || $user) {
+                    if(!isset($U)) $U = tdz::getUser();
+                    if($session) $k .= '-'.$U->getSessionId(true);
+                    if($user) $k .= '--'.(string)$U->uid();
+                }
+                if(in_array('ip', $ks)) $k .= '_'.(string)Tecnodesign_App::request('ip');
+                if(in_array('url', $ks)) $k .= '__'.tdz::scriptName(true);
+
+                $rks = Tecnodesign_Cache::get('f-limit/'.$k, $timeout);
+                $reqs = 0;
+                if($rks) {
+                    foreach($rks as $rk=>$rt) {
+                        if($rt[0] + $timeout < $now) {
+                            unset($rks[$rk]);
+                        } else if($rt[1]>0 && $rt[0] + $time > $now) {
+                            $reqs++;
+                        }
+                    }
+                } else {
+                    $rks = [];
+                }
+                if(!$salt && !($salt=Tecnodesign_Cache::get('f-limit-current', $timeout))) {
+                    $salt = tdz::salt();
+                    Tecnodesign_Cache::set('f-limit-current', $salt, $timeout);
+                }
+                $rks[$salt] = [$now,0];
+                $this->limits['keys'][$k]=$rks;
+                if($reqs > $this->limits['reqs']) $this->limits['reqs'] = $reqs;
+                Tecnodesign_Cache::set('f-limit/'.$k, $rks, $timeout);
+            }
+            $fn = $this->limits['fieldname'];
+            $csrf = ['id'=>$fn, 'value'=>$salt, 'type'=>'hidden'];
+            if(isset($this->limits['attributes'])) $csrf += $this->limits['attributes'];
+            $this->limits['fields'] = [$fn=>new Tecnodesign_Form_Field($csrf)];
+
+            if($this->limits['reqs']) {
+                $this->limits['level'] = $this->limits['reqs'] / $this->limits['requests'];
+                if($this->limits['level'] > 1.0) {
+                    // add error
+                    $this->limits['error'] = tdz::t('You\'ve sent more requests than allowed in a short period of time. Please wait some time before retrying to send this request.', 'exception');
+                } else if($this->limits['level'] >= $this->limits['warn-level']) {
+                    // add warning
+                    $this->limits['warn'] = tdz::t('You\'re sending a lot of requests to this page and risks reaching the rate limit for it.', 'exception');
+                }
+                if($this->limits['level'] > $this->limits['captcha']) {
+                    // add captcha
+                    $this->limits['captcha'] = true;
+                }
+            }
+        }
+
+
+        return $this->limits['fields'];
+
     }
 
     /**
@@ -291,14 +475,17 @@ class Tecnodesign_Form implements ArrayAccess
             }
             unset($arg['template']);
         }
+
         if(!$tpl) {
             $tpl = substr(__FILE__, 0, strlen(__FILE__)-4).'/Resources/templates/form.php';
         }
         $this->getEnctype();
+        $this->getLimits();
         $vars = array();
         foreach($this as $k=>$v){
             $vars[$k]=$v;
         }
+
         return tdz::exec(array('variables'=>$vars, 'script'=>$tpl));
     }
 
@@ -312,11 +499,18 @@ class Tecnodesign_Form implements ArrayAccess
      */
     public function validate($values=array())
     {
-        $valid = true;
-        if($this->getEnctype()=='multipart/form-data') {
+        if($this->getEnctype()==='multipart/form-data') {
             $values = tdz::postData($values);
         }
         $values = tdz::fixEncoding($values);
+        $valid = true;
+        if(!$this->checkLimits($values)) {
+            if(isset($this->limits['accept-failed']) && $this->limits['accept-failed']) {
+                $valid = false;
+            } else {
+                return false;
+            }
+        }
         if($this->id && isset($values[$this->id]) && is_array($values[$this->id])) {
             $values = $values[$this->id];
         }

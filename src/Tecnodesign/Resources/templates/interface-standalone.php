@@ -55,16 +55,9 @@ if($title) Tecnodesign_App::response('title', $title);
 
         echo $Interface->message(), (isset($app))?($app):('');
 
-        if(isset($error)): 
-            ?><div class="tdz-error"><?php 
-                if(is_array($error)) {
-                    foreach($error as $e) echo '<div class="tdz-i-msg tdz-i-error"><p>', $e, '</p></div>';
-                } else {
-                    echo $error; 
-                }
-            ?></div><?php 
-        endif;
-
+        if($buttons): ?><div class="z-standalone-buttons"><?php
+            echo $buttons; 
+        ?></div><?php endif;
 
         if(isset($list)) {
             // list counter
@@ -117,8 +110,6 @@ if($title) Tecnodesign_App::response('title', $title);
 
     if(isset($preview)): 
         ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php
-            $next = ($Interface['action']=='update')?('preview'):('update');
-            echo '<div data-action-schema="'.$next.'" data-action-url="'.$Interface->link($next).'" class="i--'.$interface.((isset($class))?(' '.$class):('')).'">';
             if(is_object($preview) && $preview instanceof Tecnodesign_Model) {
                 $box = $preview::$boxTemplate;
                 $preview::$boxTemplate = $Interface::$boxTemplate;
@@ -129,7 +120,6 @@ if($title) Tecnodesign_App::response('title', $title);
                 echo (string) $preview;
             }
             unset($preview);
-            echo '</div>';
         ?></div><?php
     endif;
 

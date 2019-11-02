@@ -403,6 +403,7 @@ class Tecnodesign_App
             409 => 'Conflict',
             412 => 'Precondition Failed',
             422 => 'Unprocessable Entity',
+            429 => 'Too Many Requests',
             500 => 'Internal Server Error',
         );
         if(!isset($status[$code])) $code = 500;

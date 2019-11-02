@@ -60,6 +60,7 @@
             l=null;
         }
 
+        if(_reStandalone.test(I.className)) return true;
         // bind links to Interface actions
         l=I.querySelectorAll('a[href^="'+base+'"],.tdz-i-a');
         i=l.length;
@@ -578,6 +579,9 @@
             // get tdz-i only
             if(I.children.length==1) {
                 t=I.children[0];
+                //while(t.children.length==1 && t.children[0].className.search(/\btdz-i-scope-block\b/)>-1) {
+                //    t=t.children[0];
+                //}
                 t.className=this.className;
                 if(t.className.search(/\btdz-i-scope-block\b/)<0) {
                     t.className+=' tdz-i-scope-block';
@@ -745,13 +749,15 @@
 
             // check if requested interface was not returned (but a different one)
             if(cu && (!u || u!=cu)) {
-                // remove cu from body (no pun intended, really :) ) and hash
+                // remove cu from body and hash
                 O=box.querySelector('.tdz-i[data-url="'+u+'"]');
                 if(!O) O=this;
-                r=H.querySelectorAll('.tdz-i-title[data-url="'+cu+'"]');
-                i=r.length;
-                while(i--) {
-                    r[i].parentNode.removeChild(r[i]);
+                if(H) {
+                    r=H.querySelectorAll('.tdz-i-title[data-url="'+cu+'"]');
+                    i=r.length;
+                    while(i--) {
+                        r[i].parentNode.removeChild(r[i]);
+                    }
                 }
                 r=box.querySelectorAll('.tdz-i[data-url="'+cu+'"]');
                 i=r.length;

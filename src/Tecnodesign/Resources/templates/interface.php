@@ -60,16 +60,6 @@ if(isset($title)) Tecnodesign_App::response('title', $title);
 
                 echo $Interface->message(), (isset($app))?($app):('');
 
-                if(isset($error)): 
-                    ?><div class="tdz-error"><?php 
-                        if(is_array($error)) {
-                            foreach($error as $e) echo '<div class="tdz-i-msg tdz-i-error"><p>', $e, '</p></div>';
-                        } else {
-                            echo $error; 
-                        }
-                    ?></div><?php 
-                endif;
-
                 if(isset($searchForm)) echo '<span class="i-check-label tdz-i-switch">';
 
                 if(isset($list)) {
@@ -124,7 +114,7 @@ if(isset($title)) Tecnodesign_App::response('title', $title);
             if(isset($preview)): 
                 ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php
                     $next = null;
-                    if($Interface['action']!='delete') {
+                    if($Interface['action']!='delete' && !$Interface::$standalone) {
                         $next = ($Interface['action']=='update')?('preview'):('update');
                         if(!isset($Interface['actions'][$next]) || (isset($Interface['actions'][$next]['auth']) && !$Interface::checkAuth($Interface['actions'][$next]['auth']))) {
                             $next = null;

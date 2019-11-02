@@ -25,3 +25,5 @@ Could not save %s.: 'Não foi possível salvar %s.'
 Issues are: Erros
 Could not insert new record at %s.: 'Não foi possível inserir novo registro no %s.'
 "%s should not be null.": '%s não deve ser nulo.'
+"You're sending a lot of requests to this page and risks reaching the rate limit for it.":"Você está enviando muitas solicitações para esta página e pode vir a atingir o limite de envios para ela."
+This request is expired or invalid. Please try sending this request again.: Esta solicitação expirou ou não é válida. Por favor tente encaminhá-la novamente.

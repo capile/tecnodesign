@@ -587,12 +587,12 @@ class Tecnodesign_Markdown extends Parsedown
         if(isset($r['class']) && isset($r['method']) && isset($r['static']) && $r['static']) {
             $c = $r['class'];
             $m = $r['method'];
-            $Block['element']['text'] = $c::$m($Block['element']['text']);
+            $Block['element']['text'] = (string) $c::$m($Block['element']['text']);
         } else {
             $r['arguments']=$Block['element']['text'];
             if($s = tdz::getApp()->runRoute($r)) {
                 if($s===true) $s = Tecnodesign_App::response('template');
-                $Block['element']['text'] = $s;
+                $Block['element']['text'] = (string)$s;
             }
         }
         if(!isset($r['envelope']) || !$r['envelope']) {
@@ -606,6 +606,7 @@ class Tecnodesign_Markdown extends Parsedown
 
     protected function inlineApp($Block)
     {
+        $s = '';
         if (preg_match('/^!([a-z0-9\-\/]+) *(\(.*\))?/i', $Block['text'], $m)) {
             if(is_null(static::$R)) static::$R = tdz::getApp()->tecnodesign['routes'];
             if(isset(static::$R[$rurl='markdown:'.$m[1]]) || (isset(static::$R[$rurl=$m[1]]['markdown']) && static::$R[$rurl]['markdown'])) {
@@ -614,26 +615,26 @@ class Tecnodesign_Markdown extends Parsedown
                 $r['arguments']=trim(substr($m[2],1, strlen($m[2])-2));
                 if($s = tdz::getApp()->runRoute($r)) {
                     if($s===true) $s = Tecnodesign_App::response('template');
-                    if(!isset($r['envelope']) || !$r['envelope']) {
-                        return array(
-                            'extent' => strlen($m[0]),
-                            'markup'=>$s,
-                        );
-                    }
+                }
+                if(!isset($r['envelope']) || !$r['envelope']) {
                     return array(
                         'extent' => strlen($m[0]),
-                        'element' => array(
-                            'name' => 'span',
-                            'text' => $s,
-                            'attributes' => array(
-                                'class' => 'app-'.$m[1],
-                            ),
-                        ),
-                    ); 
-
+                        'markup'=> (string) $s,
+                    );
                 }
+                return array(
+                    'extent' => strlen($m[0]),
+                    'element' => array(
+                        'name' => 'span',
+                        'text' => (string) $s,
+                        'attributes' => array(
+                            'class' => 'app-'.$m[1],
+                        ),
+                    ),
+                ); 
             }
         }
+        return $Block;
     }
 
 

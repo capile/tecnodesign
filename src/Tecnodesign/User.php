@@ -633,8 +633,8 @@ class Tecnodesign_User
         }
         if(is_null($msg)) {
             $msg=tdz::t('User disconnected.', 'user');
-            $this->setMessage($msg, $storage);
         }
+        if($msg) $this->setMessage($msg, $storage);
         return true;
     }
     
@@ -847,6 +847,11 @@ class Tecnodesign_User
     }
 
 
+    public function uid()
+    {
+        return $this->_uid;
+    }
+
     /**
      * Credential loading: must check the current connection and browse for credentials
      *
@@ -1046,7 +1051,8 @@ class Tecnodesign_User
             return $o['template'];
         }
         return $o['app'];
-    }    
+    }
+
     public function tdzSignIn($o=array())
     {
         if (is_string($o['redirect-success'])) {
@@ -1059,20 +1065,6 @@ class Tecnodesign_User
         $s = (isset($o['app']))?($o['app']):('');
         $buttons = (isset($o['buttons']))?($o['buttons']):(array('submit'=>tdz::t('Sign in', 'ui')));
         $action =  (isset($o['action']))?($o['action']):(tdz::getRequestUri());
-
-        $att = $this->getAttribute('attempts');
-        if(!$att || !is_array($att)) $att=array();
-        else if((count($att)-1)>static::MAX_ATTEMPTS) {
-            $t = time() - static::MAX_ATTEMPTS_TIMEOUT;
-            foreach($att as $i=>$o) {
-                if($o < $t) unset($att[$i]);
-                unset($i, $o);
-            }
-            if((count($att)-1)>static::MAX_ATTEMPTS) {
-                $msg = (isset($o['max-attempts']))?($o['max-attempts']):(tdz::t('You have reached the number of maximum attempts (%s), please wait a little until you try again.', 'user'));
-                return '<div class="tdz-msg error">'.sprintf($msg, static::MAX_ATTEMPTS).'</div>';
-            }
-        }
 
         $f=array(
             'method'=>'post',
@@ -1089,17 +1081,22 @@ class Tecnodesign_User
         if(isset($o['attributes'])) {
             $f['attributes']=$o['attributes'];
         }
+        if(isset($o['fieldset'])) {
+            foreach($f['fields'] as $fn=>$fd) {
+                $f['fields'][$fn]['fieldset']=$o['fieldset'];
+            }
+        }
         $o['form']=new Tecnodesign_Form($f);
-        $auth = false;
+        if(!$o['form']->getLimits()) {
+            $o['form']->setLimits(['requests'=>static::MAX_ATTEMPTS, 'time'=>static::MAX_ATTEMPTS_TIMEOUT,'error-status'=>429]);
+        }
+
+
         if(($p=Tecnodesign_App::request('post')) && isset($p[static::FORM_USER]) && isset($p[static::FORM_PASSWORD])) {
             if($o['form']->validate($p)) {
                 $d = $o['form']->data;
                 if($this->authenticate($d[static::FORM_USER], $d[static::FORM_PASSWORD])) {
-
-                    if($this->hasAttribute('attempts')) $this->setAttribute('attempts',null);
-
                     $this->store($this->_useMem);
-                    $auth = true;
                     $msg = (isset($o['message-success']))?($o['message-success']):(tdz::t('User %s connected.', 'user'));
                     $this->setMessage(sprintf($msg, '<strong>'.tdz::xmlEscape((string)$this).'</strong>'));
                     unset($msg);
@@ -1122,16 +1119,12 @@ class Tecnodesign_User
                         }
                     }
                 } else {
-                    $att[] = time();
-                    $this->setAttribute('attempts', $att);
+                    $o['form']->before = '<div class="tdz-i-msg tdz-i-error">'
+                        . ((isset($o['message-failure']))?($o['message-failure']):('<h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p>'))
+                        . '</div>';
                 }
             }
             unset($p);
-            if(!$auth) {
-                $msg = (isset($o['message-failure']))?($o['message-failure']):('<h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p>');
-                $s .= '<div class="error">'.$msg.'</div>';
-                unset($msg);
-            }
         }
         $s.=$o['form']->render();
         return $s;
@@ -1163,13 +1156,11 @@ class Tecnodesign_User
             $f['attributes']=$o['attributes'];
         }
         $o['form']=new Tecnodesign_Form($f);
-        $auth = false;
         if(($p=Tecnodesign_App::request('post')) && isset($p['user']) && isset($p['pass'])){
             if($o['form']->validate($p)) {
                 $d = $o['form']->data;
                 if($this->authenticate($d['user'], $d['pass'])) {
                     $this->store();
-                    $auth = true;
                     $this->setMessage(sprintf(tdz::t('User %s connected.', 'user'), '<strong>'.tdz::xmlEscape((string)$this).'</strong> '));
                     if ($o['redirect-success']) {
                         if($d['url']!=''){
@@ -1177,10 +1168,9 @@ class Tecnodesign_User
                         }
                         tdz::redirect($url);
                     }
+                } else {
+                    $s .= '<div class="tdz-i-msg tdz-i-error"><h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p></div>';
                 }
-            }
-            if(!$auth) {
-                $s .= '<div class="error"><h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p></div>';
             }
             unset($p);
         }
