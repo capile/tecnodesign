@@ -1,12 +1,14 @@
 <?php
 /**
  * Atom/RSS News Feed Template
- *
- * @package      tdzEStudioPlugin
- * @author       Tecnodesign <ti@tecnodz.com>
- * @link         http://tecnodz.com/
- * @copyright    Tecnodesign (c) 2010
- * @version      SVN: $Id: tdz_atom.php 554 2011-01-10 16:11:40Z capile $
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
+ * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 $indent=true;$i='';$i0='';
 if($indent){$i0="\n";$i="\n ";}

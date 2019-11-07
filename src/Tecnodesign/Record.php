@@ -1,18 +1,16 @@
 <?php
 /**
  * Tecnodesign Record
- *
+ * 
  * This package implements one record, with basic RaayAccess methods
- *
- * PHP version 5.2
- *
- * @category  Record
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Record.php 835 2011-07-18 19:49:35Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /**

@@ -1,18 +1,18 @@
 <?php
 /**
  * Tecnodesign Markdown
- *
+ * 
  * Markdown syntax extensions based on Parsedown
- *
+ * 
  * This package is inspired and based upon erusev/parsedown-extra
- *
- * PHP version 5.4
- *
- * @category  Markdown
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2019 Tecnodesign
+ * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /*

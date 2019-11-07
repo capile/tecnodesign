@@ -1,16 +1,14 @@
 <?php
 /**
  * Subform field template
- *
- * PHP version 5.2
- *
- * @category  Field
- * @package   Form
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: subform.php 1063 2012-04-19 11:24:03Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 if(isset(tdz::$variables['form-field-f__'.$id])) {

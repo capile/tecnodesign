@@ -1,14 +1,14 @@
 <?php
 /**
  * OData as a database abstraction
- *
- * PHP version 5.4
- *
- * @category  Database
- * @package   Model
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2017 Tecnodesign
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_Query_OData extends Tecnodesign_Query_Api
 {

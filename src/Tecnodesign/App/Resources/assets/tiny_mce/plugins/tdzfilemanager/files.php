@@ -1,12 +1,14 @@
 <?php
 /**
  * File manager
- *
- * @author      Tecnodesign <ti@tecnodz.com>
- * @link        http://tecnodz.com/
- * @copyright   Tecnodesign (c) 2009
- * @package     tiny_mce
- * @version     SVN: $Id$
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
+ * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 ?>
 <?xml version="1.0" encoding="UTF-8" ?><!doctype html>

@@ -1,18 +1,16 @@
 <?php
 /**
  * Calendar building and output methods
- *
+ * 
  * This package implements applications to build calendars in several formats.
- *
- * PHP version 5.2
- *
- * @category  Calendar
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Calendar.php 1045 2012-02-29 15:44:19Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /**

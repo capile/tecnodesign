@@ -1,19 +1,17 @@
 <?php
 /**
  * Tecnodesign Collection
- *
+ * 
  * A collection is an extended array which extends its unknown properties to its
  * collected items.
- *
- * PHP version 5.2
- *
- * @category  Collection
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Collection.php 1293 2013-11-04 13:23:44Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /**

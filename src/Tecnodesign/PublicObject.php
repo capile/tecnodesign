@@ -1,17 +1,16 @@
 <?php
 /**
  * Schema-based Public object
- *
+ * 
  * This base class implements ArrayAccess and automatic property validation using Schemas
- *
- * PHP version 5.6
- *
- * @category  Ui
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2019 Tecnodesign
- * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInterface
 {

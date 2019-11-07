@@ -1,16 +1,16 @@
 <?php
 /**
  * Tecnodesign Automatic Interfaces
- *
+ * 
  * This is an action for managing interfaces for all available models
- *
- * PHP version 5.3
- *
- * @category  Interface
- * @package   Studio
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2015 Tecnodesign
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 {

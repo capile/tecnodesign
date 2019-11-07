@@ -1,11 +1,14 @@
 <?php
 /**
  * Default News Feed Template
- *
- * @package      Studio
- * @author       Tecnodesign <ti@tecnodz.com>
- * @link         https://tecnodz.com/
- * @copyright    Tecnodesign (c) 2019
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
+ * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 $s = '<div class="hfeed tdze" id="e'.$entry->id.'">';
 $after='';$before='';

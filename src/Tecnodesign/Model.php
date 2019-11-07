@@ -1,17 +1,16 @@
 <?php
 /**
  * Tecnodesign Model
- *
+ * 
  * Full database abstraction ORM.
- *
+ * 
  * PHP version 5.6+
- *
- * @category  Model
- * @package   Tecnodesign
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2017 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign_AutoloadInterface
 {

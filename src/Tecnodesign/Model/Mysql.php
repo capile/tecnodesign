@@ -1,18 +1,16 @@
 <?php
 /**
  * Tecnodesign MySQL Model specific methods and functions
- *
+ * 
  * Basic and simple ORM based on PDO methods only
- *
- * PHP version 5.3
- *
- * @category  Model
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Mysql.php 1268 2013-08-06 18:18:16Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /**

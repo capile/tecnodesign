@@ -1,15 +1,14 @@
 <?php
 /**
  * Tecnodesign_Studio_Content table description
- *
- * PHP version 5.3
- *
- * @category  Model
- * @package   Studio
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @link      http://tecnodz.com/
- * @version   SVN: $Id$
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /**

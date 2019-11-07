@@ -1,16 +1,14 @@
 <?php
 /**
  * Hidden form field template
- *
- * PHP version 5.2
- *
- * @category  Field
- * @package   Form
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: hidden.php 1201 2013-04-01 02:16:04Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 if(!isset($type)) $type='hidden';
 

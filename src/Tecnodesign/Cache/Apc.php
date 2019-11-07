@@ -1,18 +1,16 @@
 <?php
 /**
  * Variable Caching and retieving
- *
+ * 
  * This package implements a common interface for caching both in files or memory
- *
- * PHP version 5.3
- *
- * @category  Cache
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2014 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id$
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_Cache_Apc
 {

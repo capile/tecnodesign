@@ -1,17 +1,16 @@
 <?php
 /**
  * Form Field building, validation and output methods
- *
+ * 
  * This package implements applications to build HTML forms
- *
- * PHP version 5.4
- *
- * @category  Form
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2017 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_Form_Field implements ArrayAccess
 {

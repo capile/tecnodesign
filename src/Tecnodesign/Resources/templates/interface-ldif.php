@@ -1,15 +1,14 @@
 <?php
 /**
  * Tecnodesign_Interface generic template
- *
- * PHP version 5.3
- *
- * @category  Interface
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2015 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
+ * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
+ * @version   2.3
  */
 $id = tdz::slug($url);
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);

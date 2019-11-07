@@ -1,14 +1,14 @@
 <?php
 /**
  * Optional user database for authentication
- *
- * PHP version 5.6
- *
- * @category  Model
- * @package   Studio
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2014 Tecnodesign
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_Studio_User extends Tecnodesign_Studio_Model
 {

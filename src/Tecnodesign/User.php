@@ -1,15 +1,16 @@
 <?php
 /**
  * Tecnodesign User
- *
+ * 
  * This package enables authentication & authorization for apps.
- *
- * @category  User
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2019 Tecnodesign
- * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      https://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 class Tecnodesign_User
 {

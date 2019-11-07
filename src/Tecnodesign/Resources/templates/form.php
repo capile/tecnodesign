@@ -1,16 +1,14 @@
 <?php
 /**
  * Form template
- *
- * PHP version 5.6
- *
- * @category  Form
- * @package   Form
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: form.php 1132 2012-12-07 13:25:05Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 $fieldsets=array();
 $hasFieldset = false;

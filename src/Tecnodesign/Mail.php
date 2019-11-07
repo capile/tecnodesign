@@ -1,18 +1,16 @@
 <?php
 /**
  * Tecnodesign Mail
- *
+ * 
  * Wrapper to other mailers, using a custom API
- *
- * PHP version 5.3
- *
- * @category  Mail
- * @package   Tecnodesign
+ * 
+ * PHP version 5.6+
+ * 
+ * @package   capile/tecnodesign
  * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @version   SVN: $Id: Mail.php 1288 2013-10-03 14:25:54Z capile $
- * @link      http://tecnodz.com/
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.3
  */
 
 /**
