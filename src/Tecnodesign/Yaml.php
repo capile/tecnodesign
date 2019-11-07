@@ -69,6 +69,9 @@ class Tecnodesign_Yaml
             if (!in_array($parser, [self::PARSE_NATIVE, self::PARSE_SPYC], true)) {
                 throw new \InvalidArgumentException("Invalid parser: $parser");
             }
+            if(($parser===self::PARSE_SPYC && !class_exists('Spyc')) || ($parser===self::PARSE_NATIVE && !extension_loaded('yaml'))) {
+                return false;
+            }
             self::$currentParser = $parser;
         } elseif (self::$currentParser === null && extension_loaded('yaml')) {
             self::$currentParser = self::PARSE_NATIVE;

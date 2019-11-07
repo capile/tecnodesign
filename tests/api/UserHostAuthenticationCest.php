@@ -5,7 +5,7 @@ namespace TecnodesignApiTest;
 class UserHostAuthenticationCest
 {
     // test if it's not authenticated first
-    public function notAuthenticated(ApiTester $I)
+    public function notAuthenticated(\ApiTester $I)
     {
         // change cache key to force a new app config
         if(file_exists($f=TDZ_ROOT . '/data/config/user-host-admin.yml')) {
@@ -21,7 +21,7 @@ class UserHostAuthenticationCest
     }
 
     // test if it's authenticated now -- might need a cache reset
-    public function hostAuthenticated(ApiTester $I)
+    public function hostAuthenticated(\ApiTester $I)
     {
         copy(TDZ_ROOT . '/data/config/user-host-admin.yml-example', TDZ_ROOT . '/data/config/user-host-admin.yml');
         file_put_contents(TDZ_ROOT . '/.appkey', 'app-host-auth');

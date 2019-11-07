@@ -8,5 +8,4 @@ actor_suffix: Tester
 extensions:
     enabled:
         - Codeception\Extension\RunFailed
-settings:
-  bootstrap: ../bootstrap.php
+bootstrap: bootstrap.php
