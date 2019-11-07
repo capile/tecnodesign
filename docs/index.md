@@ -4,54 +4,38 @@ Tecnodesign Studio
 
 This is a framework developed by Tecnodesign to build web applications and websites. It comes with a powerful MVC structure and several additional modules.
 
-## Quick Install (standalone)
+## Installation
 
-A simple, standalone installation is possible using composer, just download, run `composer install --no-dev` and start using. You can also set the web interface by triggering PHP built-in web server by running `server.sh` and accessing on <http://localhost:9999/>
+To ensure all dependencies are properly loaded, the installation must be done using composer.
 
-## Full Installation
+You can quickly startup the web interface using PHP built-in web server by running `./app-server` and accessing on <http://localhost:9999/>
 
-In order to install the Tecnodesign application framework:
+## Configuration
 
-1. Copy all files to `[apps-dir]/lib/vendor/Tecnodesign/`
-2. cd to `[apps-dir]/`
-3. Run: `php lib/vendor/Tecnodesign/tdz.php install [project]`
-
-Usually [apps-dir] is located outside the document root, for example:
-
-     /var/www/sitename/
-                |- [apps-dir]/
-                |- www/
-                |- www-static/
-
-Installation script will prompt for additional modules and dependencies:
+There's an installation script that will configure the core modules and dependencies:
 
 ```
-mkdir -p app/lib/vendor/
-git init .
-git submodule add https://github.com/capile/Tecnodesign.git app/lib/vendor/Tecnodesign
-cd app
-php lib/vendor/Tecnodesign/tdz.php install [project]
+composer require capile/tecnodesign
+php vendor/capile/tecnodesign/tdz.php install [project]
 ```
 
 You can also use the installer for some specific components installation, for example:
 
 - **Database**   
   To install only module database connection into your [apps-dir]:  
-  `php lib/vendor/Tecnodesign/tdz.php install:database [project]`
+  `php vendor/capile/tecnodesign/tdz.php install:database [project]`
 
 - **Studio**   
   To install Studio CMS modules:   
-  `php lib/vendor/Tecnodesign/tdz.php install:studio [project]`
+  `php vendor/capile/tecnodesign/tdz.php install:studio [project]`
 
 - **Dependencies**   
-  `php lib/vendor/tecnodesign/tdz.php install:deps [project]`   
-  Note that dependencies might need to be set as submodules of your main project rspository.
+  `php vendor/capile/tecnodesign/tdz.php install:deps [project]`   
+  Note that dependencies might need to be set as submodules or required on your main `composer.json` file.
 
+### Post-Configuration
 
-## Configuration
-
-Most of the applications and components of the framework can be configured using YAML or ini configuration files within the `[apps-dir]/config/` folder.
-
+Most of the applications and components can be configured using YAML or ini configuration files within the `[apps-dir]/config/` folder.
 
 For example, to configure Studio's caching settings, templates or languages, we use public static variables in `Tecnodesign_Studio` class, that can be overwritten using a `[apps-dir]/config/autoload.Tecnodesign_Studio.yml` or a `[apps-dir]/config/autoload.Tecnodesign_Studio.ini` configuration file. Like this:
 
