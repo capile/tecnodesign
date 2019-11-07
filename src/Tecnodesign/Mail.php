@@ -12,20 +12,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign Mail
- *
- * Wrapper to other mailers, using a custom API
- *
- * @category  Mail
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   https://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      https://tecnodz.com/
- */
-
 class Tecnodesign_Mail
 {
     public static 

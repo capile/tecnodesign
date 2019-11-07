@@ -9,27 +9,11 @@
  * PHP version 5.6+
  * 
  * @package   capile/tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
+ * @author    Guilherme Capilé, Mirela Lisboa, Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign Html
- *
- * Functions to manipulate html content. The proccess to convert html to text
- * was based in the class of Jon Abernathy <jon@chuggnutt.com> and source 
- * can be found at http://www.chuggnutt.com/html2text
- *
- * @category  Html
- * @package   Tecnodesign
- * @author    Mirela Lisboa, Tecnodesign <ti@tecnodz.com>
- * @copyright 2013 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
-
 class Tecnodesign_Html
 {
 

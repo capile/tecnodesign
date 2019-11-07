@@ -10,16 +10,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign_Studio_Content table description
- *
- * @category  Model
- * @package   Studio
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @link      http://tecnodz.com/
- */
 class Tecnodesign_Studio_Attributes extends Tecnodesign_Studio_Model
 {
     /**

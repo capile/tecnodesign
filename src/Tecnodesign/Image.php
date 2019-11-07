@@ -12,20 +12,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign Image
- *
- * Image manipulation component 
- *
- * @category  Image
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2012 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
-
 class Tecnodesign_Image 
 {
     public $img, $src, $srcX=0, $srcY=0, $srcHeight, $srcWidth, $srcType, $srcRGB=true, $originalMemoryLimit, $data, $color=0, $font='OpenSans-Regular.ttf', $fontSize=10, $textAlign='left', $stroke=1;

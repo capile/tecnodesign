@@ -201,19 +201,6 @@ if(!defined('K_THAI_TOPCHARS')) define('K_THAI_TOPCHARS', true);
  */
 if(!defined('K_TCPDF_CALLS_IN_HTML')) define('K_TCPDF_CALLS_IN_HTML', true);
 
-/**
- * PDF creation and manipulation
- *
- * Implements setter and getter methods for easy manipulation of PDF properties and
- * contents.
- *
- * @category  Pdf
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
 class Tecnodesign_Pdf_Wrapper extends \setasign\Fpdi\TcpdfFpdi
 {
     private $Parent;

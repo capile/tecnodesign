@@ -13,20 +13,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign Collection
- *
- * A collection is an extended array which extends its unknown properties to its
- * collected items.
- *
- * @category  Collection
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
 class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
 {
     protected $_count = 0, $_items=array(), $_hint, $_query, $_queryKey, $_driver, $_current, $_offset=0, $_max=100000000, $_pageStart=0, $_statement=null, $_keyStatement=null, $_cid;

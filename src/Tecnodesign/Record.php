@@ -12,19 +12,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign Record
- *
- * This package implements one record, with basic RaayAccess methods
- *
- * @category  Record
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
 class Tecnodesign_Record implements ArrayAccess
 {
     private $_vars=array();

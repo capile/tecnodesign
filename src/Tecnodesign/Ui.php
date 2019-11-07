@@ -12,19 +12,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-
-/**
- * Tecnodesign User Interface
- *
- * This is an action for creating a CRUD-like interface for all available models
- *
- * @category  Ui
- * @package   Tecnodesign
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2011 Tecnodesign
- * @license   http://creativecommons.org/licenses/by/3.0  CC BY 3.0
- * @link      http://tecnodz.com/
- */
 class Tecnodesign_Ui
 {
     protected static $_base=null;
