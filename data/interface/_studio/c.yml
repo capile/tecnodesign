@@ -21,7 +21,12 @@ all:
       e:
         __default:
           fieldset: '*Page'
-        '*Entry URL': entry
+        '*Entry URL':
+            bind: entry
+            class: i1s2
+        '*Content Type':
+            bind: content_type
+            class: i1s2
         '*Metadata':
           bind: MetaAttributes
           type: form
@@ -45,7 +50,6 @@ all:
       c:
         __default:
           fieldset: '*Content'
-        '*Content Type': content_type
         'Content':
           bind: content
           class: ih10
