@@ -38,11 +38,7 @@
         I.setAttribute('data-startup', '1');
         if(_init) Z.init(I);
 
-        if(!_base) {
-            var be=document.querySelector('.tdz-i-box[base-url]');
-            if(be) _base = be.getAttribute('base-url');
-            be=null;
-        }
+        getBase();
         var base=I.getAttribute('data-base-url');
         if(!base) {
             var b;
@@ -208,6 +204,16 @@
         }
     }
 
+    function getBase()
+    {
+        if(!_base) {
+            var be=document.querySelector('.tdz-i-box[base-url]');
+            if(be) _base = be.getAttribute('base-url');
+            be=null;
+        }
+        return _base;
+    }
+
     var _Ht, _Hd=300;
     function hashChange(e)
     {
@@ -218,7 +224,7 @@
         }
 
         if(!_reHash || !_checkHash) return;
-        if(!_base) {
+        if(!getBase()) {
             setTimeout(hashChange, 500);
             return;
         }
@@ -711,6 +717,9 @@
     function setInterface(c)
     {
         /*jshint validthis: true */
+        if(!_base) {
+            getBase();
+        }
         if(c) {
             var f = document.createElement('div'), O=Z.node(this),box=(O)?(Z.parentNode(O, '.tdz-i-box')):(null);
             if(!box) box=document.querySelector('.tdz-i-box');

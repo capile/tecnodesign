@@ -10,4 +10,3 @@ all:
         database:
           studio:
             dsn: 'sqlite:data/database/studio.db'
-

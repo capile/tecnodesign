@@ -1,6 +1,6 @@
 ---
 all:
-  model: tdzContent
+  model: Tecnodesign_Studio_Content
   priority: 11
   actions:
     report: false
@@ -15,44 +15,37 @@ all:
         - id
         - entry
       preview:
-        - "--Page--"
         - "scope::e"
-        - "--Article--"
         - "scope::p"
-        - "--Content--"
         - "scope::c"
       e:
-        'Entry URL':
-          label: '*Entry URL'
-          bind: entry
-          type: text
-        'Metadata':
-          label: '*Metadata'
+        __default:
+          fieldset: '*Page'
+        '*Entry URL': entry
+        '*Metadata':
           bind: MetaAttributes
           type: form
           scope: content
       p:
-        'Location':
-          label: '*Location'
+        __default:
+          fieldset: '*Article'
+        '*Location':
           bind: slot
           type: select
           class: i1s2
           choices: choicesSlot
-        'Order':
-          label: '*Order'
+        '*Order':
           bind: position
           type: number
           class: i1s2
-        'Attributes':
-          label: '*Attributes'
+        '*Attributes':
           bind: ContentAttributes
           type: form
           scope: content
       c:
-        'Content Type':
-          label: '*Content Type'
-          bind: content_type
+        __default:
+          fieldset: '*Content'
+        '*Content Type': content_type
         'Content':
-          label: '*Content'
           bind: content
           class: ih10

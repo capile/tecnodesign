@@ -192,7 +192,7 @@ class Tecnodesign_Studio
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
                 Tecnodesign_App::response('layout', 'layout');
-                tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
+                //tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //tdz::$assetsUrl = self::$home;
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
                 //Tecnodesign_App::response('style', array('/studio.less'));

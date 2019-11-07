@@ -34,6 +34,12 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $additionalActions   = array(
                                 //'publish'=> array('position'=>31, 'action' => 'executePublish',  'identified'=>true, 'batch'=>true, 'renderer'=>'renderPublish'),
                             ),
+        $actionAlias        = array(
+            'n'=>'new',
+            'v'=>'preview',
+            'u'=>'update',
+            'q'=>'list',
+        ),
         $models             = array(
                                 //'e'=>'Entry',
                                 'c'=>'Content',
@@ -41,6 +47,10 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                                 //'w'=>'User',
                                 //'g'=>'Group',
             );
+
+    protected static
+        $base
+        ;
 
     private static $t;
 
@@ -58,6 +68,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
      */
     public static function run($n=null, $url=null)
     {
+        static::$base = Tecnodesign_Studio::$home;
         return '<div id="studio" class="studio-interface">'.parent::run($n, $url).'</div>';
     }
 

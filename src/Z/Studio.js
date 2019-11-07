@@ -1,20 +1,23 @@
-/*! Studio v2.1 | (c) 2015 Capile Tecnodesign <ti@tecnodz.com> */
-if('Z' in window)
-(function(Z) {
+/*! Studio v2.3 | (c) 2019 Capile Tecnodesign <ti@tecnodz.com> */
+(function() {
 
 "use strict";
 
-if(!('plugins' in Z)) Z.plugins={};
-if(!('studio' in Z.plugins)) {
-    Z.plugins.studio={home:'/_studio', load:[] };
-}
-
-if(!('modules' in Z)) Z.modules = {};
 var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'Tdz-Action':'Interface'}, _Studio='/_studio';
 
 // load authentication info
 function startup()
 {
+    if(!('Z' in window) || !('Z.Interface.startup' in window)) {
+        return setTimeout(startup, 500);
+    }
+
+    if(!('plugins' in Z)) Z.plugins={};
+    if(!('studio' in Z.plugins)) {
+        Z.plugins.studio={home:'/_studio', load:[] };
+    }
+
+    if(!('modules' in Z)) Z.modules = {};
     if(('home' in Z.plugins.studio) && Z.plugins.studio.home!=_Studio) {
         _Studio = Z.plugins.studio.home;
     }
@@ -116,6 +119,11 @@ function getViewport()
     if(!b) {
         Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header'}});
         b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body'}});
+    }
+
+    if(!('loadInterface' in Z)) {
+        // startup Z.Interface.startup
+        window['Z.Interface.startup']();
     }
     return _V;
 }
@@ -265,7 +273,6 @@ function toggle(e, active)
     } else {
         on=(this.className.search(/\bs-active\b/)<0);        
     }
-    console.log('toggle: '+on, on);
     if(on) {
         if(this.className.search(/\bs-active\b/)<0) {
             this.className=String(this.className+' s-active').trim();
@@ -290,16 +297,7 @@ function setContent(c)
     this.innerHTML = c;
 }
 
-Z.initCallback = function(fn)
-{
-    if(!fn)fn=this.getAttribute('data-callback');
-    if(fn && Z.node(this) && (fn in Z)) {
-        Z.bind(this, 'change', Z[fn]);
-        Z[fn].call(this);
-    }
-};
-
-
+/*
 Z.contentType = function()
 {
     var F = Z.parentNode(this, 'form,.item'), L=F.querySelectorAll('*[data-content-type]'), i=L.length,v=Z.val(this);
@@ -313,7 +311,8 @@ Z.contentType = function()
         }
     }
 };
+*/
 
 startup();
 
-})(window.Z);
+})();
