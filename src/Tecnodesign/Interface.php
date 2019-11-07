@@ -2508,7 +2508,7 @@ class Tecnodesign_Interface implements ArrayAccess
             else if($id) $sid = '{id}';
             else $sid = false;
             if(static::$standalone) {
-                if(!$id || $an==$this->action) continue;
+                if(!$id || preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
                     if(isset($action['query']) && $action['query'] && $qs) {
                         $qs = str_replace(',', '%3A', tdz::xmlEscape($qs));

@@ -895,7 +895,11 @@ function initSubform(o)
     // buttons: add, add(contextual), remove(contextual)
     if(!fmax || fmax!=i || fmax!=fmin) {
         var b=o.parentNode.parentNode.querySelector('div.tdz-subform-buttons');
-        if(!b) b = Z.element({e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]}, o.parentNode);
+        if(!b) {
+            var t=Z.node(o.parentNode.parentNode.querySelector('dt')), bd={e:'div',p:{className:'tdz-subform-buttons tdz-buttons'},c:[btns[1]]};
+            if(t) b = Z.element.call(t, bd);
+            else b = Z.element(bd, o.parentNode);
+        }
         while(i-- > 0) {
             if(fmax && i > fmax) {
                 Z.deleteNode(L[i]);
@@ -936,11 +940,12 @@ function subformAdd(e)
         Z.stopEvent(e);
         Z.tg = this;
 
-        if(this.parentNode.parentNode.className.search(/\bitem\b/)>-1) {
-            el=this.parentNode.parentNode;
+        if(el=Z.parentNode(this, '.item')) {//this.parentNode.parentNode.className.search(/\bitem\b/)>-1)
             o=el.parentNode;
-        } else {
-            o = this.parentNode.nextSibling.childNodes[0];
+        } else if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
+            o = el.querySelector('.items[data-template]');
+            el = null;
+            //o = this.parentNode.nextSibling.childNodes[0];
         }
     }
     if(!o) return false;

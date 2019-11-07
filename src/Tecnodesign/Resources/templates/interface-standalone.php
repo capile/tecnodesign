@@ -98,9 +98,10 @@ if($title) Tecnodesign_App::response('title', $title);
             if(is_string($list)) {
                 echo $list;
             } else if($count>0) {
+                $listRenderer = (isset($options['list-renderer']) && $options['list-renderer']) ?$options['list-renderer'] :'renderUi';
                 $sn = tdz::scriptName(true);
                 tdz::scriptName($Interface->link());
-                echo $list->paginate($listLimit, 'renderUi', array('options'=>$options), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
+                echo $list->paginate($listLimit, $listRenderer, array('options'=>$options), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
                 tdz::scriptName($sn);
                 unset($sn);
             }

@@ -2492,7 +2492,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
             } else {
                 $label = $valueConfig;
             }
-
             if($value===0) $value = "0";
             if (in_array($value, $oValue, false)) {
                 $attrs .= ' checked="checked"';

@@ -5,6 +5,7 @@ if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{}};
 var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
   defaultModules={
     Callback:'*[data-callback]',
+    Copy:'a.z-copy[data-target]',
     'Form.Form': 'form.z-form',
     'Form.AutoSubmit': 'form.z-auto-submit',
     'Form.CheckLabel':'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
@@ -889,6 +890,41 @@ Z.initCallback=function(o)
     }
 
 };
+
+
+Z.initCopy=function(o)
+{
+    if(!o || !Z.node(o)) o=this;
+    if(!o.getAttribute('data-target')) return;
+    Z.bind(o, 'click', executeAction);
+}
+
+function executeAction(e)
+{
+    Z.stopEvent(e);
+    var a = this.getAttribute('data-action');
+    if(!a) {
+        if(this.className.search(/\bz-copy\b/)>-1) a='copy';
+        else return;
+    }
+
+    var t=document.querySelector(this.getAttribute('data-target'));
+
+    if(t) {
+        var d=t.getAttribute('href');
+        if(d && d.search(/^data:/)>-1) {
+            if(d.substr(0, 15)=='data:text/plain') d=decodeURIComponent(d.replace(/^data:[^\,]+\,/, ''));
+        } else if(!d) d=Z.val(t);
+
+        var input = Z.element.call(document.body,{e:'textarea',a:{style:'position:absolute;left:-2000px;top:0;'},c:''});
+        input.value = d;
+        input.select();
+        input.setSelectionRange(0, d.length);
+        document.execCommand(a);
+        Z.deleteNode(input);
+    }
+}
+
 
 Z.removeChildren=function(o)
 {
