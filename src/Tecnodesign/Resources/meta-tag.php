@@ -49,14 +49,14 @@ function applyMeta($d, $meta, $remove=null, $skip=['tests', 'vendor'])
                     $m[] = rtrim($s);
                 }
             } else {
-                if($i<100) $m1 = $i -1;
+                if($i<100) $m1 = $i+1;
                 break;
             }
         }
 
         if($m1) {
             $s = "/**\n * ".str_replace("\n", "\n * ", preg_replace('/\n\n{2,}/', "\n\n", implode("\n", $m)."\n\n".$meta))."\n */\n";
-            array_splice($a, $m0, $m1, [$s]);
+            array_splice($a, $m0, $m1 - $m0, [$s]);
             file_put_contents($d, implode('', $a));
             echo "ApplyMeta: $d\n";
         }
