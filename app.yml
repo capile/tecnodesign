@@ -4,6 +4,7 @@ all:
   tecnodesign:
     apps-dir: .
     data-dir: data
+    config-dir: data/config
     cache-dir: data/cache
     log-dir: data/log
     templates-dir: [ data/templates, src/Tecnodesign/Resources/templates ]
@@ -16,9 +17,15 @@ all:
       layout: layout
     default-route: run
     routes:
-      schema:
-        class: Tecnodesign_Database
-        method: exportSchema
+      config:
+        class: Tecnodesign_App_Install
+        method: config
         static: true
-        additional-params: false
+        additional-params: true
         layout: cli
+      #schema:
+      #  class: Tecnodesign_Database
+      #  method: exportSchema
+      #  static: true
+      #  additional-params: false
+      #  layout: cli

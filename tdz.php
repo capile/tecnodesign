@@ -2591,17 +2591,6 @@ class tdz
         }
     }
 
-    public static function install($project=false, $module=null)
-    {
-        $app = new Tecnodesign_App_Install($project);
-        if($module && method_exists($app, $fn=$module.'Install')) {
-            $app->$fn();
-        } else {
-            $app->runInstall();
-        }
-    }
-
-
     public static function mail($to, $subject='', $message='', $headers=null, $attach=null)
     {
         try {
@@ -3103,9 +3092,3 @@ if(is_null(tdz::$lib)) {
     }
 }
 tdz::autoloadParams('tdz');
-if (TDZ_CLI && !file_exists(TDZ_VAR.'/no-install') && isset($_SERVER['argv'][1]) && ($_SERVER['argv'][1]=='install' || (substr($_SERVER['argv'][1], 0, 8)=='install:') && isset(Tecnodesign_App_Install::$modules[substr($_SERVER['argv'][1], 8)]))) {
-    $prjname = (isset($_SERVER['argv'][2]))?($_SERVER['argv'][2]):(false);
-    $module = ($_SERVER['argv'][1]!='install')?(substr($_SERVER['argv'][1],8)):(null);
-    tdz::install($prjname, $module);
-    exit();
-}

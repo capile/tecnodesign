@@ -61,7 +61,7 @@ class Tecnodesign_App
             $this->_vars = tdz::config($s, $env);
         }
         unset($s);
-        $base = $this->_vars['tecnodesign']['apps-dir'];
+        $base = (isset($this->_vars['tecnodesign']['apps-dir'])) ?$this->_vars['tecnodesign']['apps-dir'] :null;
         if (!$base || $base === '.') {
             $base = TDZ_APP_ROOT;
             $this->_vars['tecnodesign']['apps-dir'] = $base;

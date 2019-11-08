@@ -17,10 +17,11 @@ if(!class_exists('tdz')) {
     if(isset($cfg)) {
         $app = tdz::app($f, $cfg, $env);
     }
-    if(Tecnodesign_Studio::VERSION<1.1) return false;
+    if(Tecnodesign_Studio::VERSION<2.3) return false;
 }
 $cid = tdz::getApp()->studio['connection'];
 $conn = tdz::connect($cid);
+tdz::setConnection('', $conn);
 $driver = (isset(tdz::$database[$cid]['dsn']))?(preg_replace('/\:.*/', '', tdz::$database[$cid]['dsn'])):('');
 if($driver=='sqlite') {
     $unsigned=$auto_increment=$comment_created=$comment_updated=$comment_expired=$comment_sortable=$comment_versionable=$comment_serializable='';
@@ -35,7 +36,6 @@ if($driver=='sqlite') {
     $unsigned=' unsigned';
 }
 //$trans=Tecnodesign_Model::beginTransaction($conn);
-tdz::setConnection('', $conn);
 
 $tns = array();
 foreach(Tecnodesign_Database::getTables($cid) as $t) {

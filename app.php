@@ -1,8 +1,8 @@
 <?php
-
 /**
- * This makes our life easier when dealing with paths. Everything is relative
- * to the application root now.
+ * Tecnodesign Studio application loader
+ *
+ * This is the only resource that needs to be called.
  * 
  * PHP version 5.6+
  * 
@@ -12,8 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-chdir(__DIR__);
 
+// This makes our life easier when dealing with paths. Everything is relative to the application root now.
+chdir(__DIR__);
+// composer handles all class loading
 require 'vendor/autoload.php';
 $appMemoryNamespace = file_exists('.appkey') ? \tdz::slug(file_get_contents('.appkey')) : 'app';
 tdz::app('app.yml', $appMemoryNamespace, 'dev')->run();

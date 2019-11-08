@@ -16,28 +16,26 @@ There's an installation script that will configure the core modules and dependen
 
 ```
 composer require capile/tecnodesign
-php vendor/capile/tecnodesign/tdz.php install [project]
+vendor/capile/tecnodesign/app config [project]
 ```
 
 You can also use the installer for some specific components installation, for example:
 
 - **Database**   
-  To install only module database connection into your [apps-dir]:  
-  `php vendor/capile/tecnodesign/tdz.php install:database [project]`
+  To configure only module database connection into your [apps-dir]:  
+  `vendor/capile/tecnodesign/app config database [project]`
 
 - **Studio**   
   To install Studio CMS modules:   
-  `php vendor/capile/tecnodesign/tdz.php install:studio [project]`
+  `vendor/capile/tecnodesign/app config studio [project]`
 
-- **Dependencies**   
-  `php vendor/capile/tecnodesign/tdz.php install:deps [project]`   
-  Note that dependencies might need to be set as submodules or required on your main `composer.json` file.
+Dependencies need to be required on your main `composer.json` file.
 
 ### Post-Configuration
 
-Most of the applications and components can be configured using YAML or ini configuration files within the `[apps-dir]/config/` folder.
+Most of the applications and components can be configured using YAML or ini configuration files within the configuration folder.
 
-For example, to configure Studio's caching settings, templates or languages, we use public static variables in `Tecnodesign_Studio` class, that can be overwritten using a `[apps-dir]/config/autoload.Tecnodesign_Studio.yml` or a `[apps-dir]/config/autoload.Tecnodesign_Studio.ini` configuration file. Like this:
+For example, to configure Studio's caching settings, templates or languages, we use public static variables in `Tecnodesign_Studio` class, that can be overwritten using a `autoload.Tecnodesign_Studio.yml` or a `autoload.Tecnodesign_Studio.ini` configuration file. Like this:
 
 ```
 ---
@@ -46,7 +44,7 @@ staticCache: 180
 languages: [ en, pt ]
 ```
 
-The database connections can also be defined by updating the `tdz::$database` variable the same way. Or, alternatively, write down a `[apps-dir]/config/databases.yml` configuration file with the specific environment as the master key. Like this:
+The database connections can also be defined by updating the `tdz::$database` variable the same way. Or, alternatively, write down a `databases.yml` configuration file with the specific environment as the master key. Like this:
 
 ```
 ---

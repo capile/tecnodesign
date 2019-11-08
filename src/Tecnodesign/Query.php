@@ -27,10 +27,10 @@ class Tecnodesign_Query implements \ArrayAccess
             if($app && $app->database) {
                 tdz::$database = $app->database;
             }
-            unset($app);
 
             if(!tdz::$database) {
-                if(file_exists($f=TDZ_APP_ROOT.'/config/databases.yml')) {
+                $cfgDir = (isset($app->tecnodesign['config-dir'])) ?$app->tecnodesign['config-dir'] :TDZ_APP_ROOT.'/config';
+                if(file_exists($f=$cfgDir.'/databases.yml')) {
                     $C = Tecnodesign_Yaml::load($f);
                     tdz::$database = array();
                     if(isset($C[tdz::env()])) {
@@ -42,6 +42,9 @@ class Tecnodesign_Query implements \ArrayAccess
                     unset($C);
                 }
             }
+
+            unset($app);
+
             if(tdz::$database) {
                 foreach(tdz::$database as $name=>$def) {
                     if(isset($def['dsn']) && strpos($def['dsn'], '$')!==false) {

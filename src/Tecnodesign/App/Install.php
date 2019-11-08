@@ -37,73 +37,19 @@ class Tecnodesign_App_Install
         ), 
         $modules = array(
             'database'=>'Database connection', 
-            'studio'=>'E-Studio CMS',
-            'deps'=>'Dependencies',
-        ),
-        $dependencies = array(
-            'Spyc' => array(
-                'git' => 'https://github.com/mustangostang/spyc.git',
-            ),
-            'lessc' => array(
-                'git' => 'https://github.com/leafo/lessphp.git',
-            ),
-            'Parsedown' => array(
-                'git' => 'git@github.com:erusev/parsedown.git',
-            ),
-            'ParsedownExtra' => array(
-                'git' => 'git@github.com:tecnodz/parsedown-extra.git',
-            ),
-            'PHPExcel' => array(
-                'path' => 'PHPExcel-src',
-                'git' => 'https://github.com/PHPOffice/PHPExcel.git',
-                'link' => 'PHPExcel-src/Classes PHPExcel',
-            ),
-            'Swift' => array(
-                'path' => 'Swift-src',
-                'git' => 'https://github.com/swiftmailer/swiftmailer.git',
-                'link' => 'Swift-src/lib/classes Swift',
-            ),
-            'dompdf' => array(
-                'git'=>'git@github.com:dompdf/dompdf.git',
-            ),
-            'php-font-lib' => array(
-                'git' => 'git@github.com:PhenX/php-font-lib.git',
-            ),
-            'HTML_To_Markdown' => array(
-                'git' => 'git@github.com:nickcernis/html-to-markdown.git',
-            ),
-            'geshi' => array(
-                'git' => 'git@github.com:tecnodz/geshi-1.0.git',
-            ),
-            'yuicompressor' => array(
-                'url' => 'https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar',
-                'link'=> 'yuicompressor-2.4.8.jar yuicompressor/yuicompressor.jar',
-            ),
-            'tcpdf' => array(
-                'path' => 'TCPDF-src',
-                'git' => 'git://git.code.sf.net/p/tcpdf/code',
-                'link' => 'TCPDF-src/tcpdf.php TCPDF.php',
-            ),
-            'fpdi' => array(
-                'path' => 'FPDI-src',
-                'git' => 'https://github.com/Setasign/FPDI.git',
-                'link' => 'FPDI-src/fpdi.php FPDI.php',
-            ),
-            'Facebook' => array(
-                'path' => 'Facebook-src',
-                'git' => 'https://github.com/facebook/facebook-php-sdk-v4.git',
-                'link' => 'Facebook-src/src/Facebook Facebook',
-            ),
+            'studio'=>'Studio CMS',
         );
     
     public function __construct($config=false, $env='prod')
     {
         if(!$config){
-            tdz::debug("You have to specify the application name to install. For example: \n    \$ php ".implode(' ', $_SERVER['argv'])." projectname\n");
+            tdz::debug("You have to specify the application name to configure. For example: \n    \$ php ".implode(' ', $_SERVER['argv'])." projectname\n");
         }
+        $app = (tdz::getApp()) ?(tdz::getApp()->tecnodesign) :[];
+        if(isset($app['apps-dir']) && $app['apps-dir']!=realpath($this->root)) $this->root = $app['apps-dir'];
         $this->env='all';
         $this->project = $config;
-        $this->cfgFile = tdz::relativePath($this->root.'/config/'.$this->project.'.yml');
+        $this->cfgFile = (isset($app['config-dir'])) ?$app['config-dir'].'/'.$this->project.'.yml' :tdz::relativePath($this->root.'/config/'.$this->project.'.yml');
         if(file_exists($this->cfgFile)) {
             $cfg = Tecnodesign_Yaml::load($this->cfgFile);
             if($this->env!='all') {
@@ -123,7 +69,32 @@ class Tecnodesign_App_Install
             if(isset($cfg[$this->env]['tecnodesign']['document-root'])) $this->documentRoot= $cfg[$this->env]['tecnodesign']['document-root'];
         }
     }
-    
+
+    public static function config()
+    {
+        $project = null;
+        $modules = [];
+        if($args = Tecnodesign_App::request('argv')) {
+            $project = array_pop($args);
+            while($module=array_shift($args)) {
+                if(!isset(static::$modules[$module])) {
+                    tdz::debug("There's no {$module} module.\n");
+                }
+                $modules[] = $module;
+            }
+        }
+        $app = new Tecnodesign_App_Install($project);
+        if($modules) {
+            foreach($modules as $module) {
+                if(method_exists($app, $fn=$module.'Install')) {
+                    $app->$fn();
+                }   
+            }
+        } else {
+            $app->runInstall();
+        }
+    }
+
     public function checkSkel()
     {
         foreach($this->skel as $dir=>$umask) {
@@ -137,18 +108,28 @@ class Tecnodesign_App_Install
             }
         }
     }
+
+    public function getEnv()
+    {
+        if(!$this->env) {
+            $b0 = "\033[1m";
+            $b1 = "\033[0m";
+            $this->env = tdz::ask("{$b0}What's the current environment you'd like to configure?{$b1}", 'all', array('all', 'dev', 'prod', 'test'));
+            if(!in_array($this->env, array('all', 'dev', 'prod', 'test'))) {
+                exit("\n{$b0}ERROR:{$b1} That environment is now allowed: {$this->env}\n");
+            } else {
+                echo '> '.$this->env;
+            }
+        }
+        return $this->env;
+
+    }
     
     public function runInstall()
     {
         $b0 = "\033[1m";
         $b1 = "\033[0m";
-        $this->env = tdz::ask("{$b0}What's the current environment you'd like to configure?{$b1}", 'all', array('all', 'dev', 'prod', 'test'));
-        if(!in_array($this->env, array('all', 'dev', 'prod', 'test'))) {
-            exit("\n{$b0}ERROR:{$b1} That environment is now allowed: {$this->env}\n");
-        } else {
-            echo '> '.$this->env;
-        }
-
+        $this->getEnv();
         if(!$this->cfgFile) $this->cfgFile = tdz::relativePath($this->root.'/config/'.$this->project.'.yml');
         echo '> '.($this->cfgFile = tdz::ask("\n{$b0}Where should the configuration file be created?{$b1} ", $this->cfgFile));
         $buildConfig = true;
@@ -322,14 +303,19 @@ FIM;
     {
         $b0 = "\033[1m";
         $b1 = "\033[0m";
-        $fn = 'autoload.tdz.yml';
+        $fn = 'databases.yml';
         $f  = dirname($this->cfgFile).'/'.$fn;
+
         $cfg = (file_exists($f))?(Tecnodesign_Yaml::load($f)):(array());
-        if(!isset($cfg['database'])) {
+        $this->getEnv();
+
+        $appRoot = (isset($this->appsDir)) ?$this->appsDir :TDZ_APP_ROOT;
+
+        if(!isset($cfg[$this->env])) {
             $c = tdz::ask("There's no database connnection configured. Type the name of the connection you'd like to configure.");
         } else {
-            $c = tdz::ask("You already have ".count($cfg['database'])." configured. Type the name of the connection you'd like to configure (".implode(', ', array_keys($cfg['database']))." or type a new name):");
-            if(isset($cfg['database'][$c])) $this->db[$c] = $cfg['database'][$c];
+            $c = tdz::ask("You already have ".count($cfg[$this->env])." configured databases. Type the name of the connection you'd like to configure (".implode(', ', array_keys($cfg[$this->env]))." or type a new name):");
+            if(isset($cfg[$this->env][$c])) $this->db[$c] = $cfg[$this->env][$c];
         }
         echo '> ', $c, "\n";
         $r=null;
@@ -338,8 +324,9 @@ FIM;
             $type = (isset($this->db[$c]['dsn']) && strpos($this->db[$c]['dsn'], ':'))?(substr($this->db[$c]['dsn'], 0, strpos($this->db[$c]['dsn'], ':'))):('');
             $type = tdz::ask("What's the database type?", null, array('dblib', 'mysql', 'pgsql', 'sqlite'));
             if($type=='sqlite') {
-                $dbf = tdz::ask("Where should it be located (relative to {$this->appsDir})?");
+                $dbf = tdz::ask("Where should it be located (relative to the application root: {$appRoot})?");
                 $this->db[$c]['dsn'] = $type.':'.$dbf;
+                if(getcwd()!=$appRoot && substr($dbf, 0, 1)!='/') $dbf = $appRoot.'/'.$dbf;
             } else {
                 $this->db[$c]['dsn'] = $type.':'
                     . 'host='.tdz::ask("What is the database hostname?", 'localhost').';'
@@ -359,8 +346,8 @@ FIM;
             if($type=='sqlite' && !file_exists(dirname($dbf))) {
                 mkdir(dirname($dbf), 0777, true);
             }
-            $cfg['database'][$c] = $this->db[$c];
-            tdz::$database = $cfg['database'];
+            $cfg[$this->env][$c] = $this->db[$c];
+            tdz::$database = $cfg[$this->env];
             if(tdz::save($f, Tecnodesign_Yaml::dump($cfg, 2), true)) {
                 echo "    + {$f}\n";
             } else {
@@ -384,81 +371,32 @@ FIM;
         echo "> No\n";
     }
 
-    public function depsInstall()
-    {
-        $b0 = "\033[1m";
-        $b1 = "\033[0m";
-        foreach(static::$dependencies as $pkg=>$desc) {
-            if(strtolower(tdz::ask("Would you like to install _{$pkg}_? [y/N]"))=='y') {
-                echo "> Yes\n";
-                echo "  + Installing {$pkg}\n", (static::dep($pkg, $desc))?('OK'):('ERROR'), "\n";
-            } else {
-                echo "> No\n";
-            }
-
-        }
-    }
-    public static function dep($pkg, $cfg=array())
-    {
-        $pkg = preg_replace('/[^a-zA-Z0-9\-\_]+/', '', $pkg);
-        if(!$pkg) return false;
-        if(isset(static::$dependencies[$pkg])) {
-            $cfg += static::$dependencies[$pkg];
-        }
-        $d = dirname(TDZ_ROOT).'/';
-        $dir = $d.$pkg;
-        if(isset($cfg['path'])) {
-            $dir = (substr($cfg['path'], 0, 1)!='/')?($d.$cfg['path']):($cfg['path']);
-        }
-        $update = (file_exists($dir) && is_dir($dir));
-        if(isset($cfg['git'])) {
-            if($update) {
-                echo "  + Removing old installation...";
-                if(!tdz::rmdirr($dir)) return false;
-            }
-            $cmd = "git clone \"{$cfg['git']}\" \"{$dir}\"";
-            echo "   > {$cmd}";
-            passthru($cmd);
-        }
-        if(isset($cfg['url'])) {
-            $f = basename($cfg['url']);
-            $cmd = "mkdir -p \"{$dir}\" && curl \"{$cfg['url']}\" -o \"{$dir}/{$f}\"";
-            echo "   > {$cmd}";
-            passthru($cmd);
-        }
-        if(isset($cfg['link'])) {
-            $cmd = "ln -s ".str_replace(' ', ' '.$d, $cfg['link']);
-            echo "   > {$cmd}";
-            passthru($cmd);
-        }
-        return (file_exists($dir) && is_dir($dir));
-    }
-
     public function studioInstall()
     {
         $b0 = "\033[1m";
         $b1 = "\033[0m";
-        $cfg = Tecnodesign_Yaml::load($this->cfgFile);
+        $cfg = (file_exists($this->cfgFile)) ?Tecnodesign_Yaml::load($this->cfgFile) :[];
+        $this->getEnv();
         $install = false;
         $upgrade = false;
-        if(!isset($cfg['all']['studio']['version'])) {
-            $cfg['all']['studio']['version'] = Tecnodesign_Studio::VERSION;
+        if(!isset($cfg[$this->env]['studio']['version'])) {
+            $cfg[$this->env]['studio']['version'] = Tecnodesign_Studio::VERSION;
             $install = true;
-        } else if($cfg['all']['studio']['version']<Tecnodesign_Studio::VERSION) {
+        } else if($cfg[$this->env]['studio']['version']<Tecnodesign_Studio::VERSION) {
             // upgrade
-            $upgrade = (float)$cfg['all']['studio']['version'];
+            $upgrade = (float)$cfg[$this->env]['studio']['version'];
         }
 
         // choose connection
-        $dd = (isset($cfg['all']['studio']['database']))?($cfg['all']['studio']['database']):(3);
+        $dd = (isset($cfg[$this->env]['studio']['database']))?($cfg[$this->env]['studio']['database']):(3);
         $do = array(1=>'bundled', 2=>'return to database configuration', 3=>'No database');
-        if((isset(tdz::$database))) {
+        if(Tecnodesign_Query::database()) {
             foreach(array_keys(tdz::$database) as $k) {
                 $do[] = $k;
                 unset($k);
             }
         }
-        $q = "E-Studio may use a working database connection. Which connection would you like to use:\n";
+        $q = "Studio may use a working database connection. Which connection would you like to use:\n";
         foreach($do as $k=>$v) {
             if($dd && !is_int($dd) && $dd==$v) {
                 $dd=$k;
@@ -470,25 +408,35 @@ FIM;
         $d = tdz::ask($q, $dd, array_keys($do));
         if($d==1) {
             $dsn = 'sqlite:'.tdz::ask("Where should it be located (relative to {$this->appsDir})?");
-            $cfg['all']['studio']['connection']='studio';
-            $afn = 'autoload.tdz.yml';
+            $cfg[$this->env]['studio']['connection']='studio';
+            $afn = 'databases.yml';
             $af  = dirname($this->cfgFile).'/'.$afn;
             $a = (file_exists($af))?(Tecnodesign_Yaml::load($af)):(array());
-            $a['database']['studio']=array('dsn'=>$dsn, 'sync'=>false);
+            $a[$this->env]['studio']=array('dsn'=>$dsn, 'sync'=>false);
         } else if($d==2) {
             return $this->databaseInstall();
         } else if($d==3) {
-            $cfg['all']['studio']['connection']=null;
+            $cfg[$this->env]['studio']['connection']=null;
         } else {
-            $cfg['all']['studio']['connection']=$do[$d];
+            $cfg[$this->env]['studio']['connection']=$do[$d];
         }
 
         // set routes
-        $cfg[$this->env]['tecnodesign']['routes']['/*']=array(
-            'class'=>'Tecnodesign_Studio',
-            'method'=>'run',
-            'additional-params'=>'true',
-        );
+        if(isset($cfg[$this->env]['tecnodesign']['controller-options']['class']) && $cfg[$this->env]['tecnodesign']['controller-options']['class']!='Tecnodesign_Studio') {
+            $cfg[$this->env]['tecnodesign']['routes']['/*']=array(
+                'class'=>'Tecnodesign_Studio',
+                'method'=>'run',
+                'additional-params'=>'true',
+            );
+        } else {
+            $cfg[$this->env]['tecnodesign']['controller-options'] = [
+                'class'  => 'Tecnodesign_Studio',
+                'static' => true,
+                'additional-params' => true,
+                'layout' => 'layout',
+            ];
+            $cfg[$this->env]['tecnodesign']['default-route'] = 'run';
+        }
         if(tdz::save($this->cfgFile, Tecnodesign_Yaml::dump($cfg, 2), true)) {
             echo "    + {$this->cfgFile}\n";
         } else {
@@ -498,9 +446,9 @@ FIM;
         // install or upgrade tables
         tdz::app($this->cfgFile, $this->project, tdz::env());
 
-        if($cfg['all']['studio']['connection']) {
+        if($cfg[$this->env]['studio']['connection']) {
             $install = true;
-            $b=glob(TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/install/e-studio-*.php');
+            $b=glob(TDZ_ROOT.'/src/Tecnodesign/Resources/studio/studio-*.php');
             foreach($b as $i=>$f) {
                 $run=$install;
                 if(!$run && $upgrade) {
@@ -520,7 +468,7 @@ FIM;
         $co = array(1=>false);
         $q = "Would you like to load a sample content? Please select one of the options available:\n  1) No thanks\n";
         $i=2;
-        foreach(glob(TDZ_ROOT.'/src/Tecnodesign/Studio/Resources/install/*.yml') as $f){
+        foreach(glob(TDZ_ROOT.'/src/Tecnodesign/Resources/studio/*.yml') as $f){
             $q .= "  {$i}) (template) ".basename($f, '.yml')."\n";
             $co[$i] = $f;
             $i++;
@@ -533,7 +481,7 @@ FIM;
             }
         }
         if(($d=tdz::ask($q, 1, array_keys($co))) && $d>1) {
-            if($cfg['all']['studio']['connection']) {
+            if($cfg[$this->env]['studio']['connection']) {
                 echo "    > ".$co[$d]."\n";
                 Tecnodesign_Database::import($co[$d]);
             } else {
@@ -561,15 +509,15 @@ FIM;
             passthru($cmd);
         }
 
-        if($cfg['all']['studio']['connection'] && strtolower(tdz::ask("Would you like to use E-Studio database for authentication? [y/N]"))=='y') {
-            $cid = tdz::ask("What'll be the cookie name used for authentication?", (isset($cfg['all']['user']['session-name']))?($cfg['all']['user']['session-name']):('tdz'));
-            if(!isset($cfg['all']['user'])) $cfg['all']['user']=array();
-            $cfg['all']['user'] += array(
+        if($cfg[$this->env]['studio']['connection'] && strtolower(tdz::ask("Would you like to use Studio database for authentication? [y/N]"))=='y') {
+            $cid = tdz::ask("What'll be the cookie name used for authentication?", (isset($cfg[$this->env]['user']['session-name']))?($cfg[$this->env]['user']['session-name']):('tdz'));
+            if(!isset($cfg[$this->env]['user'])) $cfg[$this->env]['user']=array();
+            $cfg[$this->env]['user'] += array(
                 'session-name'=>$cid,
                 'ns'=>array(),
             );
-            $cfg['all']['user']['ns']['e']=array(
-                'name'=> 'E-Studio',
+            $cfg[$this->env]['user']['ns']['e']=array(
+                'name'=> 'Studio',
                 'enabled'=>true,
                 'cookie'=>$cid,
                 'timeout'=>1296000,
@@ -580,7 +528,7 @@ FIM;
                   'sid'=>'login',
                   'name'=>'name',
                   'password'=>'password',
-                  'email'=>'apelido',
+                  'email'=>'email',
                   'lastAccess'=>'accessed',
                   'credentials'=>'Credentials',
                 ),
@@ -609,7 +557,7 @@ FIM;
             }
         }
 
-        echo "E-Studio installation successfull!\n";
+        echo "Studio CMS successfullly configured!\n";
 
 
     }
