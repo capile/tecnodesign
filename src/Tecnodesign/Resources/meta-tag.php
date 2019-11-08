@@ -9,7 +9,7 @@ $meta = <<<EOF
 PHP version 5.6+
 
 @package   capile/tecnodesign
-@author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
+@author    Tecnodesign <ti@tecnodz.com>
 @license   GNU General Public License v3.0
 @link      https://tecnodz.com
 @version   2.3
@@ -17,18 +17,17 @@ EOF;
 
 $remove = '/^(@(package|version|author|copyright|license|link|version|category)|PHP version)/';
 
-$DIR = dirname(dirname(__FILE__));
-
+$DIR = dirname(dirname(dirname(dirname(__FILE__))));
 
 applyMeta($DIR, $meta, $remove);
 
 
-function applyMeta($d, $meta, $remove=null)
+function applyMeta($d, $meta, $remove=null, $skip=['tests', 'vendor'])
 {
     if(is_dir($d)) {
         foreach(glob($d.'/*') as $f) {
             $b = preg_replace('#.*/([^/]+)$#', '$1', $f);
-            if($b && $b!=='..' && $b!='.') {
+            if($b && $b!=='..' && $b!='.' && !in_array($b, $skip)) {
                 if(is_dir($f) || substr($b, -4)==='.php') applyMeta($f, $meta, $remove);
             }
         }
@@ -50,7 +49,7 @@ function applyMeta($d, $meta, $remove=null)
                     $m[] = rtrim($s);
                 }
             } else {
-                if($i<100) $m1 = $i;
+                if($i<100) $m1 = $i -1;
                 break;
             }
         }

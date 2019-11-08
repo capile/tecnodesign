@@ -3,7 +3,8 @@
 <nav markdown="1">
 
 - [Get](./)
-  - [Installation](install)
+  - [Installation](./#Installation)
+  - [Configuration](./#Configuration)
 - [Use](use)
 - [Develop](development)
   - [Database Configuration](Database)
