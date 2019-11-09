@@ -78,4 +78,14 @@ class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
     {
         return 'select name from sqlite_master where type=\'table\'';
     }
+
+    public function getTableSchemaQuery($table, $database=null, $enableViews=null)
+    {
+        return 'pragma table_info('.\tdz::sql($table, false).')';
+    }
+
+    public function getRelationSchemaQuery($table, $database=null, $enableViews=null)
+    {
+        return;
+    }
 }

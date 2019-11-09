@@ -56,7 +56,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 
     public static function t($s, $alt=null)
     {
-        return Tecnodesign_Studio::t($s, $alt, 'interface');
+        return Tecnodesign_Studio::t($s, $alt, 'interface').'!!!';
     }
 
     /**
@@ -69,7 +69,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
     public static function run($n=null, $url=null)
     {
         static::$base = Tecnodesign_Studio::$home;
-        return '<div id="studio" class="studio-interface">'.parent::run($n, $url).'</div>';
+        return '<div id="studio" class="studio-interface s-active">'.parent::run($n, $url).'</div>';
     }
 
     public static function loadInterface($a=array(), $prepare=true)
@@ -80,9 +80,8 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         if($prepare && !isset($a['credential'])) {
             $min = null;
             foreach(self::$actionAlias as $aa=>$an) {
-                $m = (isset(self::$models[$a['interface']]))?(self::$models[$a['interface']]):($a['model']);
-                $c = Tecnodesign_Studio::credential($an.'Interface'.$m);
-                if(!is_null($c)) {
+                if((isset(self::$models[$a['interface']]) && ($m=self::$models[$a['interface']]) && !is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$m)))
+                  || (isset($a['model']) && ($m=$a['model']) && !is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$m)))) {
                     if($c===true) {
                         $min = $c;
                         $a['actions'][$an] = true;

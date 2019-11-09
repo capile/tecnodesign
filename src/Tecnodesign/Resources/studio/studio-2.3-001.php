@@ -43,6 +43,8 @@ foreach(Tecnodesign_Database::getTables($cid) as $t) {
     $tns[$t] = $t;
 }
 
+$H = Tecnodesign_Query::handler($cid);
+
 if(!isset($tns['tdz_entries'])) {
     $q = array(
 "create table tdz_entries (
@@ -110,6 +112,7 @@ if(!isset($tns['tdz_contents'])) {
   entry bigint(20) null default null,
   slot varchar(50) null default null,
   content_type varchar(100) null default null,
+  source varchar(200) null default null,
   content longtext null default null,
   position varchar(250) null default null{$comment_sortable},
   published datetime null default null,
@@ -131,7 +134,15 @@ if(!isset($tns['tdz_contents'])) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Content'";
     tdz::query($q);
+} else if(($S = $H->getTableSchema('tdz_contents'))) {
+    if(!isset($S['properties']['source'])) {
+        $q = 'alter table tdz_contents add source varchar(200) null default null';
+        if($driver=='mysql') $q .= ' after content_type';
+        tdz::query($q);
+    }
 }
+
+
 if(!isset($tns['tdz_contents_version'])) {
     $q = array(
 "create table tdz_contents_version (
@@ -139,9 +150,12 @@ if(!isset($tns['tdz_contents_version'])) {
   entry bigint(20) null default null,
   slot varchar(50) null default null,
   content_type varchar(100) null default null,
+  source varchar(200) null default null,
   content longtext null default null,
   position varchar(250) null default null,
   published datetime null default null,
+  show_at text null default null,
+  hide_at text null default null,
   version bigint(20) not null default '0',
   created datetime not null,
   updated datetime not null,
@@ -158,6 +172,12 @@ if(!isset($tns['tdz_contents_version'])) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
+} else if(($S = $H->getTableSchema('tdz_contents_version'))) {
+    if(!isset($S['properties']['source'])) {
+        $q = 'alter table tdz_contents_version add source varchar(200) null default null';
+        if($driver=='mysql') $q .= ' after content_type';
+        tdz::query($q);
+    }
 }
 if(!isset($tns['tdz_permissions'])) {
     $q = array(

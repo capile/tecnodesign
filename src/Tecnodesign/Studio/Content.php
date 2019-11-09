@@ -27,7 +27,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $allowMarkdownExtensions=true;
 
     public static $schema;
-    protected $id, $entry, $slot, $content_type, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry, $ContentAttributes, $MetaAttributes;
+    protected $id, $entry, $slot, $content_type, $source, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry, $ContentAttributes, $MetaAttributes;
     protected static $content_types=null;
     protected $show_at, $hide_at, $modified;
     public $pageFile, $attributes, $subposition;

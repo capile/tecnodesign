@@ -204,7 +204,6 @@ class Tecnodesign_Database
             $dbs = Tecnodesign_Query::database();
         }
         if(!$dbs) return false;
-
         $res = [];
         foreach($dbs as $db=>$dbo) {
             if(isset($dbo['sync']) && !$dbo['sync']) continue;
@@ -219,7 +218,7 @@ class Tecnodesign_Database
 
             foreach($tables as $tn) {
                 $res[] = $H->getTableSchema($tn);
-            }            
+            }
         }
 
         if(isset($output)) {

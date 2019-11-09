@@ -1,5 +1,8 @@
 ---
 all:
+  studio:
+    version: 2.3
+    connection: test
   tecnodesign:
     export:
       Tecnodesign_Studio:

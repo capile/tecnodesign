@@ -24,7 +24,8 @@ class Tecnodesign_Query_Sql
         $conn=array(), 
         $tableDefault;
     protected 
-        $_schema, 
+        $_schema,
+        $_database,
         $_scope, 
         $_select, 
         $_distinct, 
@@ -55,9 +56,11 @@ class Tecnodesign_Query_Sql
         if($s) {
             if(is_object($s)) {
                 $this->_schema = get_class($s);
-            //} else if(is_string($s) && Tecnodesign_Query::databaseHandler($s)===get_called_class()) {
-            //    // connection name
-            //    $this->_schema = new Tecnodesign_Schema_Model(array('database'=>$s));
+            } else if(is_string($s) && class_exists($s)) {
+                $this->_schema = $s;
+            } else if(is_string($s) && Tecnodesign_Query::databaseHandler($s)===get_called_class()) {
+                // connection name
+                $this->_schema = new Tecnodesign_Schema_Model(array('database'=>$s));
             } else {
                 $this->_schema = $s;
             }
@@ -76,7 +79,11 @@ class Tecnodesign_Query_Sql
             try {
                 $level = 'find';
                 $db = Tecnodesign_Query::database($n);
-                if(!$n && is_array($db)) $db = array_shift($db); 
+                if(!$db) {
+                    if($exception) throw new Exception('Could not connect to '.$n);
+                    return false;
+                }
+                if(!$n && is_array($db)) $db = array_shift($db);
                 $db += array('username'=>null, 'password'=>null, 'options'=>static::$options);
                 $db['options'][PDO::ATTR_ERRMODE]=PDO::ERRMODE_EXCEPTION;
 
@@ -455,6 +462,9 @@ class Tecnodesign_Query_Sql
                 $ta = $this->_alias[$sc['className']];
             }
         }
+
+        if(!is_array($this->_alias)) $this->_alias = [];
+
         if($ta==='a' && !in_array($ta, $this->_alias)) {
             $this->_alias[$sc['className']] = $ta;
         }
@@ -1263,9 +1273,23 @@ class Tecnodesign_Query_Sql
         return 'show full columns from '.\tdz::sql($table, false);
     }
 
+    protected static $columnSchemaMap=[
+        // mysql/mariadb return values
+        'Field'=>'bind','Type'=>'type', 'Key'=>'keys', 'Null'=>'null', 'Default'=>'default', 'Extra'=>'options',
+        // sqlite return values
+        'name'=>'bind', 'pk'=>'keys', 'dflt_value'=>'required'
+    ];
     public function getColumnSchema($fd, $base=array())
     {
         $protected = array('type', 'min', 'max', 'length', 'null');// , 'increment'
+        foreach(static::$columnSchemaMap as $src=>$dst) {
+            if(isset($fd[$src])) {
+                $fd[$dst] = $fd[$src];
+                unset($fd[$src]);
+            } else if(!isset($fd[$dst])) {
+                $fd[$dst] = null;
+            }
+        }
         if(is_array($base) && count($base)>0) {
             foreach ($protected as $remove) {
                 if(isset($base[$remove])) {
@@ -1276,11 +1300,11 @@ class Tecnodesign_Query_Sql
             $base = array();
         }
         $f=array(
-            'bind'=>trim(strtolower($fd['Field'])),
+            'bind'=>trim($fd['bind']),
         );
         // find type and limits
         // date and datetime
-        $type = trim(strtolower($fd['Type']));
+        $type = trim(strtolower($fd['type']));
         $desc = '';
         $unsigned = false;
         if(preg_match('/\s*\(([0-9\,]+)\)\s*(signed|unsigned)?.*/', $type, $m)) {
@@ -1305,7 +1329,7 @@ class Tecnodesign_Query_Sql
             if ($type=='tinyint') {
                 $f['max'] = ($unsigned)?(255):(128);
             }
-            if($fd['Extra']=='auto_increment') {
+            if($fd['options']=='auto_increment') {
                 $f['increment']='auto';
             }
         } else if($type=='float') {
@@ -1341,12 +1365,14 @@ class Tecnodesign_Query_Sql
             $f['choices']=$choices;
         } else {
             $f['type'] = 'string';
-            //tdz::debug(__METHOD__.'???', $fd, $type, $desc, $m);
         }
-        $f['null'] = ($fd['Null']=='YES');
-        if($fd['Key']=='PRI') {
+        if($fd['null']=='YES') $f['null'] = true;
+        else if(isset($fd['required'])) $f['null'] = ($fd['required']!='1');
+        else $f['null'] = false;
+        if($fd['keys']=='PRI' || $fd['keys']=='1') {
             $f['primary']=true;
         }
+        if(isset($fd['default'])) $f['default'] = $fd['default'];
         $f += $base;
         
         return $f;
@@ -1469,8 +1495,7 @@ class Tecnodesign_Query_Sql
         $conn = static::connect($schema->database);
         $dbname = $this->getDatabaseName($schema->database);
         $tn = $schema->tableName;
-        $rels = $conn->query($this->getRelationSchemaQuery($tn, $dbname, true))->fetchAll(\PDO::FETCH_ASSOC);
-        if(!$rels) {
+        if(!($q=$this->getRelationSchemaQuery($tn, $dbname, true)) || !($rels = $conn->query($q)->fetchAll(\PDO::FETCH_ASSOC))) {
             return false;
         }
 

@@ -20,10 +20,13 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
         parent::staticInitialize();
 
         // check if database exists or needs to be overwriten by file
-        if(static::$schema && ($db = static::$schema->database) && !isset(tdz::$database[$db])) {
-            //tdz::$database[$db]=['dsn'=>tdz::expandVariables(Tecnodesign_Studio::$indexDatabase)];
-            // @todo: need to create/alter tables for sqlite indexing
-        } else if(isset($db) && $db) {
+        if(static::$schema && ($db = static::$schema->database) && !Tecnodesign_Query::database($db)) {
+            $cfg = tdz::getApp()->studio;
+            if($cfg && isset($cfg['connection']) && $cfg['connection']!=$db && isset(tdz::$database[$cfg['connection']])) {
+                static::$schema->database = $cfg['connection'];
+            }
+        }
+        if(isset($db) && $db) {
             Tecnodesign_Studio::$connection = $db;
         }
     }

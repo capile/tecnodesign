@@ -8,6 +8,7 @@
         "entry": { "bind": "entry", "type": "int" },
         "slot": { "bind": "slot", "type": "string", "size": 50 },
         "content_type": { "bind": "content_type", "type": "string", "size": 100 },
+        "source": { "bind": "source", "type": "string", "size": 200 },
         "content": { "bind": "content", "type": "string" },
         "position": { "bind": "position", "type": "int" },
         "published": { "bind": "published", "format": "datetime", "type": "string" },

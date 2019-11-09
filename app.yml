@@ -23,9 +23,3 @@ all:
         static: true
         additional-params: true
         layout: cli
-      #schema:
-      #  class: Tecnodesign_Database
-      #  method: exportSchema
-      #  static: true
-      #  additional-params: false
-      #  layout: cli

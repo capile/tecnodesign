@@ -154,7 +154,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $schema=$base;
         if(isset($cn::$schema)) {
             $schema = $cn::$schema;
-        } else if(!($schema=Tecnodesign_Cache::get('schema/'.$cn, tdz::$timeout, false))) {
+        } else if(!($schema=Tecnodesign_Cache::get('schema/'.$cn, tdz::$timeout))) {
             $schema = $base;
             if(!isset($schema['tableName']) || $schema['tableName']=='') {
                 $schema['tableName'] = tdz::uncamelize(lcfirst($cn));
@@ -171,17 +171,27 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 tdz::$database = $databases;
             }
             $tn = $schema['tableName'];
-            $dbtype = preg_replace('/\:.*/', '', $dbold[$db]['dsn']);
-            $scn = 'Tecnodesign_Model_'.ucfirst($dbtype);
-            if(!class_exists($scn)) {
-                tdz::log('[WARNING] No schema information for '.$cn);
-            } else {
-                $schema = $scn::updateSchema($schema);
-                Tecnodesign_Cache::set('schema/'.$cn, $schema, 0, false);
+            if(!($S = static::sourceSchema($schema['tableName']))) {
+                $schema = new Tecnodesign_Schema_Model($schema);
             }
+            Tecnodesign_Cache::set('schema/'.$cn, $S, tdz::$timeout);
         }
 
         return $schema;
+    }
+
+    public static function sourceSchema($tn=null, $base=[])
+    {
+        if(!$tn && isset($base['tableName'])) $tn=$base['tableName'];
+        else if(!$tn && isset(static::$schema)) $tn=static::$schema->tableName;
+        if(!$tn) return null;
+
+        $H = static::queryHandler();
+        if(!method_exists($H, 'getTableSchema')) return false;
+
+        if($schema=$H->getTableSchema($tn)) {
+            return new Tecnodesign_Schema_Model($schema + $base);
+        }
     }
 
     /**
@@ -735,8 +745,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public function versionableTrigger($fields, $conn=null)
     {
         $schema = $this->schema();
-        $vtn = (isset($schema['versionTableName']))?($schema['versionTableName']):($schema['tableName'].'_version');
-        $fns = implode(',', array_keys($schema['columns']));
+        $vtn = ($schema->versionTableName)?($schema->versionTableName):($schema->tableName.'_version');
+        $fns = implode(',', array_keys($schema->properties));
         $cn = get_class($this);
         $scope = $cn::pk();
         $w=array();
@@ -753,12 +763,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $version = (int) $this->$fields;
         $version++;
         $sqls = array(
-            "update {$schema['tableName']} set {$fields}={$version} where {$w}",
-            "replace into {$vtn} ({$fns}) select {$fns} from {$schema['tableName']} where {$w}",
+            "update {$schema->tableName} set {$fields}={$version} where {$w}",
+            "replace into {$vtn} ({$fns}) select {$fns} from {$schema->tableName} where {$w}",
         );
         $this->$fields=$version;
         if(!$conn) {
-            $conn = tdz::connect($schema['database']);
+            $conn = tdz::connect($schema->database);
         }
         foreach($sqls as $sql) {
             $conn->exec($sql);

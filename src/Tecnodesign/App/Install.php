@@ -482,6 +482,9 @@ FIM;
         }
         if(($d=tdz::ask($q, 1, array_keys($co))) && $d>1) {
             if($cfg[$this->env]['studio']['connection']) {
+
+                if($cfg[$this->env]['studio']['connection']!='studio') tdz::$database['studio'] = tdz::$database[$cfg[$this->env]['studio']['connection']];
+
                 echo "    > ".$co[$d]."\n";
                 Tecnodesign_Database::import($co[$d]);
             } else {

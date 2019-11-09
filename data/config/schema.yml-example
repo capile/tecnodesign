@@ -1,0 +1,10 @@
+---
+all:
+  tecnodesign:
+    routes:
+      schema:
+        class: Tecnodesign_Database
+        method: exportSchema
+        static: true
+        additional-params: false
+        layout: cli

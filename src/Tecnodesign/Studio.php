@@ -83,6 +83,7 @@ class Tecnodesign_Studio
             if(isset(self::$app->studio['connection'])) {
                 self::$connection = self::$app->studio['connection'];
             }
+            if(self::$connection!='studio' && !Tecnodesign_Query::database('studio')) tdz::$database['studio'] = tdz::$database[self::$connection];
         }
         if(isset($_GET['!rev'])) {
             self::$params['!rev'] = $_GET['!rev'];
@@ -93,7 +94,7 @@ class Tecnodesign_Studio
         tdz::$translator = 'Tecnodesign_Studio::translate';
 
         // try the interface
-        if($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0) {
+        if(static::$webInterface && ($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0)) {
             if($sn!=self::$home) tdz::scriptName($sn);
             return self::_runInterface();
         } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
@@ -574,6 +575,16 @@ class Tecnodesign_Studio
         }
         $E=null;
         if(self::$connection && $E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','version'=>'desc'))) {
+            if($meta = $E::loadMeta($E->link)) {
+                foreach($meta as $fn=>$v) {
+                    if(property_exists($E, $fn)) {
+                        if($fn=='layout' || $fn=='slots') $E::$$fn = $v;
+                        else if(!$E->$fn) $E->$fn = $v;
+                    }
+                    unset($meta[$fn], $fn, $v);
+                }
+                unset($meta);
+            }
             unset($f, $published);
             return $E;
         }
