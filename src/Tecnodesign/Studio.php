@@ -83,7 +83,10 @@ class Tecnodesign_Studio
             if(isset(self::$app->studio['connection'])) {
                 self::$connection = self::$app->studio['connection'];
             }
-            if(self::$connection!='studio' && !Tecnodesign_Query::database('studio')) tdz::$database['studio'] = tdz::$database[self::$connection];
+            if(self::$connection && self::$connection!='studio' && !Tecnodesign_Query::database('studio')) tdz::$database['studio'] = tdz::$database[self::$connection];
+        }
+        if(self::$connection==='studio' && !Tecnodesign_Query::database('studio')) {
+            self::$connection = null;
         }
         if(isset($_GET['!rev'])) {
             self::$params['!rev'] = $_GET['!rev'];

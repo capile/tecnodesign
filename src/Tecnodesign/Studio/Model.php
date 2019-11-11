@@ -26,8 +26,5 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
                 static::$schema->database = $cfg['connection'];
             }
         }
-        if(isset($db) && $db) {
-            Tecnodesign_Studio::$connection = $db;
-        }
     }
 }

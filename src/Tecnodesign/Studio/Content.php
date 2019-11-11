@@ -89,8 +89,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         }
         if(!Tecnodesign_Studio::$connection) {
             return false;
-            Tecnodesign_Studio::$connection = static::$schema['database'];
-            Tecnodesign_Studio::indexDb();
+            //Tecnodesign_Studio::$connection = static::$schema['database'];
+            //Tecnodesign_Studio::indexDb();
         }
         return parent::find($q, $limit, $scope, $collection, $orderBy, $groupBy);
     }
