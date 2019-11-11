@@ -798,6 +798,17 @@ class Tecnodesign_App
                 self::$_request['hostname']=preg_replace('/[\s\n\;]+/', '', $_SERVER['HTTP_HOST']);
                 self::$_request['https']=(isset($_SERVER['HTTPS']));
                 self::$_request['host']=((self::$_request['https'])?('https://'):('http://')).self::$_request['hostname'];
+                if(isset($_SERVER['SERVER_PORT'])) {
+                    self::$_request['port']=$_SERVER['SERVER_PORT'];
+                    if(!((self::$_request['port']=='80' && self::$_request['https']) || (self::$_request['port']=='443' && self::$_request['https'])) && substr(self::$_request['host'], -1*(strlen(self::$_request['port'])+1))!=':'.self::$_request['port']) {
+                        self::$_request['host'] .= ':'.self::$_request['port'];
+                    }
+                }
+                if(isset($_SERVER['REQUEST_SCHEME'])) {
+                    self::$_request['scheme']=$_SERVER['REQUEST_SCHEME'];
+                } else {
+                    self::$_request['scheme']=(self::$_request['https']) ?'https' :'http';
+                }
                 $ui=@parse_url($_SERVER['REQUEST_URI']);
                 if(!$ui) {
                     $ui=array();
@@ -856,7 +867,7 @@ class Tecnodesign_App
                 self::$_request['post']=tdz::postData($_POST);
             }
         }
-        if($q=='headers' && !isset(self::$_request[$q])) {
+        if($q==='headers' && !isset(self::$_request[$q])) {
             self::$_request[$q]=array();
             foreach($_SERVER as $k=>$v) {
                 if(substr($k, 0, 5)=='HTTP_') {

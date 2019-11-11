@@ -1962,11 +1962,14 @@ class tdz
             $_SERVER += array('SERVER_PORT'=>'80', 'HTTP_HOST'=>'localhost');
         }
         $url += $parts;
-        $url += array(
-            'scheme' => ($_SERVER['SERVER_PORT'] == '443' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO']=='https')) ? ('https') : ('http'),
-            'host' => (self::get('hostname')) ? (self::get('hostname')) : ($_SERVER['HTTP_HOST']),
+        if(isset($url['host']) && !isset($url['port'])) $url['port']=null;
+        $url += [
+            'scheme' => Tecnodesign_App::request('scheme'),
+            'host' => (self::get('hostname')) ? (self::get('hostname')) : (Tecnodesign_App::request('hostname')),
+            'port' => Tecnodesign_App::request('port'),
             'path' => tdz::scriptName(true),
-        );
+        ];
+
         $s = '';
         $s = $url['scheme'] . '://';
         if (isset($url['user']) || isset($url['pass'])) {
