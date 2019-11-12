@@ -22,7 +22,7 @@ arguments:
 ---
 */
 
-$source = tdzEntry::file(tdzEntry::$pageDir, false);
+$source = tdzEntry::file('/', false);
 if(!Tecnodesign_Studio::$index || !$source) return false;
 if(Tecnodesign_Cache::get('indexing')) return false;
 Tecnodesign_Cache::set('indexing', $t=time(), 20);

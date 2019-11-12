@@ -522,7 +522,6 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 $pat = '{,.'.tdz::$lang.'}{,.'.implode(',.',array_keys(tdzContent::$contentType)).'}';
             }
             $pages = self::glob($f.$pat);
-
             if($pages && count($pages)>0) {
                 foreach($pages as $page) {
                     if($P=self::_checkPage($page, $url)) {
@@ -531,9 +530,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 }
             }
         } else if($url) {
-            if(in_array('php', tdzContent::$multiviewContentType) && is_file($f=tdzEntry::file(static::$pageDir.$url.'.php')))
+            if(in_array('php', tdzContent::$multiviewContentType) && is_file($f=tdzEntry::file($url.'.php')))
                 $P=self::_checkPage($f, $url, $multiview);
-            if(in_array('md', tdzContent::$multiviewContentType) && is_file($f=tdzEntry::file(static::$pageDir.$url.'.md')))
+            if(in_array('md', tdzContent::$multiviewContentType) && is_file($f=tdzEntry::file($url.'.md')))
                 $P=self::_checkPage($f, $url, $multiview);
         }
         return $P;
@@ -730,7 +729,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         // get file-based page definitions
         $u = $this->link;
-        $root = TDZ_VAR.'/'.static::$pageDir;//tdzEntry::file(static::$pageDir, false);
+        $root = TDZ_VAR.'/'.static::$pageDir;//tdzEntry::file('/', false);
         if(substr($u, -1)=='/') $u.=static::$indexFile;
         else if(is_dir($root.$u)) $u .= '/'.static::$indexFile; // redirect?
         else if(preg_match('/\.('.implode('|',array_keys(tdzContent::$contentType)).')$/', $u, $m)) {

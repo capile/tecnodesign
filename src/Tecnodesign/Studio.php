@@ -577,7 +577,7 @@ class Tecnodesign_Studio
             $f['published<'] = date('Y-m-d\TH:i:s');
         }
         $E=null;
-        if(self::$connection && $E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','version'=>'desc'))) {
+        if(self::$connection && ($E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','version'=>'desc')))) {
             if($meta = $E::loadMeta($E->link)) {
                 foreach($meta as $fn=>$v) {
                     if(property_exists($E, $fn)) {
