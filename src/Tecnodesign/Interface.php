@@ -470,8 +470,8 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function current()
     {
         if(is_null(self::$instances) || !self::$instances) return null;
-        $id = array_pop(array_keys(self::$instances));
-        return self::$instances[$id];
+        foreach(self::$instances as $r) break;
+        return $r;
     }
 
     private function register()
