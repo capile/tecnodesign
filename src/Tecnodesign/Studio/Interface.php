@@ -56,7 +56,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 
     public static function t($s, $alt=null)
     {
-        return Tecnodesign_Studio::t($s, $alt, 'interface').'!!!';
+        return Tecnodesign_Studio::t($s, $alt, 'interface');
     }
 
     /**
