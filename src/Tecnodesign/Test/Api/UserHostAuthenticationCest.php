@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignApiTest;
+namespace Tecnodesign\Test\Api;
 
 class UserHostAuthenticationCest
 {

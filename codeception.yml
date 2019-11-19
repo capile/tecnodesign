@@ -1,9 +1,9 @@
 paths:
-    tests: tests
-    output: tests/_output
-    data: tests/_data
-    support: tests/_support
-    envs: tests/_envs
+    tests: src/Tecnodesign/Test
+    output: data/tests/_output
+    data: data/tests/_data
+    support: data/tests/_support
+    envs: data/tests/_envs
 actor_suffix: Tester
 extensions:
     enabled:

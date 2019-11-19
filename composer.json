@@ -27,21 +27,14 @@
             "exclude-from-classmap": [ "src/" ]
         }
     },
-    "autoload-dev" : {
-        "psr-4": {
-            "TecnodesignTest\\Api\\" : "tests/api",
-            "TecnodesignTest\\Acceptance\\" : "tests/acceptance",
-            "TecnodesignTest\\Functional\\" : "tests/functional",
-            "TecnodesignTest\\Unit\\" : "tests/unit"
-        }
-    },
     "require-dev": {
         "mustangostang/spyc": "^0.6.2",
         "league/html-to-markdown": "4.8.*",
-        "ext-yaml": "*"
+        "ext-yaml": "*",
+        "codeception/codeception": "3.1.*"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit --configuration=test/phpunit.xml"
+        "test": "vendor/bin/codecept run -v "
     },
     "suggest" : {
         "geshi/geshi": "Allows syntax highlight in markdown text",

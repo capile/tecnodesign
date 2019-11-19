@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignAcceptanceTest;
+namespace Tecnodesign\Test\Acceptance;
 
 class StudioCest
 {

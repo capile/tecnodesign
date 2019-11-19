@@ -1,13 +1,13 @@
 <?php
 
-namespace TecnodesignUnitTest;
+namespace Tecnodesign\Test\Unit;
 
 use Tecnodesign_Yaml;
 
 class YamlTest extends \PHPUnit\Framework\TestCase
 {
 
-    public function setUp()
+    public function setUp():void
     {
         // Desabilita o auto install pois considero que está tudo no composer
         Tecnodesign_Yaml::setAutoInstall(false);
@@ -40,7 +40,7 @@ class YamlTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadDump()
     {
-        $yamlFilePath = __DIR__ . '/../assets/sample.yml';
+        $yamlFilePath = TDZ_ROOT . '/data/tests/assets/sample.yml';
         $yamlFileContent = file_get_contents($yamlFilePath);
 
         foreach([Tecnodesign_Yaml::PARSE_NATIVE, Tecnodesign_Yaml::PARSE_SPYC] as $parser) {

@@ -22,10 +22,10 @@ matrix:
 before_install:
   - composer self-update
   - pecl channel-update pecl.php.net
-  - tests/bin/install_dependencies.sh
+  - data/tests/bin/install_dependencies.sh
 
 install:
   - travis_retry composer install --no-interaction --ignore-platform-reqs
 
 script:
-  - tests/bin/run.sh
+  - data/tests/bin/run.sh
