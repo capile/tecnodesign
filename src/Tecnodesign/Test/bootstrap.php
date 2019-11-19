@@ -1,6 +1,6 @@
 <?php
 /**
- * Tecnodesign Test Suuite
+ * Tecnodesign Test Suite
  * 
  * This package enable the testing of Tecnodesign framework and applications
  * 
