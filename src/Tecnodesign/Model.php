@@ -582,7 +582,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $cn = get_called_class();
             $fo = array('fields'=>static::formFields($scope, true), 'model'=>$this);
             foreach($fo['fields'] as $fn=>$fd) {
-                if(is_array($fd) && isset($fd['on']) && !$this->checkObjectProperties($fd['on'])) {
+                if(is_array($fd) && isset($fd['on']) && !isset($fd['className']) && !$this->checkObjectProperties($fd['on'])) {
                     unset($fo['fields'][$fn]);
                 }
             }
@@ -1960,7 +1960,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     } else {
                         $fd=static::column($fn,true,true);
                     }
-                    if(isset($fd['on']) && !$this->checkObjectProperties($fd['on'])) {
+                    if(isset($fd['on']) && !isset($fd['className']) && !$this->checkObjectProperties($fd['on'])) {
                         continue;
                     }
                     $v = $this->renderField($fn, $fd, $xmlEscape);
@@ -2016,7 +2016,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if(strpos($fn, '.')) {
                 $rels[$fn] = $v;
                 unset($a[$fn]);
-            } else if(!isset($this->$fn)) {
+            } else if(!is_int($fn) && !isset($this->$fn)) {
                 $keys[] = $fn;
             }
         }

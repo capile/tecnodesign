@@ -16,6 +16,7 @@ if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
 
 if($title) Tecnodesign_App::response('title', $title);
+if(!isset($action)) $action = $Interface['action'];
 
 // .tdz-i
 ?><div class="tdz-i tdz-i-standalone" data-base-url="<?php echo $Interface->getUrl(); ?>" data-url="<?php echo $url ?>"<?php 

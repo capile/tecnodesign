@@ -453,10 +453,9 @@ class Tecnodesign_Studio
     {
         self::$private=true;
         if(Tecnodesign_Studio::$checkOrigin) {
-            if(is_array(Tecnodesign_Studio::$allowOrigin) && !Tecnodesign_Studio::$allowOrigin) {
-                Tecnodesign_Studio::$allowOrigin[] = tdz::buildUrl('');
+            if(is_array(Tecnodesign_Studio::$allowOrigin) && !in_array($referer=tdz::buildUrl(''), Tecnodesign_Studio::$allowOrigin)) {
+                Tecnodesign_Studio::$allowOrigin[] = $referer;
             }
-
             if(!($from=Tecnodesign_App::request('headers', 'origin')) && !($from=Tecnodesign_App::request('headers', 'referer')) && Tecnodesign_Studio::$checkOrigin>1) {
                 return false;
             }

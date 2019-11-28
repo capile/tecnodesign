@@ -15,6 +15,7 @@ if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
 
 if(isset($title)) Tecnodesign_App::response('title', $title);
+if(!isset($action)) $action = $Interface['action'];
 
 // .tdz-i-header
 ?><div class="tdz-i-header"><?php 
