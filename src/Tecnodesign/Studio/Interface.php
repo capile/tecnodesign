@@ -56,7 +56,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 
     public static function t($s, $alt=null)
     {
-        return Tecnodesign_Studio::t($s, $alt, 'interface').'!!!';
+        return Tecnodesign_Studio::t($s, $alt, 'interface');
     }
 
     /**
@@ -68,8 +68,14 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
      */
     public static function run($n=null, $url=null)
     {
-        static::$base = Tecnodesign_Studio::$home;
+        static::base();
         return '<div id="studio" class="studio-interface s-active">'.parent::run($n, $url).'</div>';
+    }
+
+    public static function base()
+    {
+        if(is_null(static::$base)) static::$base = Tecnodesign_Studio::$home;
+        return static::$base;
     }
 
     public static function loadInterface($a=array(), $prepare=true)

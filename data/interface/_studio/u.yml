@@ -1,3 +1,5 @@
 ---
-model: tdzUser
-priority: 16
+all:
+  model: Tecnodesign_Studio_User
+  priority: 16
+  index: true

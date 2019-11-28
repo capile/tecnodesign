@@ -1,13 +1,13 @@
 <?php
 
-namespace TecnodesignUnitTest;
+namespace Tecnodesign\Test\Unit;
 
 use Tecnodesign_Yaml;
 
 class YamlTest extends \PHPUnit\Framework\TestCase
 {
 
-    public function setUp()
+    public function setUp():void
     {
         // Desabilita o auto install pois considero que está tudo no composer
         Tecnodesign_Yaml::setAutoInstall(false);
@@ -29,18 +29,16 @@ class YamlTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage  Invalid parser: I do not exist
-     */
     public function testParserException()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid parser: I do not exist');
         Tecnodesign_Yaml::parser('I do not exist');
     }
 
     public function testLoadDump()
     {
-        $yamlFilePath = __DIR__ . '/../assets/sample.yml';
+        $yamlFilePath = TDZ_ROOT . '/data/tests/assets/sample.yml';
         $yamlFileContent = file_get_contents($yamlFilePath);
 
         foreach([Tecnodesign_Yaml::PARSE_NATIVE, Tecnodesign_Yaml::PARSE_SPYC] as $parser) {
@@ -54,7 +52,7 @@ class YamlTest extends \PHPUnit\Framework\TestCase
                 $yaml = $loadContent;
 
                 // A simple keys test because what matters is tha both parser gives the same answers
-                $this->assertInternalType('array', $yaml);
+                $this->assertIsArray($yaml);
                 $this->assertArrayHasKey('all', $yaml);
                 $this->assertArrayHasKey('title', $yaml['all']);
                 $this->assertArrayHasKey('auth', $yaml['all']);
@@ -65,12 +63,7 @@ class YamlTest extends \PHPUnit\Framework\TestCase
                  * Testing the dump()
                  */
                 $yamlString = Tecnodesign_Yaml::dump($yaml);
-                $this->assertNotEquals($yamlFileContent, $yamlString,
-                    "$parser dumps different than original");
-                $yamlFileContentAlternative = str_replace('  -', '-', $yamlFileContent) . "...\n";
-                $this->assertEquals($yamlFileContentAlternative, $yamlString);
-                $this->assertEquals($yaml, Tecnodesign_Yaml::loadString($yamlFileContentAlternative),
-                    "$parser loads the 'alternative format' just like the original");
+                $this->assertEquals($yaml, Tecnodesign_Yaml::loadString($yamlString));
             }
         }
     }
@@ -113,12 +106,10 @@ class YamlTest extends \PHPUnit\Framework\TestCase
     }
     */
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage  $append must be an array
-     */
     public function testAppendException()
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('$append must be an array');
         Tecnodesign_Yaml::append('whatever', 'I should be an array');
     }
 

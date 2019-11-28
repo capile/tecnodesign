@@ -795,7 +795,7 @@ class Tecnodesign_App
             self::$_request['ajax']=(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH']=='XMLHttpRequest');
             if (!self::$_request['shell']) {
                 self::$_request['ip'] = $_SERVER['REMOTE_ADDR'];
-                self::$_request['hostname']=preg_replace('/[\s\n\;]+/', '', $_SERVER['HTTP_HOST']);
+                self::$_request['hostname']=preg_replace('/([\s\n\;]+|\:[0-9]+$)/', '', $_SERVER['HTTP_HOST']);
                 self::$_request['https']=(isset($_SERVER['HTTPS']));
                 self::$_request['host']=((self::$_request['https'])?('https://'):('http://')).self::$_request['hostname'];
                 if(isset($_SERVER['SERVER_PORT'])) {

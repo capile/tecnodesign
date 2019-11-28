@@ -3039,6 +3039,10 @@ if (!defined('TDZ_CLI')) {
     define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && basename($_SERVER['argv'][0], '.php')=='tdz'));
 }
 define('TDZ_TIME', microtime(true));
+list($u, $t) = explode('.', (string) TDZ_TIME);
+define('TDZ_TIMESTAMP', date('Y-m-d\TH:i:s.', (int)$u).substr($t.'000000',0,6));
+unset($u, $t);
+
 if (!defined('TDZ_ROOT')) {
     define('TDZ_ROOT', str_replace('\\', '/', dirname(__FILE__)));
     set_include_path(get_include_path().PATH_SEPARATOR.TDZ_ROOT.'/src');

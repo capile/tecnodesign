@@ -311,6 +311,21 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     }
                 }
                 if(strpos($fn, ' ')!==false && substr($fn, 0, 2)!='--') $fn = substr($fn, strrpos($fn, ' ')+1);
+
+                if(!isset($fd['label']) && !is_int($label)) {
+                    $fd['label'] = $label;
+                }
+
+                if(isset($fd['label']) && substr($fd['label'], 0, 1)=='*')  {
+                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                    $label = $fd['label'] = tdz::t(substr($fd['label'], 1), $translate);
+                }
+
+                if(isset($fd['fieldset']) && substr($fd['fieldset'], 0, 1)=='*')  {
+                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                    $fd['fieldset'] = tdz::t(substr($fd['fieldset'], 1), $translate);
+                }
+
                 if(isset($fd['id'])) $fid = $fd['id'];
                 else if(static::$formAsLabels && !is_int($label)) $fid = $label;
                 else $fid = $fn;
@@ -465,6 +480,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 if(isset(static::$schema->properties[$fn])) {
                     $fd += static::$schema->properties[$fn]->value();
                 }
+
+                if(isset($fd['label']) && substr($fd['label'], 0, 1)=='*')  {
+                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                    $fd['label'] = tdz::t(substr($fd['label'], 1), $translate);
+                }
+
                 if(isset($fn0)) {
                     if(!isset($fd['bind'])) $fd['bind'] = $fn0;
                     $fn = $fn0;
@@ -533,6 +554,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
         if($d && $applyForm && isset($cn::$schema->overlay[$s])) {
             $d = array_merge($d, $cn::$schema->overlay[$s]);
+        }
+        if($d && isset($d['label']) && substr($d['label'], 0, 1)=='*')  {
+            if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+            $d['label'] = tdz::t(substr($d['label'], 1), $translate);
         }
         return $d;
     }
@@ -1667,6 +1692,37 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         return true;
     }
 
+    public static function replace($data, $q=null, $scope=null, $save=true)
+    {
+        if(!$q) {
+            $pk = static::pk(null, true);
+            $q = [];
+            foreach($pk as $fn) {
+                if(!isset($data[$fn])) return null;
+                $q[$fn] = $data[$fn];
+                unset($fn);
+            }
+            unset($pk);
+        }
+
+        if(!($M=static::find($q,1,$scope))) {
+            $cn = get_called_class();
+            $M = new $cn($data, true, $save);
+        } else {
+            foreach($data as $fn=>$v) {
+                if(isset(static::$schema->properties[$fn]) && $M->$fn==$v) {
+                    continue;
+                }
+                $M->safeSet($fn, $v);
+            }
+            if($save && isset($M->_original) && $M->_original) {
+                $M->save();
+            }
+        }
+
+        return $M;
+    }
+
     /**
      * Class Name labels
      *
@@ -1827,6 +1883,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         foreach($scope as $label=>$fn) {
             if(is_array($fn)) {
                 $fd = $fn;
+                if(isset($fd['label']) && substr($fd['label'], 0, 1)=='*')  {
+                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                    $label = $fd['label'] = tdz::t(substr($fd['label'], 1), $translate);
+                }
+                if(isset($fd['fieldset']) && substr($fd['fieldset'], 0, 1)=='*')  {
+                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                    $fd['fieldset'] = tdz::t(substr($fd['fieldset'], 1), $translate);
+                }
+
                 if(isset($fd['bind'])) $fn=$fd['bind'];
                 else $fn='';
                 if(isset($fd['label']) && is_int($label)) $label = $fd['label'];
@@ -1837,7 +1902,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     if(!isset($U)) $U=tdz::getUser();
                     if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
                 }
-             }
+            }
             if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
                 $class = (!is_int($label))?($label):('');
                 $label = substr($fn, 2, strlen($fn)-4);
@@ -1857,6 +1922,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
                 $class='';
                 if(is_integer($label)) $label = static::fieldLabel($fn, false);
+                else if(substr($label, 0, 1)=='*') {
+                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                    $label = tdz::t(substr($label, 1), $translate);
+                }
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=tdz::getUser();
@@ -2377,9 +2446,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public function __toString()
     {
         $cn = get_called_class();
-        $schema = $cn::$schema;
-        if(isset($schema['scope']) && count($schema['scope'])>0) {
-            $sc = (isset($schema['scope']['string']))?($schema['scope']['string']):(array_shift($schema['scope']));
+        $scope = $cn::$schema->scope;
+        if(isset($scope) && count($scope)>0) {
+            $sc = (isset($scope['string']))?($scope['string']):(array_shift($scope));
             return implode(', ', $this->asArray($sc));
             $s = array();
             foreach($sc as $label=>$fn) {

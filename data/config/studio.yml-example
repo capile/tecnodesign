@@ -2,14 +2,22 @@
 all:
   studio:
     version: 2.3
-    connection: test
+    connection: studio
   tecnodesign:
+    routes:
+      studio/index:
+        class: Tecnodesign_Studio_Index
+        method: reindex
+        static: true
+        additional-params: false
+        layout: cli
     export:
       Tecnodesign_Studio:
         webInterface: true
         connection: studio
+        index: studio-index
       tdz:
         log: 5
         database:
           studio:
-            dsn: 'sqlite:data/database/studio.db'
+            dsn: 'sqlite:data/studio.db'

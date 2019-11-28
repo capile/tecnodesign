@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignApiTest;
+namespace Tecnodesign\Test\Api;
 
 class UserHostAuthenticationCest
 {
@@ -30,7 +30,7 @@ class UserHostAuthenticationCest
         $I->sendGET('/_me?new');
         $I->seeResponseCodeIs(200);
         $I->seeResponseIsJson();
-        $I->seeResponseContains('{"username":"admin","credentials":["Administrator"]}');
+        $I->seeResponseContains('{"username":"admin","credentials":["Administrator"]');
 
         unlink(TDZ_ROOT . '/data/config/user-host-admin.yml');
         unlink(TDZ_ROOT . '/.appkey');

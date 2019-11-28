@@ -5,6 +5,7 @@ all:
   actions:
     report: false
     publish: false
+  index: true
   options:
     scope:
       review:

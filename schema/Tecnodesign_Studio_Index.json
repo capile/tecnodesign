@@ -1,0 +1,37 @@
+{
+    "title": "*Index",
+    "database": "studio-index",
+    "tableName": "z_index",
+    "className": "Tecnodesign_Studio_Index",
+    "properties": {
+        "interface": { "type": "string", "required": true, "primary": true },
+        "id": { "type": "string", "required": true, "primary": true },
+        "summary": { "type": "string", "size": 2000 },
+        "indexed": { "type": "datetime", "required": true, "index": [ "z_index__indexed" ] },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true },
+        "expired": { "type": "datetime", "index": [ "z_index__indexed" ] }
+    },
+    "relations": {
+        "IndexInterfaces": { "local": "interface", "foreign": "interface", "type": "one", "className": "Tecnodesign_Studio_IndexInterfaces", "constraint": { "fk_z_index__interfaces": "cascade" } },
+        "IndexProperties": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Tecnodesign_Studio_IndexProperties" }
+    },
+    "scope": {
+        "string": [ "summary", "indexed" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null"
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+    }
+}

@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignTest\Unit;
+namespace Tecnodesign\Test\Unit;
 
 use PHPUnit\Framework\TestCase;
 use tdz;

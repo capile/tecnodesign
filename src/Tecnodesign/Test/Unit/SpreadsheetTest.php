@@ -1,6 +1,6 @@
 <?php
 
-namespace TecnodesignUnitTest;
+namespace Tecnodesign\Test\Unit;
 
 class SpreadsheetTest extends \PHPUnit\Framework\TestCase
 {

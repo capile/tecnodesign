@@ -1,3 +1,4 @@
+.appkey
 .svn
 ._*
 /config/
@@ -10,4 +11,5 @@
 /.idea/
 /codecept*
 /package-lock.json
-data/studio.db
+data/studio*.db
+data/database/*.db
