@@ -44,6 +44,8 @@ if($title) Tecnodesign_App::response('title', $title);
         }
     }
 
+    if(isset($options['before-'.$Interface['action']])) echo \tdz::markdown($options['before-'.$Interface['action']]);
+    else if(isset($options['before'])) echo \tdz::markdown($options['before']);
 
     ?><div class="tdz-i-summary tdz-i--<?php echo $Interface['action']; ?>"><?php
 
@@ -97,6 +99,8 @@ if($title) Tecnodesign_App::response('title', $title);
             if(is_string($list)) {
                 echo $list;
             } else if($count>0) {
+                $options['checkbox'] = false;
+                $options['radio'] = false;
                 $listRenderer = (isset($options['list-renderer']) && $options['list-renderer']) ?$options['list-renderer'] :'renderUi';
                 $sn = tdz::scriptName(true);
                 tdz::scriptName($Interface->link());
@@ -113,7 +117,9 @@ if($title) Tecnodesign_App::response('title', $title);
             if(is_object($preview) && $preview instanceof Tecnodesign_Model) {
                 $box = $preview::$boxTemplate;
                 $preview::$boxTemplate = $Interface::$boxTemplate;
-                echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface::$previewTemplate, $Interface::$headingTemplate);
+                $excludeEmpty=(isset($options['preview-empty'])) ?!$options['preview-empty'] :null;
+                $showOriginal=(isset($options['preview-original'])) ?$options['preview-original'] :null;
+                echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface::$previewTemplate, $Interface::$headingTemplate, $excludeEmpty, $showOriginal);
                 $preview::$boxTemplate = $box;
                 unset($preview);
             } else {
@@ -123,6 +129,8 @@ if($title) Tecnodesign_App::response('title', $title);
         ?></div><?php
     endif;
 
+    if(isset($options['after-'.$Interface['action']])) echo \tdz::markdown($options['after-'.$Interface['action']]);
+    else if(isset($options['after'])) echo \tdz::markdown($options['after']);
 
     // .tdz-i-actions
     if(!$Interface::$standalone): ?><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php

@@ -50,6 +50,10 @@ if(isset($title)) Tecnodesign_App::response('title', $title);
         // .tdz-i-container
         ?><div class="tdz-i-container"><?php 
 
+            if(isset($options['before-'.$action])) echo \tdz::markdown($options['before-'.$action]);
+            else if(isset($options['before'])) echo \tdz::markdown($options['before']);
+
+
             ?><div class="tdz-i-summary tdz-i--<?php echo $Interface['action']; ?>"><?php
 
                 if(isset($summary)) {
@@ -129,7 +133,9 @@ if(isset($title)) Tecnodesign_App::response('title', $title);
                     if(is_object($preview) && $preview instanceof Tecnodesign_Model) {
                         $box = $preview::$boxTemplate;
                         $preview::$boxTemplate = $Interface::$boxTemplate;
-                        echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface::$previewTemplate, $Interface::$headingTemplate);
+                        $excludeEmpty=(isset($options['preview-empty'])) ?!$options['preview-empty'] :null;
+                        $showOriginal=(isset($options['preview-original'])) ?$options['preview-original'] :null;
+                        echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface::$previewTemplate, $Interface::$headingTemplate, $excludeEmpty, $showOriginal);
                         $preview::$boxTemplate = $box;
                         unset($preview);
                     } else {
@@ -140,6 +146,9 @@ if(isset($title)) Tecnodesign_App::response('title', $title);
                 ?></div><?php
             endif;
 
+
+            if(isset($options['after-'.$action])) echo \tdz::markdown($options['after-'.$action]);
+            else if(isset($options['after'])) echo \tdz::markdown($options['after']);
 
             // .tdz-i-actions
             ?></div><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php

@@ -1337,7 +1337,7 @@ class Tecnodesign_Interface implements ArrayAccess
         } else if($alt) {
             $s = $alt;
         }
-        return (static::$translate)?(tdz::t($s, 'interface')):($s);
+        return (static::$translate || $alt===null)?(tdz::t($s, 'interface')):($s);
     }
 
     public static function template()
@@ -1411,20 +1411,22 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function isOne()
     {
-        if(!tdz::isempty($this->key)) {
-            if(!tdz::isempty($this->id)) return true;
-            else if(!is_array($this->key)) {
-                return isset($this->search[$this->key]);
-            } else {
-                $set = true;
-                foreach ($this->key as $k) {
-                    if(!isset($this->search[$k])) {
-                        $set = false;
-                        break;
-                    }
+        if(!tdz::isempty($this->id)) return true;
+
+        if(static::$standalone && $this->search) {
+            return ($this->count()==1);
+        }
+        if(!is_array($this->key)) {
+            return isset($this->search[$this->key]);
+        } else {
+            $set = true;
+            foreach ($this->key as $k) {
+                if(!isset($this->search[$k])) {
+                    $set = false;
+                    break;
                 }
-                return $set;
             }
+            return $set;
         }
         return false;
     }
@@ -2314,7 +2316,10 @@ class Tecnodesign_Interface implements ArrayAccess
         $fo = $o->getForm($d);
         $fo->id = $this->text['interface'].'--'.(($o->isNew())?('n'):(@implode('-',$o->getPk(true))));
         $fo->attributes['class']='z-form';
-        if(isset($ss)) {
+        if($this->action=='update' || $this->action=='new') {
+            $fo->buttons['submit']=static::t('button'.ucwords($this->action), ucwords($this->action));
+        }
+        if(!static::$standalone && isset($ss)) {
             $fo->buttons['button']=array(
                 'label'=>'*Close',
                 'attributes'=>array(
@@ -2873,11 +2878,11 @@ class Tecnodesign_Interface implements ArrayAccess
             'class'=>'z-form tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
             'action'=>$this->link($dest, false),
-            'buttons'=>array('submit'=>tdz::t('Search', 'interface'),
-            'cleanup'=>tdz::t('Cleanup', 'interface')),
+            'buttons'=>array('submit'=>static::t('Search'),
+            'cleanup'=>static::t('Cleanup')),
             'fields'=>array()
         );
-        $fieldset = tdz::t('Search options', 'interface');
+        $fieldset = static::t('Search options');
         $active = false;
         $noq = false;
         $scopes = 1;
@@ -2929,7 +2934,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         'label'=>$label,
                         'id'=>$slug.'-0',
                         //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'),
-                        'placeholder'=>tdz::t('From', 'interface'),
+                        'placeholder'=>static::t('From'),
                         'fieldset'=>$fieldset,
                         'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$fd['type'].'-input',
                     );
@@ -2938,7 +2943,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         'format'=>$fd['format'],
                         'label'=>'',
                         'id'=>$slug.'-1',
-                        'placeholder'=>tdz::t('To', 'interface'),
+                        'placeholder'=>static::t('To'),
                         'fieldset'=>$fieldset,
                         'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$fd['type'].'-input',
                     );
@@ -2985,7 +2990,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     if(isset($post[$slug])) $active=true;
                 } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
                     if(!isset($cb))
-                        $cb=array('1'=>tdz::t('Yes', 'interface'), '-1'=>tdz::t('No', 'interface'));
+                        $cb=array('1'=>static::t('Yes'), '-1'=>static::t('No'));
                     $fo['fields'][$slug]=array(
                         'type'=>'checkbox',
                         'choices'=>$cb,
@@ -3019,7 +3024,7 @@ class Tecnodesign_Interface implements ArrayAccess
                             'type'=>'string',
                             'size'=>'200',
                             'label'=>'',
-                            'placeholder'=>tdz::t('Search for', 'interface'),
+                            'placeholder'=>static::t('Search for'),
                             'fieldset'=>$fieldset,
                             'class'=>'tdz-search-input'
                         );
@@ -3029,7 +3034,7 @@ class Tecnodesign_Interface implements ArrayAccess
                                 'type'=>'string',
                                 'format'=>'checkbox',
                                 'choices'=>$ff['q'],
-                                'label'=>tdz::t('Search at', 'interface'),
+                                'label'=>static::t('Search at'),
                                 'multiple'=>true, 'fieldset'=>$fieldset,
                                 'class'=>'tdz-search-input tdz-check-input',
                             );
@@ -3066,7 +3071,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->search = array();
                     foreach($w as $slug) {
                         $this->search['|'.$fns[$slug].'%=']=$v;
-                        $this->text['searchTerms'] .= (($this->text['searchTerms'])?(' '.tdz::t('or', 'interface').' '):(''))
+                        $this->text['searchTerms'] .= (($this->text['searchTerms'])?(' '.static::t('or').' '):(''))
                                         . '<span class="'.static::$attrParamClass.'">'.$ff['q'][$slug].'</span>';
                     }
                     $this->search += $ps;
@@ -3114,7 +3119,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         }
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                     . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
-                                    . '<span class="'.static::$attrTermClass.'">'.(($c1)?(tdz::t('Yes', 'interface')):(tdz::t('No', 'interface'))).'</span>';
+                                    . '<span class="'.static::$attrTermClass.'">'.(($c1)?(static::t('Yes')):(static::t('No'))).'</span>';
                     }
                 } else if($ff[$k]=='choices') {
                     if(tdz::isempty($v) || !is_object($F[$k0])) continue;
@@ -3148,12 +3153,12 @@ class Tecnodesign_Interface implements ArrayAccess
                         $this->search[$fns[$k].'>=']=date($df, $t0);
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.tdz::t('from', 'interface').' '.tdz::date($t0, $dt).'</span>';
+                                . '<span class="'.static::$attrTermClass.'">'.static::t('from').' '.tdz::date($t0, $dt).'</span>';
                     } else if($t1) {
                         $this->search[$fns[$k].'<=']=date($df, $t1);
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.tdz::t('to', 'interface').' '.tdz::date($t1, $dt).'</span>';
+                                . '<span class="'.static::$attrTermClass.'">'.static::t('to').' '.tdz::date($t1, $dt).'</span>';
                     }
                 }
             }

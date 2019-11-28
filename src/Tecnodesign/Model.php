@@ -319,16 +319,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $fd=$fd+static::$schema->overlay[$fn];
                     if(isset(static::$schema->properties[$fn])) {
                         $fd+=static::$schema->properties[$fn]->value();
-                    }                    
-                    if (!isset($fd['label']) && !is_int($label)) {
-                        $fd['label']=$label;
                     }
                     $sfo[$fid]=$fd;
                 } else if(isset(static::$schema->properties[$fn])) {
                     $fd+=static::$schema->properties[$fn]->value();
-                    if (!isset($fd['label']) && !is_int($label)) {
-                        $fd['label']=$label;
-                    }
                     $sfo[$fid]=$fd;
                 } else if($fd && isset($fd['type'])) {
                     $sfo[$fid] = $fd;
@@ -342,6 +336,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                         unset($class);
                     }
                     $sfo[] = $fn;
+                    continue;
+                } else {
+                    continue;
+                }
+
+                if(isset($sfo[$fid]) && !isset($sfo[$fid]['label']) && !is_int($label)) {
+                    $sfo[$fid]['label']=$label;
                 }
                 unset($label, $fn, $fd, $fid);
             }
@@ -454,6 +455,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $fn = substr($fn, strrpos($fn, ' ')+1);
                 }
 
+                if(!isset($fd['label']) && !is_int($k) && $k!=$fn) {
+                    $fd['label'] = $k;
+                }
+
                 if(isset(static::$schema->overlay[$fn])) {
                     $fd += (array) static::$schema->overlay[$fn];
                 }
@@ -477,9 +482,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                         $r = array_merge($r, static::columns($m[2], $type, $expand));
                     }
                 } else {
-                    if(!isset($fd) && $base) {
-                        $fd = array('bind'=>$fn)+$base;
-                    } else if(isset($fd) && isset($fd['credential'])) {
+                    if(isset($fd['credential'])) {
                         if(!isset($U)) $U=tdz::getUser();
                         if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
                     }
@@ -2579,8 +2582,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
     public function batchSet($values, $skipValidation=false)
     {
-        foreach($values as $name=>$value) {
-            $this->safeSet($name, $value, $skipValidation);
+        if(is_object($values) && ($values instanceof $this)) {
+            $fns = array_merge(array_keys(static::$schema->properties), array_keys(static::$schema->relations));
+            foreach($fns as $fn) {
+                if(isset($values->$fn) && $values->$fn!==$this->$fn) {
+                    $this->safeSet($fn, $values->$fn, $skipValidation);
+                }
+            }
+        } else if(is_array($values)) {
+            foreach($values as $name=>$value) {
+                $this->safeSet($name, $value, $skipValidation);
+            }
         }
         return $this;
     }
