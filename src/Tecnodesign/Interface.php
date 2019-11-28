@@ -3166,11 +3166,11 @@ class Tecnodesign_Interface implements ArrayAccess
         return (isset($this->text['searchCount']))?($this->text['searchCount']):($this->text['count']);
     }
 
-    public static function listInterfaces($base=null)
+    public static function listInterfaces($base=null, $array=false, $checkAuth=true)
     {
         if(!is_null($base)) static::$base = $base;
         else if(is_null(static::$base)) static::$base = tdz::scriptName();
-        $Is = static::find();
+        $Is = static::find(null, $checkAuth);
         $ul = array();
         $pp=array();
         $pl=array();
@@ -3234,7 +3234,7 @@ class Tecnodesign_Interface implements ArrayAccess
         return $s;
     }
 
-    public static function find($q=null)
+    public static function find($q=null, $checkAuth=true)
     {
         if($q) {
             if(is_string($q)) return array(static::loadInterface($q));
@@ -3243,17 +3243,19 @@ class Tecnodesign_Interface implements ArrayAccess
         $dd = tdz::getApp()->tecnodesign['data-dir'];
         $da = (!static::$authDefault)?(true):(static::checkAuth(static::$authDefault));
         foreach(static::$dir as $d) {
-            foreach(glob(((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/*.yml') as $i) {
+            foreach(glob(((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.static::base().'/*.yml') as $i) {
                 $a = basename($i, '.yml');
                 $I = static::loadInterface($a);
                 if(isset($I['enable']) && !$I['enable']) {
                     $I = null;
-                } else if(isset($I['auth'])) {
-                    if(!static::checkAuth($I['auth'])) {
-                        $I = null;
+                } else if($checkAuth) {
+                    if(isset($I['auth'])) {
+                        if(!static::checkAuth($I['auth'])) {
+                            $I = null;
+                        }
+                    } else if(!$da) {
+                        $I=null;
                     }
-                } else if(!$da) {
-                    $I=null;
                 }
                 if($I) {
                     $Is[$a] = $I;

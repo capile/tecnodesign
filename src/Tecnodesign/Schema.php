@@ -120,6 +120,8 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
             if(file_exists($f=$dir.'/'.$fname.'.json')) {
                 if($d=json_decode(file_get_contents($f), true, 512)) {
                     $src = $src ?tdz::mergeRecursive($src, $d) :$d;
+                } else {
+                    tdz::log('[WARNING] Could not parse json file '.$f.': '.json_last_error_msg());
                 }
             }
             if(file_exists($f=$dir.'/'.$fname.'.yml')) {
@@ -258,31 +260,37 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                     }
                 }
             }
+        } else if(!isset($def['format'])) {
+            $def['format'] = $def['type'];
+            $def['type'] = 'string';
         }
 
-        if(substr($def['type'], 0,4)=='date' || (isset($def['format']) && substr($def['type'], 0,4)=='date')) {
-            if($value) {
-                $time = false;
-                $d = false;
-                if(!preg_match('/^[0-9]{4}\-[0-9]{2}\-[0-9]{2}/', $value)) {
-                    $format = tdz::$dateFormat;
-                    if (substr($def['type'], 0, 8)=='datetime') {
-                        $format .= ' '.tdz::$timeFormat;
-                        $time = true;
+        if(isset($def['format'])) {
+            if(substr($def['format'], 0,4)=='date') {
+                if($value) {
+                    $time = false;
+                    $d = false;
+                    if(!preg_match('/^[0-9]{4}\-[0-9]{2}\-[0-9]{2}/', $value)) {
+                        $format = tdz::$dateFormat;
+                        if (substr($def['format'], 0, 8)=='datetime') {
+                            $format .= ' '.tdz::$timeFormat;
+                            $time = true;
+                        }
+                        $d = date_parse_from_format($format, $value);
                     }
-                    $d = date_parse_from_format($format, $value);
-                }
-                if($d && !isset($d['errors'])) {
-                    $value = str_pad((int)$d['year'], 4, '0', STR_PAD_LEFT)
-                        . '-' . str_pad((int)$d['month'], 2, '0', STR_PAD_LEFT)
-                        . '-' . str_pad((int)$d['day'], 2, '0', STR_PAD_LEFT);
-                    if($time) {
-                        $value .= ' '.str_pad((int)$d['hour'], 2, '0', STR_PAD_LEFT)
-                            . ':' . str_pad((int)$d['minute'], 2, '0', STR_PAD_LEFT)
-                            . ':' . str_pad((int)$d['second'], 2, '0', STR_PAD_LEFT);
+                    if($d && !isset($d['errors'])) {
+                        $value = str_pad((int)$d['year'], 4, '0', STR_PAD_LEFT)
+                            . '-' . str_pad((int)$d['month'], 2, '0', STR_PAD_LEFT)
+                            . '-' . str_pad((int)$d['day'], 2, '0', STR_PAD_LEFT);
+                        if($time) {
+                            $value .= ' '.str_pad((int)$d['hour'], 2, '0', STR_PAD_LEFT)
+                                . ':' . str_pad((int)$d['minute'], 2, '0', STR_PAD_LEFT)
+                                . ':' . str_pad((int)$d['second'], 2, '0', STR_PAD_LEFT);
+                        }
+                    } else if($d = strtotime($value)) {
+                        $ms = (preg_match('/\.[0-9]+$/', $value, $m)) ?$m[0] :'';
+                        $value = (substr($def['format'], 0, 8)=='datetime')?(date('Y-m-d\TH:i:s', $d).$ms):(date('Y-m-d', $d));
                     }
-                } else if($d = strtotime($value)) {
-                    $value = (substr($def['type'], 0, 8)=='datetime')?(date('Y-m-d H:i:s', $d)):(date('Y-m-d', $d));
                 }
             }
         }

@@ -33,8 +33,8 @@ class Tecnodesign_Studio
         $home='/_studio',   // configurable, where to load E-Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
         $uploadDir,         // deprecated, use tdz::uploadDir
-        $index,             // deprecated, use indexDatabase to configure a local database for indexes
-        $indexDatabase='sqlite:$TDZ_VAR/studio.db', // studio database to index when there's no studio database
+        $index,             // custom database for indexes, set to null to disable indexing
+        $indexTimeout=600,  // timeout to trigger new database indexing
         $response=array(    // configurable, this will be added to the App response (passed to the template)
         ),
         $status,
@@ -594,11 +594,9 @@ class Tecnodesign_Studio
             return $E;
         }
         if(!$E && ($E=tdzEntry::findPage($url, false, true))) {
-            if(!self::$connection) self::checkIndex();
             unset($f, $published);
         } else if(preg_match('/('.str_replace('.', '\.', implode('|',self::$allowedExtensions)).')$/', $url, $m) && ($E=tdzEntry::findPage(substr($url,0,strlen($url)-strlen($m[1])), false, true))) {
             $url = substr($url,0,strlen($url)-strlen($m[1]));
-            if(!self::$connection) self::checkIndex();
             unset($f, $published);
         }
         if(!$E && !$exact && substr($url, 0, 1)=='/' && strlen($url)>1) {
@@ -621,6 +619,7 @@ class Tecnodesign_Studio
         }
 
         if($E) {
+            self::checkIndex($E, 'e');
             //if(self::$cacheTimeout) Tecnodesign_Cache::set('e-url'.$url, $E, self::$cacheTimeout);
             return $E;
         }
@@ -676,34 +675,12 @@ class Tecnodesign_Studio
         return Tecnodesign_Studio::$app->runError($code, $layout);
     }
 
-    public static function checkIndex()
+    public static function checkIndex($M, $interface=null)
     {
-        static $index;
-        if(is_null($index)) {
-            $index = false;
-            if(!file_exists($db=TDZ_VAR.'/'.self::$index) || filemtime($db)+360 < time()) {
-                $index = true;
-            }
-            if($index) {
-                /*
-                Tecnodesign_App::afterRun(array(
-                    'callback'=>array('Tecnodesign_Studio_Task', 'run'),
-                    'arguments'=>array('sync'),
-                ));
-                */
-            }
+        if(self::$index) {
+            // check if the studio connection should be set or changed to self::$index, if it's a string
+            Tecnodesign_Studio_Index::check($M, $interface);
         }
-    }
-
-    public static function indexDb($db=null)
-    {
-        $cid = tdz::getApp()->studio['connection'];
-        if(is_null($db)) $db=TDZ_VAR.'/'.self::$index;
-        if(is_null(tdz::$database)) Tecnodesign_Query::database();
-        tdz::$database[$cid] = array('dsn'=>'sqlite:'.$db);
-        tdz::$database = array('studio'=>array('dsn'=>'sqlite:'.$db))+tdz::$database;
-        $conn = tdz::connect($cid);
-        return tdz::$database['studio'];
     }
 
     /**

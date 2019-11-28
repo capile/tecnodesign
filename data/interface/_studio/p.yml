@@ -1,3 +1,5 @@
 ---
-model: tdzPermission
-priority: 12
+all:
+  model: Tecnodesign_Studio_Permission
+  priority: 12
+  index: true

@@ -1,4 +1,5 @@
 ---
 all:
-  model: tdzEntry
+  model: Tecnodesign_Studio_Entry
   priority: 10
+  index: true

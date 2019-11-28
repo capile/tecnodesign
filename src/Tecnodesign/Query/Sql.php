@@ -1112,40 +1112,79 @@ class Tecnodesign_Query_Sql
         }
     }
 
-    public function create($tn=null, $conn=null)
+    public function create($schema=null, $conn=null)
     {
-        $schema = $this->schema();
-        if(!$tn) $tn = $schema['tableName'];
+        if(!$schema) {
+            $schema = $this->schema();
+        } else if(is_string($schema)) {
+            $schema = $schema::$schema;
+        }
+        $tn = $schema->tableName;
         $q = '';
-        $pk = array();
-        foreach($schema['columns'] as $fn=>$fd) {
+        $pk = [];
+        $idx = [];
+        $formats = ['date', 'datetime', 'int', 'decimal' ];
+        foreach($schema->properties as $fn=>$fd) {
             $q .= (($q)?(",\n "):("\n "))
                 . '`'.$fn.'` ';
-            if($fd['type']=='string') {
+            if($fd->format && in_array($fd->format, $formats)) {
+                $q .= $fd->format;
+                if($fd->format=='datetime') $q .= '(6)';
+            } else if($fd->type=='string') {
                 $q .= 'varchar('
                     . ((isset($fd['size']))?((int)$fd['size']):(255))
                     . ')';
-            } else if(isset($fd['data-type'])) {
-                $q .= $fd['data-type'];
             } else {
-                $q .= $fd['type'];
+                $q .= $fd->type;
             }
-            if(isset($fd['null']) && !$fd['null']) $q .= ' not';
+            if($fd->required) $q .= ' not';
             $q .= ' null';
-            if(isset($fd['primary']) && $fd['primary']) $pk[]=$fn;
+            if($fd->primary) $pk[]=$fn;
+            if($fd->index) {
+                if(is_array($fd->index)) {
+                    foreach($fd->index as $fidx) $idx[$fidx][] = $fn;
+                } else {
+                    $idx[$fd->index][] = $fn;
+                }
+            }
         }
         if($pk) {
             $q .= (($q)?(",\n "):("\n "))
                 . 'primary key(`'.implode('`,`', $pk).'`)';
         }
+        $fks = [];
+        $actions = ['cascade', 'no action', 'set null'];
+        foreach($schema->relations as $reln=>$rel) {
+            if(isset($rel['constraint']) && $rel['constraint']) {
+                if(!is_array($rel)) $rel = ['fk_'.$schema->tableName.'__'.$rel => $rel ];
+                foreach($rel['constraint'] as $fk=>$action) {
+                    $rn = (isset($rel['className'])) ?$rel['className'] :$rel;
+                    $action = (in_array(strtolower($action), $actions) ?$action :'no action');
+                    $q .= (($q)?(",\n "):("\n "))
+                        . 'constraint `'.$fk.'` foreign key(`'.((is_array($rel['local'])) ?implode('`,`', $rel['local']) :$rel['local']).'`)'
+                        . ' references `'.$rn::$schema->tableName.'` (`'.((is_array($rel['foreign'])) ?implode('`,`', $rel['foreign']) :$rel['foreign']).'`)'
+                        . ' on delete '.$action
+                        . ' on update '.$action
+                        ;
+                }
+            }
+        }
         $q = 'create table `'.$tn.'` ('.$q."\n)".static::$tableDefault;
         if(!$conn) {
-            $conn = self::connect($this->schema('database'));
+            $conn = self::connect($schema->database);
         }
         $this->_last = $q;
         $r = $this->exec($this->_last, $conn);
         if($r===false && $conn->errorCode()!=='00000') {
             throw new Tecnodesign_Exception(array(tdz::t('Could not create %s.', 'exception'), $tn));
+        }
+        if($idx) {
+            foreach($idx as $in=>$fn) {
+                $q = "create index `{$in}` on `{$tn}`(`".implode('`, `', $fn).'`);';
+                if(!$this->exec($q, $conn) && $conn->errorCode()!=='00000') {
+                    tdz::log('[WARNING] Could not create index '.$in.' on '.$tn.': '.$q);
+                }
+            }
         }
         return $r;
     }

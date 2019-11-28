@@ -1689,6 +1689,37 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         return true;
     }
 
+    public static function replace($data, $q=null, $scope=null, $save=true)
+    {
+        if(!$q) {
+            $pk = static::pk(null, true);
+            $q = [];
+            foreach($pk as $fn) {
+                if(!isset($data[$fn])) return null;
+                $q[$fn] = $data[$fn];
+                unset($fn);
+            }
+            unset($pk);
+        }
+
+        if(!($M=static::find($q,1,$scope))) {
+            $cn = get_called_class();
+            $M = new $cn($data, true, $save);
+        } else {
+            foreach($data as $fn=>$v) {
+                if(isset(static::$schema->properties[$fn]) && $M->$fn==$v) {
+                    continue;
+                }
+                $M->safeSet($fn, $v);
+            }
+            if($save && isset($M->_original) && $M->_original) {
+                $M->save();
+            }
+        }
+
+        return $M;
+    }
+
     /**
      * Class Name labels
      *
@@ -2412,9 +2443,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public function __toString()
     {
         $cn = get_called_class();
-        $schema = $cn::$schema;
-        if(isset($schema['scope']) && count($schema['scope'])>0) {
-            $sc = (isset($schema['scope']['string']))?($schema['scope']['string']):(array_shift($schema['scope']));
+        $scope = $cn::$schema->scope;
+        if(isset($scope) && count($scope)>0) {
+            $sc = (isset($scope['string']))?($scope['string']):(array_shift($scope));
             return implode(', ', $this->asArray($sc));
             $s = array();
             foreach($sc as $label=>$fn) {

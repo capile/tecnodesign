@@ -1,0 +1,37 @@
+{
+    "title": "*Index Interfaces",
+    "database": "studio-index",
+    "tableName": "z_index_interfaces",
+    "className": "Tecnodesign_Studio_IndexInterfaces",
+    "properties": {
+        "interface": { "type": "string", "required": true, "primary": true },
+        "label": { "type": "string", "required": true, "size": 200 },
+        "model": { "type": "string", "required": true, "size": 200 },
+        "credential": { "type": "string", "size": 2000 },
+        "indexed": { "type": "datetime" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true },
+        "expired": { "type": "datetime" }
+    },
+    "relations": {
+        "Index": { "local": "interface", "foreign": "interface", "type": "many", "className": "Tecnodesign_Studio_Index" }
+    },
+    "scope": {
+        "string": [ "name", "value" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null"
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+    }
+}
