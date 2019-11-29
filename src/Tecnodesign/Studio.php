@@ -126,8 +126,6 @@ class Tecnodesign_Studio
             return true;
         } else if(substr($sn, 0, strlen(tdz::$assetsUrl))==tdz::$assetsUrl && tdzAsset::run($sn)) {
             return true;
-        } else if(TDZ_CLI && $sn=='studio') {
-            Tecnodesign_Studio_Task::run(Tecnodesign_App::request('argv'));
         } else {
             self::error(404);
         }
@@ -883,8 +881,6 @@ class Tecnodesign_Studio
         if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();
         tdz::$variables['variables'] += $a;
     }
-
-
 }
 
 if(!class_exists('tdzEntry')) {

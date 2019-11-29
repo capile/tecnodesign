@@ -222,69 +222,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         }
     }
 
-    /*
-    public function getForm($scope)
-    {
-        $cn = get_called_class();
-        if(!isset($cn::$schema['e-studio-configured'])) {
-            $cn::$schema['e-studio-configured']=true;
-            $cfg = Tecnodesign_Studio::config('content_types');
-            $cn::$schema['scope']['e-studio']=array('content_type','content');
-            foreach($cfg as $tn=>$d) {
-                foreach($d['fields'] as $fn=>$fd) {
-                    if(isset($fd['model'])) {
-                        $fd['model']=str_replace(array('tdzEntries'), array('tdzEntry'), $fd['model']);
-                        $fd['choices']=$fd['model'];
-                        unset($fd['model']);
-                        if(isset($fd['method'])) {
-                            $fd['choices'].='::'.$fd['method'].'()';
-                            unset($fd['method']);
-                        }
-                    }
-                    if(isset($fd['options'])) {
-                        $fd['attributes']=$fd['options'];
-                        unset($fd['options']);
-                    }
-                    if(isset($fd['required'])) {
-                        if(!isset($fd['attributes'])) $fd['attributes']=array();
-                        $fd['attributes']['required']=$fd['required'];
-                        unset($fd['required']);
-                    }
-                    $n='content-'.$tn.'-'.$fn;
-                    $cn::$schema['form'][$n]=$fd;
-                    if(!isset($cn::$schema['form'][$n]['class'])) $cn::$schema['form'][$n]['class']='studio-field-disabled studio-field-contents studio-content-'.$tn;
-                    else $cn::$schema['form'][$n]['class']='studio-field-disabled studio-field-contents studio-content-'.$tn.' '.$cn::$schema['form'][$n]['class'];
-                    $cn::$schema['scope']['e-studio'][]=$n;
-                }
-            }
-            $cn::$schema['scope']['e-studio'][]='show_at';
-            $cn::$schema['scope']['e-studio'][]='hide_at';
-        }
-        $cn::$schema['scope'][$scope]=$cn::$schema['scope']['e-studio'];
-        return parent::getForm($scope);
-    }
-
-    public static function contentTypes()
-    {
-        return static::$contentType;
-        if(is_null(self::$content_types)) {
-            self::$content_types=Tecnodesign_Studio::$app->studio['content_types'];
-            self::$widgets=Tecnodesign_Studio::$app->studio['widgets'];
-            if(is_array(self::$widgets) && count(self::$widgets)>0) {
-                $wg=array();
-                foreach(self::$widgets as $wk=>$w) {
-                    $wg[$wk]=$w['label'];
-                    unset($wk, $w);
-                }
-                self::$content_types['widget']=array('title'=>'Widgets','fields'=>array('app'=>array('label'=>'Widget','type'=>'choice','required'=>true,'choices'=>$wg)));
-            } else {
-                self::$widgets = array();
-            }
-        }
-        return self::$content_types;
-    }
-    */
-
     public function save($beginTransaction=null, $relations=null, $conn=false)
     {
         if(!Tecnodesign_Studio::$connection) {
