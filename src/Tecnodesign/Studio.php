@@ -30,7 +30,7 @@ class Tecnodesign_Studio
         $params=array(),    // updated at runtime, general params
         $cacheTimeout=false,// configurable, cache timeout, use false to disable caching, 0 means forever
         $staticCache=false, // configurable, store static previews of entries
-        $home='/_studio',   // configurable, where to load E-Studio interface
+        $home='/_studio',   // configurable, where to load Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
         $uploadDir,         // deprecated, use tdz::uploadDir
         $index,             // custom database for indexes, set to null to disable indexing
@@ -42,7 +42,10 @@ class Tecnodesign_Studio
         $languages=array(),
         $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
-        $allowedExtensions=array('.html');
+        $allowedExtensions=array('.html'),
+        $cliInterface,      // enable command-line interface
+        $cli='studio',      // configurable, where to load Studio command-line interface
+        $cliApps=['config'=>['Tecnodesign_App_Install','config'],'index'=>['Tecnodesign_Studio_Index','reindex']];
     const VERSION = 2.3;    // should match the development branch 
 
     /**
@@ -62,17 +65,17 @@ class Tecnodesign_Studio
     public static function run()
     {
         self::$app = tdz::getApp();
-        if(static::$webInterface) {
-            Tecnodesign_App::$assets[] = '!Z.Studio';
-            Tecnodesign_App::$assets[] = '!Z.Interface';
-        }
         $req = Tecnodesign_App::request();
         if($req['shell']) {
             tdz::scriptName($req['script-name']);
             self::$cacheTimeout = false;
             self::$staticCache  = false;
             chdir(TDZ_APP_ROOT);
+        } else if(static::$webInterface) {
+            Tecnodesign_App::$assets[] = '!Z.Studio';
+            Tecnodesign_App::$assets[] = '!Z.Interface';
         }
+
         $sn = $req['script-name'];
 
         if(!self::$languages && isset(self::$app->tecnodesign['languages'])) self::$languages=self::$app->tecnodesign['languages'];
@@ -100,6 +103,14 @@ class Tecnodesign_Studio
         if(static::$webInterface && ($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0)) {
             if($sn!=self::$home) tdz::scriptName($sn);
             return self::_runInterface();
+        } else if(static::$cliInterface && self::$cli && TDZ_CLI && ($sn===self::$cli || (isset($req['scheme']) && $req['scheme']===self::$cli))) {
+            // cli apps
+            if(!isset($req['scheme'])) $sn='';
+            if(isset(self::$cliApps[$sn])) {
+                list($cn, $m) = self::$cliApps[$sn];
+                return $cn::$m();
+            }
+            self::error(404);
         } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
             tdz::cacheControl('private', static::$cacheTimeout);
             tdz::output(json_encode(self::uid()), 'json');

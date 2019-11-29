@@ -16,18 +16,18 @@ There's an installation script that will configure the core modules and dependen
 
 ```
 composer require capile/tecnodesign
-vendor/capile/tecnodesign/app config [project]
+vendor/capile/tecnodesign/app studio:config [project]
 ```
 
 You can also use the installer for some specific components installation, for example:
 
 - **Database**   
   To configure only module database connection into your [apps-dir]:  
-  `vendor/capile/tecnodesign/app config database [project]`
+  `vendor/capile/tecnodesign/app studio:config database [project]`
 
 - **Studio**   
   To install Studio CMS modules:   
-  `vendor/capile/tecnodesign/app config studio [project]`
+  `vendor/capile/tecnodesign/app studio:config studio [project]`
 
 Dependencies need to be required on your main `composer.json` file.
 

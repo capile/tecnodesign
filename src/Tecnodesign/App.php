@@ -22,6 +22,7 @@ class Tecnodesign_App
     public $addons=array();
     public $start=null;
     public static
+        $defaultScheme='https',
         $beforeRun=array(),
         $afterRun=array(),
         $defaultController = array(
@@ -78,7 +79,7 @@ class Tecnodesign_App
             $this->_vars['tecnodesign']['routes'][$url]=$this->getRouteConfig($route);
         }
         if(isset($this->_vars['tecnodesign']['default-route'])) {
-            $this->_vars['tecnodesign']['routes']['/']=$this->getRouteConfig($this->_vars['tecnodesign']['default-route']);
+            $this->_vars['tecnodesign']['routes']['.*']=$this->getRouteConfig($this->_vars['tecnodesign']['default-route']);
         }
         foreach ($this->_vars['tecnodesign'] as $name=>$value) {
             if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
@@ -797,17 +798,14 @@ class Tecnodesign_App
                 self::$_request['ip'] = $_SERVER['REMOTE_ADDR'];
                 self::$_request['hostname']=preg_replace('/([\s\n\;]+|\:[0-9]+$)/', '', $_SERVER['HTTP_HOST']);
                 self::$_request['https']=(isset($_SERVER['HTTPS']));
-                self::$_request['host']=((self::$_request['https'])?('https://'):('http://')).self::$_request['hostname'];
-                if(isset($_SERVER['SERVER_PORT'])) {
-                    self::$_request['port']=$_SERVER['SERVER_PORT'];
-                    if(!((self::$_request['port']=='80' && self::$_request['https']) || (self::$_request['port']=='443' && self::$_request['https'])) && substr(self::$_request['host'], -1*(strlen(self::$_request['port'])+1))!=':'.self::$_request['port']) {
-                        self::$_request['host'] .= ':'.self::$_request['port'];
-                    }
-                }
                 if(isset($_SERVER['REQUEST_SCHEME'])) {
                     self::$_request['scheme']=$_SERVER['REQUEST_SCHEME'];
                 } else {
                     self::$_request['scheme']=(self::$_request['https']) ?'https' :'http';
+                }
+                self::$_request['host']=self::$_request['scheme'].'://'.self::$_request['hostname'];
+                if(isset($_SERVER['SERVER_PORT'])) {
+                    self::$_request['port']=$_SERVER['SERVER_PORT'];
                 }
                 $ui=@parse_url($_SERVER['REQUEST_URI']);
                 if(!$ui) {
@@ -822,13 +820,24 @@ class Tecnodesign_App
             } else {
                 $arg = $_SERVER['argv'];
                 self::$_request['shell'] = array_shift($arg);
-                $ui = array_shift($arg);
-                $ui=parse_url($ui);
+                $uri = array_shift($arg);
+                $ui=parse_url($uri);
+                if(!$ui || !isset($ui['path'])) $ui = ['path'=>$uri];
+                if(isset($ui['host'])) {
+                    self::$_request['scheme'] = (isset($ui['scheme'])) ?$ui['scheme'] :self::$defaultScheme;
+                    self::$_request['hostname'] = $ui['host'];
+                    self::$_request['host']=self::$_request['scheme'].'://'.self::$_request['hostname'];
+                }
+                if(isset($ui['port'])) self::$_request['port'] = $ui['port'];
                 if(isset($ui['query'])) {
                     parse_str($ui['query'], $_GET);
                 }
                 self::$_request['argv']=$arg;
             }
+            if(isset(self::$_request['host']) && isset(self::$_request['port']) && !((self::$_request['port']=='80' && self::$_request['https']) || (self::$_request['port']=='443' && self::$_request['https'])) && substr(self::$_request['host'], -1*(strlen(self::$_request['port'])+1))!=':'.self::$_request['port']) {
+                self::$_request['host'] .= ':'.self::$_request['port'];
+            }
+
             self::$_request['query-string']=(isset($ui['query']))?($ui['query']):('');
             self::$_request['script-name']=$ui['path'];
             if (preg_match('/\.('.implode('|', $removeExtensions).')$/i', $ui['path'], $m)) {

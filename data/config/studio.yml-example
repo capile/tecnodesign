@@ -4,15 +4,9 @@ all:
     version: 2.3
     connection: studio
   tecnodesign:
-    routes:
-      studio/index:
-        class: Tecnodesign_Studio_Index
-        method: reindex
-        static: true
-        additional-params: false
-        layout: cli
     export:
       Tecnodesign_Studio:
+        cliInterface: true
         webInterface: true
         connection: studio
         index: studio-index

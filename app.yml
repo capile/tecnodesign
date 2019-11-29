@@ -16,10 +16,3 @@ all:
       additional-params: true
       layout: layout
     default-route: run
-    routes:
-      config:
-        class: Tecnodesign_App_Install
-        method: config
-        static: true
-        additional-params: true
-        layout: cli
