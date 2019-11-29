@@ -2469,7 +2469,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
 
         //@TODO: must handle this...
-        if(($value===null || $value==='') && !isset($def['default']) && isset(static::$schema['form'][$name]['default'])) $def['default'] = static::$schema['form'][$name]['default'];
+        if(($value===null || $value==='') && !isset($def['default']) && isset(static::$schema->overlay[$name]['default'])) $def['default'] = static::$schema->overlay[$name]['default'];
 
         return Tecnodesign_Schema::validateProperty($def, $value, $name);
     }

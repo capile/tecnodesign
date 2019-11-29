@@ -823,11 +823,14 @@ class Tecnodesign_App
                 $uri = array_shift($arg);
                 $ui=parse_url($uri);
                 if(!$ui || !isset($ui['path'])) $ui = ['path'=>$uri];
-                if(isset($ui['host'])) {
-                    self::$_request['scheme'] = (isset($ui['scheme'])) ?$ui['scheme'] :self::$defaultScheme;
-                    self::$_request['hostname'] = $ui['host'];
-                    self::$_request['host']=self::$_request['scheme'].'://'.self::$_request['hostname'];
+                self::$_request['scheme'] = (isset($ui['scheme'])) ?$ui['scheme'] :self::$defaultScheme;
+                if(!isset($ui['host'])) {
+                    $ui['host'] = tdz::get('hostname');
+                    if(!$ui['host']) $ui['host'] = 'localhost';
                 }
+                self::$_request['hostname'] = $ui['host'];
+                self::$_request['host']=self::$_request['scheme'].'://'.self::$_request['hostname'];
+
                 if(isset($ui['port'])) self::$_request['port'] = $ui['port'];
                 if(isset($ui['query'])) {
                     parse_str($ui['query'], $_GET);

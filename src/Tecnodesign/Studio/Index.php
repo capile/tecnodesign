@@ -30,14 +30,9 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             if($updated && ($lmod = $M->$updated)) $lmod = strtotime($lmod);
             if(!static::checkConnection()) return false;
             if(!($I=static::find(['interface'=>$interface, 'id'=>$id],1,['indexed'])) || ($lmod && strtotime($I->updated)<$lmod)) {
-                // move to afterRun
-                self::reindex();
-                /*
                 Tecnodesign_App::afterRun(array(
                     'callback'=>array('Tecnodesign_Studio_Index', 'reindex'),
-                    'arguments'=>array('sync'),
                 ));
-                */
             }
         } catch(Exception $e) {
             \tdz::log(__METHOD__.'[ERROR] '.$e->getMessage()."\n$e");
@@ -58,6 +53,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             }
         }
         Tecnodesign_Cache::delete('studio/indexing');
+        return true;
     }
 
     public static function indexInterface($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
@@ -162,12 +158,39 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             } else {
                 $dbf=TDZ_VAR.'/studio-index.db';
                 tdz::$database[$conn] = $db = ['dsn'=>'sqlite:'.$dbf];
-                if(!file_exists($dbf)) {
-                    $H = static::queryHandler();
-                    $H->create(Tecnodesign_Studio_IndexInterfaces::$schema);
-                    $H->create(Tecnodesign_Studio_Index::$schema);
-                    $H->create(Tecnodesign_Studio_IndexLog::$schema);
-                    $H->create(Tecnodesign_Studio_IndexProperties::$schema);
+            }
+            // check studio and index database, and create tables if required
+            $check = [
+                'Tecnodesign_Studio_IndexInterfaces',
+                'Tecnodesign_Studio_Index',
+                'Tecnodesign_Studio_IndexLog',
+                'Tecnodesign_Studio_IndexProperties',
+                'Tecnodesign_Studio_Config',
+                'Tecnodesign_Studio_Entry',
+                'Tecnodesign_Studio_Content',
+                'Tecnodesign_Studio_ContentDisplay',
+                'Tecnodesign_Studio_Permission',
+                'Tecnodesign_Studio_Relation',
+                'Tecnodesign_Studio_Tag',
+                'Tecnodesign_Studio_Group',
+                'Tecnodesign_Studio_User',
+                'Tecnodesign_Studio_Credential',
+            ];
+
+            $H = [];
+            $T = [];
+            foreach($check as $cn) {
+                $dbn = $cn::$schema->database;
+                if(!isset($H[$dbn])) $H[$dbn] = $cn::queryHandler();
+                if(!isset($T[$dbn])) {
+                    $T[$dbn] = [];
+                    foreach(Tecnodesign_Database::getTables($dbn) as $t) {
+                        if(is_array($t)) $t = $t['table_name'];
+                        $T[$dbn][$t] = $t;
+                    }
+                }
+                if(!isset($T[$dbn][$cn::$schema->tableName])) {
+                    $H[$dbn]->create($cn::$schema);
                 }
             }
         }

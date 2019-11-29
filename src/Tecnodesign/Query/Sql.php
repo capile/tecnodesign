@@ -22,7 +22,8 @@ class Tecnodesign_Query_Sql
     protected static 
         $options, 
         $conn=array(), 
-        $tableDefault;
+        $tableDefault,
+        $tableAutoIncrement;
     protected 
         $_schema,
         $_database,
@@ -1134,11 +1135,16 @@ class Tecnodesign_Query_Sql
                 $q .= 'varchar('
                     . ((isset($fd['size']))?((int)$fd['size']):(255))
                     . ')';
+            } else if($fd->increment) {
+                $q .= 'int';
             } else {
                 $q .= $fd->type;
             }
             if($fd->required) $q .= ' not';
             $q .= ' null';
+            if($fd->increment==="auto") {
+                $q .= ' '.static::$tableAutoIncrement;
+            }
             if($fd->primary) $pk[]=$fn;
             if($fd->index) {
                 if(is_array($fd->index)) {
@@ -1154,18 +1160,20 @@ class Tecnodesign_Query_Sql
         }
         $fks = [];
         $actions = ['cascade', 'no action', 'set null'];
-        foreach($schema->relations as $reln=>$rel) {
-            if(isset($rel['constraint']) && $rel['constraint']) {
-                if(!is_array($rel)) $rel = ['fk_'.$schema->tableName.'__'.$rel => $rel ];
-                foreach($rel['constraint'] as $fk=>$action) {
-                    $rn = (isset($rel['className'])) ?$rel['className'] :$rel;
-                    $action = (in_array(strtolower($action), $actions) ?$action :'no action');
-                    $q .= (($q)?(",\n "):("\n "))
-                        . 'constraint `'.$fk.'` foreign key(`'.((is_array($rel['local'])) ?implode('`,`', $rel['local']) :$rel['local']).'`)'
-                        . ' references `'.$rn::$schema->tableName.'` (`'.((is_array($rel['foreign'])) ?implode('`,`', $rel['foreign']) :$rel['foreign']).'`)'
-                        . ' on delete '.$action
-                        . ' on update '.$action
-                        ;
+        if($schema->relations) {
+            foreach($schema->relations as $reln=>$rel) {
+                if(isset($rel['constraint']) && $rel['constraint']) {
+                    if(!is_array($rel)) $rel = ['fk_'.$schema->tableName.'__'.$rel => $rel ];
+                    foreach($rel['constraint'] as $fk=>$action) {
+                        $rn = (isset($rel['className'])) ?$rel['className'] :$rel;
+                        $action = (in_array(strtolower($action), $actions) ?$action :'no action');
+                        $q .= (($q)?(",\n "):("\n "))
+                            . 'constraint `'.$fk.'` foreign key(`'.((is_array($rel['local'])) ?implode('`,`', $rel['local']) :$rel['local']).'`)'
+                            . ' references `'.$rn::$schema->tableName.'` (`'.((is_array($rel['foreign'])) ?implode('`,`', $rel['foreign']) :$rel['foreign']).'`)'
+                            . ' on delete '.$action
+                            . ' on update '.$action
+                            ;
+                    }
                 }
             }
         }

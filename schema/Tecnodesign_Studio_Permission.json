@@ -4,131 +4,35 @@
     "tableName": "tdz_permissions",
     "className": "Tecnodesign_Studio_Permission",
     "properties": {
-        "id": {
-            "bind": "id",
-            "type": "int",
-            "increment": "auto",
-            "null": false,
-            "primary": true
-        },
-        "entry": {
-            "bind": "entry",
-            "type": "int",
-            "null": true
-        },
-        "role": {
-            "bind": "role",
-            "type": "string",
-            "size": "100",
-            "null": false
-        },
-        "credentials": {
-            "bind": "credentials",
-            "type": "string",
-            "size": 0,
-            "null": true
-        },
-        "version": {
-            "bind": "version",
-            "type": "int",
-            "null": true
-        },
-        "created": {
-            "bind": "created",
-            "format": "datetime",
-            "type": "string",
-            "null": false
-        },
-        "updated": {
-            "bind": "updated",
-            "format": "datetime",
-            "type": "string",
-            "null": false
-        },
-        "expired": {
-            "bind": "expired",
-            "format": "datetime",
-            "type": "string",
-            "null": true
-        }
+        "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
+        "entry": { "type": "int", "index": [ "z_permission__entry_idx" ] },
+        "role": { "type": "string", "size": 100, "required": true },
+        "credentials": { "type": "string", "size": 1000, "serialize": "json" },
+        "version": { "type": "int" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string" }
     },
     "relations": {
-        "Permission": {
-            "local": "id",
-            "foreign": "id",
-            "type": "one",
-            "className": "Tecnodesign_Studio_Permission"
-        },
-        "Entry": {
-            "local": "entry",
-            "foreign": "id",
-            "type": "one",
-            "className": "Tecnodesign_Studio_Entry"
-        }
+        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_permission__entry": "cascade" } }
     },
     "scope": [],
     "events": {
-        "before-insert": [
-            "actAs",
-            "actAs"
-        ],
-        "before-update": [
-            "actAs"
-        ],
-        "before-delete": [
-            "actAs"
-        ],
+        "before-insert": [ "actAs", "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
         "active-records": "`expired` is null",
-        "after-insert": [
-            "actAs"
-        ],
-        "after-update": [
-            "actAs"
-        ],
-        "after-delete": [
-            "actAs"
-        ]
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ]
     },
     "overlay": [],
     "actAs": {
-        "before-insert": {
-            "timestampable": [
-                "created",
-                "updated"
-            ],
-            "auto-increment": [
-                "id"
-            ]
-        },
-        "before-update": {
-            "timestampable": [
-                "created",
-                "updated"
-            ]
-        },
-        "before-delete": {
-            "timestampable": [
-                "created",
-                "updated"
-            ],
-            "soft-delete": [
-                "expired"
-            ]
-        },
-        "after-insert": {
-            "versionable": [
-                "version"
-            ]
-        },
-        "after-update": {
-            "versionable": [
-                "version"
-            ]
-        },
-        "after-delete": {
-            "versionable": [
-                "version"
-            ]
-        }
+        "before-insert": { "timestampable": [ "created", "updated" ], "auto-increment": [ "id" ] },
+        "before-update": { "timestampable": [ "created", "updated" ] },
+        "before-delete": { "timestampable": [ "created", "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
     }
 }

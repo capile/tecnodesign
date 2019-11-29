@@ -7,7 +7,7 @@
         "interface": { "type": "string", "required": true, "primary": true },
         "id": { "type": "string", "required": true, "primary": true },
         "summary": { "type": "string", "size": 2000 },
-        "indexed": { "type": "datetime", "required": true, "index": [ "z_index__indexed" ] },
+        "indexed": { "type": "datetime", "required": true, "index": [ "z_index__indexed_idx" ] },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true },
         "expired": { "type": "datetime", "index": [ "z_index__indexed" ] }

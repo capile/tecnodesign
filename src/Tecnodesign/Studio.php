@@ -105,6 +105,7 @@ class Tecnodesign_Studio
             return self::_runInterface();
         } else if(static::$cliInterface && self::$cli && TDZ_CLI && ($sn===self::$cli || (isset($req['scheme']) && $req['scheme']===self::$cli))) {
             // cli apps
+            Tecnodesign_App::response('layout', 'cli');
             if(!isset($req['scheme'])) $sn='';
             if(isset(self::$cliApps[$sn])) {
                 list($cn, $m) = self::$cliApps[$sn];

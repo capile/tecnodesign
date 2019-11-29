@@ -4,99 +4,31 @@
     "tableName": "tdz_groups",
     "className": "Tecnodesign_Studio_Group",
     "properties": {
-        "id": {
-            "bind": "id",
-            "type": "int",
-            "increment": "auto",
-            "null": false,
-            "primary": true
-        },
-        "name": {
-            "bind": "name",
-            "type": "string",
-            "size": "200",
-            "null": false
-        },
-        "priority": {
-            "type": "int",
-            "required": true
-        },
-        "created": {
-            "bind": "created",
-            "format": "datetime",
-            "type": "string",
-            "null": false
-        },
-        "updated": {
-            "bind": "updated",
-            "format": "datetime",
-            "type": "string",
-            "null": false
-        },
-        "expired": {
-            "bind": "expired",
-            "format": "datetime",
-            "type": "string",
-            "null": true
-        },
-        "description": {
-            "bind": "description",
-            "type": "string",
-            "size": 0,
-            "null": true
-        }
+        "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
+        "name": { "type": "string", "size": 200, "required": true },
+        "description": { "type": "string", "size": 500 },
+        "priority": { "type": "int", "required": true },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_group__expired_idx" ] }
     },
     "relations": {
-        "Credential": {
-            "local": "id",
-            "foreign": "groupid",
-            "type": "one",
-            "className": "Tecnodesign_Studio_Credential"
-        }
+        "Credential": { "local": "id", "foreign": "groupid", "type": "many", "className": "Tecnodesign_Studio_Credential" }
     },
     "scope": [],
     "events": {
-        "before-insert": [
-            "actAs"
-        ],
-        "before-update": [
-            "actAs"
-        ],
-        "before-delete": [
-            "actAs"
-        ],
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
         "active-records": "`expired` is null"
     },
     "actAs": {
-        "before-insert": {
-            "auto-increment": [
-                "id"
-            ],
-            "timestampable": [
-                "created",
-                "updated"
-            ]
-        },
-        "before-update": {
-            "timestampable": [
-                "updated"
-            ]
-        },
-        "before-delete": {
-            "timestampable": [
-                "updated"
-            ],
-            "soft-delete": [
-                "expired"
-            ]
-        }
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
     },
     "overlay": {
-        "name": {
-            "bind": "name"
-        },
-        "priority": {
-            "bind": "priority"
-        }
+        "name": { "bind": "name" },
+        "priority": { "bind": "priority" }
     }
 }

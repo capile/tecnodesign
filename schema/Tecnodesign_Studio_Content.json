@@ -4,24 +4,24 @@
     "tableName": "tdz_contents",
     "className": "Tecnodesign_Studio_Content",
     "properties": {
-        "id": { "bind": "id", "type": "string", "increment": "auto", "required": true, "primary": true },
-        "entry": { "bind": "entry", "type": "int" },
-        "slot": { "bind": "slot", "type": "string", "size": 50 },
-        "content_type": { "bind": "content_type", "type": "string", "size": 100 },
-        "source": { "bind": "source", "type": "string", "size": 200 },
-        "content": { "bind": "content", "type": "string" },
-        "position": { "bind": "position", "type": "int" },
-        "published": { "bind": "published", "format": "datetime", "type": "string" },
-        "version": { "bind": "version", "type": "int" },
-        "created": { "bind": "created", "format": "datetime", "type": "string", "required": true },
-        "updated": { "bind": "updated", "format": "datetime", "type": "string", "required": true },
-        "expired": { "bind": "expired", "format": "datetime", "type": "string" },
-        "show_at": { "bind": "show_at", "type": "string" },
-        "hide_at": { "bind": "hide_at", "type": "string" }
+        "id": { "increment": "auto", "required": true, "primary": true },
+        "entry": { "type": "int", "index": [ "z_content__entry_idx" ] },
+        "slot": { "type": "string", "size": 50 },
+        "content_type": { "type": "string", "size": 100 },
+        "source": { "type": "string", "size": 200 },
+        "content": { "type": "string" },
+        "position": { "type": "int" },
+        "published": { "format": "datetime", "type": "string", "index": [ "z_content__published_idx" ] },
+        "version": { "type": "int" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_content__expired_idx" ] },
+        "show_at": { "type": "string" },
+        "hide_at": { "type": "string" }
     },
     "relations": {
         "ContentDisplay": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_ContentDisplay" },
-        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry" },
+        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_content__entry": "cascade" } },
         "ContentAttributes": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_Attributes" },
         "MetaAttributes": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_Attributes" }
     },
@@ -42,12 +42,11 @@
         "content": { "bind": "content", "type": "textarea", "class": "studio-field-content" }
     },
     "actAs": {
-        "before-insert": { "auto-increment": [ "id", "entry" ], "timestampable": [ "created", "updated" ], "sortable": [ "position" ] },
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ], "sortable": [ "position" ] },
         "before-update": { "auto-increment": [ "version" ], "timestampable": [ "updated" ], "sortable": [ "position" ] },
         "before-delete": { "auto-increment": [ "version" ], "timestampable": [ "updated" ], "soft-delete": [ "expired" ], "sortable": [ "position" ] },
         "after-insert": { "versionable": [ "version" ] },
-        "after-update": { "versionable": [ "version" ]
-        },
+        "after-update": { "versionable": [ "version" ] },
         "after-delete": { "versionable": [ "version" ] }
     }
 }

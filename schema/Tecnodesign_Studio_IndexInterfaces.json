@@ -6,7 +6,7 @@
     "properties": {
         "interface": { "type": "string", "required": true, "primary": true },
         "label": { "type": "string", "required": true, "size": 200 },
-        "model": { "type": "string", "required": true, "size": 200 },
+        "model": { "type": "string", "required": true, "size": 500 },
         "credential": { "type": "string", "size": 2000 },
         "indexed": { "type": "datetime" },
         "created": { "type": "datetime", "required": true },
