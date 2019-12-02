@@ -480,7 +480,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public static function file($url, $check=true)
     {
-        $f = TDZ_VAR.'/'.static::$pageDir.'/'.$url;
+        $f = Tecnodesign_Studio::documentRoot().'/'.$url;
         if($check && !file_exists($f)) $f=null;
         return $f;
     }

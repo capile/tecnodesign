@@ -14,9 +14,8 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
 {
     public static 
         $schema,
-        $interfaces=['Tecnodesign_Studio_Interface'],
-        $indexBatchLimit=500;
-    protected $interface, $id, $summary, $indexed, $created, $updated, $expired, $IndexProperties, $IndexInterfaces;
+        $interfaces=['Tecnodesign_Studio_Interface'];
+    protected $interface, $id, $summary, $indexed, $created, $updated, $IndexProperties, $IndexInterfaces;
 
     /**
      * Verifies if the Tecnodesign_Model $M, from $interface is indexed and newer than the index
@@ -95,7 +94,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
         }
         if(($R=$cn::find($q, null, $scope)) && $R->count()>0) {
             $count = $R->count();
-            $limit = (property_exists($cn, 'indexBatchLimit')) ?$cn::$indexBatchLimit :static::$indexBatchLimit;
+            $limit = $cn::$queryBatchLimit;
             $offset = 0;
             if(!$limit) $limit = 500;
             while($count > $offset) {
@@ -121,16 +120,20 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                             'IndexProperties'=>$P,
                         ]);
                     } catch (\Exception $e) {
-                        tdz::debug(__METHDO__.' '.$e->getMessage()."\n{$e}", $P, var_export($preview, true), var_export($o, true));
+                        tdz::log('[ERROR] There were a few problems while indexing '.$cn.': '.$e->getMessage());
                     }
                 }
             }
             unset($R, $L);
         }
 
-        if($lmod && ($R=static::find(['interface'=>$a['interface'], 'indexed<'=>TDZ_TIMESTAMP])) && $R->count()>0) {
+        if(method_exists($cn, 'studioIndex')) {
+            $cn::studioIndex($a, $icn, $pscope, $keyFormat, $valueFormat, $serialize);
+        }
+
+        if($lmod && ($R=static::find(['interface'=>$a['interface'], 'indexed<'=>preg_replace('/\.[0-9]+$/', '', TDZ_TIMESTAMP)])) && $R->count()>0) {
             $count = $R->count();
-            if(!isset($limit)) $limit = (property_exists($cn, 'indexBatchLimit')) ?$cn::$indexBatchLimit :static::$indexBatchLimit;
+            if(!isset($limit)) $limit = $cn::$queryBatchLimit;
             $offset = 0;
             if(!$limit) $limit = 500;
             while($count > $offset) {

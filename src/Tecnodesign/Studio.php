@@ -57,6 +57,15 @@ class Tecnodesign_Studio
     {
     }
 
+    public static function documentRoot()
+    {
+        static $root;
+        if(is_null($root)) {
+            $root = preg_replace('#/+$#', '', TDZ_VAR.'/'.tdzEntry::$pageDir);
+        }
+        return $root;
+    }
+
     /**
      * General purpose action, will trigger the relevant action based on the URL called
      *
@@ -280,7 +289,7 @@ class Tecnodesign_Studio
             foreach($d as $i=>$id) {
                 $p = 'edit';
                 $o = tdzContent::find($id,1,array('content_type'));
-                if($o && $o->pageFile && substr(basename($o->pageFile), 0, 6)=='_tpl_.' && !$C['editTemplate']) $o=null;
+                if($o && $o->source && substr(basename($o->source), 0, 6)=='_tpl_.' && !$C['editTemplate']) $o=null;
                 if($o && !isset($C[$p='editContentType'.ucfirst($o->content_type)])) {
                     $C[$p] = ($U->isSuperAdmin() || ($c=self::credential($p)) && $U->hasCredential($c, false));
                     unset($c);
@@ -294,7 +303,7 @@ class Tecnodesign_Studio
                     continue;
                 }
                 $R[$k] = array('update'=>true, 'delete'=>$C['delete']);
-                if($C['publish'] && !$o->pageFile) {
+                if($C['publish'] && !$o->source) {
                     if($o->published) {
                         $R[$k]['unpublish'] = true;
                     } else {
@@ -302,7 +311,7 @@ class Tecnodesign_Studio
                     }
                 }
                 $R[$k]['type'] = $o->content_type;
-                if($o->pageFile && substr($o->pageFile, 0, strlen(tdzEntry::$pageDir))==tdzEntry::$pageDir) $R[$k]['id'] = substr($o->pageFile, strlen(tdzEntry::$pageDir));
+                if($o->source && substr($o->source, 0, strlen(tdzEntry::$pageDir))==tdzEntry::$pageDir) $R[$k]['id'] = $o->source;
                 unset($d[$i], $id, $k, $o);
             }
         }
@@ -318,9 +327,11 @@ class Tecnodesign_Studio
         return true;
     }
 
-    public static function content($page, $checkLang=true, $checkTemplates=true)
+    public static function content($page, $checkLang=true, $checkTemplates=true, $addResponse=true)
     {
-        if(!file_exists($page)) return;
+        static $root;
+        if(is_null($root)) $root = Tecnodesign_Studio::documentRoot();
+        if(substr($page, 0, strlen($root))!==$root || !file_exists($page)) return;
         $slotname = tdzEntry::$slot;
         $pos = '00000';
         $pn = basename($page);
@@ -357,8 +368,8 @@ class Tecnodesign_Studio
         else if(is_array(tdzContent::$disableExtensions) && in_array($ext, tdzContent::$disableExtensions)) return false;
         $p = file_get_contents($page);
         if(!$p) return false;
-        $m = tdzEntry::meta($p);
-        if($m) {
+        $meta = null;
+        if($m = tdzEntry::meta($p)) {
             $meta = Tecnodesign_Yaml::load($m);
             if(isset($meta['credential'])) {
                 if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) {
@@ -370,29 +381,29 @@ class Tecnodesign_Studio
                 unset($U);
             }
         }
-        $id = substr($page, strlen(TDZ_VAR)+1);
+        $id = substr($page, strlen(Tecnodesign_Studio::documentRoot()));
+        $lmod = date('Y-m-d\TH:i:s', filemtime($page));
         $C = new tdzContent(array(
             'id'=>tdz::hash($id, null, 'uuid'),
+            //'entry'=>tdzContent::entry($id),
             'slot'=>$slotname,
             'content'=>$p,
             'content_type'=>$ext,
-            //'position'=>$id,
-            'modified'=>filemtime($page),
+            'source'=>$id,
+            'attributes'=>$meta,
+            'content'=>$p,
+            'position'=>$pos,
+            'updated'=>$lmod,
+            'published'=>$lmod,
             //'_position'=>$pos,
         ));
-        $C->pageFile = $id;
-        if(isset($meta['attributes']) && is_array($meta['attributes'])) {
-            $C->attributes = $meta['attributes'];
-            unset($meta['attributes']);
-        }
-        if(isset($meta) && $meta) {
-            $C->_meta = $meta;
-            if(isset($meta['credential'])) unset($meta['cdredential']);
-        }
         if(!is_null($pos)) $C->_position = $slotname.$pos;
-        if(isset($meta) && is_array($meta) && $meta) {
-            static::addResponse($meta);
-            foreach(tdzContent::$schema['columns'] as $fn=>$fd) {
+
+        if($addResponse && isset($meta) && $meta) {
+            if(isset($meta['attributes'])) unset($meta['attributes']);
+            if(isset($meta['credential'])) unset($meta['credential']);
+            if($meta) static::addResponse($meta);
+            foreach(tdzContent::$schema->properties as $fn=>$fd) {
                 if(isset($meta[$fn])) $C->$fn = $meta[$fn];
                 unset($fd, $fn);
             }

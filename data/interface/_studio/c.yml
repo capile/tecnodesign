@@ -22,16 +22,14 @@ all:
       e:
         __default:
           fieldset: '*Page'
-        '*Entry URL':
+        '*Entry':
             bind: entry
             class: i1s2
         '*Content Type':
             bind: content_type
             class: i1s2
         '*Metadata':
-          bind: MetaAttributes
-          type: form
-          scope: content
+          bind: attributes
       p:
         __default:
           fieldset: '*Article'
@@ -44,10 +42,6 @@ all:
           bind: position
           type: number
           class: i1s2
-        '*Attributes':
-          bind: ContentAttributes
-          type: form
-          scope: content
       c:
         __default:
           fieldset: '*Content'

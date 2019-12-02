@@ -13,5 +13,5 @@
 class Tecnodesign_Studio_IndexProperties extends Tecnodesign_Model
 {
     public static $schema;
-    protected $interface, $id, $name, $value, $created, $updated, $expired, $Index;
+    protected $interface, $id, $name, $value, $created, $updated, $Index;
 }

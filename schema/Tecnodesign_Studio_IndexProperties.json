@@ -9,8 +9,7 @@
         "name": { "type": "string", "required": true, "primary": true, "size": 200 },
         "value": { "type": "string", "size": 2000 },
         "created": { "type": "datetime", "required": true },
-        "updated": { "type": "datetime", "required": true },
-        "expired": { "type": "datetime" }
+        "updated": { "type": "datetime", "required": true }
     },
     "relations": {
         "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Tecnodesign_Studio_Index", "constraint": { "fk_z_index_properties__index": "cascade" } }
@@ -23,14 +22,13 @@
     "events": {
         "before-insert": [ "actAs" ],
         "before-update": [ "actAs" ],
-        "before-delete": [ "actAs" ],
-        "active-records": "`expired` is null"
+        "before-delete": [ "actAs" ]
     },
     "overlay": {
     },
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },
         "before-update": { "timestampable": [ "updated" ] },
-        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+        "before-delete": { "timestampable": [ "updated" ] }
     }
 }

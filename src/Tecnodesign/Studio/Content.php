@@ -27,16 +27,13 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $allowMarkdownExtensions=true;
 
     public static $schema;
-    protected $id, $entry, $slot, $content_type, $source, $content, $position, $published, $version=false, $created, $updated=false, $expired, $ContentDisplay, $Entry, $ContentAttributes, $MetaAttributes;
+    protected $id, $entry, $slot, $content_type, $source, $attributes, $content, $position, $published, $version=false, $created, $updated=false, $expired, $show_at, $hide_at, $ContentDisplay, $Entry;
     protected static $content_types=null;
-    protected $show_at, $hide_at, $modified;
-    public $pageFile, $attributes, $subposition;
-
 
     public function __toString()
     {
-        if($this->pageFile) {
-            $s = ($this->pageFile && substr($this->pageFile, 0, strlen(tdzEntry::$pageDir))==tdzEntry::$pageDir)?(substr($this->pageFile, strlen(tdzEntry::$pageDir))):($this->pageFile);
+        if($this->source) {
+            $s = $this->source;
         } else {
             if($this->_url) {
                 $s = $this->_url;
@@ -107,27 +104,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return false;
     }
 
-    public function getModified()
-    {
-        if(is_null($this->modified)) $this->modified = strtotime($this->updated);
-        return $this->modified;
-    }
-    public function setModified($t)
-    {
-        $this->modified = $t;
-    }
-    /*
-    public function getContent()
-    {
-        // should be valid json
-        if(substr($this->content, 0,1)!='{') {
-            $this->content = json_encode(Tecnodesign_Yaml::load($this->content),true);
-        }
-        return $this->content;
-    }
-    */
-
-
     public function getContents()
     {
         if(substr($this->content, 0,1)=='{') {
@@ -144,48 +120,21 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return $r;
     }
 
+    public static function entry($page)
+    {
+        $url = preg_replace('#(/[^\.]+)(\.[^\.]+)*(\.[^\.]+)$#', '$1$3', $page);
+        if(tdzEntry::file($url)) {
+            return $url;
+        }
+    }
+
     public function getEntry()
     {
-        if(!$this->entry && $this->pageFile) {
-            if(!isset($this->_entry)) {
-                $this->_entry = null;
-                if(substr($this->pageFile, 0, strlen(tdzEntry::$pageDir))==tdzEntry::$pageDir) {
-                    $this->_entry = substr($this->pageFile, strlen(tdzEntry::$pageDir));
-                    if(preg_match('/(\.[^\.]+)*\.(md|html|media)$/', $this->_entry, $m)) {
-                        $this->_entry = substr($this->_entry, 0, strlen($this->_entry) - strlen($m[0]));
-                    }
-                }
-            }
-            return $this->_entry;
+        if(!$this->entry && $this->source && ($e=static::entry($this->source))) {
+            return tdz::hash($e, null, 'uuid');
         }
         return $this->entry;
-    }
-
-    public function getContentAttributes()
-    {
-        if(!isset($this->ContentAttributes)) {
-            $this->ContentAttributes = array();
-            if(isset($this->attributes)) {
-                foreach($this->attributes as $k=>$v) {
-                    $this->ContentAttributes[] = array('name'=>$k, 'value'=>$v);
-                }
-            }
-        }
-        return $this->ContentAttributes;
-    }
-
-    public function getMetaAttributes()
-    {
-        if(!isset($this->MetaAttributes)) {
-            $this->MetaAttributes = array();
-            if(isset($this->_meta)) {
-                foreach($this->_meta as $k=>$v) {
-                    $this->MetaAttributes[] = array('name'=>$k, 'value'=>(is_array($v))?(implode(',', $v)):($v));
-                }
-            }
-        }
-        return $this->MetaAttributes;
-    }
+     }
 
     public function getPosition()
     {
@@ -193,16 +142,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             return preg_replace('/[^0-9]+/', '', $this->_position);
         }
         return $this->position;
-    }
-
-    public function previewMetaAttributes()
-    {
-        return self::attributes($this->getMetaAttributes());
-    }
-
-    public function previewContentAttributes()
-    {
-        return self::attributes($this->getContentAttributes());
     }
 
     public static function attributes($A=array())
@@ -225,26 +164,10 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
     public function save($beginTransaction=null, $relations=null, $conn=false)
     {
         if(!Tecnodesign_Studio::$connection) {
-            if($this->isNew() || ($this->pageFile && ($f=tdzEntry::file($this->pageFile)))) {
+            if($this->isNew() || ($this->source && ($f=tdzEntry::file($this->source)))) {
 
                 $m = array();
-                if(isset($this->MetaAttributes)) {
-                    foreach($this->MetaAttributes as $i=>$o) {
-                        if(!$o->isDeleted())
-                            $m[$o->name] = $o->value;
-                        unset($o, $i);
-                    }
-                } else if($this->_meta) {
-                    $m += $this->_meta;
-                }
-                if(isset($this->ContentAttributes)) {
-                    $m['attributes'] = array();
-                    foreach($this->ContentAttributes as $i=>$o) {
-                        if(!$o->isDeleted())
-                            $m['attributes'][$o->name] = $o->value;
-                        unset($o, $i);
-                    }
-                } else if($this->attributes) {
+                if($this->attributes) {
                     $m['attributes'] = $this->attributes;
                 }
 
@@ -254,15 +177,14 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
                     $c = $this->content;
                 }
 
-
                 // check if it is a different file
                 $slotpos = '.'.$this->slot.(($this->position)?('.'.substr('0000'.$this->position, -4)):(''));
                 if($slotpos=='.body.0000' || $slotpos=='.body') $slotpos = '';
-                $page = tdzEntry::$pageDir.$this->getEntry().$slotpos.'.'.$this->content_type;
-                $rename = ($this->pageFile && $page != $this->pageFile);
+                $page = $this->getEntry().$slotpos.'.'.$this->content_type;
+                $rename = ($this->source && $page != $this->source);
 
                 if(!tdz::save(tdzEntry::file($page, false), $c)) {
-                    throw new Exception("Could not save [{$this->pageFile}]");
+                    throw new Exception("Could not save [{$this->source}]");
                     return false;
                 }
                 if($rename) {
@@ -292,8 +214,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $code['slot']=$this->slot;
         $type = $this->content_type;
         $attr = array('id'=>'c'.$id, 'data-studio-c'=>$this->id);
-        if(isset($this->attributes)) {
-            $attr += $this->attributes;
+        if($a=$this['attributes.attributes']) {
+            $attr += $a;
         }
         $a = '';
         foreach($attr as $n=>$v) {
@@ -477,5 +399,51 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return tdz::exec($o);
         //return array('export'=>'tdz::exec('.var_export($o,true).')');
     }
-    
+
+    public static function studioIndex($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
+    {
+        static $pages, $root;
+
+        if(is_null($pages)) {
+            $pages = [];
+            $root = preg_replace('#/+$#', '', tdzEntry::file(''));
+            if(!$root) return false;
+            $pages = glob($root.'/*');
+        }
+
+        if(!$pages) {
+            return;
+        }
+
+        $page = array_shift($pages);
+        $basename = basename($page);
+        if(substr($basename, 0, 1)=='.') {
+            // do nothing
+        } else if(is_dir($page)) {
+            $pages = array_merge($pages, glob($page.'/*'));
+        } else if($o=Tecnodesign_Studio::content($page, false, false, false)) {
+            // process $page
+            $pk = $o->getPk();
+            $P = [];
+            if($preview=$o->asArray($scope, $keyFormat, $valueFormat, $serialize)) {
+                foreach($preview as $n=>$v) {
+                    $P[] = ['interface'=>$a['interface'], 'id'=>$pk, 'name'=>$n, 'value'=>$v];
+                }
+            }
+
+            try {
+                Tecnodesign_Studio_Index::replace([
+                    'interface'=>$a['interface'],
+                    'id'=>$pk,
+                    'summary'=>(string) $o,
+                    'indexed'=>TDZ_TIMESTAMP,
+                    'IndexProperties'=>$P,
+                ]);
+            } catch (\Exception $e) {
+                tdz::log('[ERROR] There was an issue while indexing contents: '.$e->getMessage());
+            }
+        }
+
+        return static::studioIndex($a, $icn, $scope, $keyFormat, $valueFormat, $serialize);
+    }
 }

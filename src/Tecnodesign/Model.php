@@ -27,7 +27,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $relationDepth=3,
         $boxTemplate     = '<div$ATTR>$INPUT</div>',
         $headingTemplate = '<hr /><h3>$LABEL</h3>',
-        $previewTemplate = '<dl><dt>$LABEL</dt><dd>$INPUT</dd></dl>';
+        $previewTemplate = '<dl><dt>$LABEL</dt><dd>$INPUT</dd></dl>',
+        $queryBatchLimit = 500;
 
     protected static 
         $found=array(),
@@ -1426,9 +1427,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             foreach($value as $i=>$v) {
                 // try direct comparison first -- if it's $v is in $ro, there's nothing to do
                 if(is_string($v)) {
-                    $v = new $cn(array($rfn=>$v), null, false);
+                    $v = new $cn(array($rfn=>$v));
                 } else if(is_array($v)) {
-                    $v = new $cn($v, null, false);
+                    $v = new $cn($v);
                 }
                 foreach($lorel as $ln=>$rn) {
                     if(isset($this->$ln) && !isset($v[$rn])) {
@@ -1443,7 +1444,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 } else if(in_array($v, $O)) {
                     $k = array_search($v, $O);
                 } else {
-                    if($pk==='' || (strpos($pk, ',')!==false && is_null($v->_new))) $v->isNew(true);
+                    //if($pk==='' || (strpos($pk, ',')!==false && is_null($v->_new))) $v->isNew(true);
                     $O[] = $v;
                 }
 

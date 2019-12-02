@@ -13,5 +13,5 @@
 class Tecnodesign_Studio_IndexInterfaces extends Tecnodesign_Model
 {
     public static $schema;
-    protected $interface, $label, $model, $credential, $indexed, $created, $updated, $expired, $Index;
+    protected $interface, $label, $model, $credential, $indexed, $created, $updated, $Index;
 }

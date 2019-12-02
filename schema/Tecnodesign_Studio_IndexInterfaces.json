@@ -10,8 +10,7 @@
         "credential": { "type": "string", "size": 2000 },
         "indexed": { "type": "datetime" },
         "created": { "type": "datetime", "required": true },
-        "updated": { "type": "datetime", "required": true },
-        "expired": { "type": "datetime" }
+        "updated": { "type": "datetime", "required": true }
     },
     "relations": {
         "Index": { "local": "interface", "foreign": "interface", "type": "many", "className": "Tecnodesign_Studio_Index" }
@@ -24,14 +23,13 @@
     "events": {
         "before-insert": [ "actAs" ],
         "before-update": [ "actAs" ],
-        "before-delete": [ "actAs" ],
-        "active-records": "`expired` is null"
+        "before-delete": [ "actAs" ]
     },
     "overlay": {
     },
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },
         "before-update": { "timestampable": [ "updated" ] },
-        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+        "before-delete": { "timestampable": [ "updated" ] }
     }
 }

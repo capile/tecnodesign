@@ -9,6 +9,7 @@
         "slot": { "type": "string", "size": 50 },
         "content_type": { "type": "string", "size": 100 },
         "source": { "type": "string", "size": 200 },
+        "attributes": { "type": "string", "size": 2000, "serialize": "json" },
         "content": { "type": "string" },
         "position": { "type": "int" },
         "published": { "format": "datetime", "type": "string", "index": [ "z_content__published_idx" ] },
@@ -21,9 +22,7 @@
     },
     "relations": {
         "ContentDisplay": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_ContentDisplay" },
-        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_content__entry": "cascade" } },
-        "ContentAttributes": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_Attributes" },
-        "MetaAttributes": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_Attributes" }
+        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_content__entry": "cascade" } }
     },
     "scope": {
         "string": [ "id", "slot", "Entry.link _url" ]
