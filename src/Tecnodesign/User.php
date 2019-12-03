@@ -617,7 +617,7 @@ class Tecnodesign_User
         return Tecnodesign_Cache::get($ckey, $timeout, $storage);
     }
     
-    public function destroy($storage=null, $msg=null)
+    public function destroy($storage=null, $msg=null, $redirect=null)
     {
         if(is_null($storage) && isset($this->_ns['storage'])) {
             $storage = $this->_ns['storage'];
@@ -636,6 +636,9 @@ class Tecnodesign_User
             $msg=tdz::t('User disconnected.', 'user');
         }
         if($msg) $this->setMessage($msg, $storage);
+        if($redirect) {
+            tdz::redirect($redirect);
+        }
         return true;
     }
     

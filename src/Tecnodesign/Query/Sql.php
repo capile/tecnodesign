@@ -1062,12 +1062,8 @@ class Tecnodesign_Query_Sql
             }
 
             if($original===false) $original=null;
-            if(isset($fv->serialize)) {
-                if(is_array($original)) $original=tdz::serialize($original, $fv->serialize);
-                if(is_array($v)) $v=tdz::serialize($v, $fv->serialize);
-            }
 
-            if((string)$original!==(string)$v) {
+            if(@(string)$original!==@(string)$v) {
                 $sql .= (($sql!='')?(', '):(''))
                       . "{$fn}={$fv}";
                 //$M->setOriginal($fn, $v);
