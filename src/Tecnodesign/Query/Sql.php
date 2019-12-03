@@ -1046,8 +1046,8 @@ class Tecnodesign_Query_Sql
         $sql = '';
         foreach($fs as $fn=>$fv) {
             $original=$M->getOriginal($fn, false);
-            if($fv->primary || $fv->alias) continue;
-            if(!is_array($fv) && !is_object($fv)) $fv=array('null'=>true);
+            if(is_object($fv) && ($fv->primary || $fv->alias)) continue;
+            if(!is_object($fv)) $fv=new stdClass();
 
             if (!isset($odata[$fn]) && $original===false) {
                 continue;
@@ -1062,6 +1062,10 @@ class Tecnodesign_Query_Sql
             }
 
             if($original===false) $original=null;
+            if(isset($fv->serialize)) {
+                if(is_array($original)) $original=tdz::serialize($original, $fv->serialize);
+                if(is_array($v)) $v=tdz::serialize($v, $fv->serialize);
+            }
 
             if((string)$original!==(string)$v) {
                 $sql .= (($sql!='')?(', '):(''))

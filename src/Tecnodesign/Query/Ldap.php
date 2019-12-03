@@ -680,10 +680,10 @@ class Tecnodesign_Query_Ldap
         $fs = $M::$schema->properties;
         if(!$fs) $fs = array_flip(array_keys($odata));
         foreach($fs as $fn=>$fv) {
-            if(!is_array($fv)) $fv=array('null'=>true);
-            if($new && (!isset($odata[$fn]) || tdz::isempty($odata[$fn])) && isset($fv['default'])) {
-                $M->$fn = $odata[$fn] = $fv['default'];
-            } else if(isset($fv['readonly']) && $fv['readonly']) {
+            if(!is_object($fv)) $fv=new stdClass();
+            if($new && (!isset($odata[$fn]) || tdz::isempty($odata[$fn])) && isset($fv->default)) {
+                $M->$fn = $odata[$fn] = $fv->default;
+            } else if(isset($fv->readonly) && $fv->readonly) {
                 unset($fn, $fv);
                 continue;
             }
