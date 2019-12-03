@@ -1097,7 +1097,7 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
     _ajax[url].r.open(m, url+qs, true);
     _ajax[url].r.setRequestHeader('x-requested-with', 'XMLHttpRequest');
     _ajax[url].r.withCredentials = true;
-    var n;
+    var n, ct;
     if('headers' in Z) {
         for(n in Z.headers) {
             if(Z.headers[n]) {
@@ -1113,10 +1113,11 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
             if(headers[n]) {
                 _ajax[url].r.setRequestHeader(n, headers[n]);
             }
+            if(n.toLowerCase()==='content-type') ct=headers[n];
         }
     }
     if(m=='post') {
-        if(!headers || !('content-type' in headers)) {
+        if(!headers || !ct) {
             _ajax[url].r.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
         }
         //if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);
