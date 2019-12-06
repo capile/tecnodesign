@@ -321,14 +321,19 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 tdz::set('cache-control', 'public');
             }
         }
-        if(!file_exists($file=TDZ_VAR.'/'.$this->source)
-            && !file_exists($file=Tecnodesign_Studio::$app->tecnodesign['document-root'].'/'.$this->source)
-        ) {
-            $file = false;
-        }
-        if(file_exists($ufile=tdz::uploadDir().'/'.$this->source)) {
-            if(!$file || filemtime($ufile)>filemtime($file))
-                $file = $ufile;
+
+        $file = null;
+        if($this->source) {
+            if(!file_exists($file=static::file($this->source))
+                && !file_exists($file=TDZ_VAR.'/'.$this->source)
+                && !file_exists($file=Tecnodesign_Studio::$app->tecnodesign['document-root'].'/'.$this->source)
+            ) {
+                $file = null;
+            }
+            if(file_exists($ufile=tdz::uploadDir().'/'.$this->source)) {
+                if(!$file || filemtime($ufile)>filemtime($file))
+                    $file = $ufile;
+            }
         }
         if(!$file) {
             Tecnodesign_Studio::error(404);
@@ -480,7 +485,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public static function file($url, $check=true)
     {
-        $f = Tecnodesign_Studio::documentRoot().'/'.$url;
+        $f = Tecnodesign_Studio::documentRoot() . ((substr($url, 0, 1)!='/') ?'/' :'').$url;
         if($check && !file_exists($f)) $f=null;
         return $f;
     }
@@ -627,7 +632,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         $meta = static::loadMeta($url, $page, $meta);
 
-        $id = substr($page, strlen(TDZ_VAR.'/'.static::$pageDir.'/')+1);
+        $id = substr($page, strlen(Tecnodesign_Studio::documentRoot()));
         $t = date('Y-m-d\TH:i:s', filemtime($page));
         $P = new tdzEntry(array(
             //'id'=>tdz::hash($id, null, 'uuid'),
@@ -654,7 +659,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     public static function loadMeta($url, $page=null, $meta=array())
     {
         if(is_null($page) && $url) {
-            $page = TDZ_VAR.'/'.static::$pageDir.$url;
+            $page = static::file($url, false);
         }
 
         // get metadata
@@ -729,7 +734,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         // get file-based page definitions
         $u = $this->link;
-        $root = TDZ_VAR.'/'.static::$pageDir;//tdzEntry::file('/', false);
+        $root = Tecnodesign_Studio::documentRoot();
         if(substr($u, -1)=='/') $u.=static::$indexFile;
         else if(is_dir($root.$u)) $u .= '/'.static::$indexFile; // redirect?
         else if(preg_match('/\.('.implode('|',array_keys(tdzContent::$contentType)).')$/', $u, $m)) {

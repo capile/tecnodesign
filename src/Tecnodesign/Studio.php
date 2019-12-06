@@ -311,7 +311,7 @@ class Tecnodesign_Studio
                     }
                 }
                 $R[$k]['type'] = $o->content_type;
-                if($o->source && substr($o->source, 0, strlen(tdzEntry::$pageDir))==tdzEntry::$pageDir) $R[$k]['id'] = $o->source;
+                if($o->source && tdzEntry::file($o->source)) $R[$k]['id'] = $o->source;
                 unset($d[$i], $id, $k, $o);
             }
         }
@@ -331,7 +331,7 @@ class Tecnodesign_Studio
     {
         static $root;
         if(is_null($root)) $root = Tecnodesign_Studio::documentRoot();
-        if(substr($page, 0, strlen($root))!==$root || !file_exists($page)) return;
+        if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot) || !file_exists($page)) return;
         $slotname = tdzEntry::$slot;
         $pos = '00000';
         $pn = basename($page);

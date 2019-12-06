@@ -501,10 +501,12 @@ class Tecnodesign_App
             $fmod = 0;
             foreach($src as $i=>$n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
+                $n2 = ($n==='pikaday-time') ?'pikaday' :''; // we should fix this package
                 if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
+                   || ($n2 && file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n2.'.'.$to))
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
                    || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
