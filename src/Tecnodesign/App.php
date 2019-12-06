@@ -501,19 +501,17 @@ class Tecnodesign_App
             $fmod = 0;
             foreach($src as $i=>$n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
-                $n2 = ($n==='pikaday-time') ?'pikaday' :''; // we should fix this package
                 if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
-                   || ($n2 && file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n2.'.'.$to))
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
                    || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
                 ) {
                     if(substr($f, -13)=='/package.json') {
                         if(($pkg = json_decode(file_get_contents($f), true)) && isset($pkg['main']) && substr($pkg['main'], -1*strlen($to))==$to && file_exists($f2=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$pkg['main'])) {
