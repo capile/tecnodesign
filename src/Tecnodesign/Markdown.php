@@ -634,7 +634,7 @@ class Tecnodesign_Markdown extends Parsedown
                 ); 
             }
         }
-        return $Block;
+        return null;
     }
 
 

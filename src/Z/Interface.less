@@ -22,6 +22,13 @@
   &.tdz-i-standalone {
     height:auto;
     opacity:1;
+    &:after {
+      content: ' ';
+      display: block;
+      clear:both;
+      height:2em;
+      opacity:0;
+    }
   }
   a {
     text-decoration:none;
@@ -447,25 +454,37 @@ input.tdz-i-switch{
   }
 }
 
-.tdz-i-container .ui-buttons {
+.tdz-i-container .ui-buttons, .tdz-i-standalone {
   margin:0;
   padding: 0.5em;
-  button, a.button {
+  button, a.button, a.z-i-a {
     cursor:pointer;
     height:auto;
     font-size:1em;
     line-height:1.5em;
     margin:0 0.75em 0 0;
-    padding:0.25em 1em;
-    background:(@colorTab *0.1) + #d0d0d0;
+    padding:0.5em 1em;
+    background:(@colorTab *0.1) + #d6d6d6;
     color:@colorTab;
-    border:1px solid @colorTab;
-    .border(@borderRadius);
+    .border(0.5em);
+    &:hover, &:active {
+      background: (@active*0.1) + #d6d6d6;
+    }
   }
   button[type=submit] {
     background:@colorTabActive;
     color:@colorTabText;
     border-color:@colorTabActive;
+     &:hover, &:active {
+      background: @active;
+     }
+  }
+}
+
+.tdz-i-container .ui-buttons {
+  button, a.button {
+    border:1px solid @colorTab;
+    .border(@borderRadius);
   }
 }
 

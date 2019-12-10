@@ -1102,22 +1102,23 @@ Z.ajax=function(url, data, success, error, dataType, context, headers)
         for(n in Z.headers) {
             if(Z.headers[n]) {
                 _ajax[url].r.setRequestHeader(n, Z.headers[n]);
+                if(n.toLowerCase()==='content-type') ct=headers[n];
             }
         }
     }
     if(headers) {
         if(m=='post' && data && String(data)=='[object FormData]') {
-            headers['content-type']=false;
+            ct = true;
         }
         for(n in headers) {
             if(headers[n]) {
                 _ajax[url].r.setRequestHeader(n, headers[n]);
+                if(n.toLowerCase()==='content-type') ct=headers[n];
             }
-            if(n.toLowerCase()==='content-type') ct=headers[n];
         }
     }
     if(m=='post') {
-        if(!headers || !ct) {
+        if(!ct) {
             _ajax[url].r.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
         }
         //if(typeof(data)=='string' || 'length' in data) _ajax[url].r.setRequestHeader('Content-Length', data.length);

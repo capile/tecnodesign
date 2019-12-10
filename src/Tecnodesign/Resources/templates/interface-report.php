@@ -218,7 +218,7 @@ if(isset(${'after-report'}) && is_array(${'after-report'})) {
 $R->sheet(0);
 
 //Do you need more time to render?
-$mem = $sec = 20 + (5 * (ceil($total/1000) - 2));
+$mem = $sec = 20 + (5 * (ceil($total/1000)));
 tdz::tune(__FILE__.': '.__LINE__, $mem, $sec);
 
 if($st) {
@@ -236,4 +236,5 @@ $s = $R->render($format, $fname, $download, $keepFile);
 if($st) {
     $Interface::worker(tdz::t('Download!', 'interface'), $s);
 }
+
 return null;

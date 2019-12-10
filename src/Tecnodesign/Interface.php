@@ -1546,6 +1546,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public function render($p=array())
     {
         tdz::$variables['Interface'] = $this;
+        $title = $this->getTitle();
         if(!$this->action) {
             foreach(static::$actionsDefault as $a) {
                 if($this->setAction($a, tdz::urlParams(null, true))) {
@@ -1554,7 +1555,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 unset($a);
             }
             if(!Tecnodesign_Interface::$urls) {
-                Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$this->getTitle(),'action'=>$this->action);
+                Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$title,'action'=>$this->action);
             }
         }
         static::$currentAction = $this->action;
@@ -1600,6 +1601,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $f=static::template($this->template, 'interface-'.static::$format, 'interface-'.$this->action, 'interface');
         $vars = $this->text;
         $vars['Interface'] = $this;
+        $vars['title'] = $title;
         $vars['url'] = $this->link();//tdz::scriptName(true);
         $vars['response'] = $data;
         $vars['options'] = $this->options;
@@ -2512,7 +2514,7 @@ class Tecnodesign_Interface implements ArrayAccess
             else if($id) $sid = '{id}';
             else $sid = false;
             if(static::$standalone) {
-                if(!$id || preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
+                if(preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
                     if(isset($action['query']) && $action['query'] && $qs) {
                         $qs = str_replace(',', '%3A', tdz::xmlEscape($qs));
@@ -2878,8 +2880,9 @@ class Tecnodesign_Interface implements ArrayAccess
             'class'=>'z-form tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
             'action'=>$this->link($dest, false),
-            'buttons'=>array('submit'=>static::t('Search'),
-            'cleanup'=>static::t('Cleanup')),
+            'buttons'=>array(
+                'submit'=>static::t('Search'),
+                'cleanup'=>static::t('Cleanup')),
             'fields'=>array()
         );
         $fieldset = static::t('Search options');

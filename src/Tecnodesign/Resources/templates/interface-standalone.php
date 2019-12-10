@@ -102,10 +102,12 @@ if(!isset($action)) $action = $Interface['action'];
             } else if($count>0) {
                 $options['checkbox'] = false;
                 $options['radio'] = false;
+                if($key=$Interface['key']) $options['key'] = $key;
                 $listRenderer = (isset($options['list-renderer']) && $options['list-renderer']) ?$options['list-renderer'] :'renderUi';
+                $listOptions = (isset($options['list-options']) && is_array($options['list-options'])) ?$options['list-options'] +$options :$options;
                 $sn = tdz::scriptName(true);
                 tdz::scriptName($Interface->link());
-                echo $list->paginate($listLimit, $listRenderer, array('options'=>$options), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
+                echo $list->paginate($listLimit, $listRenderer, array('options'=>$listOptions), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
                 tdz::scriptName($sn);
                 unset($sn);
             }
@@ -123,6 +125,12 @@ if(!isset($action)) $action = $Interface['action'];
                 echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface::$previewTemplate, $Interface::$headingTemplate, $excludeEmpty, $showOriginal);
                 $preview::$boxTemplate = $box;
                 unset($preview);
+            } else if(is_object($preview) && $preview instanceof Tecnodesign_Form) {
+                if($buttons) {
+                    $preview->buttons[] = $buttons;
+                    $buttons = null;
+                }
+                echo (string) $preview;
             } else {
                 echo (string) $preview;
             }
@@ -134,9 +142,9 @@ if(!isset($action)) $action = $Interface['action'];
     else if(isset($options['after'])) echo \tdz::markdown($options['after']);
 
     // .tdz-i-actions
-    if(!$Interface::$standalone): ?><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
+    if($buttons): ?><div class="z-standalone-buttons"><?php
         echo $buttons; 
-    ?></div></div><?php endif;
+    ?></div><?php endif;
 
 
 ?></div><?php

@@ -2182,7 +2182,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
         if(!is_array($link)) {
             if($link!==false || $checkbox) {
-                $uid = $this->getPk();//str_replace('-', ',', $this->getPk());
+                $uid = (isset($o['key'])) ?$this[$o['key']] :$this->getPk();//str_replace('-', ',', $this->getPk());
             } else {
                 $uid=false;
             }
@@ -2190,6 +2190,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else {
             $url=false;
         }
+
         $qs = $qslink;
         if($qs=='?')$qs='';
         if(!isset($ba['class'])) $ba['class'] = (($i%2)?('even'):('odd'));
