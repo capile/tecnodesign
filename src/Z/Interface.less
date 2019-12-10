@@ -174,6 +174,7 @@ div.tdz-i-switched{
   transition-property: all;
   transition-duration: .5s;
   transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  form {margin:0;}
 }
 
 .tdz-i-switch.on ~ div.tdz-i-switched {
@@ -197,7 +198,6 @@ input.tdz-i-switch{
   &:checked ~  div.tdz-i-switched {
     opacity:1;
     max-height:100%;
-    background:@colorSummary;
   }
   & + label {
     .transition(max-width 1s ease-in-out);
@@ -456,7 +456,6 @@ input.tdz-i-switch{
 
 .tdz-i-container .ui-buttons, .tdz-i-standalone {
   margin:0;
-  padding: 0.5em;
   button, a.button, a.z-i-a {
     cursor:pointer;
     height:auto;
@@ -482,6 +481,7 @@ input.tdz-i-switch{
 }
 
 .tdz-i-container .ui-buttons {
+  padding: 0.5em;
   button, a.button {
     border:1px solid @colorTab;
     .border(@borderRadius);

@@ -1922,15 +1922,17 @@ class Tecnodesign_Interface implements ArrayAccess
     public function renderPreview($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
     {
         $cn = $this->getModel();
+
         if(!$scope) {
             if($rs=$this->requestScope()) {
                 $scope = array('scope::'.$rs);
                 unset($rs);
             }
         }
-
         $this->options['scope'] = $this->scope($scope);
+
         if(!$o) $o = $this->model();
+
         if(!$o) {
             if(static::$format!='html') {
                 static::error(404, static::t('previewNoResult'));
@@ -1938,6 +1940,11 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.static::t('previewNoResult').'</p></div>');
             return $this->redirect($this->link(false, false), $this->link());
         }
+        if(!$scope && isset($this->options['preview-scope-property']) && ($n=$this->options['preview-scope-property']) && ($rs=tdz::slug($o->$n)) && isset($cn::$schema->scope[$rs])) {
+            $scope = array('scope::'.$rs);
+            $this->options['scope'] = $this->scope($scope);
+        }
+
         $this->text['class'] = $class;
         $this->text['xmlEscape'] = $xmlEscape;
         $this->text['summary'] = $this->getSummary();
@@ -2879,6 +2886,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $fo=array(
             'class'=>'z-form tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
+            'limits'=>false,
             'action'=>$this->link($dest, false),
             'buttons'=>array(
                 'submit'=>static::t('Search'),
