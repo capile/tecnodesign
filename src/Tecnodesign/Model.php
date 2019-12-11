@@ -1716,7 +1716,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             // save to log
             if((is_string($a) && (file_exists($f=TDZ_VAR.'/'.$a) || touch($f=TDZ_APP_ROOT.'/'.$a)))
                 || (is_array($a) && isset($a['file']) && (file_exists($f=TDZ_VAR.'/'.$a['file']) || touch($f=TDZ_APP_ROOT.'/'.$a['file'])))) {
-                error_log(tdz::serialize($log, 'json'), 3, $f);
+                error_log(tdz::serialize($log, 'json')."\n", 3, $f);
             } else {
                 tdz::log($log);
             }
