@@ -979,7 +979,8 @@ class Tecnodesign_Query_Sql
     public function insert($M, $conn=null)
     {
         $odata = $M->asArray('save', null, null, true);
-        $data = array();
+        $data = [];
+        $a = [];
 
         $fs = $M::$schema['columns'];
         if(!$fs) $fs = array_flip(array_keys($odata));
@@ -996,8 +997,10 @@ class Tecnodesign_Query_Sql
                 throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $M::fieldLabel($fn)));
             } else if(array_key_exists($fn, $odata)) {
                 $data[$fn] = self::sql($odata[$fn], $fv);
+                $a[$fn] = $odata[$fn];
             } else if($M->getOriginal($fn, false)!==false && is_null($M->$fn)) {
                 $data[$fn] = 'null';
+                $a[$fn] = null;
             }
             unset($fs[$fn], $fn, $fv);
         }
@@ -1030,6 +1033,9 @@ class Tecnodesign_Query_Sql
                 $M->isNew(false);
                 $r = $id;
             }
+            if($M::$schema->audit) {
+                $M->auditLog('insert', $id, $data);
+            }
             return $r;
         }
     }
@@ -1037,7 +1043,7 @@ class Tecnodesign_Query_Sql
     public function update($M, $conn=null)
     {
         $odata = $M->asArray('save', null, null, true);
-        $data = array();
+        $data = [];
 
         $fs = $M::$schema->properties;
         if(!$fs) {
@@ -1066,6 +1072,7 @@ class Tecnodesign_Query_Sql
             if(@(string)$original!==@(string)$v) {
                 $sql .= (($sql!='')?(', '):(''))
                       . "{$fn}={$fv}";
+                $data[$fn]=$v;
                 //$M->setOriginal($fn, $v);
             }
             unset($fs[$fn], $fn, $fv, $v);
@@ -1085,6 +1092,9 @@ class Tecnodesign_Query_Sql
             $r = $this->exec($this->_last, $conn);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            }
+            if($M::$schema->audit) {
+                $M->auditLog('update', $M->getPk(), $data);
             }
             return $r;
         }
@@ -1108,6 +1118,9 @@ class Tecnodesign_Query_Sql
             $r = $this->exec($this->_last, $conn);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
+            }
+            if($M::$schema->audit) {
+                $M->auditLog('delete', $pk, $data);
             }
             return $r;
         }

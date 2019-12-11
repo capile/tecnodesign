@@ -13,7 +13,7 @@
     },
     "relations": {
         "IndexInterfaces": { "local": "interface", "foreign": "interface", "type": "one", "className": "Tecnodesign_Studio_IndexInterfaces" },
-        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Tecnodesign_Studio_Index", "constraint": { "fk_z_index_log__index": "cascade" } }
+        "Index": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "one", "className": "Tecnodesign_Studio_Index", "constraint": { "fk_z_index_log__index": "cascade" } }
     },
     "scope": {
     },

@@ -28,7 +28,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $boxTemplate     = '<div$ATTR>$INPUT</div>',
         $headingTemplate = '<hr /><h3>$LABEL</h3>',
         $previewTemplate = '<dl><dt>$LABEL</dt><dd>$INPUT</dd></dl>',
-        $queryBatchLimit = 500;
+        $queryBatchLimit = 500,
+        $auditLog;
 
     protected static 
         $found=array(),
@@ -55,6 +56,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public static function staticInitialize()
     {
         static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+        if(static::$schema && static::$auditLog) static::$schema->audit = static::$auditLog;
     }
 
     /**
@@ -1691,6 +1693,38 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
         if(tdz::$perfmon>0) tdz::log('[INFO] '.__METHOD__.': '.tdz::formatNumber(microtime(true)-$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem");
         return true;
+    }
+
+    public function auditLog($action, $pk, $data=null)
+    {
+        if(!($a=static::$schema->audit)) return;
+
+        if(is_array($a) && isset($a[0]) && $a=['type'=>'file','file'=>$a[0]]);
+
+        $log = [
+            'uid'=>tdz::getUser()->uid(),
+            'date'=>TDZ_TIMESTAMP,
+            'source'=>Tecnodesign_App::request('ip'),
+            'target'=>tdz::requestUri(),
+            'database'=>static::$schema->database,
+            'table'=>static::$schema->tableName,
+            'action'=>$action,
+            'key'=>$pk,
+            'data'=>$data,
+        ];
+        if(!is_array($a) || !isset($a['type']) || $a['type']==='log') {
+            // save to log
+            if((is_string($a) && (file_exists($f=TDZ_VAR.'/'.$a) || touch($f=TDZ_APP_ROOT.'/'.$a)))
+                || (is_array($a) && isset($a['file']) && (file_exists($f=TDZ_VAR.'/'.$a['file']) || touch($f=TDZ_APP_ROOT.'/'.$a['file'])))) {
+                error_log(tdz::serialize($log, 'json'), 3, $f);
+            } else {
+                tdz::log($log);
+            }
+        } else if(isset($a['type']) && $a['type']==='object' && isset($a['className']) && ($cn=$a['className'])) {
+            new $cn($log, true, true);
+        } else {
+            tdz::log('[INFO] Unknown audit log option: '.tdz::serialize($a, 'json'), $log);
+        }
     }
 
     public static function replace($data, $q=null, $scope=null, $save=true)

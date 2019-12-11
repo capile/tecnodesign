@@ -10,6 +10,7 @@
         "title": { "type": "string" },
         "label": { "alias": "title" },
         "view": { "type": "string" },
+        "audit": { "type": "string" },
         "properties": { 
             "type": "object", 
             "item": "Tecnodesign_Schema_Property"

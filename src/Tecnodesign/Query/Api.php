@@ -1090,6 +1090,9 @@ class Tecnodesign_Query_Api
                     }
                 }
             }
+            if($M::$schema->audit) {
+                $M->auditLog('insert', $M->getPk(), $data->asArray('save', null, false, false));
+            }
             return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
@@ -1125,8 +1128,7 @@ class Tecnodesign_Query_Api
 
     public function update($M, $conn=null)
     {
-        $pk = $M->pk;
-        if(is_array($pk)) $pk = array_shift($pk);
+        $pk = $M->getPk();
         $pk = urlencode($pk);
         $tn = urlencode($this->schema('tableName'));
         $action = sprintf(static::$updatePath, $tn, $pk);
@@ -1143,6 +1145,9 @@ class Tecnodesign_Query_Api
                     }
                 }
             }
+            if($M::$schema->audit) {
+                $M->auditLog('update', $M->getPk(), $data->asArray('save', null, false, false));
+            }
             return $R;
         } catch(Exception $e) {
             $msg = $e->getMessage();
@@ -1155,8 +1160,7 @@ class Tecnodesign_Query_Api
 
     public function delete($M, $conn=null)
     {
-        $pk = $M->pk;
-        if(is_array($pk)) $pk = array_shift($pk);
+        $pk = $M->getPk();
         $pk = urlencode($pk);
         $tn = urlencode($this->schema('tableName'));
         $action = sprintf(static::$deletePath, $tn, $pk);
@@ -1172,6 +1176,9 @@ class Tecnodesign_Query_Api
                         $M->$fn = $v;
                     }
                 }
+            }
+            if($M::$schema->audit) {
+                $M->auditLog('delete', $M->getPk(), $data->asArray('save', null, false, false));
             }
             return $R;
         } catch(Exception $e) {
