@@ -1087,25 +1087,33 @@ class tdz
 
     public static function fixEncoding($s, $encoding='UTF-8')
     {
-        if(tdz::$encoder===false) {
+        static $mb;
+        if(is_null($mb)) $mb=function_exists('mb_check_encoding');
+
+        if(tdz::$encoder===false || ($mb && mb_check_encoding($s, $encoding))) {
             return $s;
+        } else if($mb && !tdz::$encoder && PHP_VERSION_ID > 70200) {
+            return mb_convert_encoding($s, $encoding);
         } else if (is_array($s)) {
             foreach ($s as $k => $v) {
+                unset($s[$k]);
                 $s[$k] = tdz::fixEncoding($v, $encoding);
+                unset($k, $v);
             }
         } else if(is_string($s)) {
-            $s0 = $s;
             if(tdz::$encoder) {
                 $m = tdz::$encoder;
-                $s = $m($s, $encoding);
-                unset($m);
+                return $m($s, $encoding);
+            } else if($mb) {
+                return mb_convert_encoding($s, $encoding);
             } else {
+                $s0 = $s;
                 $s=iconv($encoding, "{$encoding}//IGNORE", $s);
+                if($s===false) {
+                    $s = $s0;
+                }
+                unset($s0);
             }
-            if($s===false) {
-                $s = $s0;
-            }
-            unset($s0);
         }
         return $s;
     }

@@ -878,6 +878,7 @@ class Tecnodesign_App
             if(!isset(self::$_request['post'])) {
                 self::$_request['post']=tdz::postData($_POST);
             }
+            self::$_request = tdz::fixEncoding(self::$_request, 'UTF-8');
         }
         if($q==='headers' && !isset(self::$_request[$q])) {
             self::$_request[$q]=array();
@@ -887,6 +888,7 @@ class Tecnodesign_App
                 }
                 unset($k, $v);
             }
+            self::$_request['headers'] = tdz::fixEncoding(self::$_request['headers'], 'UTF-8');
         }
         if($q) {
             if(!isset(self::$_request[$q])) return null;

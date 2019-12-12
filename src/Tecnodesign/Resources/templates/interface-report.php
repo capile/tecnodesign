@@ -218,7 +218,7 @@ if(isset(${'after-report'}) && is_array(${'after-report'})) {
 $R->sheet(0);
 
 //Do you need more time to render?
-$mem = $sec = 20 + (5 * (ceil($total/1000)));
+$mem = $sec = 20 + (10 * (ceil($total/1000)));
 tdz::tune(__FILE__.': '.__LINE__, $mem, $sec);
 
 if($st) {
