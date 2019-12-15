@@ -38,14 +38,14 @@ class Tecnodesign_Interface implements ArrayAccess
         $schema,
         $envelopeProperty   = 'data',
         $doNotEnvelope      = array('access-control-allow-origin'),
-        $listResult         = 'There\'s only one record available.',
-        $listResults        = 'There are %s records available.',
-        $listSearchResult   = 'There\'s only one record in %s that match your query for %s.',
-        $listSearchResults  = 'There are %s records in %s that match your query for %s.',
-        $listNoSearchResults= 'There are no records in %s that match your query for %s. Please try again using different parameters.',
+        $listResult         = 'Only one record available.',
+        $listResults        = '%s records available.',
+        $listSearchResult   = '1 record found in %s available.',
+        $listSearchResults  = '%s records found in %s available.',
+        $listNoSearchResults= 'no records found in %s available.',
         $listCounter        = 'Showing from %s to %s.',
         $previewNoResult    = 'This record is not available.',
-        $listNoResults      = 'There are no records available.',
+        $listNoResults      = 'No records available.',
         $updateSuccess      = '%s ―%s― successfully updated.',
         $newSuccess         = '%s ―%s― successfully created.',
         $deleteSuccess      = '%s ―%s― successfully removed.',
@@ -2888,10 +2888,14 @@ class Tecnodesign_Interface implements ArrayAccess
             'method'=>'get',
             'limits'=>false,
             'action'=>$this->link($dest, false),
-            'buttons'=>array(
-                'submit'=>static::t('Search'),
-                'cleanup'=>static::t('Cleanup')),
-            'fields'=>array()
+            'buttons'=> false,
+            'fields'=> [
+                '_omnibar' => [
+                    'type' => 'search',
+                    'template' => 'input',
+                    'attributes'=>['data-omnibar'=>'q', 'name'=>'','class' => 'z-omnibar',],
+                ],
+            ],
         );
         $fieldset = static::t('Search options');
         $active = false;
@@ -3048,6 +3052,7 @@ class Tecnodesign_Interface implements ArrayAccess
                                 'label'=>static::t('Search at'),
                                 'multiple'=>true, 'fieldset'=>$fieldset,
                                 'class'=>'tdz-search-input tdz-check-input',
+                                'attributes'=>['data-omnibar-alias'=>'in'],
                             );
                         } else {
                             $fo['fields']['w']['choices'][$slug]=$label;
@@ -3066,6 +3071,21 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
         }
+        $fo['fields'] += [
+            '_submit' => [
+                'type' => 'submit',
+                'value'=> '<span class="i-label">'.static::t('Search').'</span>',
+                'html_labels'=>true,
+                'class' => 'z-i--search',
+            ],
+            '_options' => [
+                'type' => 'button',
+                'value'=> '<span class="i-label">'.static::t('Search options').'</span>',
+                'html_labels'=>true,
+                'class' => 'z-i--filter',
+                'attributes'=>[ 'data-display-switch'=>'#q-'.$this->text['interface'].' .z-omnibar|#q-'.$this->text['interface'].' fieldset,#q-'.$this->text['interface'].' button .i-label'],
+            ],
+        ];
         $F = new Tecnodesign_Form($fo);
         if(!$F->id) $F->id = 'q-'.$this->text['interface'];
         if($active && $F->validate($post)) {

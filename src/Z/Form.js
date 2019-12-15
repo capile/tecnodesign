@@ -1022,6 +1022,274 @@ function subformDel(e)
     return false;
 }
 
+var _omnibar, _omnibarProperties={};
+function initOmnibar(o)
+{
+    /*jshint validthis: true */
+    if(!o || !Z.node(o)) o=this;
+    _omnibar = true;
+
+    var id=o.getAttribute('data-omnibar'), L=o.form.querySelectorAll('input,select,textarea'), i=L.length, n, tag, N;
+    _omnibarProperties[id]={_default: id};
+    while(i--) {
+        if(!L[i].getAttribute('data-omnibar-alias') && !L[i].getAttribute('data-omnibar') && (n=L[i].getAttribute('name'))) {
+            L[i].setAttribute('data-omnibar-alias', Z.slug(n));
+        }
+        if(tag=L[i].getAttribute('data-omnibar-alias')) {
+            _omnibarProperties[id][tag] = tag;
+            if((n=L[i].getAttribute('name')) && n!=tag) {
+                _omnibarProperties[id][n] = tag;
+            }
+            if((N=Z.parentNode(L[i], 'label')) && (n=Z.text(N)) && n!=tag) {
+                _omnibarProperties[id][n.toLowerCase()] = tag;
+            }
+        }
+    }
+    Z.bind(o, 'change', omnibarFormField);
+    Z.bind(o.form, 'change', omnibarForm);
+    omnibarForm.apply(o.form);
+}
+
+function omnibarForm(e)
+{
+    if(e) Z.stopEvent(e);
+    if(!_omnibar) return;
+    var d = Z.formData(this, false, true),
+        o=this.querySelector('input[data-omnibar]'),
+        oid=(o) ?o.getAttribute('data-omnibar').split(/\s*\,\s*/g) :[],
+        i=0,
+        n,
+        el,
+        s='',
+        a,
+        v,
+        nn,
+        L;
+
+    while(i<oid.length) {
+        if(oid[i] in d) {
+            s += (s)?' ' :'';
+            s += omnibarValue(d[oid[i]], false);
+            delete(d[oid[i]]);
+        }
+        i++;
+    }
+
+    for(n in d) {
+        s += (s)?' ' :'';
+        el=this.querySelector('*[name="'+n+'"]');
+        if(!el || !(a=el.getAttribute('data-omnibar-alias'))) {
+            a = n;
+        }
+        v = d[n];
+        if(el) {
+            nn = el.nodeName.toLowerCase();
+            if(nn==='select') {
+                for(i=0;i<el.options.length;i++) {
+                    if(el.options[i].value==v) {
+                        v = el.options[i].label;
+                        break;
+                    }
+                }
+            } else if(nn=='input' && (el.type=='radio' || el.type=='checkbox')) {
+                L = this.querySelectorAll('*[name="'+n+'"]:checked');
+                if(L.length>0) v=[];
+                for(i=0;i<L.length;i++) {
+                    if(el=Z.parentNode(L[i], 'label')) {
+                        v.push(Z.text(el));
+                    } else {
+                        v.push(L[i].value);
+                    }
+                }
+            }
+        }
+        s += omnibarValue(v, a);
+    }
+
+    Z.val(o, s);
+}
+
+function omnibarValue(v, prop)
+{
+    var s='';
+    if(prop) {
+        prop=Z.slug(prop);
+        if(typeof(v)=='object' && ('length' in v)) {
+            var i=0;
+            while(i < v.length) {
+                s += (s) ?' ' :'';
+                s += prop+':';
+                s += (v[i].search(/[\s\:]/)>-1) ?'"'+v[i].replace(/["\s]+/g, ' ')+'"' :v[i];
+                i++;
+            }
+        } else {
+            s += prop+':';
+            s += (v.search(/[\s\:]/)>-1) ?'"'+v.replace(/["\s]+/g, ' ')+'"' :v;
+        }
+        return s;
+    } else {
+        if (typeof(v)=='object') v = v.join(' ');
+        if(v.indexOf(':')>-1) v = '"'+v.replace(/[\s\"]+/, ' ').trim()+'"';
+        return v;
+    }
+}
+
+function omnibarFormField(e)
+{
+    if(e) Z.stopEvent(e);
+    if(!_omnibar) return;
+    _omnibar = false;
+
+    var s = Z.val(this).trim(), t={_default:this.getAttribute('data-omnibar')},
+        p=null,
+        d='',
+        tag,
+        i,
+        a={};
+
+    while(s) {
+        p=null;
+        i=s.search(/[\s\:\"]/);
+        if(i>-1) {
+            if(s.substr(i, 1)===':') {
+                p = omnibarFields.call(this, (tag=s.substr(0, i)), t, true);
+                s = s.substr(i+1).trim();
+                if(!p) {
+                    d += (d) ?' ' :'';
+                    d += tag;
+                    continue;
+                }
+            }
+            if(p) {
+                if(s.substr(0, 1)==='"' && (i=s.substr(1).indexOf('"'))) {
+                    omnibarApply.call(this, s.substr(1, i), p, t, !(p in a));
+                    a[p] = true;
+                    s = s.substr(i+2).trim();
+                } else if((i=s.search(/\s/)) && i>-1) {
+                    omnibarApply.call(this, s.substr(0, i), p, t, !(p in a));
+                    a[p] = true;
+                    s = s.substr(i+1).trim();
+                } else {
+                    omnibarApply.call(this, s, p, t, !(p in a));
+                    a[p] = true;
+                    s = '';
+                    break;
+                }
+            } else {
+                if(i>0) {
+                    d += (d) ?' ' :'';
+                    d += s.substr(0, i);
+                    s = s.substr(i).trim();
+                } else {
+                    s = s.trim();
+                }
+                if(s.substr(0, 1)==='"') {
+                    if((i=s.substr(1).indexOf('"'))) {
+                        d += (d) ?' ' :'';
+                        d += s.substr(0, i+2);
+                        s = s.substr(i+2).trim();
+                    } else {
+                        d += (d) ?' ' :'';
+                        d += s.substr(0, 1);
+                        s = s.substr(1).trim();
+                    }
+                }
+            }
+        } else {
+            d += (d) ?' ' :'';
+            d += s;
+            s = '';
+            break;
+        }
+    }
+
+    if(d) {
+        a._default = true;
+        a[t._default] = true;
+        omnibarApply.call(this, d, '_default', t);
+    }
+
+    var L=this.form.querySelectorAll('input[data-omnibar-alias],select[data-omnibar-alias],textarea[data-omnibar-alias]');
+    i=L.length;
+    while(i--) {
+        p=L[i].getAttribute('data-omnibar-alias');
+        if(p && !(p in a)) {
+            a[p]=true;
+            omnibarApply.call(this, '', p, t, true);
+        } 
+    }
+
+    _omnibar = true;
+}
+
+function omnibarFields(prop, t, check)
+{
+    if(!prop) prop='_default';
+    var id=this.getAttribute('data-omnibar'), F=this.form, lprop=prop.toLowerCase();
+
+    if(id && (id in _omnibarProperties)) {
+        if(prop in _omnibarProperties[id]) {
+            if(prop!=_omnibarProperties[id][prop]) {
+                prop=_omnibarProperties[id][prop];
+            }
+        } else if(lprop in _omnibarProperties[id]) {
+            prop = _omnibarProperties[id][lprop];
+        }
+    }
+
+    var i=0, L, j=0;
+    if(prop in t) {
+        if(typeof(t[prop])==='string') {
+            var tg = t[prop].split(/\s*\,\s*/g);
+            t[prop] = [];
+            for(i=0;i<tg.length;i++) {
+                if(tg[i]) {
+                    L=F.querySelectorAll('input[name="'+tg[i]+'"],select[name="'+tg[i]+'"],textarea[name="'+tg[i]+'"]');
+                    for(j=0;j<L.length;j++) {
+                        t[prop].push(L[j]);
+                    }
+                }
+            }
+        }
+    } else {
+        t[prop] = F.querySelectorAll('input[data-omnibar-alias="'+prop+'"],select[data-omnibar-alias="'+prop+'"],textarea[data-omnibar-alias="'+prop+'"]');
+    }
+    if(check) {
+        return (t[prop] && t[prop].length>0) ?prop :null;
+    }
+    return t[prop];
+}
+
+function omnibarApply(v, prop, t, clear)
+{
+    var fo=(typeof(prop)!='object') ?omnibarFields.call(this, prop, t) :prop, F=this.form;
+    var i=0, L, j=0;
+
+    i=fo.length;
+    var nn, lv=v.toLowerCase(), label;
+    while(i--) {
+        nn=fo[i].nodeName.toLowerCase();
+        if(nn==='textarea' || (nn==='input' && fo[i].type!=='checkbox' && fo[i].type!=='radio')) {
+            Z.val(fo[i], v);
+        } else if(nn==='select') {
+            L=fo[i].options;
+            for(j=0;j<L.length;j++) {
+                if(L[j].value.toLowerCase()==lv || (L[j].label.toLowerCase()==lv)) {
+                    L[j].selected = true;
+                } else if(clear && L[j].selected) {
+                    L[j].selected = false;
+                }
+            }
+        } else {
+            label=Z.parentNode(fo[i], 'label');
+            if(fo[i].value.toLowerCase()==lv || (label && Z.text(label).toLowerCase()==lv)) {
+                fo[i].checked = true;
+            } else if(clear) {
+                fo[i].checked = false;
+            }
+        }
+    }
+}
 
 function Form(o)
 {
@@ -1037,6 +1305,7 @@ function Form(o)
         Z.addPlugin('Filters', initFilters, 'input[data-filters],select[data-filters]');
         Z.addPlugin('Subform', initSubform, 'div.subform[data-template],div.items[data-template]');
         Z.addPlugin('Cleanup', initCleanup, 'button.cleanup');
+        Z.addPlugin('Omnibar', initOmnibar, 'input[data-omnibar]');
         Z.clearForm=clearForm;
 
         var n=Z.node(o, this);

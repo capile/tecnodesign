@@ -64,9 +64,9 @@ if(!isset($action)) $action = $Interface['action'];
 
                 echo $Interface->message(), (isset($app))?($app):('');
 
-                if(isset($searchForm)) echo '<span class="i-check-label tdz-i-switch">';
-
                 if(isset($list)) {
+                    if(isset($searchForm))
+                        echo '<div class="tdz-i-search">'.$searchForm.'</div>';
                     // list counter
                     echo '<span class="'.$Interface::$attrCounterClass.'">';
                     if(isset($searchCount)) {
@@ -92,10 +92,6 @@ if(!isset($action)) $action = $Interface['action'];
                     }
                     echo '</span>';
 
-                    if(isset($searchForm))
-                        echo '<input type="checkbox" id="tdz-i-s-'.$id.'" class="tdz-i-switch tdz-i-search" />',
-                             '<label for="tdz-i-s-'.$id.'">'.$Interface::$labelFilter.'</label></span>',
-                             '<div class="tdz-i-search tdz-i-switched">'.$searchForm.'</div>';
                 }
 
             ?></div><?php 

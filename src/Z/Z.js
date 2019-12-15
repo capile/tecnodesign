@@ -6,6 +6,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
   defaultModules={
     Callback:'*[data-callback]',
     Copy:'a.z-copy[data-target]',
+    DisplaySwitch:'*[data-display-switch]',
     'Form.Form': 'form.z-form',
     'Form.AutoSubmit': 'form.z-auto-submit',
     'Form.CheckLabel':'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
@@ -897,6 +898,42 @@ Z.initCopy=function(o)
     if(!o || !Z.node(o)) o=this;
     if(!o.getAttribute('data-target')) return;
     Z.bind(o, 'click', executeAction);
+}
+
+Z.initDisplaySwitch=function(o)
+{
+    if(!o || !Z.node(o)) o=this;
+    if(o.getAttribute('data-display-active')) return;
+    o.setAttribute('data-display-active', '1');
+    displaySwitch.call(o);
+    if(o.nodeName.toLowerCase()=='button') Z.bind(o, 'click', displaySwitch);
+}
+
+function displaySwitch()
+{
+    var qs=this.getAttribute('data-display-switch').split(/\s*\|\s*/), a=this.getAttribute('data-display-active');
+    if(a=='') return;
+    // hide
+    a = (a>0) ?1 :0;
+    var L=document.querySelectorAll(qs[a]), i=L.length,s;
+    while(i--) {
+        if(L[i].className.search(/\bi-hidden\b/)<0) {
+            L[i].className += ' i-hidden';
+        }
+    }
+
+    // show
+    a = (a>0) ?0 :1;
+    var L=document.querySelectorAll(qs[a]), i=L.length,s;
+    while(i--) {
+        if(L[i].className.search(/\bi-hidden\b/)>-1) {
+            L[i].className=L[i].className.replace(/\s*\bi-hidden\b/g, '');
+        }
+    }
+
+    this.setAttribute('data-display-active', (a>0) ?'1':'0');
+    if(arguments.length>0) this.blur();
+
 }
 
 function executeAction(e)
