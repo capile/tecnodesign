@@ -514,7 +514,7 @@ class Tecnodesign_Form implements ArrayAccess
             $values = $values[$this->id];
         }
         foreach($this->fields as $fn=>$fv) {
-            if(!$fv->setValue($this->_value($fn, $values))) {
+            if(!$fv->setValue($this->_value($fn, $values), true, true)) {
                 $valid = false;
             }
             unset($fn, $fv);

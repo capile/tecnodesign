@@ -16,8 +16,13 @@ $fs = '';
 foreach($fields as $fn=>$fo) {
     $fs = (string)$fo->fieldset;
     if(!$hasFieldset && $fs) $hasFieldset = true;
-    if(!isset($fieldsets[$fs])) $fieldsets[$fs]='';
-    $fieldsets[$fs] .= $fo->render();
+
+    if(!$fs) {
+        $fieldsets[] = $fo->render();
+    } else {
+        if(!isset($fieldsets[$fs])) $fieldsets[$fs]='';
+        $fieldsets[$fs] .= $fo->render();
+    }
 }
 
 if(!isset($before)) $before = '';
@@ -46,7 +51,7 @@ if($hasFieldset) {
 foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"';
 ?>><?php
 foreach($fieldsets as $fn=>$fv) {
-    if($fn) {
+    if(!is_int($fn)) {
         $fl = (substr($fn, 0, 1)=='*')?(tdz::t(substr($fn,1), 'form')):($fn);
         echo '<fieldset id="'.tdz::slug($fn).'"><legend>'.$fl.'</legend>'.$before.$fv.'</fieldset>';
     } else {
@@ -55,7 +60,7 @@ foreach($fieldsets as $fn=>$fv) {
     if($before) $before = '';
 }
 
- ?>
+if($buttons): ?>
 <p class="ui-buttons"><?php
 foreach($buttons as $bn=>$label) {
     $bt = ($bn=='submit')?('submit'):('button');
@@ -75,10 +80,10 @@ foreach($buttons as $bn=>$label) {
     }
     if(strpos($bn, '/')!==false) {
         echo '<a href="'.$bn.'">'.$label.'</a>';
-    } else if(substr($label,0,1)=='<') {
+    } else if($bn!='submit' && substr($label,0,1)=='<') {
         echo $label;
     } else {
         echo '<button class="'.$bn.'"'.$a.'>'.$label.'</button>';
     }
 }
-?></p></form>
+?></p><?php endif; ?></form>

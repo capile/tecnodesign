@@ -37,7 +37,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $tmpDir='/tmp',
         $captchaTimeout=3600,
         $captchaCaseSensitive=false,
-        $defaultErrorMessage='This is not a valid value for "%s".'
+        $defaultErrorMessage='This is not a valid value for "%s".',
+        $typesNotForValidation=['button','submit']
         ;
 
     /**
@@ -337,8 +338,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $this->value;
     }
 
-    public function setValue($value=false, $outputError=true)
+    public function setValue($value=false, $outputError=true, $validation=null)
     {
+        if($validation && in_array($this->type, static::$typesNotForValidation)) return true;
+
         $this->error=array();
         $value = $this->parseValue($value);
 
@@ -1449,34 +1452,21 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(!$input) {
             return $input;
         }
-        $tpl = false;
-        if (isset($arg['template'])) {
-            if($arg['template']===false) {
-                return $input;
-            }
-            if(file_exists($arg['template'])) {
-                $tpl = $arg['template'];
-            } else {
-                $app = tdz::getApp();
-                if(file_exists($app->tecnodesign['templates-dir'].'/'.$arg['template'])) {
-                    $tpl = $app->tecnodesign['templates-dir'].'/'.$arg['template'];
-                }
-            }
-            unset($arg['template']);
+        $tpl = ($this->template) ?tdz::templateFile($this->template) :null;
+        if (!$tpl && isset($arg['template'])) {
+            if($arg['template']===false) $arg['template'] = 'input';
+            $tpl = tdz::templateFile($arg['template']);
         }
         if(!$tpl) {
-            $tpl = dirname(__FILE__).'/Resources/templates/field.php';
+            $tpl = TDZ_ROOT.'/src/Tecnodesign/Resources/templates/field.php';
         }
         $run['script']=$tpl;
         $run['variables']['input']=$input;
         $run['variables']['field']=$this;
         $run['variables']['before']=$this->before;
         $run['variables']['after']=$this->after;
-        $s = tdz::exec($run);
-        if (!isset($arg['indent']) || !$arg['indent']) {
-            //$s = preg_replace('/\r?\n\s*/', '', $s);
-        }
-        return $s;
+
+        return tdz::exec($run);
     }
 
     public function renderForm(&$arg)
@@ -1643,7 +1633,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
 
         if (!isset($arg['template'])) {
-            $arg['template'] = dirname(__FILE__).'/Resources/templates/subform.php';
+            $arg['template'] = 'subform';
         }
         $class = '';
         if($jsinput) {
@@ -2232,6 +2222,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             return $s;
         }
         $a = array('type'=>(isset($arg['type']))?($arg['type']):('text'), 'id'=>$arg['id'], 'name'=>$arg['name'], 'value'=>(string)$arg['value']);
+        if(tdz::isempty($a['name'])) unset($a['name']);
         if($this->size && !isset($this->attributes['maxlength'])) {
             $this->attributes['maxlength']=$this->size;
         }
@@ -2325,6 +2316,38 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
         return $input;
     }
+
+    public function renderSubmit(&$arg)
+    {
+        $arg['type'] = 'submit';
+        return $this->renderButton($arg);
+    }
+
+    public function renderButton(&$arg)
+    {
+        static $attr = ['id', 'class' ];
+        if(!isset($arg['type']) || !$arg['type']) $arg['type'] = 'button';
+        $a = ['type'=>$arg['type']];
+
+        foreach($attr as $n) {
+            if(isset($arg[$n]) && $arg[$n]) $a[$n] = $arg[$n];
+        }
+        $a += $this->attributes;
+        $input = '<button ';
+        foreach ($a as $n=>$v) {
+            if (is_bool($v)) {
+                $v = var_export($v, true);
+            }
+            $input .= $n . '="' . tdz::xml($v) . '" ';
+        }
+        $input .= '>'.((!$this->html_labels) ?tdz::xml($arg['value']) :$arg['value']).'</button>';
+        if (!isset($arg['template'])) {
+            $arg['template'] = 'input';
+        }
+        return $input;
+    }
+
+
     public function renderNone()
     {
     }
@@ -2332,7 +2355,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function renderHiddenText(&$arg)
     {
         if (!isset($arg['template'])) {
-            $arg['template'] = dirname(__FILE__).'/Resources/templates/field.php';
+            $arg['template'] = 'field';
         }
         $input = $this->renderHidden($arg);
         $input .= $this->placeholder;
@@ -2361,7 +2384,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $input .= '/>';
         if (!isset($arg['template'])) {
-            $arg['template'] = dirname(__FILE__).'/Resources/templates/hidden.php';
+            $arg['template'] = 'hidden';
         }
         return $input;
     }
