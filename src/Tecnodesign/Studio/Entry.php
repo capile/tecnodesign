@@ -673,8 +673,6 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         $d=$url;
         $p=preg_replace('#/'.static::$indexFile.'.[a-z]+$#', '', $page);
         while(strrpos($d, '/')!==false) {
-            $d = substr($d, 0, strrpos($d, '/'));
-            $p = substr($p, 0, strrpos($p, '/'));
             if(file_exists($mf=$p.'/.meta')) {
                 $m = Tecnodesign_Yaml::load($mf);
                 if(is_array($m)) {
@@ -692,6 +690,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 unset($m);
             }
             unset($mf);
+            $d = substr($d, 0, strrpos($d, '/'));
+            $p = substr($p, 0, strrpos($p, '/'));
         }
         unset($d, $p);
 
@@ -700,7 +700,6 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             if(isset($meta['languages'])) Tecnodesign_Studio::$languages = $meta['languages'];
             Tecnodesign_Studio::addResponse($meta);
         }
-
         return $meta;
     }
 
