@@ -83,7 +83,7 @@ if(!isset($action)) $action = $Interface['action'];
             }
 
             if($count>1) {
-                $end = $listOffset + $listLimit -1;
+                $end = $listOffset + $listLimit;
                 if($end>$count) $end = $count;
                 echo sprintf($Interface::t('listCounter'), tdz::formatNumber($listOffset+1,0), tdz::formatNumber($end,0));
                 unset($end);

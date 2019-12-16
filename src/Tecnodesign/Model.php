@@ -2092,6 +2092,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $checkbox = false;
         }
         $link = (isset($o['link']))?($o['link']):(tdz::scriptName());
+        $linkScope = (isset($o['link-scope'])) ?$o['link-scope'] :null;
         $i = (isset($o['position']))?($o['position']):(0);
         $start = (isset($o['start']))?($o['start']):($i);
         $max = (isset($o['hits']))?($o['hits']):(20);
@@ -2217,6 +2218,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if(!is_array($link)) {
             if($link!==false || $checkbox) {
                 $uid = (isset($o['key'])) ?$this[$o['key']] :$this->getPk();//str_replace('-', ',', $this->getPk());
+                if(isset($o['link-encode']) && $o['link-encode']) {
+                    $uid = rawurlencode($uid);
+                }
             } else {
                 $uid=false;
             }
@@ -2255,18 +2259,25 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if(is_array($link)) {
                 if(isset($link[$fn])) {
                     if(!isset($replace)) {
-                        $replace = $this->asArray(null, '{%s}');
+                        $replace = $this->asArray($linkScope, '{%s}');
+                        if(isset($o['link-encode']) && $o['link-encode']) {
+                            foreach($replace as $k=>$v) {
+                                $replace[$k] = rawurlencode($v);
+                            }
+                        }
                     }
                     $uid = tdz::xml(str_replace(array_keys($replace), array_values($replace), $link[$fn]));
+                    $url = null;
                 } else {
                     $uid = false;
+                    $url = false;
                 }
             }
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
 
             $s .= '<td class="f-'.$fn.' '.(($uid!==false && $checkbox)?(' tdz-check'):('')).'">'
                 . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
-                . (($uid!==false && $url)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
+                . (($uid!==false && $url!==false)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
                 .'</td>';
             if($uid!==false) $uid=false;
             unset($label, $fn);
