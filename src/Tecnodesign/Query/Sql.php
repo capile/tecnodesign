@@ -429,7 +429,7 @@ class Tecnodesign_Query_Sql
     {
         $ofn = $fn = $f;
         $r = null;
-        if($f==='null' || (substr($f, 0, 1)=='-' && substr($f,-1)=='-')) {
+        if($f==='null' || $f===false || (substr($f, 0, 1)=='-' && substr($f,-1)=='-')) {
             return false;
         } else if(preg_match_all('#`([^`]+)`#', $fn, $m)) {
             $r = $s = array();

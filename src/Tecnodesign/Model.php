@@ -333,7 +333,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 else if(static::$formAsLabels && !is_int($label)) $fid = $label;
                 else $fid = $fn;
 
-                if(isset(static::$schema->overlay[$fn])) {
+                if($fid===false && is_array($fd)) {
+                    $sfo[]=$fd;
+                } else if(isset(static::$schema->overlay[$fn])) {
                     $fd=$fd+static::$schema->overlay[$fn];
                     if(isset(static::$schema->properties[$fn])) {
                         $fd+=static::$schema->properties[$fn]->value();
@@ -366,6 +368,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             $fo = $sfo;
         }
+
         return $fo;
     }
 
@@ -459,13 +462,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if(!is_array($scope)) $scope = array($scope);
             foreach($scope as $k=>$fn) {
                 if(is_array($fn)) {
-                    if(isset($fn['bind'])) {
-                        $fd = $fn + $base;
-                        $fn=$fn['bind'];
-                    } else {
-                        unset($scope[$k], $fn, $k, $fd);
-                        continue;
+                    if(!isset($fn['bind'])) {
+                        if(!isset($fn['type']) && !isset($fn['format'])) {
+                            unset($scope[$k], $fn, $k, $fd);
+                            continue;
+                        }
+                        $fn['bind'] = false;
                     }
+                    $fd = $fn + $base;
+                    $fn=$fn['bind'];
                 }
                 if(!isset($fd)) $fd = array('bind'=>$fn)+$base;
                 if(strpos($fn, ' ')) {
@@ -1914,6 +1919,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if(!$tpl) $tpl = static::$previewTemplate;
         $a = '';
         $fs = array(); // split into fieldsets
+        $hs = []; // headings for $excludeEmpty
         $fsn='';
         foreach($scope as $label=>$fn) {
             if(is_array($fn)) {
@@ -1938,6 +1944,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     if(!$U || !$U->hasCredentials($fd['credential'], false)) continue;
                 }
             }
+
+            // headings
             if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
                 $class = (!is_int($label))?($label):('');
                 $label = substr($fn, 2, strlen($fn)-4);
@@ -1946,13 +1954,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $fs[$fsn] .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $label, $class, ''), $sep);
                 unset($class);
             } else {
-                if(!isset($fs[$fsn])) {
-                    if($fsn) {
-                        $class = (!is_int($label))?(tdz::slug($label)):('');
-                        $fs[$fsn] = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($fsn, $fn, $fsn, $class, ''), $sep);
-                    } else {
-                        $fs[$fsn]='';
-                    }
+                if($fsn && !isset($fs[$fsn])) {
+                    $class = (!is_int($label))?(tdz::slug($label)):('');
+                    $h[$fsn] = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($fsn, $fn, $fsn, $class, ''), $sep);
                 }
 
                 $class='';
@@ -1961,6 +1965,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
                     $label = tdz::t(substr($label, 1), $translate);
                 }
+                $ftext = null;
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=tdz::getUser();
@@ -1969,7 +1974,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                         }
                     }
                     if($m[1]=='scope') {
-                        $fs[$fsn] .= $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep, $excludeEmpty, $showOriginal);
+                        $ftext = $this->renderScope($m[2], $xmlEscape, $box, $tpl, $sep, $excludeEmpty, $showOriginal);
                     } else if($m[1]=='sub') {
                         $class = $fn = $m[2];
                         $class .= ($class)?(' sub'):('sub');
@@ -1978,14 +1983,18 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                             array($label, $fn, $label, $class, ''),
                             $sep);
 
-                        $fs[$fsn] .= str_replace(
+                        $ftext = str_replace(
                             array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR', '$ATTR'),
                             array($label, $fn, $input, $class, '', ''),
                             $box);
 
                         unset($class, $input);
+                    } else {
+                        $ftext = '';
                     }
                     $v = false;
+                } else if(tdz::isempty($fn)) {
+                    continue;
                 } else {
                     if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
                     if(isset($fd)) {
@@ -2017,19 +2026,24 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     }
                     if(isset($fd['class'])) $class = $fd['class'];
                     if(isset($fd['type']) && $fd['type']=='interface') {
-                        $fs[$fsn] .= $v;
-                        continue;
+                        $ftext .= $v;
                     }
                 }
                 if(substr($label, 0, 2)=='a:') {
                     if($v && !$xmlEscape) $v = tdz::xmlEscape($v);
                     $a .= ' '.substr($label, 2).'="'.$v.'"';
-                } else if($v!==false && !($excludeEmpty && !$v)) {
+                } else if(is_null($ftext) && $v!==false && !($excludeEmpty && !$v)) {
                     if(strpos($fn, ' ')) $fn = substr($fn, strrpos($fn, ' ')+1);
                     if(is_array($v)) {
                         $v = tdz::implode($v, ', ');
                     }
-                    $fs[$fsn] .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
+                    $ftext = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $v, $class, ''), $tpl);
+                }
+
+                if($ftext) {
+                    if(isset($fs[$fsn])) $fs[$fsn] .= $ftext;
+                    else if(isset($h[$fsn])) $fs[$fsn] = $h[$fsn].$ftext;
+                    else $fs[$fsn] = $ftext;
                 }
                 unset($scope[$label], $label, $fn, $v, $m, $class, $fd);
             }

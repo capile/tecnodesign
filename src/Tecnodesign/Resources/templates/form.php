@@ -14,7 +14,7 @@ $fieldsets=array();
 $hasFieldset = false;
 $fs = '';
 foreach($fields as $fn=>$fo) {
-    $fs = (string)$fo->fieldset;
+    if((string)$fo->fieldset!=='1') $fs = (string)$fo->fieldset;
     if(!$hasFieldset && $fs) $hasFieldset = true;
 
     if(!$fs) {
@@ -51,7 +51,8 @@ if($hasFieldset) {
 foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"';
 ?>><?php
 foreach($fieldsets as $fn=>$fv) {
-    if(!is_int($fn)) {
+    if(!$fv) continue;
+    if(!is_int($fn) && !tdz::isempty($fn)) {
         $fl = (substr($fn, 0, 1)=='*')?(tdz::t(substr($fn,1), 'form')):($fn);
         echo '<fieldset id="'.tdz::slug($fn).'"><legend>'.$fl.'</legend>'.$before.$fv.'</fieldset>';
     } else {
@@ -80,7 +81,7 @@ foreach($buttons as $bn=>$label) {
     }
     if(strpos($bn, '/')!==false) {
         echo '<a href="'.$bn.'">'.$label.'</a>';
-    } else if($bn!='submit' && substr($label,0,1)=='<') {
+    } else if($bn!=='submit' && preg_match('#\<(a|button|input)[\s/]#', $label)) {
         echo $label;
     } else {
         echo '<button class="'.$bn.'"'.$a.'>'.$label.'</button>';

@@ -2026,11 +2026,14 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function renderUpdate($o=null, $scope=null)
     {
+        $cn = $this->getModel();
         if(!$o) $o = $this->model();
         if(!$scope) {
             if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema['scope'][$rs])) && !isset(static::$actionsAvailable[$rs])) {
                 $scope = $rs;
                 unset($rs);
+            } else if(isset($this->options['update-scope-property']) && ($n=$this->options['update-scope-property']) && ($rs=tdz::slug($o->$n)) && isset($cn::$schema->scope[$rs])) {
+                $scope = array('scope::'.$rs);
             } else if(isset($this->options['scope'][$this->action])) {
                 $scope = $this->action;
             } else {
@@ -3116,6 +3119,8 @@ class Tecnodesign_Interface implements ArrayAccess
                     $k0 = $k;
                     $k = $k1;
                     unset($k1);
+                } else if(!isset($ff[$k])) {
+                    continue;
                 } else {
                     $k0 = $k;
                     $type = substr($ff[$k], 0, 4);
