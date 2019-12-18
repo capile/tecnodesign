@@ -1029,7 +1029,7 @@ function initOmnibar(o)
     if(!o || !Z.node(o)) o=this;
     _omnibar = true;
 
-    var id=o.getAttribute('data-omnibar'), L=o.form.querySelectorAll('input,select,textarea'), i=L.length, n, tag, N;
+    var id=o.getAttribute('data-omnibar'), L=o.form.querySelectorAll('input,select,textarea'), i=L.length, n, tag, N, nn;
     _omnibarProperties[id]={_default: id};
     while(i--) {
         if(!L[i].getAttribute('data-omnibar-alias') && !L[i].getAttribute('data-omnibar') && (n=L[i].getAttribute('name'))) {
@@ -1040,7 +1040,8 @@ function initOmnibar(o)
             if((n=L[i].getAttribute('name')) && n!=tag) {
                 _omnibarProperties[id][n] = tag;
             }
-            if((N=Z.parentNode(L[i], 'label')) && (n=Z.text(N)) && n!=tag) {
+            nn = L[i].nodeName.toLowerCase();
+            if(!(nn==='input' && (L[i].type=='radio' || L[i].type=='checkbox')) && (N=Z.parentNode(L[i], 'label')) && (n=Z.text(N)) && n!=tag) {
                 _omnibarProperties[id][n.toLowerCase()] = tag;
             }
         }
