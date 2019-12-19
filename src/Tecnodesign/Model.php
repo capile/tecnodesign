@@ -2640,15 +2640,15 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
         if (method_exists($this, $m)) {
             $ret = $this->$m();
-        } else if(!isset(static::$schema['columns'][$firstName]) && strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
+        } else if(!isset(static::$schema->properties[$firstName]) && strstr('ABCDEFGHIJKLMNOPQRSTUVWXYZ!', substr($name, 0, 1))) {
             if($dot && isset($this->$firstName)) {
                 if(is_object($this->$firstName)) return $this->$firstName->$ref;
                 else if(isset($this->$firstName[$ref])) return $this->$firstName[$ref];
-            } else if($dot && isset(static::$schema['relations'][$firstName])) {
+            } else if($dot && isset(static::$schema->relations[$firstName])) {
                 return $this->getRelation($firstName, $ref);
             } else if(isset($this->$name)) {
                 return $this->$name;
-            } else if(isset(static::$schema['relations'][$name])) {
+            } else if(isset(static::$schema->relations[$name])) {
                 return $this->getRelation($name);
             }
         } else if (isset($this->$name)) {
@@ -2656,8 +2656,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else if($dot && $firstName && $ref && (isset($this->$firstName) || method_exists($this, $m='get'.tdz::camelize($firstName, true)))) {
             if(method_exists($this, $m='get'.tdz::camelize($firstName, true))) {
                 $a = $this->$m();
-            } else if(isset(static::$schema['columns'][$firstName]['serialize']) && is_string($this->$firstName)) {
-                $this->$firstName = tdz::unserialize($this->$firstName, static::$schema['columns'][$firstName]['serialize']);
+            } else if(isset(static::$schema->properties[$firstName]['serialize']) && is_string($this->$firstName)) {
+                $this->$firstName = tdz::unserialize($this->$firstName, static::$schema->properties[$firstName]['serialize']);
                 $a = $this->$firstName;
             } else {
                 $a = $this->$firstName;

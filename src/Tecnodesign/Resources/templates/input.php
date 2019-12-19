@@ -10,6 +10,16 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
+
+if($error) {
+    if(!is_array($error)) $error=array($error);
+    $err = '<span class="error">'
+          . implode('</span><span class="error">', $error)
+          . '</span>';
+} else {
+    $err = '';
+}
+
 echo 
     $before,
     $input,

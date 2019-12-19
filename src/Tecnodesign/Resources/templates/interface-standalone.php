@@ -137,13 +137,14 @@ if(!isset($action)) $action = $Interface['action'];
         ?></div><?php
     endif;
 
-    if(isset($options['after-'.$Interface['action']])) echo \tdz::markdown($options['after-'.$Interface['action']]);
-    else if(isset($options['after'])) echo \tdz::markdown($options['after']);
-
     // .tdz-i-actions
     if($buttons): ?><div class="z-standalone-buttons"><?php
         echo $buttons; 
     ?></div><?php endif;
+
+    if(isset($options['after-'.$Interface['action']])) echo \tdz::markdown($options['after-'.$Interface['action']]);
+    else if(isset($options['after'])) echo \tdz::markdown($options['after']);
+
 
 
 ?></div><?php
