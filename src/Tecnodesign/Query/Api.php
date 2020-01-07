@@ -1091,7 +1091,7 @@ class Tecnodesign_Query_Api
                 }
             }
             if($M::$schema->audit) {
-                $M->auditLog('insert', $M->getPk(), $data->asArray('save', null, false, false));
+                $M->auditLog('insert', $M->getPk(), $M->asArray('save', null, false, false));
             }
             return $R;
         } catch(Exception $e) {
@@ -1146,7 +1146,7 @@ class Tecnodesign_Query_Api
                 }
             }
             if($M::$schema->audit) {
-                $M->auditLog('update', $M->getPk(), $data->asArray('save', null, false, false));
+                $M->auditLog('update', $M->getPk(), $M->asArray('save', null, false, false));
             }
             return $R;
         } catch(Exception $e) {
@@ -1178,7 +1178,7 @@ class Tecnodesign_Query_Api
                 }
             }
             if($M::$schema->audit) {
-                $M->auditLog('delete', $M->getPk(), $data->asArray('save', null, false, false));
+                $M->auditLog('delete', $M->getPk(), $M->asArray('save', null, false, false));
             }
             return $R;
         } catch(Exception $e) {
