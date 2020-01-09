@@ -80,7 +80,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
     {
         if((is_string($q) && ($page=tdz::decrypt($q, null, 'uuid'))) 
             || (isset($q['id']) && is_string($q['id'])&& ($page=tdz::decrypt($q['id'], null, 'uuid')))) {
-            $C = Tecnodesign_Studio::content(TDZ_VAR.'/'.$page, false);
+            $C = Tecnodesign_Studio::content(Tecnodesign_Studio_Entry::file($page), false);
             if($limit==1) return $C;
             else return array($C);
         }
