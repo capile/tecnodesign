@@ -83,6 +83,7 @@ class Tecnodesign_Studio
         } else if(static::$webInterface) {
             Tecnodesign_App::$assets[] = '!Z.Studio';
             Tecnodesign_App::$assets[] = '!Z.Interface';
+            Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
         }
 
         $sn = $req['script-name'];
