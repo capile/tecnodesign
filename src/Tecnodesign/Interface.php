@@ -2687,6 +2687,7 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($scope);
         }
         $this->text['list'] = $found;
+        \tdz::debug(__METHOD__, var_export($found, true), $cn::$schema->events);
         if(isset($this->options['list-key'])) $this->text['key'] = $this->options['list-key'];
         unset($found, $s, $start, $count, $cn, $order, $error);
         return $this->text['list'];

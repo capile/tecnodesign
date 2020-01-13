@@ -343,6 +343,7 @@ class Tecnodesign_Query_Sql
 
     public function where($w)
     {
+        $this->_where = null;
         $this->_where = $this->getWhere($w);
         return $this;
     }
@@ -569,7 +570,7 @@ class Tecnodesign_Query_Sql
                                     } else {
                                         $this->_from .= ' and '.$this->getWhere(array($r=>$v), 'and', $rsc);
                                     }
-                                    unset($ar[$r], $r, $v);
+                                    unset($r, $v);
                                 }
                             } else {
                                 if(strpos($ar, '`')!==false || strpos($ar, '[')!==false) {
@@ -627,7 +628,7 @@ class Tecnodesign_Query_Sql
     {
         $r='';
         if(!$sc) $sc = $this->schema();
-        $e = (isset($sc['events']))?($sc['events']):(null);
+        $e = (isset($sc->events))?($sc->events):(null);
         $add=array();
         $ar = null;
         if(is_null($this->_where) && $e && isset($e['active-records']) && $e['active-records']) {
@@ -658,7 +659,9 @@ class Tecnodesign_Query_Sql
                 unset($v);
             }
         }
-        if($add) $w += $add;
+        if($add) {
+            $w += $add;
+        }
         $op = '=';
         $not = false;
         static $cops = array('>=', '<=', '<>', '!', '!=', '>', '<');
@@ -684,6 +687,13 @@ class Tecnodesign_Query_Sql
                         $op = $v;
                     } else if(isset($xors[$v])) {
                         $xor = $xors[$v];
+                    } else if(strpos($v, '`')!==false || strpos($v, '[')!==false) {
+                        $pxor = (isset($cxor))?($cxor):(null);
+                        if($pxor && $pxor=='or' && $pxor!=$xor) {
+                            $r = ' ('.trim($r).')';
+                        }
+                        $r .= ($r)?(" {$xor}"):('');
+                        $r .= ' ('.$this->getAlias($v, $sc, true).')';
                     }
                 }
             } else {
