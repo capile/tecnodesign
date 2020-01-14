@@ -371,7 +371,8 @@ class Tecnodesign_Query_Sql
                 $o = substr($o, 0, strlen($o)-strlen($m[0]));
             }
             $fn = (!is_int($o))?($this->getAlias($o, null, true)):($o);
-            if($fn && strpos($fn, $this->_orderBy)===false) {
+
+            if($fn && is_string($fn) && (!$this->_orderBy || strpos($fn, $this->_orderBy)===false)) {
                 if($sort!='asc' && $sort!='desc') $sort='';
                 $this->_orderBy .= ($this->_orderBy)?(", {$fn} {$sort}"):(" {$fn} {$sort}");
             }
