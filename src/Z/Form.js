@@ -940,12 +940,9 @@ function subformAdd(e)
         Z.stopEvent(e);
         Z.tg = this;
 
-        if(el=Z.parentNode(this, '.item')) {//this.parentNode.parentNode.className.search(/\bitem\b/)>-1)
-            o=el.parentNode;
-        } else if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
+        if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
             o = el.querySelector('.items[data-template]');
             el = null;
-            //o = this.parentNode.nextSibling.childNodes[0];
         }
     }
     if(!o) return false;
@@ -1006,6 +1003,14 @@ function subformDel(e)
     /*jshint validthis: true */
     Z.stopEvent(e);
     var el, o;
+
+    /*
+    if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
+        o = el.querySelector('.items[data-template]');
+        el = null;
+    }
+    */
+
     if(this.parentNode.parentNode.className.search(/\bitem\b/)>-1) {
         el=this.parentNode.parentNode;
         o=el.parentNode;
@@ -1013,7 +1018,8 @@ function subformDel(e)
         o = this.parentNode.nextSibling;
     }
 
-    var sf=o.querySelectorAll('.item'),fmin=o.getAttribute('data-min');
+    var sf=o.querySelectorAll(':scope > .item'),fmin=o.getAttribute('data-min');
+    console.log(fmin, sf);
    
     if(!(fmin && sf.length<=fmin)) {
         el.parentNode.removeChild(el);
