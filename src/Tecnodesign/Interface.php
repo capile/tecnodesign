@@ -473,7 +473,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public static function current()
     {
         if(is_null(self::$instances) || !self::$instances) return null;
-        return array_values(self::$instances)[0];
+        return array_values(self::$instances)[count(self::$instances)-1];
     }
 
     private function register()
@@ -752,7 +752,9 @@ class Tecnodesign_Interface implements ArrayAccess
                     if($f) $n .= $rn;
                 }
             } else {
-                tdz::scriptName(tdz::scriptName().'/'.$n);
+                $sn = tdz::scriptName();
+                $sn .= (substr($sn, -1)=='/') ?$n :'/'.$n;
+                tdz::scriptName($sn);
             }
             unset($p0);
             if(!$f) {
@@ -1261,13 +1263,21 @@ class Tecnodesign_Interface implements ArrayAccess
                         unset($r[$i], $i, $o);
                     }
                     return $s;
+                } else if($this->action && !in_array($this->action, static::$actionsDefault)) {
+                    $l = $this->action;
+                    if(isset($this->actions[$l]['label'])) return tdz::xml($this->actions[$l]['label'].': '.implode(', ', $r));
+                    else return tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)).': '.implode(', ', $r));
                 } else {
                     return tdz::xml(implode(', ', $r));
                 }
             }
+        } else if($this->action && !in_array($this->action, static::$actionsDefault)) {
+            $l = $this->action;
+            if(isset($this->actions[$l]['label'])) return tdz::xml($this->actions[$l]['label']);
+            else return tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)));
         }
         if(!isset($this->text['title'])) {
-            return $cn::label();
+            return tdz::xml($cn::label());
         }
         return $this->text['title'];
     }
@@ -2384,6 +2394,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $url = $this->url;
         $ic = get_class($this);
 
+        Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$this->getTitle(),'action'=>$this->action);
+
         if(isset($this->actions[$n]['relation'])) {
             $f = $this->search;
             $cn = $this->getModel();
@@ -2851,11 +2863,12 @@ class Tecnodesign_Interface implements ArrayAccess
                 $pk = $cn::pk();
                 if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';
                 else $pk = 'distinct `'.$pk.'`';
-                $R = $cn::find($this->search,1,array('count('.$pk.') _count'),true,false,true);
+                $R = $cn::find($this->search,1,array('count('.$pk.') _count'),false,false,true);
                 if($R) $r = (int) $R->_count;
                 unset($R);
             } else if($Q && method_exists($Q, 'count')) {
                 if($this->search) {
+                    $Q->reset();
                     $Q->where($this->search);
                 }
                 $r = $Q->count();
