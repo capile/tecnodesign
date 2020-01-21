@@ -148,6 +148,7 @@ class Tecnodesign_Query_Sql
         $this->_alias = null;
         $this->_transaction = null;
         $this->_last = null;
+        return $this;
     }
 
     public function schema($prop=null)
