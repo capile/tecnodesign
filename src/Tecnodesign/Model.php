@@ -2354,7 +2354,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else if($v instanceof Tecnodesign_Collection) {
             return $this->renderRelation($v, $fn, $fd, $xmlEscape);
         } else if(!tdz::isempty($v)) {
-            if(isset($fd['multiple']) && $fd['multiple'] && is_string($v) && strpos($v, ',')!==false) {
+            if(isset($fd['serialize']) && is_string($v) && substr($v, 0, 1)==='[' && substr($v, -1)===']') {
+                $v = tdz::unserialize($fd['serialize']);
+            } else if(isset($fd['multiple']) && $fd['multiple'] && is_string($v) && strpos($v, ',')!==false) {
                 $v = preg_split('/\,/', $v, null, PREG_SPLIT_NO_EMPTY);
             }
             if(isset($fd['choices'])) {

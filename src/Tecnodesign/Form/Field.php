@@ -335,12 +335,16 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $this->value = $this->default;
             }
         }
+
         return $this->value;
     }
 
     public function setValue($value=false, $outputError=true, $validation=null)
     {
+        static $textChecks=['checkDns', 'checkEmail', 'checkIp', 'checkIpBlock'];
         if($validation && in_array($this->type, static::$typesNotForValidation)) return true;
+
+
 
         $this->error=array();
         $value = $this->parseValue($value);
@@ -358,10 +362,28 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $tg = $this;
                 }
                 if(method_exists($tg, $fn)) {
-                    if(is_object($tg)) {
-                        $value = $tg->$fn($value, $message);
+                    if(is_array($value) && $this->multiple && in_array($fn, $textChecks)) {
+                        $r = [];
+                        foreach($value as $i=>$v) {
+                            if(trim($v)) {
+                                $v = $this->checkDns($v, $message);
+                                if(is_object($tg)) {
+                                    $v = $tg->$fn($v, $message);
+                                } else {
+                                    $v = $tg::$fn($v, $message);
+                                }
+                                if(!tdz::isempty($v)) $r[] = $v;
+                            }
+                            unset($v, $i);
+                        }
+                        if(!$r) $r = '';
+                        $value = $r;
                     } else {
-                        $value = $tg::$fn($value, $message);
+                        if(is_object($tg)) {
+                            $value = $tg->$fn($value, $message);
+                        } else {
+                            $value = $tg::$fn($value, $message);
+                        }
                     }
                 //} else {
                 //    \tdz::log('[DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
@@ -839,7 +861,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             tdz::output($R, 'json');
         }
-
         if(is_array($value)){
             if(isset($value['name'])) {
                 $value = array($value);
@@ -855,6 +876,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if($this->accept) {
                 $max = (isset($this->accept['max']))?($this->accept['max']):($max);
                 $size = (isset($this->accept['size']))?($this->accept['size']):($size);
+                $type = (isset($this->accept['format']))?($this->accept['format']):($type);
                 $type = (isset($this->accept['type']))?($this->accept['type']):($type);
                 $hash = (isset($this->accept['hash']))?($this->accept['hash']):($hash);
                 $ext = (isset($this->accept['extension']))?($this->accept['extension']):($ext);
@@ -903,8 +925,16 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
                     if(!is_array($upload) && substr($upload, 0, 5)=='ajax:') {
                         $upload = array('_'=>$upload);
+                    } else if(!is_array($upload)) {
+                        $a = explode('|', $upload);
+                        $upload = ['name'=>array_pop($a), '_'=>$upload];
+                        if($a) $upload['tmp_name'] = array_shift($a);
+                        else $upload['tmp_name'] = $upload['name'];
+                        if($a) $upload['type'] = array_shift($a);
                     }
-                    if(isset($upload['_']) && substr($upload['_'], 0, 5)=='ajax:') {
+                    if(isset($upload['_']) && is_array($upload['_'])) {
+                        unset($upload['_']);
+                    } else if(isset($upload['_']) && substr($upload['_'], 0, 5)=='ajax:') {
                         $uid = substr($upload['_'], 5, strpos($upload['_'], '|') -5);
 
                         if($u=Tecnodesign_Cache::get($uid)) {
@@ -927,7 +957,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                      */
                     if(!isset($upload['error']) || $upload['error']==4) {
                         // no upload made, skipping
-                        if(isset($upload['_'])) {
+                        if(isset($upload['_']) && $upload['_']) {
                             $new[$i] = $upload['_'];
                         } else {
                             $value[$i] = false;
@@ -982,10 +1012,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $value = false;
             }
         }
+        /*
         if(tdz::isempty($value) && $this->bind && ($schema=$this->getSchema()) && isset($schema['columns'][$this->bind])) {
             $value=$this->getModel()->{$this->bind};
             if(tdz::isempty($value)) $value=null;
         }
+        */
         return $value;
     }
 
@@ -1034,16 +1066,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public function checkEmail($value, $message=null)
     {
-        if(is_array($value)) {
-            if($this->multiple && $value) {
-                foreach($value as $i=>$o) {
-                    $value[$i] = $this->checkEmail($o, $message);
-                    unset($i, $o);
-                }
-                return $value;
-            }
-            $value = implode(',', $value);
-        }
         $value = trim($value);
         if($value && !tdz::checkEmail($value, false)) {
             if(!$message) {
@@ -1785,7 +1807,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
         if(strpos($arg['class'], 'app-file-preview')!==false) {
             if($arg['value']) {
-                $s .= '<span class="text tdz-f-file">'.$this->filePreview($arg['id']).'</span>';
+                $s .= '<span class="text tdz-f-file'.($this->multiple ?' z-multiple' :'').'">'.$this->filePreview($arg['id']).'</span>';
             } else {
                 $s .= '<span class="text"></span>';
             }
@@ -1795,12 +1817,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 . (($arg['value'])?($this->filePreview($arg['id'], true)):(''))
                 . '</span>';
         }
-        $h = $this->renderHidden($arg);
+        //$h = $this->renderHidden($arg);
         unset($arg['template']);
         $a = $arg;
         $a['value']='';
         if(isset($a['required'])) unset($a['required']);
-        $s .= $h.$this->renderText($a);
+        $s .= $this->renderText($a, false, false);
         return $s;
     }
 
@@ -1820,6 +1842,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public function filePreview($prefix='', $img = false)
     {
+        static $b='<span class="z-auto-remove z-file">', $a='</span>';
         $s='';
         if($this->value){
             $files = explode(',', $this->value);
@@ -1828,7 +1851,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             foreach($files as $i=>$fdesc) {
                 $fpart = explode('|', $fdesc);
                 $fname = array_pop($fpart);
-                $s .= ($i>0)?(', '):('');
+                $arg = ['id'=>$prefix, 'name'=>($this->multiple)?$prefix.'['.(-1 -$i).']' :$prefix, 'value'=>$fdesc];
+                $h = $this->renderHidden($arg);
                 if(count($fpart)>=1 && file_exists($uploadDir.'/'.$fpart[0])) {
                     $hash = $prefix.md5($fpart[0]);
                     $link = $url.$hash.'='.urlencode($fname);
@@ -1836,9 +1860,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         tdz::download($uploadDir.'/'.$fpart[0], null, $fname, 0, true);
                     }
                     if ($img) {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" /></a>';
+                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" />'.$h.'</a>'.$a;
                     } else {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'">'.tdz::xmlEscape($fname).'</a>';
+                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'">'.tdz::xmlEscape($fname).$h.'</a>'.$a;
                     }
                 } elseif (file_exists($f=$uploadDir.'/'.$fname) || ($this->bind && method_exists($M=$this->getModel(), $m='get'.tdz::camelize($this->bind, true).'File') && file_exists($f=$M->$m()))) { //Compatibilidade com dados de framework anteriores
                     $hash = $prefix.md5($fname);
@@ -1847,12 +1871,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         tdz::download($f, null, $fname, 0, true);
                     }
                     if ($img) {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" /></a>';
+                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" />'.$h.'</a>'.$a;
                     } else {
-                        $s .= '<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'">'.tdz::xmlEscape($fname).'</a>';
+                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'">'.tdz::xmlEscape($fname).$h.'</a>'.$a;
                     }
                 } else {
-                    $s .= '<span>'.tdz::xmlEscape($fname).'</span>';
+                    $s .= $b.'<a>'.tdz::xmlEscape($fname).$h.'</a>'.$a;
                 }
             }
         }
@@ -2206,6 +2230,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $s .= '<div class="item">'.$this->renderText($arg, $enableChoices, false).'</div>';
                 unset($value[$i], $i, $o);
             }
+
+            /*
+            if(!$s) {
+                $arg['value'] = '';
+                $s .= '<div class="item">'.$this->renderText($arg, $enableChoices, false).'</div>';
+            }
+            */
 
             $arg['value']='';
             $jsinput = '<div class="item">'.$this->renderText($arg, $enableChoices, false).'</div>';

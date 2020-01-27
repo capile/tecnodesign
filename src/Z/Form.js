@@ -891,6 +891,7 @@ function initSubform(o)
         L=o.querySelectorAll('#'+id+'>.item');
         i=L.length;
     }
+    Z.parentNode(o, '.field,.tdz-i-field').setAttribute('data-count', i);
 
     // buttons: add, add(contextual), remove(contextual)
     if(!fmax || fmax!=i || fmax!=fmin) {
@@ -1018,12 +1019,15 @@ function subformDel(e)
         o = this.parentNode.nextSibling;
     }
 
-    var sf=o.querySelectorAll(':scope > .item'),fmin=o.getAttribute('data-min');
-    console.log(fmin, sf);
+    var sf=o.querySelectorAll(':scope > .item'),fmin=o.getAttribute('data-min'), i=sf.length;
    
     if(!(fmin && sf.length<=fmin)) {
         el.parentNode.removeChild(el);
+        i--;
     }
+    Z.parentNode(o, '.field,.tdz-i-field').setAttribute('data-count', i);
+
+
     //Z.subform(o);
     return false;
 }

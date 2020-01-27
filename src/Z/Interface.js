@@ -1025,7 +1025,27 @@
     }
 
 
+    function AutoRemove()
+    {
+        if(!this.querySelector('.tdz-i--close')) Z.element.call(this, {e:'i',p:{className:'tdz-i--close tdz-i-a z-round'},t:{click:destroyParents}});
+    }
+
+    function destroyParents(e)
+    {
+        if(e) Z.stopEvent(e);
+        var P=this.parentNode.parentNode, nP;
+        this.parentNode.parentNode.removeChild(this.parentNode);
+        while(P && P.children.length==0) {
+            nP = P.parentNode;
+            nP.removeChild(P);
+            P=nP;
+        }
+        return false;
+    }
+
+
     //startup();
     window['Z.Interface.startup']=startup;
+    window['Z.Interface.AutoRemove']=AutoRemove;
 
 })();

@@ -1601,13 +1601,13 @@ class tdz
         if(is_array($a)) {
             foreach($a as $k=>$v) {
                 $a[$k]=tdz::setLastKey($v, $name);
-                if($post && is_array($post) && isset($post[$k])) {
+                if($post && is_array($post) && isset($post[$k]) && $post[$k]!=$a[$k]) {
                     $a[$k]['_'] = $post[$k];
                 }
             }
         } else {
             $a = array($name=>$a);
-            if($post) $a[$name]['_'] = $post;
+            if($post && $post!=$a) $a[$name]['_'] = $post;
         }
         return $a;
     }

@@ -432,6 +432,7 @@ input.tdz-i-switch{
   }
 }
 
+
 .tdz-i-container .ui-buttons, .tdz-i-standalone {
   margin:0;
   button, a.button, a.z-i-a {
@@ -651,12 +652,30 @@ button .i-label {
   }
 }
 
-.app-image-preview img {
-  max-width:100%;
+.app-image-preview, .app-file-preview {
+  img {
+    max-width:100%;
+  }
 }
 
-.app-file-preview .tdz-f-file ~ input {
-  display:none;
+
+.app-file-preview .tdz-f-file, .app-image-preview .tdz-f-file {
+  display:block;
+  & ~ input {
+    display:none;
+  }
+  &.z-multiple ~ input {
+    display:block;
+  }
+}
+.z-file {
+  display:inline-block;
+  margin: 0 0 0.5em 0.25em;
+  &:after { content: ', '; }
+  &:last-child:after { content: ''; }
+  .z-round {
+    margin:0 0 0 0.25em;
+    display:inline-block;line-height:1em;width:1em;height:1em !important;border-radius:0.5em;text-align:center;&:before{display:inline-block;vertical-align:top;}}
 }
 
 form .tdz-i-field a.tdz-i-upload {

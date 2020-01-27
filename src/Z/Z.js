@@ -11,6 +11,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
     'Form.AutoSubmit': 'form.z-auto-submit',
     'Form.CheckLabel':'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
     'Interface.startup': '.tdz-i[data-url]',
+    'Interface.AutoRemove': '.z-auto-remove',
   };
 
 // load authentication info
