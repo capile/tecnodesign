@@ -320,7 +320,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(is_null($this->value) && $this->bind) {
             try {
                 $M = $this->getModel();
-                if(method_exists($M, $m='get'.\tdz::camelize($this->bind, true))) {
+                if(method_exists($M, $m='get'.tdz::camelize($this->bind, true))) {
                     $this->value = $M->$m();
                 } else {
                     $this->value = $M->{$this->bind};
@@ -343,8 +343,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         static $textChecks=['checkDns', 'checkEmail', 'checkIp', 'checkIpBlock'];
         if($validation && in_array($this->type, static::$typesNotForValidation)) return true;
-
-
 
         $this->error=array();
         $value = $this->parseValue($value);
@@ -386,7 +384,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         }
                     }
                 //} else {
-                //    \tdz::log('[DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
+                //    tdz::log('[DEPRECATED] is this necessary? ', "eval(\$value = {$m});");
                 //    @eval("\$value = {$m};");
                 }
                 unset($tg, $fn);
@@ -1659,7 +1657,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $class = '';
         if($jsinput) {
-            //$jsinput = ' data-template="'.tdz::xmlEscape($jsinput).'" data-prefix="'.$prefix.'"';
+            //$jsinput = ' data-template="'.tdz::xml($jsinput).'" data-prefix="'.$prefix.'"';
             $jsinput = ' data-template="'.htmlspecialchars($jsinput, ENT_QUOTES, 'UTF-8', true).'" data-prefix="'.$prefix.'"';
             if($this->multiple) {
                 $class .= ' multiple';
@@ -1778,7 +1776,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $s='';
         if($this->accept && is_array($this->accept)) {
             if(isset($this->accept['uploader'])) {
-                $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(\tdz::requestUri()):($this->accept['uploader']);
+                $this->attributes['data-uploader'] = (is_bool($this->accept['uploader']))?(tdz::requestUri()):($this->accept['uploader']);
             }
             if(isset($this->accept['type'])) {
                 $type = $this->accept['type'];
@@ -1805,24 +1803,27 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
 
+        $hi = true;
         if(strpos($arg['class'], 'app-file-preview')!==false) {
             if($arg['value']) {
-                $s .= '<span class="text tdz-f-file'.($this->multiple ?' z-multiple' :'').'">'.$this->filePreview($arg['id']).'</span>';
+                $s .= '<span class="text tdz-f-file'.($this->multiple ?' z-multiple' :'').'">'.$this->filePreview($arg['name']).'</span>';
+                $hi = false;
             } else {
                 $s .= '<span class="text"></span>';
             }
         }
         if(strpos($arg['class'], 'app-image-preview')!==false) {
             $s .= '<span class="text">'
-                . (($arg['value'])?($this->filePreview($arg['id'], true)):(''))
+                . (($arg['value'])?($this->filePreview($arg['name'], true)):(''))
                 . '</span>';
+                $hi = false;
         }
-        //$h = $this->renderHidden($arg);
+        $h = ($hi) ?$this->renderHidden($arg) :'';
         unset($arg['template']);
         $a = $arg;
         $a['value']='';
         if(isset($a['required'])) unset($a['required']);
-        $s .= $this->renderText($a, false, false);
+        $s .= $h.$this->renderText($a, false, false);
         return $s;
     }
 
@@ -1840,9 +1841,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
     }
 
-    public function filePreview($prefix='', $img = false)
+    public function filePreview($name='', $img = false)
     {
         static $b='<span class="z-auto-remove z-file">', $a='</span>';
+        $prefix = preg_replace('/_+$/', '', preg_replace('/[\[\]]+/', '_', $name));
         $s='';
         if($this->value){
             $files = explode(',', $this->value);
@@ -1851,7 +1853,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             foreach($files as $i=>$fdesc) {
                 $fpart = explode('|', $fdesc);
                 $fname = array_pop($fpart);
-                $arg = ['id'=>$prefix, 'name'=>($this->multiple)?$prefix.'['.(-1 -$i).']' :$prefix, 'value'=>$fdesc];
+                $arg = ['id'=>$prefix, 'name'=>$name, 'value'=>$fdesc];
                 $h = $this->renderHidden($arg);
                 if(count($fpart)>=1 && file_exists($uploadDir.'/'.$fpart[0])) {
                     $hash = $prefix.md5($fpart[0]);
@@ -1860,9 +1862,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         tdz::download($uploadDir.'/'.$fpart[0], null, $fname, 0, true);
                     }
                     if ($img) {
-                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" />'.$h.'</a>'.$a;
+                        $s .= $b.'<a href="'.tdz::xml($link).'" download="'.$fname.'"><img src="'.tdz::xml($link).'" title="'.tdz::xml($fname).'" alt="'.tdz::xml($fname).'" />'.$h.'</a>'.$a;
                     } else {
-                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'">'.tdz::xmlEscape($fname).$h.'</a>'.$a;
+                        $s .= $b.'<a href="'.tdz::xml($link).'">'.tdz::xml($fname).$h.'</a>'.$a;
                     }
                 } elseif (file_exists($f=$uploadDir.'/'.$fname) || ($this->bind && method_exists($M=$this->getModel(), $m='get'.tdz::camelize($this->bind, true).'File') && file_exists($f=$M->$m()))) { //Compatibilidade com dados de framework anteriores
                     $hash = $prefix.md5($fname);
@@ -1871,12 +1873,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         tdz::download($f, null, $fname, 0, true);
                     }
                     if ($img) {
-                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'"><img src="'.tdz::xmlEscape($link).'" title="'.tdz::xmlEscape($fname).'" alt="'.tdz::xmlEscape($fname).'" />'.$h.'</a>'.$a;
+                        $s .= $b.'<a href="'.tdz::xml($link).'" download="'.$fname.'"><img src="'.tdz::xml($link).'" title="'.tdz::xml($fname).'" alt="'.tdz::xml($fname).'" />'.$h.'</a>'.$a;
                     } else {
-                        $s .= $b.'<a href="'.tdz::xmlEscape($link).'" download="'.$fname.'">'.tdz::xmlEscape($fname).$h.'</a>'.$a;
+                        $s .= $b.'<a href="'.tdz::xml($link).'" download="'.$fname.'">'.tdz::xml($fname).$h.'</a>'.$a;
                     }
                 } else {
-                    $s .= $b.'<a>'.tdz::xmlEscape($fname).$h.'</a>'.$a;
+                    $s .= $b.'<a>'.tdz::xml($fname).$h.'</a>'.$a;
                 }
             }
         }
@@ -2006,7 +2008,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input[$yf] .= $attr . '="' . tdz::xmlEscape($value) . '" ';
+            $input[$yf] .= $attr . '="' . tdz::xml($value) . '" ';
         }
         $input[$yf].='><option value="" class="placeholder">'.tdz::t('Year', 'form').'</option>';
         if($this->range[1] > time()) {
@@ -2036,7 +2038,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input[$mf] .= $attr . '="' . tdz::xmlEscape($value) . '" ';
+            $input[$mf] .= $attr . '="' . tdz::xml($value) . '" ';
         }
         $input[$mf].='><option value="" class="placeholder">'.tdz::t('Month', 'form').'</option>';
         $ms=array_fill(1,12,true);
@@ -2077,7 +2079,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input[$f] .= $attr . '="' . tdz::xmlEscape($value) . '" ';
+            $input[$f] .= $attr . '="' . tdz::xml($value) . '" ';
         }
         $input[$f].='><option value="" class="placeholder">'.tdz::t('Day', 'form').'</option>';
         $ds=array_fill(1,31,true);
@@ -2212,7 +2214,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($this->multiple && ($enableMultiple || (is_null($enableMultiple) && static::$enableMultipleText))) {
             $v0 = $value = $arg['value'];
             if(!is_array($value) && $value) {
-                if($this->serialize && ($nv=\tdz::unserialize($value))) {
+                if($this->serialize && ($nv=tdz::unserialize($value))) {
                     $value = $nv;
                     unset($nv);
                 } else {
@@ -2276,7 +2278,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input .= $attr . '="' . tdz::xmlEscape($value) . '" ';
+            $input .= $attr . '="' . tdz::xml($value) . '" ';
         }
         $dl = '';
         if($enableChoices && !is_null($this->choices)) {
@@ -2341,9 +2343,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input .= $attr . '="' . tdz::xmlEscape($value) . '" ';
+            $input .= $attr . '="' . tdz::xml($value) . '" ';
         }
-        $input .= '>'.tdz::xmlEscape($arg['value']).'</textarea>';
+        $input .= '>'.tdz::xml($arg['value']).'</textarea>';
 
         return $input;
     }
@@ -2411,7 +2413,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             } else if(is_array($value) && isset($value['value'])) {
                 $value = $value['value'];
             }
-            $input .= $attr . '="' . tdz::xmlEscape($value) . '" ';
+            $input .= $attr . '="' . tdz::xml($value) . '" ';
         }
         $input .= '/>';
         if (!isset($arg['template'])) {
@@ -2449,7 +2451,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input .= ' ' . $attribute . '="' . tdz::xmlEscape($value) . '"';
+            $input .= ' ' . $attribute . '="' . tdz::xml($value) . '"';
         }
         //$input .= '>';
 
@@ -2543,7 +2545,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                             $attrs .= ' disabled="disabled"';
                         }
                     } elseif (!is_int($configKey)) {
-                        $attrs .= ' data-' . $configKey . '="' . tdz::xmlEscape($configValue) . '"';
+                        $attrs .= ' data-' . $configKey . '="' . tdz::xml($configValue) . '"';
                     }
                 }
                 if (!$label && $firstValue) {
@@ -2560,16 +2562,16 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
             if ($label) {
                 if (!$this->html_labels) {
-                    $label = tdz::xmlEscape($label);
+                    $label = tdz::xml($label);
                 }
                 $id = $arg['id'] . '-' . ($i++);
                 $dl = "<label for=\"$id\"><span class=\"$type $styleClasses\">"
-                    . "$input id=\"$id\" value=\"" . tdz::xmlEscape($value) . "\" $attrs />"
+                    . "$input id=\"$id\" value=\"" . tdz::xml($value) . "\" $attrs />"
                     . '</span>' . $label . '</label>';
             } else {
                 $id = $arg['id'];
                 $dl = "<span class=\"$type $styleClasses\">"
-                    . "$input id=\"$id\" value=\"" . tdz::xmlEscape($value) . "\" $attrs />"
+                    . "$input id=\"$id\" value=\"" . tdz::xml($value) . "\" $attrs />"
                     . '</span>';
             }
             if ($group) {
@@ -2589,7 +2591,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $styleClasses = ' on';
             }
             $id = $arg['id'];
-            $options[] = "<span class=\"{$type}{$styleClasses}\">{$input} id=\"{$id}\" value=\"" . tdz::xmlEscape($value) . '"' . $attrs . ' /></span>';
+            $options[] = "<span class=\"{$type}{$styleClasses}\">{$input} id=\"{$id}\" value=\"" . tdz::xml($value) . '"' . $attrs . ' /></span>';
         }
         $dl = '';
         foreach ($options as $key=>$valueConfig) {
@@ -2781,10 +2783,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
                             if(!$label) {
                                 $label = (string) $v;
                             }
-                            $label = ($group)?('<strong>'.tdz::xmlEscape($group).'</strong> '.tdz::xmlEscape($label)):(tdz::xmlEscape($label));
+                            $label = ($group)?('<strong>'.tdz::xml($group).'</strong> '.tdz::xml($label)):(tdz::xml($label));
                         } else {
                             $value = $v;
-                            $label = tdz::xmlEscape($this->getChoices($v));
+                            $label = tdz::xml($this->getChoices($v));
                         }
                         $ha['value'][]=$value;
                         $input .= "<span class=\"ui-button selected-option\" data-value=\"{$value}\">{$label}</span>";
@@ -2809,7 +2811,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if (is_bool($value)) {
                 $value = var_export($value, true);
             }
-            $input .= ' ' . $attr . '="' . tdz::xmlEscape($value) . '"';
+            $input .= ' ' . $attr . '="' . tdz::xml($value) . '"';
         }
         $input .= '>';
         $options = array();
@@ -2862,7 +2864,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     } else if($vk=='group') {
                         $group = $vv;
                     } else if(!is_int($vk)) {
-                        $attrs.=' data-'.$vk.'="'.tdz::xmlEscape($vv).'"';
+                        $attrs.=' data-'.$vk.'="'.tdz::xml($vv).'"';
                     }
                 }
                 if(!$label && $firstv) {
@@ -2870,7 +2872,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
                 /*
                 if($dprop) {
-                    foreach($dprop as $dn) if(isset($v[$dn])) $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
+                    foreach($dprop as $dn) if(isset($v[$dn])) $attrs .= ' data-'.$dn.'="'.tdz::xml($v->{$dn}).'"';
                 }
                 */
             } else if(is_object($v) && $v instanceof Tecnodesign_Model) {
@@ -2883,7 +2885,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $value = $v->getPk(true);
                     foreach($dprop as $dn) {
                         if(isset($value[$dn])) unset($value[$dn]);
-                        $attrs .= ' data-'.$dn.'="'.\tdz::xmlEscape($v->{$dn}).'"';
+                        $attrs .= ' data-'.$dn.'="'.tdz::xml($v->{$dn}).'"';
                     }
                     $value = implode(',', $value);
                 } else {
@@ -2895,8 +2897,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(in_array($value, $values)){
                 $attrs .= ' selected="selected"';
             }
-            $dl = '<option value="' . tdz::xmlEscape($value) . '"' . $attrs
-                . '>' . tdz::xmlEscape(strip_tags($label)) . '</option>';
+            $dl = '<option value="' . tdz::xml($value) . '"' . $attrs
+                . '>' . tdz::xml(strip_tags($label)) . '</option>';
             if ($group) {
                 $options[$group][]=$dl;
             } else {
@@ -2906,7 +2908,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $dl = '';
         foreach ($options as $k=>$v) {
             if (is_array($v)) {
-                $dl .= '<optgroup label="'.tdz::xmlEscape($k).'">'.implode('', $v).'</optgroup>';
+                $dl .= '<optgroup label="'.tdz::xml($k).'">'.implode('', $v).'</optgroup>';
             } else {
                 $dl .= $v;
             }

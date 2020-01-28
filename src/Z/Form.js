@@ -961,7 +961,7 @@ function subformAdd(e)
             var ne=sf[i-1].querySelector('*[name]');
             if(ne) {
                 n=ne.getAttribute('name');
-                re=new RegExp(prefix.replace(/([^a-z0-9])/i, '\\\$1')+'\\\[([0-9]*)\\\].*');
+                re=new RegExp(prefix.replace(/([^a-z0-9])/i, '\\\$1')+'[_\\\[]([0-9]*)[\\\]_].*');
                 n=n.replace(re, '$1');
                 if(n) {
                     if(n.substr(0,3)=='q__') n=n.substr(3);
