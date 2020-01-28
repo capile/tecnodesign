@@ -591,11 +591,16 @@ function uploadFile(file, U)
 
         var el = this;
         if('id' in d) {
-            el.previousSibling.value = d.value;
             var b=el.parentNode.querySelector('span.text');
+            if(!el.previousSibling) {
+                Z.element({e:'input',a:{type:'hidden',name:el.name,id:el.id,value:d.value}},el);
+            } else {
+                el.previousSibling.value = d.value;
+            }
             var t={e:'a',p:{className:'tdz-i-upload'},t:{click:removeUpload},c:d.file};
-            if(!b) b=Z.element({e:'span',p:{className:'text'},c:t});
-            else {
+            if(!b) {
+                b=Z.element({e:'span',p:{className:'text'},c:[t]},el.previousSibling);
+            } else {
                 Z.removeChildren(b, ':not(.tdz-i-upload)');
                 Z.element.call(b, t);
             }
