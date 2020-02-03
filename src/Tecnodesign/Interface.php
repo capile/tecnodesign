@@ -23,6 +23,7 @@ class Tecnodesign_Interface implements ArrayAccess
     const REQ_SCOPE='scope';
     const REQ_FIELDS='fields';
     const REQ_ORDER='order';
+    const REQ_PAGE='p';
     const H_STATUS='status';
     const H_STATUS_CODE='status-code';
     const H_TOTAL_COUNT='total-count';
@@ -74,6 +75,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $attrFooterClass    = 'tdz-i-footer',
         $attrErrorClass     = 'tdz-err tdz-msg',
         $attrCounterClass   = 'tdz-counter',
+        $attrGraphClass     = 'z-i-graph',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
         $actionAlias        = array(),
@@ -93,6 +95,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $actionsDefault     = array( 'preview', 'list' ),
         $share              = null,
         $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
+        $breadcrumbTemplate = '<div class="z-breadcrumbs">$LABEL</div>',
         $headingTemplate    = '<hr /><h3>$LABEL</h3>',
         $previewTemplate    = '<dl class="if--$ID tdz-i-field $CLASS"><dt>$LABEL</dt><dd data-action-item="$ID">$INPUT$ERROR</dd></dl>',
         $updateTemplate,
@@ -133,7 +136,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $className='Tecnodesign_Interface';
 
 
-    protected $uid, $model, $action, $id, $search, $searchError, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source;
+    protected $uid, $model, $action, $id, $search, $searchError, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source, $graph;
     protected static
         $instances=array(),
         $is=0,
@@ -243,8 +246,8 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->search = $d['search'];
             unset($d['search']);
         }
-        if(isset($d['action'])) {
-            $this->action = $d['action'];
+        if(isset($d['graph'])) {
+            $this->graph = $d['graph'];
         }
         if(isset($d['url'])) {
             $this->url = $d['url'];
@@ -415,7 +418,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
             Tecnodesign_App::$assets[] = 'Z.Interface';
             Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
-            //Tecnodesign_App::$assets[] = '!Z.Graph,Chart';
+            Tecnodesign_App::$assets[] = '!Z.Graph,d3/dist/d3.min,c3/c3.min';
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
             if(is_null(static::$format)) {
@@ -854,6 +857,9 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function setAction($a, &$p=null)
     {
+
+        Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$this->getTitle(),'interface'=>false);
+
         if(isset($this->actions[$a])) {
 
             if(isset($this->actions[$a]['identified']) && $this->actions[$a]['identified']) {
@@ -1449,7 +1455,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $req = Tecnodesign_App::request('post') + Tecnodesign_App::request('get');
         if(isset($req['ajax'])) unset($req['ajax']);
         if($req) {
-            $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS, static::REQ_ORDER);
+            $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS, static::REQ_ORDER, static::REQ_PAGE);
             foreach($noreq as $k) {
                 if(isset($req[$k])) unset($req[$k]);
             }
@@ -1516,6 +1522,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->text['preview'] = $this->$m();
         } else {
             $this->getButtons();
+            $this->text['summary'] = $this->getSummary();
             $this->getList($req);
         }
         static::status(200);
@@ -1906,8 +1913,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
         }
-
-
     }
 
     public function requestScope()
@@ -1926,7 +1931,6 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             return $rs;
         }
-
     }
 
     public function renderPreview($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
@@ -2032,6 +2036,101 @@ class Tecnodesign_Interface implements ArrayAccess
             $this->text['error'] = null;
         }
         return $fo;
+    }
+
+    public function renderGraph()
+    {
+        $cn = $this->getModel();
+        if(!$this->graph) {
+            // autobuild graph based on index values
+        }
+        if(!$this->graph) return;
+
+        $s = '';
+        foreach($this->graph as $n=>$g) {
+            $G=['data'=>[]];
+            $q = (isset($g['where'])) ?$g['where'] :[];
+            if($this->search) $q = $this->search + $q;
+            $orderBy = (isset($g['order-by'])) ?$g['order-by'] :null;
+            $groupBy = true;
+            $label = (isset($g['label'])) ?$g['label'] :null;
+            if(isset($g['group-by'])) {
+                if(is_array($g['group-by'])) {
+                    if(count($g['group-by'])==1) {
+                        $groupBy = implode('', $g['group-by']);
+                        if(!$label) $label = implode('', array_keys($g['group-by']));
+                    } else {
+                        $groupBy = array_values($g['group-by']);
+                    }
+                } else {
+                    $groupBy = $g['group-by'];
+                }
+            }
+            $scope = (isset($g['axis'])) ?$g['axis'] :$n;
+            $x = null;
+            $pivot = (isset($g['pivot'])) ?$g['pivot'] :null;
+            if(is_array($scope) && is_string($groupBy)) {
+                if(!$pivot) $G['data']['x']='_x';
+                $scope['_x'] = (strpos($groupBy, ' ')) ?$groupBy :$groupBy.' _x';
+                if($pivot && !isset($scope[$pivot])) {
+                    $pivot = '_x';
+                }
+            }
+            if($R=$cn::find($q,null,$scope,false,$orderBy,$groupBy)) {
+                //$x = [];
+                foreach($R as $i=>$o) {
+                    $d = $o->asArray($scope, null, null);
+                    if($pivot) {
+                        if(!isset($G['data']['columns'])) {
+                            $G['data']['columns']=[];
+                        }
+                        $l = $d[$pivot];
+                        unset($d[$pivot]);
+                        /*
+                        if(!$x) {
+                            $x = array_keys($d);
+                            array_unshift($x, '_x');
+                        }
+                        */
+                        foreach($d as $k=>$v) {
+                            if(!isset($G['data']['columns'][$i])) $G['data']['columns'][$i] = [$l];
+                            $G['data']['columns'][$i][]=$v;
+                        }
+                    } else {
+                        if(!isset($G['data']['columns'])) {
+                            $G['data']['columns']=[];
+                            $h = array_keys($d);
+                            foreach($h as $k=>$v) $G['data']['columns'][$k]=[$v];
+                        }
+                        $h = array_values($d);
+                        foreach($h as $k=>$v) $G['data']['columns'][$k][]=$v;
+                    }
+                    unset($R[$i], $i, $o, $h);
+                }
+                //if($x) $G['data']['columns'][] = $x;
+
+                $a = [
+                    'id'=>'z-graph-'.tdz::slug($this->url).'-'.\tdz::slug($n),
+                    'class'=>'z-graph z-graph--'.$n,
+                    'data-type'=>(isset($g['type'])) ?$g['type'] :'line',
+                    'data-label'=>$label,
+                ];
+                $G['data']['type'] = $a['data-type'];
+                $G['bindto'] = '#'.$a['id'];
+                if(isset($g['title'])) $a['data-title'] = $g['title'];
+                if(isset($g['style'])) $G += $g['style'];
+                $a['data-g'] = base64_encode(tdz::serialize($G, 'json'));
+                if(isset($g['class'])) $a['class'] .= ' '.$g['class'];
+                $s .= '<div';
+                foreach($a as $an=>$av) $s .= ' '.$an.'="'.tdz::xml($av).'"';
+                $s .= '>'
+                    . '</div>';
+                unset($a, $R, $G);
+            }
+        }
+
+        return $s;
+
     }
 
     public function renderUpdate($o=null, $scope=null)
@@ -2478,10 +2577,10 @@ class Tecnodesign_Interface implements ArrayAccess
         unset($l);
         $a = ucfirst($this->action);
         $s = '<p>'
+           . ((isset($this->text['title'])) ?'<span class="tdz-i-label-model">'.tdz::xml($this->text['title']).'</span>' :'')
            . '<span class="tdz-i-label-action">'.static::t('label'.$a, $a).'</span>'
-           . '<span class="tdz-i-label-key">'.$cn::fieldLabel($this->key).'</span>'
-           . '<span class="tdz-i-label-id">'.$this->id.'</span>'
-           . '<span class="tdz-i-label-title">'.tdz::xmlEscape($title).'</span>'
+           . (($this->id) ?'<span class="tdz-i-label-uid"><span class="tdz-i-label-key">'.$cn::fieldLabel($this->key).'</span><span class="tdz-i-label-id">'.tdz::xml($this->id).'</span></span>' :'')
+           . '<span class="tdz-i-label-title">'.tdz::xml($title).'</span>'
            . '</p>';
         unset($cn);
         return $s;
@@ -2678,8 +2777,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             $this->text['listOffset'] = $p;
             static::$headers['offset'] = $p;
-        } else if(isset($req['p']) && is_numeric($req['p'])) {
-            $pag = (int) $req['p'];
+        } else if(($pag=Tecnodesign_App::request('get', static::REQ_PAGE)) && is_numeric($pag)) {
             if(!$pag) $pag=1;
             $this->text['listOffset'] = (($pag -1)*$this->text['listLimit']);
             if($this->text['listOffset']>$count) $this->text['listOffset'] = $count;
@@ -2885,7 +2983,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function searchForm($post=array(), $render=true)
     {
-        foreach(array('o', 'd', 'p') as $p) {
+        foreach(array(static::REQ_ORDER, static::REQ_PAGE) as $p) {
             if(isset($post[$p])) unset($post[$p]);
         }
         if(!$post) {

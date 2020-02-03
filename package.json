@@ -1,7 +1,10 @@
 {
     "dependencies": {
         "moment": "2.24.*",
-        "pikaday-time": "1.6.1"
+        "pikaday-time": "1.6.1",
+        "c3": "0.7.*",
+        "d3": "5.*"
+
     },
     "license": "GPL-3.0-only"
 }

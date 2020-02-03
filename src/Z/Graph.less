@@ -1,0 +1,46 @@
+/*! Tecnodesign Z.Graph v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+@import "interface-vars.less";
+.z-graph {
+  display:none;
+  &.z-active {
+    display: block;
+    text-align:center;
+    margin:0 0 1.5em 0;
+    .c3 svg {
+        margin:0 1em;
+        font-size: 1em;
+    }
+    min-height:20em;
+    max-height:50vh;
+    &[data-title] {
+      &:before {
+        content: attr(data-title);
+        display:block;
+        font-weight:600;
+      }
+    }
+  }
+  .c3-tooltip {
+    color: #333;
+  }
+
+  .c3-chart-lines .c3-lines path {stroke-width:0.5em;}
+
+}
+
+@media only screen and (min-width: @mobileBreakPoint) {
+
+.z-graph.z-active {
+  &.i1s2, &.i1s4, &.i3s4, &.i1s3, &.i2s3 {
+      display: inline-block;
+  }
+  &.i1s2 {width:50%;}
+  &.i1s4 {width:25%;}
+  &.i3s4 {width:75%;}
+  &.i1s3 {width:33.3%;}
+  &.i2s3 {width:66.6%;}
+}
+
+
+
+}

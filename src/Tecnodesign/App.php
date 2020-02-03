@@ -502,7 +502,10 @@ class Tecnodesign_App
             foreach($src as $i=>$n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
                 if(file_exists($f=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'.'.$to)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
+                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$to)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
                    || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
                    || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
@@ -511,8 +514,9 @@ class Tecnodesign_App
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
                    || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
+                   //|| file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
                 ) {
+                    /*
                     if(substr($f, -13)=='/package.json') {
                         if(($pkg = json_decode(file_get_contents($f), true)) && isset($pkg['main']) && substr($pkg['main'], -1*strlen($to))==$to && file_exists($f2=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$pkg['main'])) {
                             $f = $f2;
@@ -522,6 +526,7 @@ class Tecnodesign_App
                         }
                         unset($f2, $pkg);
                     }
+                    */
 
                     $src[$i]=$f;
                     if($t===null) {
@@ -543,7 +548,7 @@ class Tecnodesign_App
                 $build = true;
                 if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
                 if($src) {
-                    tdz::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
+                    Tecnodesign_Studio_Asset::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
                     if(!file_exists($tf)) {// && !copy($f, $tf)
                         tdz::log('[ERROR] Could not build component '.$component.': '.$tf.' from ', $src);
                     }

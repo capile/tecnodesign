@@ -32,16 +32,19 @@ if(!isset($action)) $action = $Interface['action'];
             array_splice($urls,0, 1);
         }
         $b = '';
+        $la = ($Interface::$actionAlias && isset($Interface::$actionAlias['list']))?($Interface::$actionAlias['list']):('list');
         foreach($urls as $iurl=>$t) {
-            if($iurl && $iurl!=$link) {
-                $b .= '<a href="'.$iurl.'">'.tdz::xmlEscape($t['title']).'</a>';
+            $ltitle = (isset($t['icon'])) ?'<img src="'.tdz::xml($t['icon']).'" title="'.tdz::xml($t['title']).'" />' :tdz::xml($t['title']);
+            if($iurl && $iurl!=$link && !($t['title']==$title && $link=$iurl.'/'.$la)) {
+                $b .= '<a href="'.$iurl.'">'.$ltitle.'</a>';
             } else {
-                $b .= '<span>'.tdz::xmlEscape($t['title']).'</span>';
+                $b .= '<span>'.$ltitle.'</span>';
+                break;
             }
         }
 
         if($b) {
-            echo str_replace('$LABEL', $b, $Interface::$headingTemplate);
+            echo str_replace('$LABEL', $b, $Interface::$breadcrumbTemplate);
         }
     }
 

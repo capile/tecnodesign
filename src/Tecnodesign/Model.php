@@ -1020,24 +1020,27 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         return tdz::xml((string)$this);
     }
 
-    public function asArray($scope=null, $keyFormat=null, $valueFormat=null, $serialize=null)
+    public function asArray($scope=null, $keyFormat=null, $valueFormat=false, $serialize=null)
     {
         $noscope = (is_null($scope));
         $schema = $this->schema();
         $result = array();
         if (!is_null($scope) && (is_array($scope) || isset($schema['scope'][$scope]))) {
             if(!is_array($scope)) $scope = $schema['scope'][$scope];
-        } else if(isset($schema['columns'])) {
-            $scope = $schema['columns'];
+        } else if($schema->properties) {
+            $scope = $schema->properties;
         }
         if(!$scope && $noscope) {
             return $this->_original;
         }
         if($scope && is_array($scope)) {
             foreach($scope as $fn=>$fv) {
-                if(is_string($fv) && isset($schema['columns'][$fv]['bind']) && $schema['columns'][$fv]['bind']!=$fv) {
-                    $fv = $schema['columns'][$fv]['bind'];
+                $type = 'string';
+                if(is_string($fv) && isset($schema->properties[$fv]['bind']) && $schema->properties[$fv]['bind']!=$fv) {
+                    $fv = $schema->properties[$fv]['bind'];
+                    if(isset($schema->properties[$fv]['type'])) $type = $schema->properties[$fv]['type'];
                 } else if(is_array($fv) || is_object($fv)) {
+                    if(isset($fv['type'])) $type = $fv['type'];
                     $fv = (isset($fv['bind']))?($fv['bind']):($fn);
                 }
                 if(strpos($fv, ' ')) {
@@ -1049,8 +1052,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $v = sprintf($valueFormat, $this->$fv);
                 } else {
                     $v = $this->$fv;
+                    if(is_string($v) && is_numeric($v) && $type!='string') {
+                        if($type==='int')$v = (int) $v;
+                        else if($type=='number')$v=(float)$v; 
+                    }
                 }
-                if(!is_null($v)) {
+                if(!is_null($v) || $valueFormat!==false) {
                     if($keyFormat===true) {
                         $k = $this->fieldLabel($fn);
                     } else if($keyFormat) {
@@ -1902,6 +1909,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
     public function renderScope($scope=null, $xmlEscape=true, $box=null, $tpl=null, $sep=null, $excludeEmpty=null, $showOriginal=null)
     {
+        static $flabel;
         $id = $scope;
         $s = '';
         if(!is_array($scope) && method_exists($this, $m='renderScope'.tdz::camelize($scope, true))) {
@@ -1954,7 +1962,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $fs[$fsn] .= str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($label, $fn, $label, $class, ''), $sep);
                 unset($class);
             } else {
-                if($fsn && !isset($fs[$fsn])) {
+                if($fsn && !isset($fs[$fsn]) && $fsn!=$flabel) {
+                    $flabel = $fsn;
                     $class = (!is_int($label))?(tdz::slug($label)):('');
                     $h[$fsn] = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($fsn, $fn, $fsn, $class, ''), $sep);
                 }

@@ -128,8 +128,11 @@ class Tecnodesign_Studio_Asset
                 exec($cmd, $cmdoutput, $ret);
             } else {
                 $Min = null;
+                $add = '';
                 foreach($files as $f) {
-                    if($Min===null) {
+                    if(strpos($f, '.min.'.strtolower($this->format))) {
+                        $add .= "\n".file_get_contents($f);
+                    } else if($Min===null) {
                         $cmd = 'MatthiasMullie\\Minify\\'.strtoupper($this->format);
                         $Min = new $cmd($f);
                     } else {
@@ -137,8 +140,10 @@ class Tecnodesign_Studio_Asset
                     }
                 }
                 if($Min) {
-                    tdz::save($tempnam, $Min->minify(null, [dirname($outputFile), TDZ_DOCUMENT_ROOT]));
+                    tdz::save($tempnam, $Min->minify(null, [dirname($outputFile), TDZ_DOCUMENT_ROOT]).$add);
                     unset($Min);
+                } else if($add) {
+                    tdz::save($tempnam, $add);
                 }
             }
             if(file_exists($tempnam) && filesize($tempnam)>0) {
@@ -442,7 +447,7 @@ class Tecnodesign_Studio_Asset
             if(!$file) return false;
         }
         unset($u);
-        $method = tdzAsset::$optimizeActions[$m[2]];
+        $method = static::$optimizeActions[$m[2]];
         $ext = strtolower($m[3]);
         $result=null;
         if($method['method']=='resize') {
@@ -464,7 +469,7 @@ class Tecnodesign_Studio_Asset
             }
             $cache = Tecnodesign_Cache::cacheDir().'/assets/'.md5($d.':'.implode(',', $opt)).'.'.$ext;
             if(!file_exists($cache) || filemtime($cache)<$T) {
-                tdz::minify($opt, $d, true, true, false, $cache);
+                static::minify($opt, $d, true, true, false, $cache);
             }
             unset($opt, $d, $h);
             if(file_exists($cache) && filemtime($cache)>filemtime($file)) {

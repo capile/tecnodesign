@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Interface v2.3 | (c) 2019 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Interface v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
 @import "interface-vars.less";
 @import "fontawesome.less";
 
@@ -310,6 +310,7 @@ input.tdz-i-switch{
   margin:0;
   padding: 0 0.5em;
   .tdz-i-scope-block {
+    clear:both; 
     position:relative;
     margin: 0 -0.5em 0.5em -0.5em;
     .tdz-i-scope-block {
@@ -1139,9 +1140,7 @@ select, input {
   color:@colorTabText;
 }
 
-
-
-.tdz-i-label-action{
+.tdz-i--list .tdz-i-label-title, .tdz-i-label-action, .tdz-i-label-model {
   display:none;
 }
 .tdz-i-actions a,.tdz-i-button,[class^="tdz-i--"], [class*=" tdz-i--"],[class^="z-i--"], [class*=" z-i--"] {
@@ -1217,11 +1216,17 @@ th > input[type=checkbox], td > input[type=checkbox]{
   opacity: 1;
 }
 
-.tdz-i-summary, .tdz-i-footer{
+.tdz-i-summary, .tdz-i-footer, .z-i-graph{
   background:@colorSummary;
   color:@colorSummaryText;
   margin:0;
   position:relative;
+}
+
+.z-i-graph {
+  & > .z-graph { margin:0 0.5em; }
+  p {margin:0 0 0.5em 0;padding:0; }
+  p:last-child {margin-bottom:0;}
 }
 .tdz-i-summary {
   padding:0.5em 2em 0.5em 0.5em;

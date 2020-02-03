@@ -12,6 +12,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
     'Form.CheckLabel':'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
     'Interface.startup': '.tdz-i[data-url]',
     'Interface.AutoRemove': '.z-auto-remove',
+    'Graph.Graph': '.z-graph',
   };
 
 // load authentication info
@@ -137,9 +138,9 @@ Z.init=function(o)
                     delete(window[p]);
                 }
             } else {
-                var u='z-'+Z.slug(a[0])+'.js';
+                var u='z-'+Z.slug(a[0]);
                 if(!(u in _assets)) {
-                    loadAsset('z-'+Z.slug(a[0])+'.js', Z.init, arguments, this);
+                    loadAsset('z-'+Z.slug(a[0]), Z.init, arguments, this);
                 }
             }
         }
@@ -159,6 +160,14 @@ var _delayed={};
 function loadAsset(f, fn, args, ctx)
 {
     var T, o, r;
+    if(f in _assets) return;
+    _assets[f]=true;
+
+    if(f.indexOf('.')<0) {
+        loadAsset(f+'.js', fn, args, ctx);
+        loadAsset(f+'.css', fn, args, ctx);
+        return;
+    }
     if(f.indexOf('/')<0) {
         f=_assetUrl+f;
     }

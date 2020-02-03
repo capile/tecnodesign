@@ -342,7 +342,6 @@ class Tecnodesign_Query_Api
         return $this->_scope;
     }
 
-
     public function fetch($o=null, $l=null, $scope=null, $callback=null, $args=null)
     {
         if(!$this->_schema) return false;
@@ -817,7 +816,6 @@ class Tecnodesign_Query_Api
                 static::$dataAttribute = $dataAttribute;
                 $dataAttribute = null;
             }
-
             if($cn) $cn=null;
             $this->response = $R;
             unset($R);
@@ -828,24 +826,9 @@ class Tecnodesign_Query_Api
                 }
                 if($R=$this->_getResponseAttribute(static::$dataAttribute)) {
                     $this->response = $R;
-                } else if($cn) {
-                    $cn = null;
-                    //$this->response = null;
                 }
                 unset($R);
             }
-            /*
-            if($this->response && is_array($this->response) && static::$dataAttribute) {
-                if(static::$countAttribute && isset($this->response[static::$countAttribute])) {
-                    $this->_count = $this->response[static::$countAttribute];
-                }
-                if(isset($this->response[static::$dataAttribute])) {
-                    $this->response = $this->response[static::$dataAttribute];
-                //} else {
-                //    $this->response = array();
-                }
-            }
-            */
         }
 
         if(!$keepAlive) {

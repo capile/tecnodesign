@@ -11,6 +11,7 @@
  * @version   2.3
  */
 $id = tdz::slug($url);
+$link = $url;
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
 
@@ -20,13 +21,14 @@ if(!isset($action)) $action = $Interface['action'];
 // .tdz-i-header
 ?><div class="tdz-i-header"><?php 
     $urls = Tecnodesign_Interface::$urls;
-    if(!$Interface::$breadcrumbs) {
+    if(Tecnodesign_App::request('ajax')) {
         $urls = array_slice($urls, -1, 1, true);
     }
-    foreach($urls as $iurl=>$t): 
-        ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' tdz-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><?php echo \tdz::xml($t['title']); ?></a><?php
-        unset(Tecnodesign_Interface::$urls[$iurl]);
-    endforeach;
+    foreach($urls as $iurl=>$t) {
+        if($iurl!='/' && (!isset($t['interface']) || $t['interface'])):
+            ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' tdz-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><?php echo \tdz::xml($t['title']); ?></a><?php
+        endif;
+    }
 
 ?></div><?php
 
@@ -51,6 +53,28 @@ if(!isset($action)) $action = $Interface['action'];
         // .tdz-i-container
         ?><div class="tdz-i-container"><?php 
 
+            if($title && $Interface::$breadcrumbs) {
+                $urls = Tecnodesign_Interface::$urls;
+                if(!$urls) {
+                    $urls = array(array('title'=>$title));
+                }
+                $b = '';
+                $la = ($Interface::$actionAlias && isset($Interface::$actionAlias['list']))?($Interface::$actionAlias['list']):('list');
+                foreach($urls as $iurl=>$t) {
+                    $ltitle = (isset($t['icon'])) ?'<img src="'.tdz::xml($t['icon']).'" title="'.tdz::xml($t['title']).'" />' :tdz::xml($t['title']);
+                    if($iurl && $iurl!=$link && !($t['title']==$title && $link=$iurl.'/'.$la)) {
+                        $b .= '<a href="'.$iurl.'">'.$ltitle.'</a>';
+                    } else {
+                        $b .= '<span>'.$ltitle.'</span>';
+                        break;
+                    }
+                }
+
+                if($b) {
+                    echo str_replace('$LABEL', $b, $Interface::$breadcrumbTemplate);
+                }
+            }
+
             if(isset($options['before-'.$action])) echo \tdz::markdown($options['before-'.$action]);
             else if(isset($options['before'])) echo \tdz::markdown($options['before']);
 
@@ -63,6 +87,13 @@ if(!isset($action)) $action = $Interface['action'];
                 }
 
                 echo $Interface->message(), (isset($app))?($app):('');
+
+                if(isset($list) && ($g=$Interface->renderGraph())):
+                    ?><div class="<?php echo $Interface::$attrGraphClass; ?>"><?php
+                        echo $g;
+                    ?></div><?php
+                endif;
+
 
                 if(isset($list)) {
                     if(isset($searchForm))
