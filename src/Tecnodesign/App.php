@@ -895,6 +895,29 @@ class Tecnodesign_App
             }
             self::$_request['headers'] = tdz::fixEncoding(self::$_request['headers'], 'UTF-8');
         }
+
+        if($q==='cookie' && !isset(self::$_request[$q])) {
+            self::$_request[$q] = [];
+            if (isset($_SERVER['HTTP_COOKIE'])) {
+                $rawcookies=preg_split('/\;\s*/', $_SERVER['HTTP_COOKIE'], null, PREG_SPLIT_NO_EMPTY);
+                foreach ($rawcookies as $cookie) {
+                    if (strpos($cookie, '=')===false) {
+                        self::$_request[$q][$cookie] = true;
+                        continue;
+                    }
+                    list($cname, $cvalue)=explode('=', $cookie, 2);
+                    self::$_request[$q][trim($cname)][] = $cvalue;
+                }
+            }
+            if(isset($_COOKIE) && $_COOKIE) {
+                foreach($_COOKIE as $cname=>$cvalue) {
+                    if(!isset(self::$_request[$q][trim($cname)])) {
+                        self::$_request[$q][trim($cname)][] = $_COOKIE[$cname];
+                    }
+                }
+            }
+        }
+
         if($q) {
             if(!isset(self::$_request[$q])) return null;
             $r = self::$_request[$q];
