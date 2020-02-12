@@ -1,10 +1,154 @@
 /*! Tecnodesign Z.Interface v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+@import "interface-vars-default.less";
 @import "interface-vars.less";
 @import "fontawesome.less";
 
 .tdz-i-box{
   color:@colorText;
   width:100%;
+  position:relative;
+  overflow-y:hidden;
+  overflow-x:hidden;
+}
+
+.tdz-i-body {
+  background:@colorNavigation;
+  &:after {
+    content: ' ';
+    display:block;
+    clear:both;
+    height:0;
+  }
+}
+
+.z-i-nav {
+  display:none;
+  background:@colorNavigation;
+  color:@colorNavigationText;
+  margin:0;
+  a:link {
+    color: @colorNavigationText + #111;
+    text-decoration:none;
+  }
+  a:visited {
+    color: @colorNavigationText - #111;
+    text-decoration:none;
+  }
+  a:hover, a:active {
+    color: @colorActive;
+    text-decoration:none;
+  }
+  .z-current {
+    font-weight:bold;
+  }
+  ~ .z-toggler {
+    cursor: pointer;
+    position:absolute;
+    height:100%;
+    width:0.5em;
+    top:0;
+    text-decoration:none;
+    background:@colorToggler;
+    &:after {
+      content: ' ';
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      left:0;
+      opacity: 0;
+      background: @colorNavigationActive;
+    }
+    &:before {
+      display:none;
+      content: '\f101';
+      font-family: FontAwesome;
+      font-weight: normal;
+      font-style: normal;
+      text-decoration: inherit;
+      position:absolute;
+      font-size:2em;
+      left: 0.5em;
+      height:1em;
+      line-height:1em;
+      width:1em;
+      color: @colorNavigationActive;
+      opacity: 0.5;
+    }
+    &:before {
+      top:0.25em;
+    }
+    &:hover, &:active {
+      text-decoration:none;
+      &:before {
+        opacity:1;
+      }
+      &:after {
+        opacity:0.5;
+      }
+    }
+
+  }
+  & ~ .tdz-i.tdz-i-active {
+    margin-left: 0.5em;
+  }
+
+  &.z-active {
+    display: inline-block;
+    float:left;
+    width: 25%;
+    max-height:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+    z-index:17;
+    & ~ .tdz-i.tdz-i-active {
+      display:inline-block;
+      margin:0;
+      width:75%;
+      border-left:0.1em solid @colorTabActive;
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      /*
+      &:before {
+        content: ' ';
+        display:block;
+        position:absolute;
+        left:-34%;
+        background:@colorNavigation;
+        width:34%;
+        height:100%;
+      }
+      */
+    }
+    li {
+      margin: 0;
+      padding: 0;
+    }
+    ul {
+      margin: 0;
+      padding: 0 0 0 1em;
+    }
+    & > ul {
+      display:block;
+      margin: 0;
+      padding: 0.5em 0.5em 1em 2em;
+      border-top: 0.2em solid @colorTabActive;
+    }
+    & ~ .z-toggler {
+      z-index:18;
+      margin-left: -0.5em;
+      .background-alpha(@colorToggler, 0.1);
+      &:before {
+        content: '\f100';
+        display: inline-block;
+        left:inherit;
+        top:0;
+        right:0;
+      }
+
+    }
+  }
 }
 
 .tdz-i {
@@ -14,11 +158,13 @@
   overflow-x:hidden;
   opacity:0;
   &.tdz-i-active{
-    border-top:3px solid @colorTabActive;
+    border-top:0.2em solid @colorTabActive;
     height:auto;
     opacity:1;
     z-index:16;
-    min-height:50vh;
+    position:static;
+    overflow-y:visible;
+    overflow-x:visible;
   }
   &.tdz-i-standalone {
     height:auto;
@@ -87,6 +233,27 @@
   background: -moz-linear-gradient(top, transparent 0, transparent 2em, @colorTab 2em,@colorTab 100%);
   background: -webkit-linear-gradient(top, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
   background: linear-gradient(to bottom, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
+  &[data-toggler] {
+    padding-left:0.5em;
+  } 
+  &[data-toggler="on"] {
+    position:relative;
+    padding-left:0;
+    margin-left: 25%;
+    &:before {
+      content:@labelNavigation;
+      background-color:@colorNavigationTab;
+      color: @colorNavigationTabText;
+      position: absolute;
+      width: 33.4%;
+      padding-left:0.5em;
+      height:100%;
+      left:-33.4%; 
+      top:0;
+      text-indent: 0.5em;
+      line-height: 2em;
+    }
+  }
 }
 
 .tdz-i-title{
@@ -1076,7 +1243,6 @@ select, input {
 .tdz-i-actions {
   position:absolute;
   text-align:right;
-  top: 0;
   right: 0;
   label {
     color:transparent;
@@ -1216,11 +1382,23 @@ th > input[type=checkbox], td > input[type=checkbox]{
   opacity: 1;
 }
 
-.tdz-i-summary, .tdz-i-footer, .z-i-graph{
+.tdz-i-summary, .tdz-i-footer, .z-i-graph {
   background:@colorSummary;
   color:@colorSummaryText;
   margin:0;
   position:relative;
+  a:link {
+    color: @colorSummaryText + #111;
+    text-decoration:none;
+  }
+  a:visited {
+    color: @colorSummaryText - #111;
+    text-decoration:none;
+  }
+  a:hover, a:active {
+    color: @colorActive;
+    text-decoration:none;
+  }
 }
 
 .z-i-graph {
@@ -1263,7 +1441,6 @@ th > input[type=checkbox], td > input[type=checkbox]{
       width:2em;
     }
   }
-  margin-bottom:2em;
 }
 
 .tdz-i-standalone {
@@ -1474,8 +1651,6 @@ th > input[type=checkbox], td > input[type=checkbox]{
     background:@color;
     background:transparent;
     background: hsla(hue(@color), saturation(@color), lightness(@color), @alpha);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@{color}@{alphah}', endColorstr='@{color}@{alphah}');
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=@{color}@{alphah}, endColorstr=@{color}@{alphah})";
 }
 
 .opacity(@alpha)

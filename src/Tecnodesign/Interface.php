@@ -60,6 +60,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $errorNoInput       = 'No input was provided.',
         $labelFilter        = 'Filter',
         $labelActions       = 'Actions',
+        $navigation         = true,
         $breadcrumbs        = true,
         $displaySearch      = true,
         $displayList        = true,
@@ -743,9 +744,8 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             if(!$f) {
                 if(isset($p0)) $p = $p0;
-                if($f=static::configFile('index')) {
+                if(!$p && ($f=static::configFile('index'))) {
                     $n = 'index';
-                    $rn = 'index';
                 } else if($p) {
                     $n = preg_replace('#[^a-z0-9\-\_\@]#i', '', array_shift($p));
                     $rn = '/index';
@@ -2045,92 +2045,101 @@ class Tecnodesign_Interface implements ArrayAccess
             // autobuild graph based on index values
         }
         if(!$this->graph) return;
-
         $s = '';
         foreach($this->graph as $n=>$g) {
-            $G=['data'=>[]];
-            $q = (isset($g['where'])) ?$g['where'] :[];
-            if($this->search) $q = $this->search + $q;
-            $orderBy = (isset($g['order-by'])) ?$g['order-by'] :null;
-            $groupBy = true;
-            $label = (isset($g['label'])) ?$g['label'] :null;
-            if(isset($g['group-by'])) {
-                if(is_array($g['group-by'])) {
-                    if(count($g['group-by'])==1) {
-                        $groupBy = implode('', $g['group-by']);
-                        if(!$label) $label = implode('', array_keys($g['group-by']));
-                    } else {
-                        $groupBy = array_values($g['group-by']);
-                    }
-                } else {
-                    $groupBy = $g['group-by'];
-                }
-            }
-            $scope = (isset($g['axis'])) ?$g['axis'] :$n;
-            $x = null;
-            $pivot = (isset($g['pivot'])) ?$g['pivot'] :null;
-            if(is_array($scope) && is_string($groupBy)) {
-                if(!$pivot) $G['data']['x']='_x';
-                $scope['_x'] = (strpos($groupBy, ' ')) ?$groupBy :$groupBy.' _x';
-                if($pivot && !isset($scope[$pivot])) {
-                    $pivot = '_x';
-                }
-            }
-            if($R=$cn::find($q,null,$scope,false,$orderBy,$groupBy)) {
-                //$x = [];
-                foreach($R as $i=>$o) {
-                    $d = $o->asArray($scope, null, null);
-                    if($pivot) {
-                        if(!isset($G['data']['columns'])) {
-                            $G['data']['columns']=[];
-                        }
-                        $l = $d[$pivot];
-                        unset($d[$pivot]);
-                        /*
-                        if(!$x) {
-                            $x = array_keys($d);
-                            array_unshift($x, '_x');
-                        }
-                        */
-                        foreach($d as $k=>$v) {
-                            if(!isset($G['data']['columns'][$i])) $G['data']['columns'][$i] = [$l];
-                            $G['data']['columns'][$i][]=$v;
-                        }
-                    } else {
-                        if(!isset($G['data']['columns'])) {
-                            $G['data']['columns']=[];
-                            $h = array_keys($d);
-                            foreach($h as $k=>$v) $G['data']['columns'][$k]=[$v];
-                        }
-                        $h = array_values($d);
-                        foreach($h as $k=>$v) $G['data']['columns'][$k][]=$v;
-                    }
-                    unset($R[$i], $i, $o, $h);
-                }
-                //if($x) $G['data']['columns'][] = $x;
-
-                $a = [
-                    'id'=>'z-graph-'.tdz::slug($this->url).'-'.\tdz::slug($n),
-                    'class'=>'z-graph z-graph--'.$n,
-                    'data-type'=>(isset($g['type'])) ?$g['type'] :'line',
-                    'data-label'=>$label,
-                ];
-                $G['data']['type'] = $a['data-type'];
-                $G['bindto'] = '#'.$a['id'];
-                if(isset($g['title'])) $a['data-title'] = $g['title'];
-                if(isset($g['style'])) $G += $g['style'];
-                $a['data-g'] = base64_encode(tdz::serialize($G, 'json'));
-                if(isset($g['class'])) $a['class'] .= ' '.$g['class'];
-                $s .= '<div';
-                foreach($a as $an=>$av) $s .= ' '.$an.'="'.tdz::xml($av).'"';
-                $s .= '>'
-                    . '</div>';
-                unset($a, $R, $G);
-            }
+            $g['model'] = $cn;
+            $g['id'] = tdz::slug($this->url).'-'.\tdz::slug($n);
+            if($this->search) $g['where'] = (isset($g['where'])) ?$this->search + $g['where'] :$this->search;
+            if(!isset($g['scope'])) $g['scope'] = $n;
+            $s .= static::graph($g);
         }
 
         return $s;
+    }
 
+    public static function graph($g)
+    {
+        $cn = $g['model'];
+        $G=['data'=>[]];
+        $q = (isset($g['where'])) ?$g['where'] :[];
+        $orderBy = (isset($g['order-by'])) ?$g['order-by'] :null;
+        $groupBy = true;
+        $label = (isset($g['label'])) ?$g['label'] :null;
+        if(isset($g['group-by'])) {
+            if(is_array($g['group-by'])) {
+                if(count($g['group-by'])==1) {
+                    $groupBy = implode('', $g['group-by']);
+                    if(!$label) $label = implode('', array_keys($g['group-by']));
+                } else {
+                    $groupBy = array_values($g['group-by']);
+                }
+            } else {
+                $groupBy = $g['group-by'];
+            }
+        }
+        $scope = (isset($g['axis'])) ?$g['axis'] :$n;
+        $x = null;
+        $pivot = (isset($g['pivot'])) ?$g['pivot'] :null;
+        if(is_array($scope) && is_string($groupBy)) {
+            if(!$pivot) $G['data']['x']='_x';
+            $scope['_x'] = (strpos($groupBy, ' ')) ?$groupBy :$groupBy.' _x';
+            if($pivot && !isset($scope[$pivot])) {
+                $pivot = '_x';
+            }
+        }
+        if($R=$cn::find($q,null,$scope,false,$orderBy,$groupBy)) {
+            //$x = [];
+            foreach($R as $i=>$o) {
+                $d = $o->asArray($scope, null, null);
+                if($pivot) {
+                    if(!isset($G['data']['columns'])) {
+                        $G['data']['columns']=[];
+                    }
+                    $l = $d[$pivot];
+                    unset($d[$pivot]);
+                    /*
+                    if(!$x) {
+                        $x = array_keys($d);
+                        array_unshift($x, '_x');
+                    }
+                    */
+                    foreach($d as $k=>$v) {
+                        if(!isset($G['data']['columns'][$i])) $G['data']['columns'][$i] = [$l];
+                        $G['data']['columns'][$i][]=$v;
+                    }
+                } else {
+                    if(!isset($G['data']['columns'])) {
+                        $G['data']['columns']=[];
+                        $h = array_keys($d);
+                        foreach($h as $k=>$v) $G['data']['columns'][$k]=[$v];
+                    }
+                    $h = array_values($d);
+                    foreach($h as $k=>$v) $G['data']['columns'][$k][]=$v;
+                }
+                unset($R[$i], $i, $o, $h);
+            }
+            //if($x) $G['data']['columns'][] = $x;
+
+            $a = [
+                'id'=>'z-graph-'.tdz::slug($g['id']),
+                'class'=>'z-graph z-graph--'.$n,
+                'data-type'=>(isset($g['type'])) ?$g['type'] :'line',
+                'data-label'=>$label,
+            ];
+            $G['data']['type'] = $a['data-type'];
+            $G['bindto'] = '#'.$a['id'];
+            if(isset($g['title'])) $a['data-title'] = $g['title'];
+            if(isset($g['style'])) $G += $g['style'];
+            $a['data-g'] = base64_encode(tdz::serialize($G, 'json'));
+            if(isset($g['class'])) $a['class'] .= ' '.$g['class'];
+            $s .= '<div';
+            foreach($a as $an=>$av) $s .= ' '.$an.'="'.tdz::xml($av).'"';
+            $s .= '>'
+                . '</div>';
+            unset($a, $R, $G);
+        }
+
+        return $s;
     }
 
     public function renderUpdate($o=null, $scope=null)
@@ -3327,6 +3336,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $pp=array();
         $pl=array();
         foreach($Is as $k=>$I) {
+            if(isset($I['options']['navigation']) && !$I['options']['navigation']) continue;
             if(!isset($I['title']) || !$I['title']) {
                 $m = $I['model'];
                 $I['title'] = $m::label();

@@ -57,6 +57,15 @@
         }
 
         if(_reStandalone.test(I.className)) return true;
+
+        if((b=Z.parentNode(I, '.tdz-i-body').querySelector('.z-i-nav')) && !b.getAttribute('data-startup')) {
+            b.setAttribute('data-startup', '1');
+            l=b.querySelectorAll('a[href]');
+            i=l.length;
+            while(i-- > 0) if(!l[i].getAttribute('target') && !l[i].getAttribute('download')) Z.bind(l[i], 'click', loadInterface);
+            l=null;
+        }
+
         // bind links to Interface actions
         l=I.querySelectorAll('a[href^="'+base+'"],.tdz-i-a');
         i=l.length;
@@ -417,7 +426,7 @@
             } else if ((I=Z.parentNode(this, '.tdz-i-title[data-url]'))) {
                 I = document.querySelector('.tdz-i[data-url="'+I.getAttribute('data-url')+'"]');
                 if(!I) return true;
-            } else return true;
+            } else if(!Z.parentNode(this, '.z-i-nav')) return true;
             if(this.className.search(/\btdz-i--close\b/)>-1) {
                 if((u=this.getAttribute('href'))) {
                     activeInterface(u);
@@ -667,6 +676,17 @@
                 R[i].className = R[i].className.replace(/\btdz-i-(title-)?active\b\s*/g, '').trim();
             }
             document.title = Z.text(H);
+        }
+
+        var N = Z.parentNode(I, '.tdz-i-body').querySelector(':scope > .z-i-nav'), nb;
+        if(N && (nb = N.getAttribute('data-base-url'))) {
+            R=N.querySelectorAll('a.z-current[href]');
+            i=R.length;
+            while(i--) R[i].className = R[i].className.replace(/\s*\bz-current\b/g, '');
+            if(u.substr(0, nb.length+1)==nb+'/') {
+                if((i=u.indexOf('/', nb.length+1))) u = u.substr(0, i);
+                if((N=N.querySelector('a[href="'+u+'"]'))) N.className = String(N.className+' z-current').trim();
+            }
         }
 
         checkMessages(I);

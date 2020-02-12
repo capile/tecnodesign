@@ -18,8 +18,12 @@ else $qs='';
 if(isset($title)) Tecnodesign_App::response('title', $title);
 if(!isset($action)) $action = $Interface['action'];
 
+$nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interface::listInterfaces() :null;
+
 // .tdz-i-header
-?><div class="tdz-i-header"><?php 
+?><div class="tdz-i-header"<?php 
+    if($nav) echo (!Tecnodesign_App::request('cookie', 'z-nav-disable')) ?' data-toggler="on"' :' data-toggler="off"';
+    echo '>'; 
     $urls = Tecnodesign_Interface::$urls;
     if(Tecnodesign_App::request('ajax')) {
         $urls = array_slice($urls, -1, 1, true);
@@ -34,6 +38,12 @@ if(!isset($action)) $action = $Interface['action'];
 
 // .tdz-i-body
 ?><div class="tdz-i-body"><?php
+
+    if($nav) {
+        $nclass = 'z-i-nav z-toggle-active';
+        if(!Tecnodesign_App::request('cookie', 'z-nav-disable')) $nclass .= ' z-active';
+        echo '<div class="', $nclass, '" data-toggler-cookie-disable="z-nav-disable" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header">', $nav, '</div>'; 
+    }
 
     // .tdz-i
     ?><div class="tdz-i<?php if(isset($active) && $active) echo ' tdz-i-active'; ?>" data-action="<?php echo tdz::xml($Interface['action']) ?>" data-url="<?php echo $url ?>"<?php 

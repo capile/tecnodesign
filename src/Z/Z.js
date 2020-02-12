@@ -7,6 +7,7 @@ var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
     Callback:'*[data-callback]',
     Copy:'a.z-copy[data-target]',
     DisplaySwitch:'*[data-display-switch]',
+    ToggleActive:'.z-toggle-active',
     'Form.Form': 'form.z-form',
     'Form.AutoSubmit': 'form.z-auto-submit',
     'Form.CheckLabel':'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
@@ -1239,10 +1240,44 @@ Z.t=function(s, lang)
     var rgx = /(\d+)(\d{3})/;
     while (rgx.test(x1)) {
         if(!ts) ts = Z.l[Z.language].thousandSeparator;
-        x1 = x1.replace(rgx, '$1' + ts + '$2');
+        x1 = x1.replace(rgx, '$1' + ts + '$2')
     }
     return x1 + x2;
 };
+
+
+Z.initToggleActive=function(o)
+{
+    if(!o || !Z.node(o)) o=this;
+    if(o.parentNode.querySelector(':scope > .z-toggler')) return;
+    Z.element({e:'a',p:{className:'z-toggler'},t:{click:ToggleActive}}, null, o);
+}
+
+function ToggleActive()
+{
+    var ts=this.getAttribute('data-target'), t=(ts) ?document.querySelector(ts) :this.previousSibling;
+    if(!t) return;
+    var c=this.getAttribute('data-active-class');
+    if(!c)c='z-active';
+    var re=new RegExp('\\s*\\b'+c+'\\b', 'g'), k, L, i, st='on';
+    if(t.className.search(c)>-1) { // disable
+        t.className = t.className.replace(re, '');
+        if(k=t.getAttribute('data-toggler-cookie-disable')) Z.cookie(k, true, null, '/');
+        if(k=t.getAttribute('data-toggler-cookie-enable'))  Z.cookie(k, null, new Date(2000, 1, 1), '/');
+        st='off';
+    } else { // enable
+        t.className += ' '+c;
+        if(k=t.getAttribute('data-toggler-cookie-disable')) Z.cookie(k, null, new Date(2000, 1, 1),'/');
+        if(k=t.getAttribute('data-toggler-cookie-enable'))  Z.cookie(k, true, null, '/');
+        st='on';
+    }
+    if(k=t.getAttribute('data-toggler-attribute-target')) {
+        L=document.querySelectorAll(k);
+        i=L.length;
+        while(i--) L[i].setAttribute('data-toggler', st);
+    }
+}
+
 
 window.requestAnimFrame = (function(){
   return  window.requestAnimationFrame       ||
