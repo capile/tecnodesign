@@ -69,30 +69,37 @@ class Tecnodesign_Query_Ldap
                 $db = Tecnodesign_Query::database($n);
                 if(!$n && is_array($db)) $db = array_shift($db); 
                 $db += array('username'=>null, 'password'=>null, 'options'=>static::$options);
+                if(isset($db['options']['certificate'])) {
+                    $crt = $db['options']['certificate'];
+                    unset($db['options']['certificate']);
+                    if(substr($crt, 0, 1)!='/') $crt = TDZ_APP_ROOT.'/'.$crt;
+                    putenv('LDAPTLS_CACERT='.$crt);
+                }
                 $level = 'connect';
                 static::$conn[$n] = $ldapconn = ldap_connect($db['dsn']);
                 if(!static::$conn[$n]) {
                     throw new Tecnodesign_Exception('ldap_connect failed!');
                 }
                 if($db['options']) {
+                    $level = 'configure';
                     foreach($db['options'] as $k=>$v) {
                         ldap_set_option(static::$conn[$n], $k, $v);
                     }
                 }
                 if(isset($db['username'])) {
                     $level = 'bind';
-                    if(!ldap_bind(static::$conn[$n], $db['username'], $db['password'])) {
+                    if(!@ldap_bind(static::$conn[$n], $db['username'], $db['password'])) {
                         throw new Tecnodesign_Exception(ldap_error(static::$conn[$n]));
                     }
                 }
             } catch(Exception $e) {
-                tdz::log('Could not '.$level.' to '.$n.":\n  {$e->getMessage()}", $db);
+                tdz::log('[INFO] Could not '.$level.' to '.$n.": {$e->getMessage()}");
                 if($tries) {
                     $tries--;
                     if(isset(static::$conn[$n])) static::$conn[$n]=null;
                     return static::connect($n, $exception, $tries);
                 } else {
-                    tdz::log("[INFO] {$e}");
+                    tdz::log("[WARNING] Giving up on {$level} to {$n}: {$e->getMessage()}");
                 }
                 if($exception) {
                     throw new Exception('Could not connect to '.$n);
@@ -137,7 +144,10 @@ class Tecnodesign_Query_Ldap
             return null;
         }
         if($object) {
-            if(!isset(static::$schemas[$cn])) static::$schemas[$cn] = new Tecnodesign_Schema($cn::$schema);
+            if(!isset(static::$schemas[$cn])) {
+                if(!is_object($cn::$schema)) static::$schemas[$cn] = new Tecnodesign_Schema($cn::$schema);
+                else static::$schemas[$cn] = $cn::$schema;
+            }
             return static::$schemas[$cn];
         }
         return $cn::$schema;
@@ -198,7 +208,7 @@ class Tecnodesign_Query_Ldap
         $where = $this->getWhere($this->_where);
         if(!$where) $where = '(objectClass=*)';
         $limit = -1;//($count || !$this->_limit)?(-1):((int)$this->_limit);
-        $this->_last = ldap_list(self::connect($this->schema('database')), $this->schema('tableName'), $where, $select, 0, $limit, static::$timeout);
+        $this->_last = @ldap_list(self::connect($this->schema('database')), $this->schema('tableName'), $where, $select, 0, $limit, static::$timeout);
         return $this->_last;
     }
 
@@ -212,6 +222,7 @@ class Tecnodesign_Query_Ldap
         if(!$this->_schema) return false;
         if(!$this->_last) {
             $this->buildQuery();
+            if(!$this->_last) return false;
         }
         $prop = array('_new'=>false);
         if($this->_scope) $prop['_scope'] = $this->_scope;
@@ -249,7 +260,7 @@ class Tecnodesign_Query_Ldap
         $r = array();
         if($dn) $r['dn'] = $dn;
         foreach($a as $i=>$o) {
-            if(!is_int($i)) {
+            if(is_array($o)) {
                 if($o['count']=='1') {
                     $r[$i] = $o[0];
                 } else {
@@ -534,7 +545,8 @@ class Tecnodesign_Query_Ldap
         if(!$conn) {
             $conn = self::connect($this->schema('database'));
         }
-        $select = array('*');
+        $select = ['*'];
+        if(static::$fetchOperationalAttributes) $select[]='+';
         $limit = -1;//($count || !$this->_limit)?(-1):((int)$this->_limit);
         $this->_last = ldap_list($conn, $this->schema('tableName'), $q, $select, 0, $limit, static::$timeout);
         return $this->_last;
@@ -545,11 +557,12 @@ class Tecnodesign_Query_Ldap
         return $this->exec($q);
     }
 
-    public static function runStatic($q, $n='')
+    public static function runStatic($q, $tn, $n='')
     {
-        $select = array('*');
+        $select = ['*'];
+        if(static::$fetchOperationalAttributes) $select[]='+';
         $limit = -1;
-        return ldap_list(self::connect($n), $this->schema('tableName'), $q, $select, 0, $limit, static::$timeout);
+        return ldap_list(self::connect($n), $tn, $q, $select, 0, $limit, static::$timeout);
     }
 
     public function query($q, $p=null)
