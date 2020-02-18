@@ -592,7 +592,7 @@ function uploadFile(file, U)
         var el = this;
         if('id' in d) {
             var b=el.parentNode.querySelector('span.text');
-            if(!el.previousSibling) {
+            if(!el.previousSibling || el.previousSibling.nodeName.toLowerCase()!='input') {
                 Z.element({e:'input',a:{type:'hidden',name:el.name,id:el.id,value:d.value}},el);
             } else {
                 el.previousSibling.value = d.value;
