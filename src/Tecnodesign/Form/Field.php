@@ -2215,7 +2215,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             return $s;
         }
         $a = array('type'=>(isset($arg['type']))?($arg['type']):('text'), 'id'=>$arg['id'], 'name'=>$arg['name'], 'value'=>(string)$arg['value']);
-        if($this->size && !isset($this->attributes['maxlength'])) {
+        if($this->size && !isset($this->attributes['maxlength']) && !$this->choices) {
             $this->attributes['maxlength']=$this->size;
         }
         foreach($arg as $an=>$av) {
