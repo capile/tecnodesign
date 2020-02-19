@@ -34,7 +34,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                 ));
             }
         } catch(Exception $e) {
-            \tdz::log(__METHOD__.'[ERROR] '.$e->getMessage()."\n$e");
+            \tdz::log('[ERROR] '.$e->getMessage()."\n$e");
         }
     }
 
@@ -60,6 +60,12 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
         $q = null;
         if(isset($a['search'])) $q = $a['search'];
         $cn = $a['model'];
+        if($cn=='Tecnodesign_Studio_Index' || (isset($a['index']) && !$a['index']) || !($dbn=$cn::$schema->database) || !($cdb=Tecnodesign_Query::database($dbn)) || (isset($cdb['sync']) && !$cdb['sync']) || (isset($cdb['index']) && !$cdb['index'])) {
+            \tdz::log('[INFO] Not indexing '.$cn);
+            return;
+        }
+        $t0 = microtime(true);
+        if(tdz::$log>0) tdz::log('[INFO] Indexing: '.$cn.' (time: '.tdz::formatNumber($t0-TDZ_TIME, 5).', mem: '.tdz::formatBytes(memory_get_peak_usage(true)).')');
 
         $II = Tecnodesign_Studio_IndexInterfaces::replace([
             'interface'=>$a['interface'],
@@ -67,7 +73,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             'model'=>$cn,
             'credential'=>(isset($a['auth'])) ?tdz::serialize($a['auth'], 'json') :tdz::serialize($icn::$authDefault),
             'indexed'=>TDZ_TIMESTAMP,
-        ], null, null, false);
+        ], null, null, true);
         if(!$II) return;
 
         if($lmod=$II->getOriginal('indexed')) {
@@ -76,7 +82,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
 
         $url = $a['interface'];
         if($icn && $icn!='Tecnodesign_Studio_Interface') {
-            $url = $icn::base().'/'.$i;
+            $url = $icn::base().'/'.$url;
         } else if(!$icn) {
             $icn = 'Tecnodesign_Studio_Interface';
         }
@@ -96,6 +102,13 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             $count = $R->count();
             $limit = $cn::$queryBatchLimit;
             $offset = 0;
+            $fn_created = $fn_updated = null;
+            if(isset($cn::$schema->actAs['before-update']['timestampable'])) $fn_updated=$cn::$schema->actAs['before-update']['timestampable'];
+            if(isset($cn::$schema->actAs['before-insert']['timestampable'])) {
+                $fn_created = ($fn_updated) ?array_diff($cn::$schema->actAs['before-insert']['timestampable'], $fn_updated) :$cn::$schema->actAs['before-insert']['timestampable'];
+            }
+
+
             if(!$limit) $limit = 500;
             while($count > $offset) {
                 $L = $R->getItem($offset, $limit);
@@ -111,6 +124,27 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                             $P[] = ['interface'=>$a['interface'], 'id'=>$pk, 'name'=>$n, 'value'=>$v];
                         }
                     }
+                    $d = [];
+                    if($fn_updated) {
+                        $o->refresh($fn_updated);
+                        foreach($fn_updated as $fn) {
+                            if($dt=$o->$fn) {
+                                $d['updated'] = $dt;
+                                $d['__skip_timestamp_updated'] = true;
+                                break;
+                            }
+                        }
+                    }
+                    if($fn_created) {
+                        $o->refresh($fn_created);
+                        foreach($fn_created as $fn) {
+                            if($dt=$o->$fn) {
+                                $d['created'] = $dt;
+                                $d['__skip_timestamp_created'] = true;
+                                break;
+                            }
+                        }
+                    }
                     try {
                         static::replace([
                             'interface'=>$a['interface'],
@@ -118,11 +152,13 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                             'summary'=>(string) $o,
                             'indexed'=>TDZ_TIMESTAMP,
                             'IndexProperties'=>$P,
-                        ]);
+                        ] +$d);
+                        unset($P);
                     } catch (\Exception $e) {
                         tdz::log('[ERROR] There were a few problems while indexing '.$cn.': '.$e->getMessage());
                     }
                 }
+                if(tdz::$log > 0 && $count > $offset) tdz::log('[INFO] Ongoing index offset for '.$cn.': '.$offset);
             }
             unset($R, $L);
         }
@@ -131,8 +167,11 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             $cn::studioIndex($a, $icn, $pscope, $keyFormat, $valueFormat, $serialize);
         }
 
+        $total = $count;
+
         if($lmod && ($R=static::find(['interface'=>$a['interface'], 'indexed<'=>preg_replace('/\.[0-9]+$/', '', TDZ_TIMESTAMP)])) && $R->count()>0) {
             $count = $R->count();
+            $total += $count;
             if(!isset($limit)) $limit = $cn::$queryBatchLimit;
             $offset = 0;
             if(!$limit) $limit = 500;
@@ -145,8 +184,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                 }
             }
         }
-
-        $II->save();
+        if(tdz::$log>0) tdz::log('[INFO] Indexed '.$total.' '.$cn.' in '.tdz::formatNumber(microtime(true)-$t0, 5).'s (mem: '.tdz::formatBytes(memory_get_peak_usage(true)).')');
     }
 
 
@@ -184,6 +222,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             $T = [];
             foreach($check as $cn) {
                 $dbn = $cn::$schema->database;
+                if(!($cdb=Tecnodesign_Query::database($dbn))) continue;
                 if(!isset($H[$dbn])) $H[$dbn] = $cn::queryHandler();
                 if(!isset($T[$dbn])) {
                     $T[$dbn] = [];
@@ -193,6 +232,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                     }
                 }
                 if(!isset($T[$dbn][$cn::$schema->tableName])) {
+                    if(tdz::$log>0) tdz::log('[INFO] Creating table '.$dbn.'.'.$cn::$schema->tableName);
                     $H[$dbn]->create($cn::$schema);
                 }
             }

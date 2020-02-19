@@ -1375,7 +1375,7 @@ class tdz
             $cacheControl = 'private, must-revalidate';
             tdz::set('cache-control', $cacheControl);
         }
-        if(!is_null($expires)) {
+        if(!TDZ_CLI && !is_null($expires)) {
             $expires = (int)$expires;
             $cc = preg_replace('/\,.*/', '', $cacheControl);
 

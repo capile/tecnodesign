@@ -821,6 +821,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $tstamp = date('Y-m-d H:i:s', $t).substr($u,1,6);
         unset($t, $u);
         foreach($fields as $fn) {
+            if(isset($this->{'__skip_timestamp_'.$fn}) && $this->{'__skip_timestamp_'.$fn}) continue;
             if(!isset($this->_original[$fn])) $this->_original[$fn]=$this->$fn;
             $this->$fn = $tstamp;
         }
