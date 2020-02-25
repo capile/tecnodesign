@@ -161,7 +161,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         try {
             $values = static::validateProperty($meta, $values);
         } catch(\Exception $e) {
-            \tdz::log('[INFO] Could not apply values: '.$e->getMessage());
+            tdz::log('[INFO] Could not apply values: '.$e->getMessage());
             if($throw) throw new Tecnodesign_Exception($e->getMessage());
         }
         if($Model && method_exists($Model, 'batchSet')) {
@@ -309,7 +309,6 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         }
         if (($value==='' || $value===null) && !$nullable) {
             $label = (isset($def['label']))?($def['label']):(tdz::t(ucwords(str_replace('_', ' ', $name)), 'labels'));
-            \tdz::log(__METHOD__, func_get_args(), debug_backtrace(null, 5));
             throw new Tecnodesign_Exception(sprintf(tdz::t(static::$errorMandatory, 'exception'), $label));
         } else if($value==='') {
             $value = false;
