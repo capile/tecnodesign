@@ -78,6 +78,7 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
 
         if($lmod=$II->getOriginal('indexed')) {
             // add last modified to $q
+            $lmod = strtotime($lmod);
         }
 
         $url = $a['interface'];
@@ -92,13 +93,17 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
             $cn::$schema['scope'] += $a['options']['scope'];
             $scope = 'preview';
         }
+        $groupBy = null;
+        if(isset($a['options']['group-by'])) {
+            $groupBy = $a['options']['group-by'];
+        }
 
         if($scope && is_string($scope)) {
             $pscope = $cn::columns($scope, null, 3, true);
         } else {
             $pscope = $scope;
         }
-        if(($R=$cn::find($q, null, $scope)) && $R->count()>0) {
+        if(($R=$cn::find($q, null, $scope, true, false, $groupBy)) && $R->count()>0) {
             $count = $R->count();
             $limit = $cn::$queryBatchLimit;
             $offset = 0;
@@ -117,35 +122,46 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
                 foreach($L as $i=>$o) {
                     $offset++;
 
-                    $pk = $o->getPk();
-                    $P = [];
-                    if($preview=$o->asArray($pscope, $keyFormat, $valueFormat, $serialize)) {
-                        foreach($preview as $n=>$v) {
-                            $P[] = ['interface'=>$a['interface'], 'id'=>$pk, 'name'=>$n, 'value'=>$v];
-                        }
-                    }
-                    $d = [];
-                    if($fn_updated) {
-                        $o->refresh($fn_updated);
-                        foreach($fn_updated as $fn) {
-                            if($dt=$o->$fn) {
-                                $d['updated'] = $dt;
-                                $d['__skip_timestamp_updated'] = true;
-                                break;
-                            }
-                        }
-                    }
-                    if($fn_created) {
-                        $o->refresh($fn_created);
-                        foreach($fn_created as $fn) {
-                            if($dt=$o->$fn) {
-                                $d['created'] = $dt;
-                                $d['__skip_timestamp_created'] = true;
-                                break;
-                            }
-                        }
-                    }
                     try {
+                        $pk = $o->getPk();
+                        $b = ['interface'=>$a['interface'],'id'=>$pk];
+                        $d = [];
+                        if($fn_updated) {
+                            $o->refresh($fn_updated);
+                            $cmod = null;
+                            foreach($fn_updated as $fn) {
+                                if(($dt=$o->$fn) && ($cmod=strtotime($dt))) {
+                                    $d['updated'] = $dt;
+                                    $d['__skip_timestamp_updated'] = true;
+                                    break;
+                                }
+                            }
+                            if($cmod && $lmod && $cmod<$lmod && ($I=static::find($b,1))) {
+                                $I->__skip_timestamp_updated = true;
+                                $I['indexed'] = TDZ_TIMESTAMP;
+                                $I->save();
+                                unset($I);
+                                continue;
+                            }
+                        }
+                        if($fn_created) {
+                            $o->refresh($fn_created);
+                            foreach($fn_created as $fn) {
+                                if(($dt=$o->$fn) && strtotime($dt)) {
+                                    $d['created'] = $dt;
+                                    $d['__skip_timestamp_created'] = true;
+                                    break;
+                                }
+                            }
+                        }
+                        $P = [];
+                        if($preview=$o->asArray($pscope, $keyFormat, $valueFormat, $serialize)) {
+                            foreach($preview as $n=>$v) {
+                                if(!tdz::isempty($n)) {
+                                    $P[] = ['interface'=>$a['interface'], 'id'=>$pk, 'name'=>(string)$n, 'value'=>$v];
+                                }
+                            }
+                        }
                         static::replace([
                             'interface'=>$a['interface'],
                             'id'=>$pk,

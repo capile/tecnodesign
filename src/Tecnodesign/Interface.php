@@ -134,7 +134,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $status,
         $expires,
         $errorModule,
-        $className='Tecnodesign_Interface';
+        $className='Tecnodesign_Interface',
+        $ui;
 
 
     protected $uid, $model, $action, $id, $search, $searchError, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source, $graph;
@@ -358,9 +359,8 @@ class Tecnodesign_Interface implements ArrayAccess
      */
     public static function run($n=null, $url=null)
     {
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='choices') {
-            unset($_SERVER['HTTP_ACCEPT']);
-        }
+        $accept = (Tecnodesign_App::request('headers', 'tdz-action')=='choices') ?null :Tecnodesign_App::request('headers', 'accept');
+
         if(self::$className!=get_called_class()) self::$className = get_called_class();
         try {
             if(!is_null($url)) tdz::scriptName($url);
@@ -401,7 +401,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             unset($ext);
 
-            if(isset($_SERVER['HTTP_ACCEPT']) && preg_match('#^application/([a-z]+)#', $_SERVER['HTTP_ACCEPT'], $m)) {
+            if($accept && preg_match('#^application/([a-z]+)#', $accept, $m)) {
                 if($m[1]=='yaml') $m[1]='yml';
                 if(!in_array($m[1], static::$formats)) {
                     if(!in_array('*', static::$formats)) {
@@ -414,6 +414,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 unset($m);
             }
+
 
             if(!$I) return false;
 
@@ -439,6 +440,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $sn = tdz::scriptName();
                 tdz::scriptName($I->url);
             }
+            static::$ui = (!TDZ_CLI && static::$format==='html');
             return $I->output($p);
 
         } catch(Tecnodesign_App_End $e) {
