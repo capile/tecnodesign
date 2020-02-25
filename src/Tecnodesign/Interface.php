@@ -882,9 +882,11 @@ class Tecnodesign_Interface implements ArrayAccess
                         $add = array("`{$this->key}`!="=>$n);
                     }
                     $this->addSearch($add);
-                    $this->id = (is_array($n))?(implode(',',$n)):($n);
+                    if($this->count()==1) {
+                        $this->id = (is_array($n))?(implode(',',$n)):($n);
+                    }
                 } else if(!isset($this->id) && $this->search) {
-                    if($this->isOne()) {
+                    if($this->count()==1) {
                         $this->id = $this->model()->getPk();
                     }
                 } else if($n && $n!=$this->id) {
@@ -3490,7 +3492,7 @@ class Tecnodesign_Interface implements ArrayAccess
      *
      * @return mixed the stored value, or method results
      */
-    public function  offsetGet($name)
+    public function offsetGet($name)
     {
         if (method_exists($this, $m='get'.ucfirst(tdz::camelize($name)))) {
             return $this->$m();
@@ -3507,7 +3509,7 @@ class Tecnodesign_Interface implements ArrayAccess
      *
      * @return void
      */
-    public function  offsetSet($name, $value)
+    public function offsetSet($name, $value)
     {
         if (method_exists($this, $m='set'.tdz::camelize($name))) {
             $this->$m($value);
