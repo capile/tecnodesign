@@ -1485,6 +1485,12 @@ class Tecnodesign_Interface implements ArrayAccess
             $cn::$schema['scope'] = $this->options['scope'] + $cn::$schema['scope'];
         }
 
+        if(isset($this->options['messages'])) {
+            foreach($this->options['messages'] as $n=>$m) {
+                if(property_exists($this, $n)) $this::$$n = $m;
+            }
+        }
+
         if(is_null($this->parent) && $this->action!='list' && ($uid=Tecnodesign_App::request('get', '_uid'))) {
             if(!$this->search) $this->search=array();
             $pk = $cn::pk();
@@ -2002,7 +2008,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         $this->id = $o->$pk;
                         $this->search = array($pk=>$this->id);
                     }
-                    $next = (static::$format!='html')?(null):('preview');
+                    $next = null;
                     if(isset($this->options['next'])) {
                         if(is_array($this->options['next'])) {
                             if(isset($this->options['next'][$this->action])) {
