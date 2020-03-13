@@ -714,23 +714,28 @@
             He = box.querySelector('.tdz-i-header'),
             Hs = box.querySelectorAll('.tdz-i-header > .tdz-i-title'),
             H =  box.querySelector('.tdz-i-header > .tdz-i-title.tdz-i-title-active'),
-            h, fw=0, ws={}, i;
+            ew, fw=0, ws={}, i, wmax;
 
         i=Hs.length;
         if(H && He && i) {
             // remove all styles
+            wmax = He.clientWidth * 0.5;
+
             while(i--) {
                 if(timeout && Hs[i].getAttribute('style')) Hs[i].setAttribute('style', '');
-                fw += Hs[i].clientWidth;
-                ws[i] = Hs[i].clientWidth;
+                ew = Hs[i].scrollWidth;
+                //if(ew > wmax) ew = wmax;
+                fw += ew;
+                ws[i] = ew;
             }
 
             i=Hs.length;
             // check length
-            if(i>1 && fw > He.clientWidth) {
+            if(i>1 && (He.offsetWidth > He.clientWidth || fw > He.clientWidth)) {
                 if(He.className.search(/\bz-overflow\b/)<0) He.className += ' z-overflow';
 
                 if(timeout) {
+                    if(He.className.search(/\bz-overflow\b/)>-1) He.className = He.className.replace(/\s*\bz-overflow\b/g, '');
                     return setTimeout(headerOverflow, 200);
                 }
                 var w = (He.clientWidth - fw);
