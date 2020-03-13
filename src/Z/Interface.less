@@ -228,34 +228,6 @@
   opacity:0.4;
 }
 
-
-.tdz-i-header {
-  background: -moz-linear-gradient(top, transparent 0, transparent 2em, @colorTab 2em,@colorTab 100%);
-  background: -webkit-linear-gradient(top, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
-  background: linear-gradient(to bottom, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
-  &[data-toggler] {
-    padding-left:0.5em;
-  } 
-  &[data-toggler="on"] {
-    position:relative;
-    padding-left:0;
-    margin-left: 25%;
-    &:before {
-      content:@labelNavigation;
-      background-color:@colorNavigationTab;
-      color: @colorNavigationTabText;
-      position: absolute;
-      width: 33.4%;
-      padding-left:0.5em;
-      height:100%;
-      left:-33.4%; 
-      top:0;
-      text-indent: 0.5em;
-      line-height: 2em;
-    }
-  }
-}
-
 .tdz-i-title{
   position:relative;
   background:@colorTab;
@@ -271,6 +243,7 @@
   z-index:13;
   display:inline-block;
   vertical-align:top;
+  .transition("width 0.2s ease-in-out");
   .box-shadow(0, 0.2em, 0.25em, rgba(0,0,0,0.4));
   &.tdz-i-title-active{
     background:@colorTabActive;
@@ -304,6 +277,49 @@
     }
   }
 }
+
+.tdz-i-header {
+  background: -moz-linear-gradient(top, transparent 0, transparent 2em, @colorTab 2em,@colorTab 100%);
+  background: -webkit-linear-gradient(top, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
+  background: linear-gradient(to bottom, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
+  z-index:102;
+  &[data-toggler] {
+    padding-left:0.5em;
+  } 
+  &[data-toggler="on"] {
+    position:relative;
+    padding-left:0;
+    margin-left: 25%;
+    &:before {
+      content:@labelNavigation;
+      background-color:@colorNavigationTab;
+      color: @colorNavigationTabText;
+      position: absolute;
+      width: 33.3%;
+      height:100%;
+      left:-33.3%; 
+      top:0;
+      text-indent: 1em;
+      line-height: 2em;
+    }
+  }
+  &[data-overflow] {
+    white-space: nowrap;
+    min-height:2em;
+  }
+  &.z-overflow .tdz-i-title {
+    max-width: 50%;
+    padding:0;
+    overflow-x: hidden;
+    overflow-y:hidden;
+  }
+  &.z-overflow .tdz-i-title.tdz-i-title-active {
+    padding:0 0.75em 0 0;
+  }
+}
+
+
+
 .ui-buttons{padding:0;margin:0;}
 
 .tdz-i-container{
@@ -1334,6 +1350,7 @@ form .i-mono dd {
     &.tdz-i--up:before           , &.z-i--up:before            {content: "\f106";}
     &.tdz-i--down:before         , &.z-i--down:before          {content: "\f107";}
     &.tdz-i--share:before        , &.z-i--share:before         {content: "\f064";}
+    &.tdz-i--text:before         , &.z-i--text:before          {content: "\f0f6";}
 }
 
 .tdz-i-button, .tdz-i-link {

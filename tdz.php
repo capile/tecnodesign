@@ -630,15 +630,27 @@ class tdz
         }
     }
 
-    public static function implode($v, $del=',')
+    public static function implode($v, $sep=',')
     {
         if(is_array($v)) {
-            $r = '';
+            $b=$a=$r='';
+            if($sep==='<li>' || $sep==='</li><li>' || $sep==='list' || $sep==='<ul>' || $sep==='<ol>') {
+                if($sep==='<ol>') {
+                    $b = '<ol><li>';
+                    $a = '</li></ol>';
+                } else {
+                    $b = '<ul><li>';
+                    $a = '</li></ul>';
+                }
+                $s = '</li><li>';
+            } else {
+                $s = $sep;
+            }
             foreach($v as $a) {
-                $r .= ((!tdz::isempty($r))?($del):('')).tdz::implode($a, $del);
+                $r .= ((!tdz::isempty($r))?($s):('')).tdz::implode($a, $sep);
                 unset($a);
             }
-            return $r;
+            return $b.$r.$a;
         } else {
             return (string) $v;
         }

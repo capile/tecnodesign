@@ -23,6 +23,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
 // .tdz-i-header
 ?><div class="tdz-i-header"<?php 
     if($nav) echo (!Tecnodesign_App::request('cookie', 'z-nav-disable')) ?' data-toggler="on"' :' data-toggler="off"';
+    if($Interface::$headerOverflow) echo ' data-overflow="1"';
     echo '>'; 
     $urls = Tecnodesign_Interface::$urls;
     if(Tecnodesign_App::request('ajax')) {
@@ -53,12 +54,12 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
         ?>><?php
 
         // .tdz-i-actions
-        ?><div class="<?php echo trim('tdz-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
+        if($buttons): ?><div class="<?php echo trim('tdz-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
             /*if(count(Tecnodesign_Interface::$urls)>1): ?><a class="tdz-i-a tdz-i--close" href="<?php echo tdz::xmlEscape(array_shift(array_keys(Tecnodesign_Interface::$urls))) ?>"></a><?php endif;*/
             ?><input type="checkbox" id="tdz-i-b-<?php echo $id; ?>" class="tdz-i-switch tdz-i-actions" /><label for="tdz-i-b-<?php echo $id; ?>"><?php
             echo $Interface::$labelActions; ?></label><div class="tdz-i-buttons tdz-i-switched"><?php
                 echo $buttons; 
-        ?></div></div><?php 
+        ?></div></div><?php endif; 
 
         // .tdz-i-container
         ?><div class="tdz-i-container"><?php 

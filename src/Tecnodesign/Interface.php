@@ -68,6 +68,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $listPagesOnBottom  = true,
         $translate          = true,
         $standalone         = false,
+        $headerOverflow     = false,
         $hitsPerPage        = 25,
         $attrListClass      = 'tdz-i-list',
         $attrPreviewClass   = 'tdz-i-preview',
@@ -235,6 +236,14 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($d['id']) && $d['id']) {
                 $this->id = $d['id'];
             }
+        } else if(isset($d['text'])) {
+            $this->text = [];
+            if(!is_array($d['text'])) {
+                $d['text'] = ['preview'=>$d['text']];
+            }
+            foreach($d['text'] as $k=>$v) {
+                $this->text[$k] = tdz::markdown($v);
+            } 
         } else if(!$this->run) {
             return static::error(404, static::t('errorNotFound'));
         }
@@ -788,7 +797,6 @@ class Tecnodesign_Interface implements ArrayAccess
             $I->setActions(true, 1);
         }
 
-
         $a = $n = null;
         if($p) $n = array_shift($p);
         if($n) {
@@ -814,7 +822,12 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
         if(!isset($A) || !$A) {
-            return static::error(404, static::t('errorNotFound'));
+
+            if($I->text) {
+                return $I;
+            } else {
+                return static::error(404, static::t('errorNotFound'));
+            }
         } else if(is_object($A) && $A instanceof Tecnodesign_Interface) {
             Tecnodesign_Interface::$urls[$A->link()] = array('title'=>$A->getTitle(),'action'=>$A->action);
             if($p) {
@@ -859,10 +872,8 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function setAction($a, &$p=null)
     {
-
-        Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$this->getTitle(),'interface'=>false);
-
         if(isset($this->actions[$a])) {
+            Tecnodesign_Interface::$urls[$link=$this->link()] = [ 'title' => $this->getTitle(), 'interface' => false ];
 
             if(isset($this->actions[$a]['identified']) && $this->actions[$a]['identified']) {
                 $n = ($p) ?array_shift($p) :null; 
@@ -901,7 +912,10 @@ class Tecnodesign_Interface implements ArrayAccess
             } else if(!tdz::isempty($this->id)) {
                 return false;
             }
+
             $this->action = $a;
+            Tecnodesign_Interface::$urls[$link=$this->link($a)] = [ 'title' => $this->getTitle(), 'action' => $a ];
+
             if(!$this->auth($a)) {
                 static::error(403, static::t('errorForbidden'));
                 return false;
@@ -1593,36 +1607,39 @@ class Tecnodesign_Interface implements ArrayAccess
             if(is_string($call[0]) && get_class($this)==$call[0]) $call[0] = $this;
             if(isset($this->text['title'])) Tecnodesign_App::response('title', $this->text['title']);
             return tdz::call($call, $o);
-        }
-
-        if(static::$ext) $this->options['extension'] = static::$ext;
-        if(isset($this->options['last-modified'])) $this->lastModified();
-        if(isset($this->actions[$this->action]['action'])) {
-            $action = $this->actions[$this->action]['action'];
+        } else if (!$this->action && $this->text) {
             $data = null;
-            if(is_array($action) && !isset($action[0]) && isset($action[$m=Tecnodesign_App::request('method')])) {
-                $action = $action[$m];
-            }
-            if(is_array($action) && count($action)==2) {
-                list($C, $m) = $action;
-                if(is_string($C) && $C==$this->model && !tdz::isempty($this->id)) {
-                    $C = $this->model();
-                }
-                if(is_string($C)) {
-                    $data = $C::$m($this, $this->options, $this->params);
-                } else if($C!=$this) {
-                    $data = $C->$m($this, $this->options, $this->params);
-                } else {
-                    $data = $this->$m($this->options, $this->params);
-                }
-                unset($C, $m);
-            } else if(method_exists($this, $action)) {
-                $data = $this->$action($this->options, $this->params);
-            } else {
-                $data = $this->execute($this->options, $this->params);
-            }
+            $this->action = 'text';
         } else {
-            $data = $this->execute($this->options);
+            if(static::$ext) $this->options['extension'] = static::$ext;
+            if(isset($this->options['last-modified'])) $this->lastModified();
+            if(isset($this->actions[$this->action]['action'])) {
+                $action = $this->actions[$this->action]['action'];
+                $data = null;
+                if(is_array($action) && !isset($action[0]) && isset($action[$m=Tecnodesign_App::request('method')])) {
+                    $action = $action[$m];
+                }
+                if(is_array($action) && count($action)==2) {
+                    list($C, $m) = $action;
+                    if(is_string($C) && $C==$this->model && !tdz::isempty($this->id)) {
+                        $C = $this->model();
+                    }
+                    if(is_string($C)) {
+                        $data = $C::$m($this, $this->options, $this->params);
+                    } else if($C!=$this) {
+                        $data = $C->$m($this, $this->options, $this->params);
+                    } else {
+                        $data = $this->$m($this->options, $this->params);
+                    }
+                    unset($C, $m);
+                } else if(method_exists($this, $action)) {
+                    $data = $this->$action($this->options, $this->params);
+                } else {
+                    $data = $this->execute($this->options, $this->params);
+                }
+            } else {
+                $data = $this->execute($this->options);
+            }
         }
 
         $f=static::template($this->template, 'interface-'.static::$format, 'interface-'.$this->action, 'interface');
@@ -2061,15 +2078,17 @@ class Tecnodesign_Interface implements ArrayAccess
             $g['id'] = tdz::slug($this->url).'-'.\tdz::slug($n);
             if($this->search) $g['where'] = (isset($g['where'])) ?$this->search + $g['where'] :$this->search;
             if(!isset($g['scope'])) $g['scope'] = $n;
-            $s .= static::graph($g);
+            $s .= static::graph($g, $n);
         }
 
         return $s;
     }
 
-    public static function graph($g)
+    public static function graph($g, $n=null)
     {
         $cn = $g['model'];
+        if(!$n) $n=uniqid('g');
+        $s=null;
         $G=['data'=>[]];
         $q = (isset($g['where'])) ?$g['where'] :[];
         $orderBy = (isset($g['order-by'])) ?$g['order-by'] :null;

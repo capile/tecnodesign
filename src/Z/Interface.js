@@ -689,10 +689,57 @@
             }
         }
 
+
         checkMessages(I);
 
         updateInterface(I);
+
+        if(document.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) headerOverflow(true);
+
         return false;
+    }
+
+    function headerOverflow(timeout)
+    {
+        // flow & reflow tabs
+        var box=document.querySelector('.tdz-i-box'),
+            He = box.querySelector('.tdz-i-header'),
+            Hs = box.querySelectorAll('.tdz-i-header > .tdz-i-title'),
+            H =  box.querySelector('.tdz-i-header > .tdz-i-title.tdz-i-title-active'),
+            h, fw=0, ws={}, i;
+
+        i=Hs.length;
+        if(H && He && i) {
+            // remove all styles
+            while(i--) {
+                if(timeout && Hs[i].getAttribute('style')) Hs[i].setAttribute('style', '');
+                fw += Hs[i].scrollWidth;
+                ws[i] = Hs[i].scrollWidth;
+            }
+            if(timeout) {
+                return setTimeout(headerOverflow, 200);            
+            }
+
+            i=Hs.length;
+            // check length
+            if(i>1 && fw > He.clientWidth) {
+                if(He.className.search(/\bz-overflow\b/)<0) He.className += ' z-overflow';
+                var w = (He.clientWidth - fw) / (i-1);
+                var nw=0;
+                while(i--) {
+                    if(Hs[i]!=H) {
+                        Hs[i].setAttribute('style', 'width:'+(ws[i] + w)+'px');
+                        nw += (ws[i] - w);
+                    } else {
+                        nw += ws[i];
+                    }
+                }
+            } else {
+                if(He.className.search(/\bz-overflow\b/)>-1) He.className = He.className.replace(/\s*\bz-overflow\b/g, '');
+            }
+        }
+
+
     }
 
     function checkMessages(I)
