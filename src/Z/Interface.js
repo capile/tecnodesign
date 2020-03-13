@@ -409,6 +409,8 @@
         B=null;
         I=null;
         if(arguments.length<2 || arguments[1]) reHash();
+
+        if(document.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) setTimeout(function() { headerOverflow(true); }, 200);       
     }
 
     function loadInterface(e)
@@ -719,25 +721,23 @@
             // remove all styles
             while(i--) {
                 if(timeout && Hs[i].getAttribute('style')) Hs[i].setAttribute('style', '');
-                fw += Hs[i].scrollWidth;
-                ws[i] = Hs[i].scrollWidth;
-            }
-            if(timeout) {
-                return setTimeout(headerOverflow, 200);            
+                fw += Hs[i].clientWidth;
+                ws[i] = Hs[i].clientWidth;
             }
 
             i=Hs.length;
             // check length
             if(i>1 && fw > He.clientWidth) {
                 if(He.className.search(/\bz-overflow\b/)<0) He.className += ' z-overflow';
-                var w = (He.clientWidth - fw) / (i-1);
-                var nw=0;
+
+                if(timeout) {
+                    return setTimeout(headerOverflow, 200);
+                }
+                var w = (He.clientWidth - fw);
+                var fw0=fw - H.clientWidth;
                 while(i--) {
                     if(Hs[i]!=H) {
-                        Hs[i].setAttribute('style', 'width:'+(ws[i] + w)+'px');
-                        nw += (ws[i] - w);
-                    } else {
-                        nw += ws[i];
+                        Hs[i].setAttribute('style', 'width:'+(ws[i] + (w*ws[i]/fw0))+'px');
                     }
                 }
             } else {
