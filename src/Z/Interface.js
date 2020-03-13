@@ -675,7 +675,13 @@
                 if(R[i]==H || R[i]==I) continue;
                 R[i].className = R[i].className.replace(/\btdz-i-(title-)?active\b\s*/g, '').trim();
             }
-            document.title = Z.text(H);
+            var txt = Z.text(H);
+            if(!txt) {
+                for(var i=1;i<3;i++) {
+                    if(txt=Z.text(I.querySelector('h'+i))) break;
+                }
+            }
+            if(txt.trim()) document.title = txt;
         }
 
         var N = Z.parentNode(I, '.tdz-i-body').querySelector(':scope > .z-i-nav'), nb;
