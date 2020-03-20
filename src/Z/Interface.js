@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Interface v2.2 | (c) 2018 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Interface v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
     "use strict";
@@ -955,6 +955,15 @@
             link.click();
             document.body.removeChild(link);
             link=null;
+        },
+        load:function(o) {
+            if(o.getAttribute('data-message')) {
+                msg(o.getAttribute('data-message'), null, true);
+                Z.delay(msg, 5000, 'msg');
+            }
+            var u = o.getAttribute('data-url') || o.getAttribute('href');
+            if(!u) return false;
+            Z.setInterface(u);
         },
         redirect:function(o) {
             if(o.getAttribute('data-message')) {
