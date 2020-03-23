@@ -818,10 +818,34 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function checkFile($value=false, $message='')
     {
         // check ajax uploader
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
+        if(Tecnodesign_App::request('headers', 'tdz-action')==='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
             static $timeout = 60;
             // check id
             $U=tdz::getUser();
+
+            /**
+             $upload = [
+             'file' => file name in the client computer
+             'total' => size of the file 
+             ];
+            */
+            $err = [];
+            $retry = false;
+            $type = null;
+            if($this->accept) {
+                if(isset($this->accept['size'])) {
+                    if(is_numeric($size=$this->accept['size']) && $this->accept['size'] < $upload['total']) {
+                        $err[] = sprintf(tdz::t('Uploaded file exceeds the limit of %s.'), tdz::formatBytes($size));
+                    }
+                }
+                if(isset($this->accept['type'])) $type = $this->accept['type'];
+                else if(isset($this->accept['format'])) $type = $this->accept['format'];
+
+                if(isset($this->accept['extension'])) {
+
+                }
+            }
+
             $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$U->getSessionId().':'.preg_replace('/(ajax|_index)=[0-9]+/', '', tdz::requestUri()));
             $size = $upload['end'] - $upload['start'];
             if(!($u=Tecnodesign_Cache::get($ckey, $timeout))) {
@@ -849,14 +873,40 @@ class Tecnodesign_Form_Field implements ArrayAccess
             fclose($fp);
             if(!$r || $r!=$size) {
                 tdz::log('[INFO] Problem writing '.$u['file'].'. Expected to write '.$size.' bytes, but wrote '.$r);
+                $err[] = 'There was a problem writing the file upload.';
+                $retry = true;
             }
 
-            $R = array('size'=>$size, 'total'=>$u['wrote'], 'expects'=>$u['size']);
-            if($u['wrote']>=$u['size']) {
-                $R['id'] = $upload['id'];
-                $R['value'] = 'ajax:'.$ckey.'|'.$upload['file'];
-                $R['file'] = $upload['file'];
+            if($type && !isset($u['type'])) {
+                $ftype = tdz::fileFormat($u['file'], false);
+                if($ftype) {
+                    try {
+                        $this->checkFileType($ftype);
+                        if($u=Tecnodesign_Cache::get($ckey, $timeout)) {
+                            $u['type'] = $ftype;
+                            Tecnodesign_Cache::set($ckey, $u, $timeout);
+                        }
+                    } catch(Exception $e) {
+                        $err[] = $e->getMessage();
+                    }
+                }
             }
+
+            if($err) {
+                Tecnodesign_App::status(400);
+                $R = ['message'=>implode("\n", $err)];
+                if($retry) $R['retry'] = true;
+                unlink($u['file']);
+                Tecnodesign_Cache::delete($ckey);
+            } else {
+                $R = array('size'=>$size, 'total'=>$u['wrote'], 'expects'=>$u['size']);
+                if($u['wrote']>=$u['size']) {
+                    $R['id'] = $upload['id'];
+                    $R['value'] = 'ajax:'.$ckey.'|'.$upload['file'];
+                    $R['file'] = $upload['file'];
+                }
+            }
+
             tdz::output($R, 'json');
         }
         if(is_array($value)){
@@ -884,33 +934,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $hash = 'datetime';
             }
             $hfn = self::$hashMethods[$hash];
-            if($type && !is_array($type)) {
-                $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
-            }
-            if($type && isset($type[0])) {
-                $types = array();
-                foreach($type as $ts) {
-                    $multiple = false;
-                    if(substr($ts, -1)=='*') {
-                        $ts = substr($ts, 0, strlen($ts)-1);
-                        $multiple = true;
-                    } else if(substr($ts, -1)=='/') {
-                        $multiple = true;
-                    }
-                    if($multiple) {
-                        foreach(tdz::$formats as $ext=>$tn) {
-                            if(substr($tn, 0, strlen($ts))==$ts) {
-                                $types[$tn]=$tn;
-                            }
-                        }
-                    } else {
-                        $types[$ts]=$ts;
-                    }
-                }
-                $type = $types;
-                unset($types);
-                $this->accept['type']=$type;
-            }
+
             try {
                 if($max && count($value)>$max) {
                     throw new Tecnodesign_Exception(array(tdz::t('You are only allowed to upload up to %s files.', 'exception'), $max));
@@ -970,6 +994,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     }
                     $file = $dest = $upload['tmp_name'];
                     $file = eval("return {$hfn};");
+                    $this->checkFileType($upload['type']);
+
                     if($ext && strpos($dest, '.')===false) {
                         $ext = null;
                         if(strpos($upload['name'], '.') && isset(tdz::$formats[$ext=strtolower(substr($upload['name'], strrpos($upload['name'], '.')+1))])) {
@@ -986,8 +1012,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         }
                         if($ext) $file .= '.'.$ext;
                     }
-                    if ($type && !in_array($upload['type'], $type) && !in_array(substr($upload['type'], 0, strpos($upload['type'], '/')),$type) && !in_array($ext, $type)) {
-                        throw new Tecnodesign_Exception(tdz::t('This file format is not supported.', 'exception'));
+
+                    if($ext && isset(tdz::$formats[$ext])) {
+                        $this->checkFileType(tdz::$formats[$ext]);
                     }
 
                     $dest = $uploadDir.'/'.$file;
@@ -1017,6 +1044,53 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         */
         return $value;
+    }
+
+    public function checkFileType($filetype, $message=null)
+    {
+        if(!$this->accept) return $filetype;
+
+        if(isset($this->accept['type'])) $type = $this->accept['type'];
+        else if(isset($this->accept['format'])) $type = $this->accept['format'];
+        else $type=null;
+
+        if(!$type) return $filetype;
+
+        if($type && !is_array($type)) {
+            $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
+        }
+        if($type && isset($type[0])) {
+            $types = array();
+            foreach($type as $ts) {
+                $multiple = false;
+                if(substr($ts, -1)=='*') {
+                    $ts = substr($ts, 0, strlen($ts)-1);
+                    $multiple = true;
+                } else if(substr($ts, -1)=='/') {
+                    $multiple = true;
+                }
+                if($multiple) {
+                    foreach(tdz::$formats as $ext=>$tn) {
+                        if(substr($tn, 0, strlen($ts))==$ts) {
+                            $types[$tn]=$tn;
+                        }
+                    }
+                } else {
+                    $types[$ts]=$ts;
+                }
+            }
+            $type = $types;
+            unset($types);
+            $this->accept['type']=$type;
+        }
+
+        if ($type && !in_array($filetype, $type) && !in_array(substr($filetype, 0, strpos($filetype, '/')),$type)) {
+            if(is_null($message)) $message = tdz::t('This file format is not supported.', 'exception');
+            throw new Tecnodesign_Exception($message);
+        }
+
+        return $filetype;
+
     }
 
     public function checkDns($value, $message='')

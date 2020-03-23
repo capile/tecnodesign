@@ -507,7 +507,7 @@ function preUpload(e)
     while(i--) {
         // check file size and accepted formats
         if(s && s<this.files[i].size) {
-            err.push(Z.t('UploadSize')+' ');
+            err.push(Z.t('UploadSize').replace('%s', Z.formatBytes(s))+' ');
         }
         if(a) {
             valid = false;
@@ -619,9 +619,21 @@ function uploadFile(file, U)
 
     var uploadError = function(d)
     {
-        console.log('upload error!', this, d);
-        if(retries--) {
 
+        //console.log('upload error!', this, d);
+
+        // remove any error messages within this form field
+        var M=this.parentNode.querySelectorAll('.tdz-i-msg,.tdz-i-progress'), i=M.length, err=(d && ('message' in d)) ?d.message :'There was an error in the file upload.';
+        if(err) {
+            while(i--) M[i].parentNode.removeChild(M[i]);
+            Z.element({e:'div',p:{className:'tdz-i-error tdz-i-msg'},c:err}, null, this);
+        }
+
+        this.setAttribute('data-status', 'ready');
+        if(('retry' in d) && d.retry && retries--) {
+            preUpload.call(this);
+        } else {
+            clearFileInput(this);
         }
         //workers++;
     };

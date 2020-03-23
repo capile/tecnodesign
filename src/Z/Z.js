@@ -1,4 +1,4 @@
-/*! Tecnodesign Z v2.2 | (c) 2018 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
 if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{}};
 (function(Z) {
 "use strict";
@@ -1043,7 +1043,7 @@ Z.l.en.moreRecord="You need to select more than one record for this action.";
 Z.l.en.noRecordSelected='No record was selected for this action.';
 Z.l.en.decimalSeparator = '.';
 Z.l.en.thousandSeparator = ',';
-Z.l.en.UploadSize='File size is bigger than allowed.';
+Z.l.en.UploadSize='Uploaded file exceeds the limit of %s.';
 Z.l.en.UploadInvalidFormat='File format is not supported.';
 
 // for timepickers
@@ -1230,7 +1230,7 @@ Z.t=function(s, lang)
     return s;
 };
 
- Z.formatNumber=function(n, d, ds, ts)
+Z.formatNumber=function(n, d, ds, ts)
 {
     if(!d) d=2;
     var x = (n.toFixed(d) + '').split('.');
@@ -1245,13 +1245,29 @@ Z.t=function(s, lang)
     return x1 + x2;
 };
 
+Z.formatBytes=function(s, precision)
+{
+    if(!precision) precision=2;
+
+    s = parseInt(s);
+    if(s>0) {
+        var units = [ 'B', 'KB', 'MB', 'GB', 'TB' ],
+            pow=Math.round((s>0 ?Math.log(s) :0)/6.93);//Math.log(1024));
+        pow = Math.min(pow, units.length -1);
+        var b = s / Math.pow(1024, pow);
+
+        return Z.formatNumber(b, precision)+' '+units[pow];
+    } else {
+        return '0';
+    }
+};
 
 Z.initToggleActive=function(o)
 {
     if(!o || !Z.node(o)) o=this;
     if(o.parentNode.querySelector(':scope > .z-toggler')) return;
     Z.element({e:'a',p:{className:'z-toggler'},t:{click:ToggleActive}}, null, o);
-}
+};
 
 function ToggleActive()
 {

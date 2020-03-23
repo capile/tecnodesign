@@ -50,6 +50,7 @@ if(!isset($action)) $action = $Interface['action'];
 
     if(isset($options['before-'.$Interface['action']])) echo \tdz::markdown($options['before-'.$Interface['action']]);
     else if(isset($options['before'])) echo \tdz::markdown($options['before']);
+    $content = false;
 
     ?><div class="tdz-i-summary tdz-i--<?php echo $Interface['action']; ?>"><?php
 
@@ -66,8 +67,10 @@ if(!isset($action)) $action = $Interface['action'];
 
         if(isset($list)) {
             // list counter
-            if(isset($searchForm))
+            if(isset($searchForm)) {
                 echo '<div class="tdz-i-search">'.$searchForm.'</div>';
+                $content = true;
+            }
 
             echo '<span class="'.$Interface::$attrCounterClass.'">';
             if(isset($searchCount)) {
@@ -101,6 +104,7 @@ if(!isset($action)) $action = $Interface['action'];
         ?><div class="<?php echo $Interface::$attrListClass; ?>"><?php
             if(is_string($list)) {
                 echo $list;
+                $content = true;
             } else if($count>0) {
                 $options['checkbox'] = false;
                 $options['radio'] = false;
@@ -112,6 +116,7 @@ if(!isset($action)) $action = $Interface['action'];
                 echo $list->paginate($listLimit, $listRenderer, array('options'=>$listOptions), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
                 tdz::scriptName($sn);
                 unset($sn);
+                $content = true;
             }
 
         ?></div><?php
@@ -137,11 +142,12 @@ if(!isset($action)) $action = $Interface['action'];
                 echo (string) $preview;
             }
             unset($preview);
+            $content = true;
         ?></div><?php
     endif;
 
     // .tdz-i-actions
-    if($buttons): ?><div class="z-standalone-buttons"><?php
+    if($buttons && $content): ?><div class="z-standalone-buttons"><?php
         echo $buttons; 
     ?></div><?php endif;
 

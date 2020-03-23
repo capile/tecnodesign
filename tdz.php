@@ -1330,23 +1330,27 @@ class tdz
         return $html;
     }
 
-    public static function fileFormat($file)
+    public static function fileFormat($file, $checkExtension=true)
     {
-        $ext = strtolower(
-            preg_replace(
-                '/.*\.([a-z0-9]{1,5})$/i', '$1',
-                basename($file)
-            )
-        );
-        if (isset(tdz::$formats[$ext])) {
-            $format = tdz::$formats[$ext];
-        } else if (is_file($file) && class_exists('finfo')) {
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $format = $finfo->file($file);
-        } else if (function_exists('mime_content_type')) {
-            $format = @mime_content_type($file);
-        } else {
-            $format = false;
+        $format = false;
+        if($checkExtension) {
+            $ext = strtolower(
+                preg_replace(
+                    '/.*\.([a-z0-9]{1,5})$/i', '$1',
+                    basename($file)
+                )
+            );
+            if (isset(tdz::$formats[$ext])) {
+                $format = tdz::$formats[$ext];
+            }
+        }
+        if(!$format) {
+            if (is_file($file) && class_exists('finfo')) {
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                $format = $finfo->file($file);
+            } else if (function_exists('mime_content_type')) {
+                $format = @mime_content_type($file);
+            }
         }
 
         return $format;
