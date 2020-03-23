@@ -960,7 +960,8 @@ function subformAdd(e)
 
         if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
             o = el.querySelector('.items[data-template]');
-            el = null;
+            el = Z.parentNode(this, '.item');
+            if(el && Z.parentNode(el, '.items[data-template]')!=o) el=null;
         }
     }
     if(!o) return false;
