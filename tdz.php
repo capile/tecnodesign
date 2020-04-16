@@ -646,9 +646,9 @@ class tdz
             } else {
                 $s = $sep;
             }
-            foreach($v as $a) {
-                $r .= ((!tdz::isempty($r))?($s):('')).tdz::implode($a, $sep);
-                unset($a);
+            foreach($v as $vv) {
+                $r .= ((!tdz::isempty($r))?($s):('')).tdz::implode($vv, $sep);
+                unset($vv);
             }
             return $b.$r.$a;
         } else {

@@ -1132,7 +1132,7 @@ class Tecnodesign_Query_Sql
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
             if($M::$schema->audit) {
-                $M->auditLog('delete', $pk, $data);
+                $M->auditLog('delete', $pk, $M->asArray('save', null, null, true));
             }
             return $r;
         }

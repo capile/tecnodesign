@@ -65,10 +65,11 @@ class Tecnodesign_Query_Api
         $countAttribute,
         $enableOffset=true,
         $pagingAttribute,
+        $nextPage,
         $cookieJar,
         $connectionCallback;
     protected static $options, $conn=array();
-    protected $_schema, $_method, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $_count, $_unique, $headers, $response;
+    protected $_schema, $_method, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $_next, $_count, $_unique, $headers, $response;
 
     public function __construct($s=null)
     {
@@ -222,7 +223,6 @@ class Tecnodesign_Query_Api
     public function filter($options=array())
     {
         if(!$this->_schema) return $this;
-
         if(!is_array($options)) {
             $options = ($options)?(array('where'=>$options)):(array());
         }
@@ -232,6 +232,7 @@ class Tecnodesign_Query_Api
             }
             unset($m, $p, $o);
         }
+
         return $this;
     }
 
@@ -245,8 +246,8 @@ class Tecnodesign_Query_Api
     {
         $k = (isset($this->_options['limit']))?($this->_options['limit']):(static::$limit);
         if($k) {
-            $qs .= (($qs)?('&'):('?'))
-                 . $k.'='.static::$limitCount;
+            $limit = (isset($this->_limit)) ?$this->_limit :static::$limitCount;
+            $qs = static::urlParam($qs, [$k=>$limit]);
         }
         return $qs;
     }
@@ -261,8 +262,7 @@ class Tecnodesign_Query_Api
                 $order .= ($order)?(','.$fn):($fn);
                 unset($fn, $asc);
             }
-            $qs .= (($qs)?('&'):('?'))
-                 . $k.'='.urlencode($order);
+            $qs = static::urlParam($qs, [$k=>$order]);
         }
         unset($k);
         return $qs;
@@ -277,17 +277,24 @@ class Tecnodesign_Query_Api
             $qs = substr($url, $p);
             $url = substr($url, 0, $p);
         }
+
         if(static::$queryPath) {
-            $url .= sprintf(static::$queryPath, $this->schema('tableName'), null);
+            $qp = sprintf($this->_expand(static::$queryPath), $this->schema('tableName'), null);
+            if($p=strpos($qp, '?')) {
+                $qs = static::urlParam($qs, substr($qp, $p+1));
+                $url .= substr($url, 0, $p);
+            } else {
+                $url .= $qp;
+            }
         }
+
         if($this->_where) {
             $qs = $this->buildQueryWhere($qs);
         }
         if($this->_scope) {
             $k = (isset($this->_options['scope']))?($this->_options['scope']):(static::$scope);
             if($k) {
-                $qs .= ((strpos($qs, '?')!==false)?('&'):('?'))
-                     . $k.'='.urlencode($this->_scope);
+                $qs = static::urlParam($qs, [$k=>$this->_scope]);
                 unset($k);
             }
             if($this->_select && ($cn=$this->_schema) && implode(',',$this->_select)===implode(',',$cn::columns($this->_scope, null, 0, true))) {
@@ -296,8 +303,7 @@ class Tecnodesign_Query_Api
         }
         if($this->_select) {
             $k = (isset($this->_options['fieldnames']))?($this->_options['fieldnames']):(static::$fieldnames);
-            $qs .= ((strpos($qs, '?')!==false)?('&'):('?'))
-                 . $k.'='.urlencode(implode(',', $this->_select));
+            $qs = static::urlParam($qs, [$k=>implode(',', $this->_select)]);
             unset($k);
         }
         if($count) {
@@ -310,16 +316,14 @@ class Tecnodesign_Query_Api
                     if(static::$limitAbsolute && !is_null($this->_offset)) {
                         $limit += (int) $this->_offset -1;
                     }
-                    $qs .= ((strpos($qs, '?')!==false)?('&'):('?'))
-                         . $k.'='.$limit;
+                    $qs = static::urlParam($qs, [$k=>$limit]);
                 }
                 unset($k);
             }
             if(!is_null($this->_offset)) {
                 $k = (isset($this->_options['offset']))?($this->_options['offset']):(static::$offset);
                 if($k) {
-                    $qs .= ((strpos($qs, '?')!==false)?('&'):('?'))
-                         . $k.'='.((int)$this->_offset);
+                    $qs = static::urlParam($qs, [$k=>(int)$this->_offset]);
                 }
                 unset($k);
             }
@@ -330,6 +334,7 @@ class Tecnodesign_Query_Api
         }
         $url .= $qs;
         unset($qs);
+
         return $url;
     }
 
@@ -349,7 +354,18 @@ class Tecnodesign_Query_Api
         if($this->_scope) $prop['_scope'] = $this->_scope;
         $this->_offset = $o;
         $this->_limit = $l;
-        return $this->query($this->buildQuery(), 'class', $this->schema('className'), $prop, $callback, $args);
+        if($this->_offset > 0) {
+            if($this->_next) {
+                $q = $this->nextPage();
+            } else if(static::$offset) {
+                $q = $this->buildQuery();
+            } else {
+                return null;
+            }
+        } else {
+            $q = $this->buildQuery();
+        }
+        return $this->query($q, 'class', $this->schema('className'), $prop, $callback, $args);
     }
 
     public function fetchArray($i=null)
@@ -688,6 +704,7 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_USERPWD, $this->_options['username'].':'.$this->_options['password']);
             curl_setopt($conn, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         }
+
         $this->_last = $q;
         if(!$this->_method) {
             $this->_method = 'GET';
@@ -696,6 +713,7 @@ class Tecnodesign_Query_Api
         }
         $this->cleanup();
         $r = curl_exec($conn);
+
         $msg = '';
         $body = null;
         if(!$r) {
@@ -746,8 +764,9 @@ class Tecnodesign_Query_Api
             $this->response = array($this->response);
         }
 
-        if($enablePaging && $this->response && static::$pagingAttribute && isset($this->response[static::$pagingAttribute])) {
-            $url = $q;
+        if($enablePaging && $this->response && static::$pagingAttribute && ($this->_next=$this->_getResponseAttribute(static::$pagingAttribute))) {
+
+            $page = $q;
             $R = array();
             $dataAttribute = null;
             if($this->response && static::$dataAttribute) {
@@ -755,11 +774,6 @@ class Tecnodesign_Query_Api
                 static::$dataAttribute = null;
                 $R = $this->_getResponseAttribute($dataAttribute);
                 if(!$R && !is_array($R)) $R=array();
-                /*
-                if(isset($this->response[$dataAttribute])) {
-                    $R = $this->response[$dataAttribute];
-                }
-                */
             } else {
                 $R = $this->response;
                 unset($R[static::$pagingAttribute]);
@@ -776,25 +790,21 @@ class Tecnodesign_Query_Api
             }
 
             $count = count($R);
-            while(isset($this->response[static::$pagingAttribute]) && $url!=$this->response[static::$pagingAttribute]) {
-                $url = $this->response[static::$pagingAttribute];
-                unset($this->response[static::$pagingAttribute]);
+            $max = ($this->_limit) ?$this->_limit :(int)static::$limitCount;
+            while(($nextPage=$this->nextPage($q)) && $page!=$nextPage && ($max==0 || $count < $max)) {
+                // check if cursor is an URL or a parameter
+                $page = $nextPage;
                 $this->response = null;
 
                 $this->run($url, $conn, false, true);
 
                 if($this->response) {
+                    $nextPage=$this->_getResponseAttribute(static::$pagingAttribute);
                     if($dataAttribute) {
                         $M = $this->_getResponseAttribute($dataAttribute);
                         $count += count($M);
-                        /*
-                        if(isset($this->response[$dataAttribute])) {
-                            $count += count($this->response[$dataAttribute]);
-                            $M = $this->response[$dataAttribute];
-                        }
-                        */
                     } else {
-                        unset($this->response[static::$pagingAttribute]);
+                        if(isset($this->response[static::$pagingAttribute])) unset($this->response[static::$pagingAttribute]);
                         $count += count($this->response);
                         $M = $this->response;
                     }
@@ -818,6 +828,7 @@ class Tecnodesign_Query_Api
             }
             if($cn) $cn=null;
             $this->response = $R;
+            $this->_count = $count;
             unset($R);
         } else {
             if(static::$dataAttribute) {
@@ -875,6 +886,55 @@ class Tecnodesign_Query_Api
         return $this;
     }
 
+    public function nextPage($q=null)
+    {
+        if(is_null($q)) $q = $this->buildQuery();
+        if(!$this->_next) return;
+
+        if(static::$nextPage) {
+            $url = static::urlParam($q, [static::$nextPage=>$this->_next]);
+        } else {
+            $url = $this->_next;
+        }
+
+        return $url;
+    }
+
+    public static function urlParam($url, $s)
+    {
+        if(!is_array($s)) {
+            $a = [];
+            parse_str($s, $a);
+        } else {
+            $a = $s;
+        }
+        foreach($a as $n=>$v) {
+            if(preg_match('#(\?|\&)'.preg_quote($n, '#').'=([^\&]*)(&|$)#', $url, $m)) {
+                $url = str_replace($m[0], $m[1].$n.'='.urlencode($v).$m[3], $url);
+            } else if(strpos($url, '?')!==false) {
+                $url .= ((substr($url, -1)!='&')?'&' :'').$n.'='.urlencode($v);
+            } else {
+                $url .= '?'.$n.'='.urlencode($v);
+            }
+            unset($a[$n], $n, $v);
+        }
+
+        return $url;
+    }
+
+    protected function _expand($s)
+    {
+        if(preg_match_all('/\{\$([a-zA-Z0-9\-\_]+)\}/', $s, $m)) {
+            $r = [];
+            foreach($m[0] as $k=>$v) {
+                $r[$v] = $this->schema($m[1][$k]);
+            }
+            if($r) $s = strtr($s, $r);
+        }
+        return $s;
+
+    }
+
     protected function _getResponseAttribute($dataAttribute=null)
     {
         if(is_null($dataAttribute)) $dataAttribute = static::$dataAttribute;
@@ -891,18 +951,17 @@ class Tecnodesign_Query_Api
             return null;
         }
 
+        $dataAttribute = $this->_expand($dataAttribute);
+        if(!$dataAttribute) return;
+
         $R = null;
         if($this->response && is_array($this->response)) {
             if(isset($this->response[$dataAttribute])) {
                 $R = $this->response[$dataAttribute];
-            } else if(strpos($dataAttribute, '.') || strpos($dataAttribute, '{$')!==false) {
+            } else if(strpos($dataAttribute, '.')!==false) {
                 $p = explode('.', $dataAttribute);
                 $R = $this->response;
                 while($n=array_shift($p)) {
-                    if(preg_match('/\{\$([a-zA-Z0-9\-\_]+)\}/', $dataAttribute, $m)) {
-                        $prop=$this->schema($m[1]);
-                        $n = str_replace($m[0], $prop, $n);
-                    }
                     if(isset($R[$n])) {
                         $R = $R[$n];
                     } else {
@@ -914,8 +973,6 @@ class Tecnodesign_Query_Api
         }
         return $R;
     }
-
-
 
     public function query($q, $as='array', $cn=null, $prop=null, $callback=null, $args=null)
     {
@@ -1203,7 +1260,7 @@ class Tecnodesign_Query_Api
         if(($r=$this->header('headerModified')) && ($t=strtotime($r))) {
             tdz::$variables['timestamp'][$cn] = $t;
         }
-        if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage()).' mem: '.tdz::$variables['timestamp'][$cn]);
+        if(tdz::$perfmon>0) tdz::log('[INFO] '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage()).' mem: '.tdz::$variables['timestamp'][$cn]);
         return tdz::$variables['timestamp'][$cn];
     }
 
