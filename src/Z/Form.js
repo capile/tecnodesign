@@ -1134,6 +1134,7 @@ function omnibarForm(e)
         }
         s += omnibarValue(v, a);
     }
+    if(s) s+=' ';
 
     Z.val(o, s);
 }
