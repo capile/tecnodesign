@@ -1235,8 +1235,12 @@ class Tecnodesign_Query_Api
         return $this->_last;
     }
 
-    public function response()
+    public function response($attr=null)
     {
+        if($attr) {
+            return $this->_getResponseAttribute($attr);
+        }
+
         return $this->response;
     }
 
