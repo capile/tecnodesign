@@ -835,9 +835,8 @@ class Tecnodesign_Query_Api
                 if(static::$countAttribute) {
                     $this->_count = $this->_getResponseAttribute(static::$countAttribute);
                 }
-                if($R=$this->_getResponseAttribute(static::$dataAttribute)) {
-                    $this->response = $R;
-                }
+                $R=$this->_getResponseAttribute(static::$dataAttribute);
+                $this->response = $R;
                 unset($R);
             }
         }
@@ -939,7 +938,6 @@ class Tecnodesign_Query_Api
     {
         if(is_null($dataAttribute)) $dataAttribute = static::$dataAttribute;
         if(!$dataAttribute) return $this->response;
-
         if(strpos($dataAttribute, '|')!==false) {
             $da = explode('|', $dataAttribute);
             foreach($da as $i=>$o) {
