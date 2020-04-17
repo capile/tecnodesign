@@ -282,7 +282,7 @@ class Tecnodesign_Query_Api
             $qp = sprintf($this->_expand(static::$queryPath), $this->schema('tableName'), null);
             if($p=strpos($qp, '?')) {
                 $qs = static::urlParam($qs, substr($qp, $p+1));
-                $url .= substr($url, 0, $p);
+                $url .= substr($qp, 0, $p);
             } else {
                 $url .= $qp;
             }
