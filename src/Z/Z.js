@@ -296,7 +296,7 @@ Z.decodeHtml=function (s) {
 };
 Z.cookie=function(name, value, expires, path, domain, secure) {
     if(arguments.length>1) {
-        document.cookie = name + "=" + escape(value) + ((arguments.length>2 && expires != null)?("; expires=" + expires.toGMTString()):('')) + ((arguments.length>3 && path)?("; path=" + path):('')) + ((arguments.length>4 && domain)?("; domain=" + domain):('')) + ((arguments.length>5 && secure)?("; secure"):(''));
+        document.cookie = name + "=" + escape(value) + ((arguments.length>2 && expires != null)?("; expires=" + expires.toGMTString()):('')) + ((arguments.length>3 && path)?("; path=" + path):('')) + ((arguments.length>4 && domain)?("; domain=" + domain):('')) + ((arguments.length<5 || secure)?("; secure"):(''));
     } else {
         var a = name + "=", i = 0;
         while (i < document.cookie.length) {
