@@ -40,6 +40,7 @@ class Tecnodesign_Query_Api
         $deleteMethod='POST',
         $saveToModel,
         $postFormat='json',
+        $postCharset,
         $curlOptions=array(
             CURLOPT_HEADER=>1,
             CURLOPT_VERBOSE        => false,
@@ -621,7 +622,7 @@ class Tecnodesign_Query_Api
         if($data && !is_string($data)) {
             if(static::$postFormat && static::$postFormat=='json') {
                 $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-                //$headers[] = 'content-type: application/json';
+                $headers[] = 'content-type: application/json'.((static::$postCharset) ?';charset='.static::$postCharset :'');
             } else {
                 $data = http_build_query($data);
             }
@@ -1079,7 +1080,7 @@ class Tecnodesign_Query_Api
         if($data && !is_string($data)) {
             if(static::$postFormat && static::$postFormat=='json') {
                 $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-                $H[] = 'content-type: application/json';
+                $H[] = 'content-type: application/json'.((static::$postCharset) ?';charset='.static::$postCharset :'');
             } else {
                 $data = http_build_query($data);
             }
