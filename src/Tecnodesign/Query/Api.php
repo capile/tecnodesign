@@ -770,7 +770,7 @@ class Tecnodesign_Query_Api
             $page = $q;
             $R = array();
             $dataAttribute = null;
-            if($this->response && static::$dataAttribute) {
+            if($this->response && static::$dataAttribute && $this->_expand(static::$dataAttribute)) {
                 $dataAttribute = static::$dataAttribute;
                 static::$dataAttribute = null;
                 $R = $this->_getResponseAttribute($dataAttribute);
@@ -796,18 +796,16 @@ class Tecnodesign_Query_Api
                 // check if cursor is an URL or a parameter
                 $page = $nextPage;
                 $this->response = null;
-
-                $this->run($url, $conn, false, true);
+                $this->run($nextPage, $conn, false, true);
 
                 if($this->response) {
-                    $nextPage=$this->_getResponseAttribute(static::$pagingAttribute);
                     if($dataAttribute) {
                         $M = $this->_getResponseAttribute($dataAttribute);
                         $count += count($M);
                     } else {
-                        if(isset($this->response[static::$pagingAttribute])) unset($this->response[static::$pagingAttribute]);
                         $count += count($this->response);
                         $M = $this->response;
+                        if(isset($M[static::$pagingAttribute])) unset($M[static::$pagingAttribute]);
                     }
                     if($cn && $M) {
                         foreach($M as $i=>$o) {
@@ -832,13 +830,14 @@ class Tecnodesign_Query_Api
             $this->_count = $count;
             unset($R);
         } else {
-            if(static::$dataAttribute) {
+            if(static::$dataAttribute && ($dataAttribute=$this->_expand(static::$dataAttribute))) {
                 if(static::$countAttribute) {
                     $this->_count = $this->_getResponseAttribute(static::$countAttribute);
                 }
-                $R=$this->_getResponseAttribute(static::$dataAttribute);
+                $R=$this->_getResponseAttribute($dataAttribute);
                 $this->response = $R;
                 unset($R);
+                unset($dataAttribute);
             }
         }
 

@@ -13,11 +13,11 @@
 class Tecnodesign_Query_Mysql extends Tecnodesign_Query_Sql
 {
     public static $options=array(
-        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci',
         PDO::ATTR_PERSISTENT => false,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ),
-    $tableDefault='ENGINE=InnoDB DEFAULT CHARSET=utf8';
+    $tableDefault='ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
 
     public function getTablesQuery($database=null, $enableViews=null)
     {
