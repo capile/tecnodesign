@@ -1375,6 +1375,7 @@ class tdz
         echo $s;
         tdz::flush();
         if ($exit) {
+            Tecnodesign_App::afterRun();
             exit();
         }
     }
