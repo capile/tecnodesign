@@ -22,6 +22,7 @@ class tdz
     $script_name = null,
     $real_script_name = null,
     $encoder,
+    $cacheControlExpires=864000,
     $cp1252_map = array(
         "\xc2\x80" => "\xe2\x82\xac",
         "\xc2\x82" => "\xe2\x80\x9a",
@@ -1120,7 +1121,7 @@ class tdz
         return $s;
     }
 
-    public static function getBrowserCache($etag, $lastModified, $expires=false)
+    public static function getBrowserCache($etag, $lastModified, $expires=null)
     {
         @header(
             'last-modified: '.
@@ -1367,9 +1368,6 @@ class tdz
             if($exit) exit();
             else return false;
         }
-        $expires = (tdz::env()=='dev')?(false):(3600);
-        if (isset($_GET['t']))
-            $expires = (int)$_GET['t'];
         $lastmod = filemtime($file);
         if ($format != '')
             @header('content-type: ' . $format);
@@ -1388,7 +1386,7 @@ class tdz
             header('cache-control: no-cache, no-store, max-age=0, must-revalidate');
             header('expires: Thu, 11 Oct 2007 05:00:00 GMT'); // Date in the past
         } else {
-            tdz::getBrowserCache(md5_file($file) . (($gzip) ? (';gzip') : ('')), $lastmod, $expires);
+            tdz::getBrowserCache(md5_file($file) . (($gzip) ? (';gzip') : ('')), $lastmod, tdz::$cacheControlExpires);
         }
         @header('content-transfer-encoding: binary');
 
