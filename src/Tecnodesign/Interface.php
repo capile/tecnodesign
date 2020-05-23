@@ -1601,7 +1601,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $title = $this->getTitle();
         if(!$this->action) {
             foreach(static::$actionsDefault as $a) {
-                if($this->setAction($a, tdz::urlParams(null, true))) {
+                $p1 = tdz::urlParams(null, true);
+                if($this->setAction($a, $p1)) {
                     break;
                 }
                 unset($a);
