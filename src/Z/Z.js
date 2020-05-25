@@ -1002,9 +1002,12 @@ Z.log=function()
         i++;
     }
 };
-if('$' in window) {
-    // jquery available, probably needs backwards compatible functions
+
+
+Z.backwardsCompatible=function()
+{
     Z.trace=Z.log;
+    if(!('tdz' in window)) window.tdz = Z;
 
     if (!String.prototype.encodeHTML) {
       String.prototype.encodeHTML = function () {
@@ -1198,9 +1201,10 @@ var matchesSelector = function(node, selector) {
     return Array.prototype.indexOf.call(node.parentNode.querySelectorAll(selector)) != -1;
 };
 
-
-
-
+if('$' in window) {
+    // jquery available, probably needs backwards compatible functions
+    Z.backwardsCompatible();
+}
 
 initZ();
 

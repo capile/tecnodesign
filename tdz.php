@@ -330,6 +330,7 @@ class tdz
         $arg = func_get_args();
         array_shift($arg);
         try {
+            if(isset(tdz::$variables['metrics']['query'])) $t0 = microtime(true);
             foreach($sqls as $sql) {
                 $conn = ($conn && count($arg)==1) ?$conn :tdz::connect();
                 if (!$conn) {
@@ -348,6 +349,11 @@ class tdz
                 } else if(isset($result[0])) {
                     $ret = array_merge($ret, $result);
                 }
+            }
+            if(isset(tdz::$variables['metrics']['query'])) {
+                $t = microtime(true) - $t0;
+                tdz::$variables['metrics']['query']['time']+=$t;
+                tdz::$variables['metrics']['query']['count']++;
             }
         } catch(Exception $e) {
             tdz::log('Error in '.__METHOD__.":\n  ".$e->getMessage()."\n {$sql}");
@@ -1159,10 +1165,9 @@ class tdz
          * Nothing has changed since their last request - serve a 304 and exit
          */
         Tecnodesign_App::status(304);
-        if(tdz::getApp()) {
-            Tecnodesign_App::afterRun();
-        }
-        exit();    }
+        Tecnodesign_App::afterRun();
+        exit();
+    }
 
     public static function redirect($url='', $temporary=false)
     {
@@ -1327,6 +1332,7 @@ class tdz
         echo $s;
         tdz::flush();
         if ($exit) {
+            Tecnodesign_App::afterRun();
             exit();
         }
     }
