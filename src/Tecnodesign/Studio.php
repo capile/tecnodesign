@@ -125,7 +125,7 @@ class Tecnodesign_Studio
             self::error(404);
         } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
             tdz::cacheControl('private', static::$cacheTimeout);
-            tdz::output(json_encode(self::uid()), 'json');
+            tdz::output(tdz::serialize(self::uid(), 'json'), 'json');
         } else if(self::ignore($sn)) {
             self::error(404);
         } else if($E=self::page($sn)) {
@@ -499,6 +499,7 @@ class Tecnodesign_Studio
         }
 
         $U = tdz::getUser();
+
         if($U) {
             $r = $U->asArray();
             if(self::$webInterface && (($U->isAuthenticated() && ($U->isSuperAdmin()) || (($ec= self::credential('studio')) && $U->hasCredential($ec, false))))) {
@@ -525,6 +526,11 @@ class Tecnodesign_Studio
             }
         } else {
             $r = array();
+        }
+
+        if(tdz::scriptName(true)===self::$uid) {
+            tdz::cacheControl('private', static::$cacheTimeout);
+            tdz::output(tdz::serialize($r, 'json'), 'json');
         }
 
         return $r;

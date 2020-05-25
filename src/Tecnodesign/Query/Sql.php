@@ -17,6 +17,7 @@ class Tecnodesign_Query_Sql
         $microseconds=6,
         $enableOffset=true,
         $textToVarchar,
+        $queryCallback,
         $connectionCallback,
         $errorCallback;
     protected static 
@@ -801,7 +802,33 @@ class Tecnodesign_Query_Sql
     public function run($q)
     {
         $this->_last = $q;
-        return self::runStatic($q, $this->schema('database'));
+        if(self::$queryCallback) {
+            return call_user_func(self::$queryCallback, $q, $this->schema('database'));
+        } else {
+            return self::runStatic($q, $this->schema('database'));
+        }
+    }
+
+    public static function runMetrics($q, $n='')
+    {
+        static $stmt;
+        if($stmt) {
+            $stmt->closeCursor();
+            $stmt = null;
+        }
+        $t0 = microtime(true);
+        $stmt = self::connect($n)->query($q);
+        if(!$stmt) {
+            throw new \Exception('Statement failed! '.$q);
+        }
+        $t = microtime(true) - $t0;
+        if(!isset(tdz::$variables['metrics']['query'])) {
+            if(!isset(tdz::$variables['metrics'])) tdz::$variables['metrics'] = array();
+            tdz::$variables['metrics']['query'] = array('time'=>(float) 0,'count'=>0);
+        }
+        tdz::$variables['metrics']['query']['time']+=$t;
+        tdz::$variables['metrics']['query']['count']++;
+        return $stmt;
     }
 
     public static function runStatic($q, $n='')
