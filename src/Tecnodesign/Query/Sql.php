@@ -167,29 +167,32 @@ class Tecnodesign_Query_Sql
         return $schema;
     }
 
-    public function scope($o=null, $sc=null)
-    {
-        $cn = ($sc && isset($sc['className']))?($sc['className']):($this->_schema);
-        if($o==='uid') return $cn::pk(null, true);
-        return $cn::scope($o);
-    }
-
     public function find($options=array(), $asArray=false)
     {
         $this->_select = $this->_where = $this->_groupBy = $this->_orderBy = $this->_limit = $this->_offset = null;
         $sc = $this->schema();
-        $this->_alias = array($sc['className']=>'a');
-        $quote = static::QUOTE;
-        if(isset($sc['view']) && $sc['view']) {
-            $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].')' :$sc['view'] );
-        } else {
-            $this->_from = $sc['tableName'];
-        }
-        $this->_from .= " as {$quote[0]}a{$quote[1]}";
+        $this->getFrom();
         if(isset($sc['defaults']['find'])) $this->filter($sc['defaults']['find']);
         unset($sc);
         $this->filter($options);
         return $this;
+    }
+
+    public function getFrom($sc=null)
+    {
+        if(!$this->_from || !is_array($this->_alias)) {
+            if(!$sc) $sc = $this->schema();
+            $this->_alias = [$sc['className']=>'a'];
+            $quote = static::QUOTE;
+            if(isset($sc['view']) && $sc['view']) {
+                $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].')' :$sc['view'] );
+            } else {
+                $this->_from = $sc['tableName'];
+            }
+            $this->_from .= " as {$quote[0]}a{$quote[1]}";
+            $sc = null;
+        }
+        return $this->_from;
     }
 
     public function filter($options=array())
@@ -251,7 +254,7 @@ class Tecnodesign_Query_Sql
 
         $q = 'select'
             . $s
-            . ' from '.$this->_from
+            . ' from '.$this->getFrom()
             . (($this->_where)?(' where '.$this->_where):(''))
             . ((!$count && $this->_groupBy)?(' group by'.$this->_groupBy):(''))
             . ((!$count && $this->_orderBy)?(' order by'.$this->_orderBy):(''))
@@ -313,12 +316,20 @@ class Tecnodesign_Query_Sql
     public function addSelect($o)
     {
         if(is_null($this->_select)) $this->_select = array();
+        if(is_array($o) && (isset($o['bind']) || isset($o['type']))) {
+            if(!isset($o['bind'])) return $this;
+            $o = $o['bind'];
+        }
         if(is_array($o)) {
             foreach($o as $s) {
                 $this->addSelect($s);
                 unset($s);
             }
-        } else {
+        } else if(substr($o, 0, 7)==='scope::') {
+            if($s=$this->scope([$o])) {
+                $this->addSelect($s);
+            }
+        } else if(!(substr($o, 0, 2)=='--' && substr($o, -2)=='--')) {
             $fn = $this->getAlias($o);
             if($fn) {
                 $this->_select[$fn]=$fn;
@@ -329,13 +340,18 @@ class Tecnodesign_Query_Sql
         return $this;
     }
 
+
+    public function scope($o=null, $sc=null)
+    {
+        $cn = ($sc && isset($sc['className']))?($sc['className']):($this->_schema);
+        if($o==='uid') return $cn::pk(null, true);
+        return $cn::columns($o, null, 3, true);
+    }
+
     public function addScope($o)
     {
         if(is_array($o)) {
-            foreach($o as $s) {
-                $this->addScope($s);
-                unset($s);
-            }
+            $this->addSelect($o);
         } else if($s=$this->scope($o)) {
             $this->addSelect($s);
             $this->_scope = $o;
@@ -468,7 +484,7 @@ class Tecnodesign_Query_Sql
             }
         }
 
-        if(!is_array($this->_alias)) $this->_alias = [];
+        if(!is_array($this->_alias)) $this->getFrom();
 
         if($ta==='a' && !in_array($ta, $this->_alias)) {
             $this->_alias[$sc['className']] = $ta;
@@ -615,7 +631,7 @@ class Tecnodesign_Query_Sql
                     $fn = $ta.'.'.$fn;
                 }
             } else {
-                tdz::log("[WARNING] Cannot find by [{$ofn}] at [{$sc['tableName']}]", debug_backtrace(0, 5));
+                tdz::log("[WARNING] Cannot find by [{$ofn}] at [{$sc['tableName']}]");
                 throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
             }
         }

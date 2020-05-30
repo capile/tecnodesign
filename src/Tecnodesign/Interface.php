@@ -2997,13 +2997,9 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         $r = 0;
         if(!$this->searchError && ($cn=$this->getModel())) {
-            $sql = true;
             $Q = null;
             if(method_exists($cn, 'queryHandler')) {
                 $Q = $cn::queryHandler();
-                if($Q::TYPE!='sql') {
-                    $sql = false;
-                }
             }
 
             if(!tdz::isempty($this->id) && !tdz::isempty($this->key)) {
@@ -3016,14 +3012,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
 
-            if($sql) {
-                $pk = $cn::pk();
-                if(is_array($pk) || strpos($pk, ' ')) $pk='`*`';
-                else $pk = 'distinct `'.$pk.'`';
-                $R = $cn::find($this->search,1,array('count('.$pk.') _count'),false,false,true);
-                if($R) $r = (int) $R->_count;
-                unset($R);
-            } else if($Q && method_exists($Q, 'count')) {
+            if($Q && method_exists($Q, 'count')) {
                 if($this->search) {
                     $Q->reset();
                     $Q->where($this->search);

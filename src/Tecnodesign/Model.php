@@ -1837,17 +1837,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public static function find($s=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
         $q=array();
-        if(!$groupBy) {
-            $c = static::pk();
-            if(!is_array($c)) $c=array($c);
-            $q['select'] = array_merge($c, static::columns($scope, null, 3, true));
+        if(!$groupBy && ($c = static::pk(null, true))) {
+            $q['select'] = $c;
+            //$q['select'] = array_merge($c, static::columns($scope, null, 3, true));
             unset($c);
-        } else  {
-            $q['select'] = static::columns($scope, null, 3, true);
         }
-        if(is_string($scope)) {
-            $q['scope'] = $scope;
-        }
+        $q['scope'] = $scope;
         if($s) {
             if(!is_array($s)) {
                 $c = static::pk();
@@ -1880,10 +1875,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         }
     }
 
-    public static function query($q=null, $cn=null)
+    public static function query($q=null, $cn=null, $asArray=false)
     {
         if(!$cn) $cn = get_called_class();
-        if($q) return Tecnodesign_Query::handler($cn)->find($q);
+        if($q) return Tecnodesign_Query::handler($cn)->find($q, $asArray);
         else return Tecnodesign_Query::handler($cn);
     }
 
