@@ -649,7 +649,6 @@ class Tecnodesign_Query_Ldap
                 $conn = self::connect($this->schema('database'));
             }
             $r = ldap_mod_replace($conn, $this->getDn($M), $data);
-
             if($r===false) {
                 throw new Tecnodesign_Exception(sprintf(tdz::t('Could not save %s', 'exception'), $this->getDn($M)).': '.ldap_error($conn));
             }
@@ -713,7 +712,7 @@ class Tecnodesign_Query_Ldap
 
             if($v!=$original) {
                 $M->setOriginal($fn, $v);
-                $data[$fn] = $v;
+                $data[$fn] = (is_null($v) || $v===false) ?[] :$v;
             }
             unset($fn, $fv, $v, $original);
         }

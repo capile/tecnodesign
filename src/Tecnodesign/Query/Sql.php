@@ -17,6 +17,7 @@ class Tecnodesign_Query_Sql
         $microseconds=6,
         $enableOffset=true,
         $textToVarchar,
+        $logSlowQuery,
         $queryCallback,
         $connectionCallback,
         $errorCallback;
@@ -844,6 +845,10 @@ class Tecnodesign_Query_Sql
         }
         tdz::$variables['metrics']['query']['time']+=$t;
         tdz::$variables['metrics']['query']['count']++;
+        if(self::$logSlowQuery && $t>(float)self::$logSlowQuery) {
+            if(!isset(tdz::$variables['metrics']['query']['slow'])) tdz::$variables['metrics']['query']['slow']=[];
+            tdz::$variables['metrics']['query']['slow'][]=['time'=>$t, 'query'=>$q];
+        }
         return $stmt;
     }
 
