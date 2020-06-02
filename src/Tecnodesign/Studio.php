@@ -491,7 +491,7 @@ class Tecnodesign_Studio
         }
 
         if(tdz::scriptName(true)===self::$uid) {
-            tdz::cacheControl('private', static::$cacheTimeout);
+            tdz::cacheControl('private,must-revalidate', static::$cacheTimeout);
             tdz::output(tdz::serialize($r, 'json'), 'json');
         }
 

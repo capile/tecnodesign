@@ -1106,6 +1106,7 @@ class Tecnodesign_User
                     if ($o['redirect-success']) {
                         if($d['url']!=''){
                             $url=$d['url'];
+                            if(strpos($url, '#')===false) $url .= '#@'.date('Ymdhis');
                         }
                         if(isset($o['redirect-success-callback'])) {
                             if(is_array($o['redirect-success-callback'])) {
