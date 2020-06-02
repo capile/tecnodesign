@@ -51,7 +51,16 @@ function initZ(d)
         }
         if(Z.uid && (_reWeb.test(window.location.origin) || _reWeb.test(Z.uid))) {
             if(Z.host && !_reWeb.test(Z.uid)) Z.uid = Z.host + Z.uid;
-            Z.ajax(Z.uid, null, initZ, null, 'json');
+            var ts, qs='';
+            if(window.location.hash.search(/^#?@[0-9]+$/)>-1) {
+                ts=window.location.hash.replace(/[^0-9]+/g, '');
+                Z.storage('z-ts', parseInt(ts));
+                window.location.hash='';
+            } else {
+                ts=Z.storage('z-ts');
+            }
+            if(ts) qs = '?'+ts;
+            Z.ajax(Z.uid+qs, null, initZ, null, 'json');
             return;
         }
     }
@@ -77,7 +86,7 @@ function initZ(d)
         return;
     }
     if(!('timeout' in Z)) Z.timeout = 0;
-    if(store && Z.timeout) Z.storage('Z-Auth', d, Z.timeout);
+    if(store && Z.timeout) Z.storage('z-auth', d, Z.timeout);
     
     Z.ready(Z.init);
 }
