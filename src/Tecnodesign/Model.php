@@ -462,6 +462,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $r = array();
             if(!is_array($scope)) $scope = array($scope);
             foreach($scope as $k=>$fn) {
+                $fd = null;
                 if(is_array($fn)) {
                     if(!isset($fn['bind'])) {
                         if(!isset($fn['type']) && !isset($fn['format'])) {
@@ -473,7 +474,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $fd = $fn + $base;
                     $fn=$fn['bind'];
                 }
-                if(!isset($fd)) $fd = array('bind'=>$fn)+$base;
+                if(is_null($fd)) $fd = array('bind'=>$fn)+$base;
                 if(strpos($fn, ' ')) {
                     $fn0 = $fn;
                     $fn = substr($fn, strrpos($fn, ' ')+1);
@@ -509,7 +510,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                         }
                     }
                     if($m[1]=='scope') {
-                        $r = array_merge($r, static::columns($m[2], $type, $expand));
+                        $res = static::columns($m[2], $type, $expand, $clean);
+                        if($res && is_array($res)) {
+                            $r = array_merge($r, $res);
+                        }
                     }
                 } else {
                     if(isset($fd['credential'])) {

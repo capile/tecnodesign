@@ -317,27 +317,25 @@ class Tecnodesign_Query_Sql
     public function addSelect($o)
     {
         if(is_null($this->_select)) $this->_select = array();
-        if(is_array($o) && (isset($o['bind']) || isset($o['type']))) {
-            if(!isset($o['bind'])) return $this;
-            $o = $o['bind'];
+
+        if(!is_string($o) || preg_match('/[-:]{2}/', $o)) {
+            $o = $this->scope($o);
         }
-        if(is_array($o)) {
-            foreach($o as $s) {
-                $this->addSelect($s);
-                unset($s);
+
+        if(!is_array($o)) $o=[$o];
+        foreach($o as $k=>$n) {
+            if(is_array($n)) {
+                if(isset($n['bind']) && $n['bind']) {
+                    $n = $n['bind'];
+                } else {
+                    continue;
+                }
             }
-        } else if(substr($o, 0, 7)==='scope::') {
-            if($s=$this->scope([$o])) {
-                $this->addSelect($s);
+            if($fn = $this->getAlias($n)) {
+                $this->_select[$fn] = $fn;
             }
-        } else if(!(substr($o, 0, 2)=='--' && substr($o, -2)=='--')) {
-            $fn = $this->getAlias($o);
-            if($fn) {
-                $this->_select[$fn]=$fn;
-                //$this->_select .= ($this->_select)?(", {$fn}"):(" {$fn}");
-            }
-            unset($fn);
         }
+
         return $this;
     }
 
@@ -628,7 +626,7 @@ class Tecnodesign_Query_Sql
                 $found = true;
                 if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
                     $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
-                } else {
+                } else if($fn) {
                     $fn = $ta.'.'.$fn;
                 }
             } else {
