@@ -139,7 +139,9 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         }
         $this->_driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
         $sqlc=false;
-        if($this->_driver=='dblib') {
+        $mssql = ($this->_driver==='dblib' || $this->_driver==='sqlsrv' || $this->_driver==='odbc');
+
+        if($mssql) {
             if(!$this->_cid) {
                 $this->_cid = tdz::$connection;
             }
@@ -165,7 +167,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         if($key) {
             $this->_queryKey = $key;
             $key = preg_replace('/[^a-z0-9\_]+/i', '', $key);
-            if($this->_driver=='dblib') {
+            if($mssql) {
                 //MSSQL if there's ORDER BY, we must also use TOP, or remove the ORDER BY to count items:
                 // The ORDER BY clause is invalid in views, inline functions, derived tables, and subqueries, unless TOP is also specified.
                 if(preg_match('/^\s*select\s*(top)?(.*\sorder\s+by[^\']+)$/i', $sql, $m) && $m[1]=='') {
@@ -178,7 +180,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             // add limiting params for the query
             // this restricts the Tecnodesign_Collection for MySQL usage only
             // for MSSQL this will need to be worked with cursors
-            if($this->_driver=='dblib') {
+            if($mssql) {
                 //MSSQL if there's ORDER BY, we must also use TOP, or remove the ORDER BY to count items:
                 // The ORDER BY clause is invalid in views, inline functions, derived tables, and subqueries, unless TOP is also specified.
                 if(preg_match('/^\s*select\s*(distinct\s+)?(top\s+[0-9]+\s*)?(.*\sorder\s+by[^\']+)$/i', $sql, $m) && $m[2]=='') {
@@ -206,7 +208,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                 //        however, this would implicitly force the query to be updated and executed again
                 // @TODO: compare both performance and make the best choice
                 if(tdz::$perfmon) tdz::$perfmon = microtime(true);
-                if($this->_driver=='dblib') {
+                if($mssql) {
                     // since it's better to store the connection instead of the statement in MSSQL queries, we do it here
                     $this->_queryStatement($conn);
                     $query = $conn->query($sql);
@@ -630,7 +632,8 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                 if($single && is_int($offset0) && $limit===1 && $ret) $ret = array_shift($ret);
             } else {
                 $q=$this->_queryStatement();
-                if($this->_driver!='dblib' && get_class($q)=='PDO') { // lost original connection
+                $mssql = ($this->_driver==='dblib' || $this->_driver==='sqlsrv' || $this->_driver==='odbc');
+                if(!$mssql && get_class($q)=='PDO') { // lost original connection
                     $sql = $this->_query;
                     if($this->_driver=='pgsql') {
                         $sql .= ' limit :max offset :offset';

@@ -140,6 +140,11 @@ if(!isset($tns['tdz_contents'])) {
         if($driver=='mysql') $q .= ' after content_type';
         tdz::query($q);
     }
+    if(!isset($S['properties']['attributes'])) {
+        $q = 'alter table tdz_contents add attributes varchar(200) null default null';
+        if($driver=='mysql') $q .= ' after source';
+        tdz::query($q);
+    }
 }
 
 

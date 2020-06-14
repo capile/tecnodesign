@@ -1515,7 +1515,7 @@ class Tecnodesign_Query_Sql
             return false;
         }
 
-        $properties = $schema->properties ?$schema->properties :[];
+        $properties = [];
         $overlay = $schema->overlay ?$schema->overlay :[];
         $events = $schema->actAs ?$schema->actAs :[];
         $se = $schema->events ?$schema->events :[];

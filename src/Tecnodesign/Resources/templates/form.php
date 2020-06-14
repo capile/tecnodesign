@@ -38,7 +38,12 @@ if(isset($limits) && $limits) {
                 $fs = (string) $fo->fieldset;
                 if(!$hasFieldset && $fs) $hasFieldset = true;
             }
-            $fieldsets[$fs] .= $fo->render();
+            if(!$fs) {
+                $fieldsets[] = $fo->render();
+            } else {
+                if(!isset($fieldsets[$fs])) $fieldsets[$fs]='';
+                $fieldsets[$fs] .= $fo->render();
+            }
         }
     }
 }

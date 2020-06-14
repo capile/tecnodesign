@@ -25,7 +25,6 @@ class Tecnodesign_Studio_Install
     {
         $data = dirname(__FILE__).'/Resources/sql/e-studio-install.yml';
         Tecnodesign_Database::import($data);
-        tdz::debug(tdzEntry::find()->asArray());
     }
     
     public function updateSchema()
@@ -51,8 +50,8 @@ class Tecnodesign_Studio_Install
     public static function upgrade($version=1.0)
     {
         // check and run SQL upgrades
-        foreach(glob(dirname(__FILE__).'/Resources/install/e-studio-*.php') as $p) {
-            if(preg_match('#/e-studio-([0-9]+\.[0-9]+)-[0-9]+\.php$#', $p, $m) && (float)$m[1]>$version) {
+        foreach(glob(TDZ_ROOT.'/src/Tecnodesign/Resources/studio/studio-*.php') as $p) {
+            if(preg_match('#studio-([0-9]+\.[0-9]+)-[0-9]+\.php$#', $p, $m) && (float)$m[1]>$version) {
                 tdz::exec(array('script'=>$p));
             }
         }

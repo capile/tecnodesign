@@ -380,7 +380,20 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
          * If the entry is not found, it should use current feed as a parameter
          */
         $o['script'] = Tecnodesign_Studio::templateFile((isset($code['master']))?($code['master']):(null), 'tdz_feed');
-        $E = (is_object($e))?($e):(tdzEntry::find($e,1));
+
+        $eid = null;
+        $E = null;
+        if(is_object($e) && ($e instanceof Tecnodesign_Studio_Entry)) {
+            $eid = (int)$e->id;
+            $E = $e;
+        } else if(isset($code['entry']) && is_numeric($code['entry'])) {
+            $eid = (int)$code['entry'];
+            $q = ['id'=>$eid];
+        } else {
+            $q = $e;
+        }
+
+        if(!$E) $E = tdzEntry::find($q,1);
         $o['variables']['entry']=$E;
         if($E) {
             $o['variables'] += $E->asArray();

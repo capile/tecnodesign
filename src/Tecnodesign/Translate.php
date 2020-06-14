@@ -40,7 +40,8 @@ class Tecnodesign_Translate
         if(is_null($to)) {
             $to = tdz::$lang;
         }
-        if(self::$forceTranslation!==true && ($to==self::$sourceLanguage || (!self::$apiKey && !self::$clientId))) {
+
+        if(self::$forceTranslation!==true && $to==self::$sourceLanguage) {
             return $message;
         }
         
@@ -105,7 +106,7 @@ class Tecnodesign_Translate
             }
             if(!isset($this->_table[$table][$message])) {
                 $text = $message;
-                if($this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){
+                if(self::$forceTranslation && $this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){
                     $m = self::$method.'Translate';
                     try{
                         $text = self::$m($this->_from, $this->_lang, $text);
