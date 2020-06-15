@@ -595,7 +595,18 @@ class Tecnodesign_App
         } else {
             $options['url'] = $url;
         }
-        $pat=(isset($options['additional-params']) && $options['additional-params'])?("@^{$url}@i"):("@^{$url}\$@i");
+
+        $purl = str_replace('@', '\\@', $url);
+        if(substr($url, 0, 1)==='~') {
+            $pat = "@{$purl}@";
+        } else if(preg_match('/[\^\$]/', $url)) {
+            $pat = "@^{$purl}@";
+        } else if(isset($options['additional-params']) && $options['additional-params']) {
+            $pat = "@^{$purl}(/|\$)@";
+        } else {
+            $pat = "@^{$purl}\$@";
+        }
+        $purl = null;
         if (!preg_match($pat, self::$_request['script-name'], $m)) {
             return false;
         }

@@ -738,11 +738,13 @@
                     if(He.className.search(/\bz-overflow\b/)>-1) He.className = He.className.replace(/\s*\bz-overflow\b/g, '');
                     return setTimeout(headerOverflow, 200);
                 }
-                var w = (He.clientWidth - fw);
-                var fw0=fw - H.clientWidth;
+                var w0=(H.scrollWidth/He.getBoundingClientRect().width)*100, w = (100 - w0)/(Hs.length -1);
+                if(w0<=1.25*w) {
+                    w=100.0/Hs.length;
+                }
                 while(i--) {
                     if(Hs[i]!=H) {
-                        Hs[i].setAttribute('style', 'width:'+(ws[i] + (w*ws[i]/fw0))+'px');
+                        Hs[i].setAttribute('style', 'width:'+w+'%');
                     }
                 }
             } else {
