@@ -203,6 +203,7 @@ class Tecnodesign_Studio_Asset
 
     public function parseLess($fs, $outputFile)
     {
+        static $compiler='ScssPhp\\ScssPhp\\Compiler';
         $parser = null;
         // inspect memory usage by this component
         tdz::tune(null, 32, 10);
@@ -251,9 +252,10 @@ class Tecnodesign_Studio_Asset
 
     public function parseScss($fs, $outputFile)
     {
+        static $compiler='ScssPhp\\ScssPhp\\Compiler';
         $parser = null;
-        if(is_null($parser) && class_exists('scssc')) {
-            $parser = new scssc();
+        if(is_null($parser) && class_exists($compiler)) {
+            $parser = new $compiler();
             //$parser->setVariables(array('assets-url'=>'"'.tdz::$assetsUrl.'"'));
             $parser->registerFunction('dechex', function($a){
                 return dechex($a[1]);
