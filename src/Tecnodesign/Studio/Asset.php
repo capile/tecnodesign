@@ -204,6 +204,8 @@ class Tecnodesign_Studio_Asset
     public function parseLess($fs, $outputFile)
     {
         $parser = null;
+        // inspect memory usage by this component
+        tdz::tune(null, 32, 10);
         if(class_exists('lessc')) {
             $parser = new lessc();
             $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
