@@ -1367,7 +1367,7 @@ class Tecnodesign_Query_Sql
     {
         if(!$n) $n = $this->schema('database');
         $db = Tecnodesign_Query::database($n);
-        if($db && isset($db['dsn']) && preg_match('/(^|;)dbname=([^\;]+)/', $db['dsn'], $m)) {
+        if($db && isset($db['dsn']) && preg_match('/(^|;)(dbname|Database)=([^\;]+)/i', $db['dsn'], $m)) {
             $n = $m[2];
         }
         return $n;
@@ -1397,6 +1397,7 @@ class Tecnodesign_Query_Sql
         // sqlite return values
         'name'=>'bind', 'pk'=>'keys', 'dflt_value'=>'required'
     ];
+
     public function getColumnSchema($fd, $base=array())
     {
         $protected = array('type', 'min', 'max', 'length', 'null');// , 'increment'
@@ -1484,9 +1485,12 @@ class Tecnodesign_Query_Sql
         } else {
             $f['type'] = 'string';
         }
-        if($fd['null']=='YES') $f['null'] = true;
-        else if(isset($fd['required'])) $f['null'] = ($fd['required']!='1');
-        else $f['null'] = false;
+        if($fd['null']=='YES') $f['required'] = false;
+        else if(isset($fd['required'])) $f['required'] = ($fd['required']!='1');
+        else $f['required'] = false;
+
+        if(isset($fd['size']) && is_numeric($fd['size'])) $f['size'] = (int)$fd['size'];
+
         if($fd['keys']=='PRI' || $fd['keys']=='1') {
             $f['primary']=true;
         }
@@ -1507,11 +1511,9 @@ class Tecnodesign_Query_Sql
             }
         }
         $schema->tableName = $table;
-        $conn = static::connect($schema->database);
 
-        $raw = $conn->query($this->getTableSchemaQuery($table))->fetchAll(\PDO::FETCH_ASSOC);
+        $raw = $this->query($this->getTableSchemaQuery($table));
         if(!$raw) {
-            exit("No tables to update!\n");
             return false;
         }
 

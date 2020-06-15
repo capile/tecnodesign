@@ -45,7 +45,7 @@ foreach(Tecnodesign_Database::getTables($cid) as $t) {
 
 $H = Tecnodesign_Query::handler($cid);
 
-if(!isset($tns['tdz_entries'])) {
+if(!($S=$H->getTableSchema('tdz_entries'))) {
     $q = array(
 "create table tdz_entries (
   id bigint(20) not null{$auto_increment},
@@ -73,7 +73,8 @@ if(!isset($tns['tdz_entries'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Entry'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_entries_version'])) {
+
+if(!($S=$H->getTableSchema('tdz_entries_version'))) {
     $q = array(
 "create table tdz_entries_version (
   id bigint(20) not null default '0',
@@ -105,7 +106,9 @@ if(!isset($tns['tdz_entries_version'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_contents'])) {
+
+$contents = false;
+if(!($S=$H->getTableSchema('tdz_contents'))) {
     $q = array(
 "create table tdz_contents (
   id bigint(20) not null{$auto_increment},
@@ -134,7 +137,8 @@ if(!isset($tns['tdz_contents'])) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Content'";
     tdz::query($q);
-} else if(($S = $H->getTableSchema('tdz_contents'))) {
+} else {
+    $contents = true;
     if(!isset($S['properties']['source'])) {
         $q = 'alter table tdz_contents add source varchar(200) null default null';
         if($driver=='mysql') $q .= ' after content_type';
@@ -147,8 +151,7 @@ if(!isset($tns['tdz_contents'])) {
     }
 }
 
-
-if(!isset($tns['tdz_contents_version'])) {
+if(!($S=$H->getTableSchema('tdz_contents_version'))) {
     $q = array(
 "create table tdz_contents_version (
   id bigint(20) not null default '0',
@@ -177,14 +180,20 @@ if(!isset($tns['tdz_contents_version'])) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
-} else if(($S = $H->getTableSchema('tdz_contents_version'))) {
+} else {
     if(!isset($S['properties']['source'])) {
         $q = 'alter table tdz_contents_version add source varchar(200) null default null';
         if($driver=='mysql') $q .= ' after content_type';
         tdz::query($q);
     }
+    if(!isset($S['properties']['attributes'])) {
+        $q = 'alter table tdz_contents_version add attributes varchar(200) null default null';
+        if($driver=='mysql') $q .= ' after source';
+        tdz::query($q);
+    }
 }
-if(!isset($tns['tdz_permissions'])) {
+
+if(!($S=$H->getTableSchema('tdz_permissions'))) {
     $q = array(
 "create table tdz_permissions (
   id bigint(20) not null{$auto_increment},
@@ -205,7 +214,8 @@ if(!isset($tns['tdz_permissions'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Permission'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_permissions_version'])) {
+
+if(!($S=$H->getTableSchema('tdz_permissions_version'))) {
     $q = array(
 "create table tdz_permissions_version (
   id bigint(20) not null default '0',
@@ -226,7 +236,8 @@ if(!isset($tns['tdz_permissions_version'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_relations'])) {
+
+if(!($S=$H->getTableSchema('tdz_relations'))) {
     $q = array(
 "create table tdz_relations (
   id bigint(20) not null{$auto_increment},
@@ -251,7 +262,8 @@ if(!isset($tns['tdz_relations'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Relation'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_relations_version'])) {
+
+if(!($S=$H->getTableSchema('tdz_relations_version'))) {
     $q = array(
 "create table tdz_relations_version (
   id bigint(20) not null default '0',
@@ -275,7 +287,8 @@ if(!isset($tns['tdz_relations_version'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_tags'])) {
+
+if(!($S=$H->getTableSchema('tdz_tags'))) {
     $q = array(
 "create table tdz_tags (
   id bigint(20) not null{$auto_increment},
@@ -298,7 +311,8 @@ if(!isset($tns['tdz_tags'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Tag'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_tags_version'])) {
+
+if(!($S=$H->getTableSchema('tdz_tags_version'))) {
     $q = array(
 "create table tdz_tags_version (
   id bigint(20) not null,
@@ -323,7 +337,8 @@ if(!isset($tns['tdz_tags_version'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
 }
-if(!isset($tns['tdz_contents_display'])) {
+
+if(!($S=$H->getTableSchema('tdz_contents_display'))) {
     $q = array(
 "create table tdz_contents_display (
   content bigint(20) not null,
@@ -343,7 +358,7 @@ if(!isset($tns['tdz_contents_display'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_ContentDisplay'";
     tdz::query($q);
 
-    if(isset($tns['tdz_contents'])) {
+    if($contents) {
         // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
         $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents where coalesce(show_at,\'\')<>\'\'';
         $r = tdz::query($q);
@@ -387,7 +402,8 @@ if(!isset($tns['tdz_contents_display'])) {
         }
     }
 }
-if(!isset($tns['tdz_contents_display_version'])) {
+
+if(!($S=$H->getTableSchema('tdz_contents_display_version'))) {
     $q = array(
 "create table tdz_contents_display_version (
   content bigint(20) not null,
@@ -408,7 +424,7 @@ if(!isset($tns['tdz_contents_display_version'])) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
 
-    if(isset($tns['tdz_contents_version'])) {
+    if($content) {
         // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
         $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents_version where coalesce(show_at,\'\')<>\'\'';
         $r = tdz::query($q);
@@ -454,7 +470,7 @@ if(!isset($tns['tdz_contents_display_version'])) {
     }
 }
 
-if(!isset($tns['tdz_groups'])) {
+if(!($S=$H->getTableSchema('tdz_groups'))) {
     $q = array(
 "create table tdz_groups (
   id int(10) $unsigned not null{$auto_increment},
@@ -471,7 +487,7 @@ if(!isset($tns['tdz_groups'])) {
     tdz::query($q);
 }
 
-if(!isset($tns['tdz_users'])) {
+if(!($S=$H->getTableSchema('tdz_users'))) {
     $q = array(
 "create table tdz_users (
   id int(10) $unsigned not null{$auto_increment},
@@ -492,7 +508,7 @@ if(!isset($tns['tdz_users'])) {
     tdz::query($q);
 }
 
-if(!isset($tns['tdz_credentials'])) {
+if(!($S=$H->getTableSchema('tdz_credentials'))) {
     $q = array(
 "create table tdz_credentials (
   user int(10) $unsigned not null,

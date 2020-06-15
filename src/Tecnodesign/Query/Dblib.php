@@ -192,9 +192,52 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 
     public function getTablesQuery($database=null, $enableViews=null)
     {
-        if(is_null($database)) $database = $this->schema('database');
-        return 'select table_name from information_schema.tables where table_catalog='.tdz::sql($this->getDatabaseName($database))
-            . ((!$enableViews) ?' and table_type=\'BASE TABLE\'' :'');
+        $dbname = $this->getDatabaseName($database);
+
+        return 'select table_name from INFORMATION_SCHEMA.TABLES where TABLE_CATALOG='.tdz::sql($dbname)
+            . ((!$enableViews) ?' and TABLE_TYPE=\'BASE TABLE\'' :'');
     }
 
+    public function getTableSchemaQuery($table, $database=null, $enableViews=null)
+    {
+        $dbname = $this->getDatabaseName($database);
+        $schema = null;
+        if(strpos($table, '.')!==false) {
+            $td = explode('.', $table);
+            $table = array_pop($td);
+            if($td) $schema = array_pop($td);
+            if($td) $dbname = array_pop($td);
+        }
+
+        if(($db=$this->query('select distinct TABLE_CATALOG from INFORMATION_SCHEMA.TABLES')) && $db[0]['TABLE_CATALOG']!=$dbname) {
+            // force using the correct database
+            $this->exec('use '.tdz::sql($dbname, false));
+        }
+        unset($db);
+
+        $dbname = tdz::sql($dbname);
+        $tn = tdz::sql($table);
+
+        return "select COLUMN_NAME as 'bind', DATA_TYPE as 'type', CHARACTER_MAXIMUM_LENGTH as 'size', COLUMN_DEFAULT as 'default', case when IS_NULLABLE='NO' then 1 else 0 end as 'required' from INFORMATION_SCHEMA.COLUMNS where TABLE_CATALOG={$dbname} and TABLE_NAME={$tn} order by ORDINAL_POSITION asc";
+    }
+
+    public function getRelationSchemaQuery($table, $database=null, $enableViews=null)
+    {
+        $dbname = $this->getDatabaseName($database);
+        $schema = null;
+        if(strpos($table, '.')!==false) {
+            $td = explode('.', $table);
+            $table = array_pop($td);
+            if($td) $schema = array_pop($td);
+            if($td) $dbname = array_pop($td);
+        }
+        if(($db=$this->query('select distinct TABLE_CATALOG from INFORMATION_SCHEMA.TABLES')) && $db[0]['TABLE_CATALOG']!=$dbname) {
+            // force using the correct database
+            $this->exec('use '.tdz::sql($dbname, false));
+        }
+        unset($db);
+
+        $tn = tdz::sql($table);
+        return "select f.name as fk,OBJECT_NAME(f.parent_object_id) as tn, COL_NAME(fc.parent_object_id, fc.parent_column_id) as f,OBJECT_NAME (f.referenced_object_id) as ref,COL_NAME(fc.referenced_object_id, fc.referenced_column_id) as ref_f from sys.foreign_keys as f inner join sys.foreign_key_columns as fc on f.object_id=fc.constraint_object_id where f.is_disabled=0 and (object_name(f.parent_object_id)={$tn} or OBJECT_NAME(f.referenced_object_id)={$tn})";
+    }
 }
