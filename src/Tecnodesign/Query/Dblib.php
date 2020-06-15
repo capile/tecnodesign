@@ -67,7 +67,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 
         $q = 'select'
             . $s
-            . ' from '.$this->_from
+            . ' from '.$this->getFrom()
             . (($this->_where)?(' where '.$this->_where):(''))
             . ((!$count && $this->_groupBy)?(' group by'.$this->_groupBy):(''))
             . ((!$count && $this->_orderBy)?(' order by'.$this->_orderBy):(''))
