@@ -14,7 +14,7 @@
  */
 class Tecnodesign_Translate
 {
-    public static $method=null, $apiKey=null, $clientId=null, $sourceLanguage='en', $forceTranslation;
+    public static $method=null, $apiKey=null, $clientId=null, $sourceLanguage='en', $forceTranslation, $writeUntranslated;
     protected static $_t=null;
     protected $_from='en', $_lang='en', $_table=[], $_keys=[];
 
@@ -106,16 +106,18 @@ class Tecnodesign_Translate
             }
             if(!isset($this->_table[$table][$message])) {
                 $text = $message;
+                $w = self::$writeUntranslated;
                 if(self::$forceTranslation && $this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){
                     $m = self::$method.'Translate';
                     try{
                         $text = self::$m($this->_from, $this->_lang, $text);
+                        $w = true;
                     } catch(Exception $e) {
                         tdz::log($e->getMessage());
                     }
                 }
                 $this->_table[$table][$message]=$text;
-                if(substr($yml, 0, strlen(TDZ_VAR))===TDZ_VAR) {
+                if($w && substr($yml, 0, strlen(TDZ_VAR))===TDZ_VAR) {
                     Tecnodesign_Yaml::append($yml, array($message=>$text), 0);
                 }
             }
