@@ -243,7 +243,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $d['text'] = ['preview'=>$d['text']];
             }
             foreach($d['text'] as $k=>$v) {
-                $this->text[$k] = tdz::markdown($v);
+                if(is_string($v)) $this->text[$k] = tdz::markdown($v);
             }
             $this->originalText = true;
         } else if(!$this->run) {

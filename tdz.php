@@ -1542,7 +1542,8 @@ class tdz
         $imgd=$img->render();
         if(!$img || !$img->type) return false;
         $o['content-type'] = $img->mimeType();
-        return $img->render();
+        $img=null;
+        return $imgd;
     }
 
     public static function validUrl($s='')
