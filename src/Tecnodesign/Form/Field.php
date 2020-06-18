@@ -757,6 +757,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $value = (string)(float) $value;
             } else if($this->type=='int' && abs($value)>0) {
                 $value = (string)(int) $value;
+            } else if(is_string($value)) {
+                $value = str_replace("\r", '', $value);
             }
             if(is_array($value)) {
                 $size = count($value);
