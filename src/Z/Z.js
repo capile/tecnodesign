@@ -51,11 +51,11 @@ function initZ(d)
         }
         if(Z.uid && (_reWeb.test(window.location.origin) || _reWeb.test(Z.uid))) {
             if(Z.host && !_reWeb.test(Z.uid)) Z.uid = Z.host + Z.uid;
-            var ts, qs='';
-            if(window.location.hash.search(/^#?@[0-9]+$/)>-1) {
-                ts=window.location.hash.replace(/[^0-9]+/g, '');
+            var ts, qs='', hp=window.location.hash.search(/#@[0-9]+$/);
+            if(hp>-1) {
+                ts=window.location.hash.substr(hp).replace(/[^0-9]+/g, '');
                 Z.storage('z-ts', parseInt(ts));
-                window.location.hash='';
+                window.location.hash=window.location.hash.substr(0, hp);
             } else {
                 ts=Z.storage('z-ts');
             }
@@ -68,7 +68,7 @@ function initZ(d)
         if(Object.prototype.toString.call(d)=='[object Array]') {
             Z.user = false;
         } else {
-            var n; //, start=false;
+            var n, run=[]; //, start=false;
             if('plugins' in d) {
                 if(!('plugins' in Z)) Z.plugins = {};
                 for(n in d.plugins) {
@@ -77,10 +77,19 @@ function initZ(d)
                     if('load' in Z.plugins[n]) {
                         Z.load.apply(Z, d.plugins[n].load);
                     }
+                    if('callback' in Z.plugins[n]) {
+                        if(Z.plugins[n].callback in Z) run.push(Z[Z.plugins[n].callback]);
+                        else if(Z.plugins[n].callback in window) run.push(window[Z.plugins[n].callback]);
+                    }
                 }
                 delete(d.plugins);
             }
             Z.user = d;
+            if(run.length>1) {
+                while(run.lengh>0) {
+                    run.pop().call(Z.user);
+                }
+            }
         }
     } else if(Z.uid) {
         return;

@@ -47,7 +47,8 @@ class Tecnodesign_Studio_Asset
         $optimizeExtensions=array(
             'less'=>'css',
             'scss'=>'css',
-        );
+        ),
+        $outputToRoot=true;
 
 
     protected $source, $output, $root, $format, $optimize=true;
@@ -424,7 +425,7 @@ class Tecnodesign_Studio_Asset
         return false;
     }
 
-    public static function run($url=null, $root=null, $optimize=null)
+    public static function run($url=null, $root=null, $optimize=null, $outputToRoot=null)
     {
         if(Tecnodesign_Studio::$cacheTimeout) tdz::cacheControl('public', Tecnodesign_Studio::$staticCache);
         if(is_null($url)) $url = tdz::scriptName();
@@ -494,8 +495,13 @@ class Tecnodesign_Studio_Asset
             $result = call_user_func_array(array('tdz', $method['method']), $args);
             unset($args);
         }
+        if(is_null($outputToRoot)) $outputToRoot = self::$outputToRoot;
         if($result) {
-            tdz::output($result, tdz::fileFormat($url), false);
+            if($outputToRoot && tdz::save($root.$url, $result, true)) {
+                tdz::download($root.$url, null, null, 0, false, false, false);
+            } else {
+                tdz::output($result, tdz::fileFormat($url), false);
+            }
         } else if(isset($R)) {
             tdz::download($R, null, null, 0, false, false, false);
             unset($R);

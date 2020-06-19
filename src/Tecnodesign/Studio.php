@@ -123,7 +123,7 @@ class Tecnodesign_Studio
                 return $cn::$m();
             }
             self::error(404);
-        } else if(isset($_SERVER['HTTP_TDZ_SLOTS']) || $sn==self::$uid) {
+        } else if(Tecnodesign_App::request('headers', 'tdz-slots') || $sn==self::$uid) {
             tdz::cacheControl('private', static::$cacheTimeout);
             tdz::output(tdz::serialize(self::uid(), 'json'), 'json');
         } else if(self::ignore($sn)) {
