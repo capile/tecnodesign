@@ -1368,7 +1368,7 @@ class Tecnodesign_Query_Sql
         if(!$n) $n = $this->schema('database');
         $db = Tecnodesign_Query::database($n);
         if($db && isset($db['dsn']) && preg_match('/(^|;)(dbname|Database)=([^\;]+)/i', $db['dsn'], $m)) {
-            $n = $m[2];
+            $n = $m[3];
         }
         return $n;
     }
