@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Sql
 {
-    const TYPE='sql', QUOTE='``';
+    const TYPE='sql', QUOTE='``', PDO_AUTOCOMMIT=1, PDO_TRANSACTION=1;
     public static 
         $microseconds=6,
         $enableOffset=true,
@@ -156,7 +156,15 @@ class Tecnodesign_Query_Sql
     public function schema($prop=null)
     {
         $cn = $this->_schema;
-        $schema = (is_string($this->_schema)) ?$cn::$schema :$this->_schema;
+        if(is_string($this->_schema)) {
+            if(property_exists($cn, 'schema') || ($cn instanceof Tecnodesign_Model)) {
+                $schema = $cn::$schema;
+            } else {
+                $schema = ['database'=>$cn];
+            }
+        } else {
+            $schema = $this->_schema;
+        }
         if($prop) {
             $ret = null;
             if(isset($schema[$prop])) $ret = $schema[$prop];
@@ -955,8 +963,12 @@ class Tecnodesign_Query_Sql
             if(!$conn) {
                 $conn = self::connect($this->schema('database'));
             }
-            $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 0);
-            $conn->beginTransaction();
+            if(static::PDO_AUTOCOMMIT) $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 0);
+            if(static::PDO_TRANSACTION) {
+                $conn->beginTransaction();
+            } else {
+                $this->exec('begin transaction '.$id, $conn);
+            }
             $this->_transaction[$id] = $conn;
         }
         return $id;
@@ -981,9 +993,13 @@ class Tecnodesign_Query_Sql
         if(isset($this->_transaction[$id])) {
             if(!$conn) $conn = $this->_transaction[$id];
             unset($this->_transaction[$id]);
-            if($conn && $conn->inTransaction()) {
-                $r = $conn->commit();
-                $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
+            if($conn) {
+                if(static::PDO_TRANSACTION) {
+                    $r = ($conn->inTransaction() && $conn->commit());
+                } else {
+                    $r = $this->exec('commit transaction '.$id, $conn);
+                }
+                if(static::PDO_AUTOCOMMIT) $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
                 return $r;
             } else {
                 return false;
@@ -1010,9 +1026,13 @@ class Tecnodesign_Query_Sql
         if(isset($this->_transaction[$id])) {
             if(!$conn) $conn = $this->_transaction[$id];
             unset($this->_transaction[$id]);
-            if($conn && $conn->inTransaction()) {
-                $r = $conn->rollback();
-                $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
+            if($conn) {
+                if(static::PDO_TRANSACTION) {
+                    $r = ($conn->inTransaction() && $conn->rollback());
+                } else {
+                    $r = $this->exec('rollback transaction '.$id, $conn);
+                }
+                if(static::PDO_AUTOCOMMIT) $conn->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
                 return $r;
             } else {
                 return false;

@@ -162,6 +162,7 @@ class tdz
         $translator='Tecnodesign_Translate::message',
         $markdown='Tecnodesign_Markdown',
         $database,
+        $useDatabaseHandlers=true,
         $log,
         $logDir,
         $noeval
@@ -266,7 +267,11 @@ class tdz
         if(!isset(tdz::$_connection[$name])) {
             try {
                 if($H=Tecnodesign_Query::databaseHandler($name)) {
-                    tdz::$_connection[$name] = $H::connect($name);
+                    if(tdz::$useDatabaseHandlers) {
+                        tdz::$_connection[$name] = new $H($name);
+                    } else {
+                        tdz::$_connection[$name] = $H::connect($name);
+                    }
                 }
             } catch(Exception $e) {
                 $msg = $e->getMessage();
@@ -329,19 +334,31 @@ class tdz
         $arg = func_get_args();
         array_shift($arg);
         try {
-            if(isset(tdz::$variables['metrics']['query'])) $t0 = microtime(true);
+            if(!tdz::$useDatabaseHandlers && isset(tdz::$variables['metrics']['query'])) $t0 = microtime(true);
             foreach($sqls as $sql) {
                 $conn = ($conn && count($arg)==1) ?$conn :tdz::connect();
                 if (!$conn) {
                     throw new Tecnodesign_Exception(tdz::t('Could not connect to database server.'));
                 }
-                $query = $conn->query($sql);
-                $result=array();
-                if ($query && count($arg)<=1) {
-                    if(preg_match('/^\s*(insert|update|delete|replace|set|begin|commit|create|alter|drop) /i', $sql)) $result = true;
-                    else $result = @$query->fetchAll(PDO::FETCH_ASSOC);
-                } else if($query) {
-                    $result = call_user_func_array(array($query, 'fetchAll'), $arg);
+                if(preg_match('/^\s*(insert|update|delete|replace|set|begin|commit|rollback|create|alter|drop) /i', $sql)) {
+                    $conn->exec($sql);
+                    $result = true;
+                } else if(tdz::$useDatabaseHandlers) {
+                    if(count($arg)<=1) {
+                        $result = $conn->query($sql);
+                    } else {
+                        $qa = $arg;
+                        array_unshift($qa, $sql);
+                        $result = call_user_func_array(array($conn, 'query'), $qa);
+                    }
+                } else {
+                    $query = $conn->query($sql);
+                    $result=array();
+                    if ($query && count($arg)<=1) {
+                        $result = @$query->fetchAll(PDO::FETCH_ASSOC);
+                    } else if($query) {
+                        $result = call_user_func_array(array($query, 'fetchAll'), $arg);
+                    }
                 }
                 if(!isset($ret[0])) {
                     $ret = $result;
@@ -349,7 +366,7 @@ class tdz
                     $ret = array_merge($ret, $result);
                 }
             }
-            if(isset(tdz::$variables['metrics']['query'])) {
+            if(!tdz::$useDatabaseHandlers && isset(tdz::$variables['metrics']['query'])) {
                 $t = microtime(true) - $t0;
                 tdz::$variables['metrics']['query']['time']+=$t;
                 tdz::$variables['metrics']['query']['count']++;

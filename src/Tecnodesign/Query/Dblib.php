@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 {
-    const QUOTE='[]';
+    const QUOTE='[]', PDO_AUTOCOMMIT=0, PDO_TRANSACTION=0;
 
     public static 
         $textToVarchar=2147483647,
@@ -123,70 +123,6 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
             return $r;
         } else {
             return $p.$a;
-        }
-    }
-
-    /**
-     * Enables transactions for this connector
-     * returns the transaction $id
-     */
-    public function transaction($id=null, $conn=null)
-    {
-        if(is_null($this->_transaction)) $this->_transaction = array();
-        if(!$id) {
-            $id = uniqid('tdzt');
-        }
-        if(!isset($this->_transaction[$id])) {
-            if(!$conn) {
-                $conn = self::connect($this->schema('database'));
-            }
-            $this->exec('begin transaction '.$id, $conn);
-            $this->_transaction[$id] = $conn;
-        }
-        return $id;
-    }
-
-    /**
-     * Commits transactions opened by ::transaction
-     * returns true if successful
-     */
-    public function commit($id=null, $conn=null)
-    {
-        if(!$this->_transaction) return false;
-        if(!$id) {
-            $id = array_shift(array_keys($this->_transaction));
-        }
-        if(isset($this->_transaction[$id])) {
-            if(!$conn) $conn = $this->_transaction[$id];
-            unset($this->_transaction[$id]);
-            if($conn) {
-                $this->exec('commit transaction '.$id, $conn);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Commits transactions opened by ::transaction
-     * returns true if successful
-     */
-    public function rollback($id=null, $conn=null)
-    {
-        if(!$this->_transaction) return false;
-        if(!$id) {
-            $id = array_shift(array_keys($this->_transaction));
-        }
-        if(isset($this->_transaction[$id])) {
-            if(!$conn) $conn = $this->_transaction[$id];
-            unset($this->_transaction[$id]);
-            if($conn) {
-                $this->exec('rollback transaction '.$id, $conn);
-                return true;
-            } else {
-                return false;
-            }
         }
     }
 
