@@ -1880,6 +1880,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
 
         $hi = true;
+        $a0 = $this->attributes;
+        $this->attributes = [];
         if(strpos($arg['class'], 'app-file-preview')!==false) {
             if($arg['value']) {
                 $s .= '<span class="text tdz-f-file'.($this->multiple ?' z-multiple' :'').'">'.$this->filePreview($arg['name']).'</span>';
@@ -1895,6 +1897,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $hi = false;
         }
         $h = ($hi) ?$this->renderHidden($arg) :'';
+        $this->attributes = $a0;
+        unset($a0);
         unset($arg['template']);
         $a = $arg;
         $a['value']='';

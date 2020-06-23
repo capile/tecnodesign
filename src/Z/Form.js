@@ -1321,6 +1321,32 @@ function omnibarApply(v, prop, t, clear)
     }
 }
 
+
+function initTypeToggler()
+{
+    var n=this.nextElementSibling;
+    if(!n || !n.getAttribute('data-toggler')) {
+        Z.element({e:'a',a:{'class':'z-type-toggler z-i--toggle','data-toggler':'#'+this.id},t:{click:toggleType}}, null, this);
+    }
+}
+
+function toggleType(e)
+{
+    if(e) Z.stopEvent(e);
+
+    var t=this.getAttribute('data-toggler'),T;
+    if(T=this.previousElementSibling) {
+        if(!T.getAttribute('data-alt-type')) T=null;
+    }
+    if(!T)T=document.querySelector(t);
+    if(!T) return;
+    var nt=T.getAttribute('data-alt-type'), ct=T.getAttribute('type');
+    if(nt && ct) {
+        T.setAttribute('type', nt);
+        T.setAttribute('data-alt-type', ct);
+    }
+}
+
 function Form(o)
 {
     var q='Form.Form';
@@ -1332,6 +1358,7 @@ function Form(o)
         Z.addPlugin('RequiredField', initRequiredField, '.field > .input > *[required]');
         Z.addPlugin('Datalist', initDatalist, '*[data-datalist-api],*[data-datalist]');
         Z.addPlugin('Uploader', initUploader, 'input[data-uploader]');
+        Z.addPlugin('TypeToggler', initTypeToggler, '.app-enable-type-toggler input[data-alt-type]');
         Z.addPlugin('Filters', initFilters, 'input[data-filters],select[data-filters]');
         Z.addPlugin('Subform', initSubform, 'div.subform[data-template],div.items[data-template]');
         Z.addPlugin('Cleanup', initCleanup, 'button.cleanup');
