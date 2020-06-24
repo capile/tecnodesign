@@ -886,7 +886,7 @@ class Tecnodesign_Query_Sql
             if(isset($this::$errorCallback) && $this::$errorCallback) {
                 return call_user_func($this::$errorCallback, $e, func_get_args(), $this);
             }
-            tdz::log('[WARNING] Error in '.__METHOD__." {$e->getCode()}:\n  ".$e->getMessage()."\n {$this}\n  ".$e);
+            tdz::log('[WARNING] Error in '.get_called_class()."::query: {$e->getCode()}:\n  ".$e->getMessage()."\n {$this}");
             return false;
         }
     }
@@ -1658,7 +1658,7 @@ class Tecnodesign_Query_Sql
                     $class = $cn;
                 }
             } else {
-                tdz::log("[INFO] $class does not exist!\n", tdz::$lib);
+                if(tdz::$log) tdz::log("[DEBUG] Class $class does not exist and cannot return a schema");
                 continue;
             }
             $alias = $class;

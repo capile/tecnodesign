@@ -119,6 +119,9 @@ class Tecnodesign_Yaml
         }
 
         $yamlArray = $className ? $className::$functionName($string) : $functionName($string);
+        if($yamlArray===false) {
+            tdz::log('[INFO] Could not parse Yaml: '.$string);
+        }
 
         if ($useCache) {
             Tecnodesign_Cache::set($cacheKey, $yamlArray, $cacheTimeout);

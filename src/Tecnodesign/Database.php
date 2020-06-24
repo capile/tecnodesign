@@ -112,77 +112,61 @@ class Tecnodesign_Database
         if(!is_array($data)) {
             return false;
         }
-        $next = array();
         try {
+            $replace = array();
             foreach($data as $cn=>$records) {
                 if(!class_exists($cn)) continue;
                 $sc = $cn::$schema;
                 foreach($records as $k=>$r) {
-                    $o=false;
-                    if(substr($k, 0, 1)=='$') {
-                        // fetch existing record by primary key, otherwise, create record
-                        $o=$cn::find(substr($k,1));
-                        if($o) {
-                            $o->isNew(false);
+                    $o=null;
+                    $q=null;
+                    $set = null;
+                    $r = tdz::expandVariables($r);
+                    if(isset($r['__key'])) {
+                        $pks = $r['__key'];
+                        unset($r['__key']);
+                    } else {
+                        $pks = $cn::pk($sc, true);
+                    }
+                    if(isset($r['__set'])) {
+                        $set = $r['__set'];
+                        unset($r['__set']);
+                    }
+                    if($pks) {
+                        $q = array();
+                        if(!is_array($pks)) $pks = array($pks);
+                        foreach($pks as $pk) {
+                            if(isset($r[$pk])) $q[$pk] = $r[$pk];
                         }
+                    }
+                    if($q) {
+                        $o=$cn::find($q,1);
                     }
                     if(!$o) {
                         $o = new $cn;
-                        $o->isNew(true);
                     }
                     $rel = array();
                     foreach($r as $fn=>$fv) {
-                        if (isset($sc['columns'][$fn])) {
+                        if (isset($sc->properties[$fn])) {
                             if(trim($fv)=='') {
                                 $fv = false;
                             }
                             $o->$fn = $fv;
                         } else if(isset($sc['relations'][$fn])) {
-                            $rel[$fn]=$fv;
+                            $o->setRelation($fn, $fv);
                         }
                     }
                     $o->save();
-                    foreach($rel as $rn=>$rv) {
-                        $rcn = $rn;
-                        $rd = $sc['relations'][$rn];
-                        if(isset($rv['className'])) {
-                            $rcn = $rv['className'];
-                        }
-                        $base = array();
-                        if(!is_array($rd['local'])) {
-                            $base[$rd['foreign']]=$o->{$rd['local']};
-                        } else {
-                            foreach($rd['local'] as $i=>$fn) {
-                                $base[$rd['foreign'][$i]]=$o->$fn;
-                            }
-                        }
-                        $erv = $o->getRelation($rn);
-                        if($erv) {
-                            if($rd['type']=='one') {
-                                $next[$rcn]['$'.$erv->getPk()]=$base + $rv + (array)$erv->asArray();
-                                $rv = array();
-                            } else {
-                                foreach($rv as $i=>$rvv) {
-                                    $val = $erv[$i];
-                                    if(!$val) {
-                                        break;
-                                    }
-                                    $next[$rcn]['$'.$val->getPk()]=$base + $rvv + (array)$val->asArray();
-                                    unset($rv[$i]);
-                                }
-                            }
-                        }
-                        foreach($rv as $rvv) {
-                            $next[$rcn][]=$base + $rvv;
+
+                    if($set) {
+                        foreach($set as $sk=>$sv) {
+                            if(!defined($sk)) define($sk, $o->$sv);
                         }
                     }
                 }
-                if(count($next)>0) {
-                    self::import($next);
-                }
             }
         } catch(Exception $e) {
-            tdz::debug($e->getMessage(), (array)$o);
+            tdz::debug($e->getMessage(), $r, (string)$e);
         }
     }
     

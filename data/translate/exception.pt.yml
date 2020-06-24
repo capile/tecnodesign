@@ -10,7 +10,7 @@ The supplied code is invalid.: O código informado não é válido.
 The supplied code is expired or doesn't exist.: O código informado expirou ou não existe. 
 You must supply a valid code.: Você deve fornecer um código válido.
 Is mandatory and should not be blank.: É obrigatório e não deve ser vazio.
-'"%s" is mandatory and should not be blank.': "%s" é obrigatório e não deve ser vazio.
+'"%s" is mandatory and should not be blank.': '"%s" é obrigatório e não deve ser vazio.'
 Should have between %s and %s characters.: Deve ter entre %s e %s caracteres.
 Should be smaller than %s characters.: Deve ter menos que %s caracteres.
 Should be greater than %s characters.: Deve ter pelo menos %s caracteres.
