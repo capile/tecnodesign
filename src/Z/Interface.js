@@ -1114,9 +1114,21 @@
     }
 
 
-    function AutoRemove()
+    function initAutoRemove()
     {
-        if(!this.querySelector('.tdz-i--close')) Z.element.call(this, {e:'i',p:{className:'tdz-i--close tdz-i-a z-round'},t:{click:destroyParents}});
+        if(!this.querySelector('.tdz-i--close')) {
+            Z.element.call(this, {e:'i',p:{className:'tdz-i--close tdz-i-a z-round'},t:{click:autoRemove}});
+            var P=Z.parentNode(this,'.field,.z-i-field,.tdz-i-field');
+            if(P) P.className+=' has-auto-remove';
+        }
+    }
+
+    function autoRemove(e)
+    {
+        if(e) Z.stopEvent(e);
+        var P=Z.parentNode(this, '.has-auto-remove');
+        destroyParents.call(this);
+        if(P) P.className = P.className.replace(/\s*\bhas-auto-remove\b/g, '');
     }
 
     function destroyParents(e)
@@ -1135,6 +1147,6 @@
 
     //startup();
     window['Z.Interface.startup']=startup;
-    window['Z.Interface.AutoRemove']=AutoRemove;
+    window['Z.Interface.AutoRemove']=initAutoRemove;
 
 })();

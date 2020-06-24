@@ -1324,9 +1324,12 @@ function omnibarApply(v, prop, t, clear)
 
 function initTypeToggler()
 {
-    var n=this.nextElementSibling;
-    if(!n || !n.getAttribute('data-toggler')) {
-        Z.element({e:'a',a:{'class':'z-type-toggler z-i--toggle','data-toggler':'#'+this.id},t:{click:toggleType}}, null, this);
+    if(!this.getAttribute('data-toggler')) {
+        this.setAttribute('data-toggler',1);
+        var T=Z.parentNode(this, '.tdz-i-field, .z-i-field, .field');
+        if(T) T=T.querySelector('.label, dt, label');
+        if(!T) T=this.parentNode;
+        Z.element.call(T, {e:'a',a:{'class':'z-type-toggler z-i--toggle','data-toggler-option':'0','data-toggler':'#'+this.id+'[data-alt-type]'},t:{click:toggleType},c:[{e:'i',p:{className:'z-i--'+this.getAttribute('type')+' i-toggler-0'}},{e:'i',p:{className:'z-i--'+this.getAttribute('data-alt-type')+' i-toggler-1'}}]});
     }
 }
 
@@ -1342,6 +1345,7 @@ function toggleType(e)
     if(!T) return;
     var nt=T.getAttribute('data-alt-type'), ct=T.getAttribute('type');
     if(nt && ct) {
+        this.setAttribute('data-toggler-option', this.getAttribute('data-toggler-option')==1 ?'0' :'1');
         T.setAttribute('type', nt);
         T.setAttribute('data-alt-type', ct);
     }
@@ -1379,5 +1383,11 @@ function Form(o)
 window['Z.Form.Form'] = Form;
 window['Z.Form.CheckLabel']=initCheckLabel;
 window['Z.Form.AutoSubmit']=initAutoSubmit;
+
+if('Z.z-form' in window) {
+    var i=window['Z.z-form'].length;
+    while(i--) Form(window['Z.z-form'][i]);
+    delete(window['Z.z-form']); 
+}
 
 })();

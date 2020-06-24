@@ -183,6 +183,8 @@ function loadAsset(f, fn, args, ctx)
     _assets[f]=true;
 
     if(f.indexOf('.')<0) {
+        if(!('Z.'+f in window)) window['Z.'+f] = [ctx];
+        else window['Z.'+f].push(ctx);
         loadAsset(f+'.js', fn, args, ctx);
         loadAsset(f+'.css', fn, args, ctx);
         return;

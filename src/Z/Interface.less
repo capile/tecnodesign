@@ -1358,30 +1358,66 @@ form .i-mono dd {
     &.tdz-i--down:before         , &.z-i--down:before          {content: "\f107";}
     &.tdz-i--share:before        , &.z-i--share:before         {content: "\f064";}
     &.tdz-i--text:before         , &.z-i--text:before          {content: "\f0f6";}
-    &.tdz-i--toggle:before       , &.z-i--toggle:before        {content: "\f021";}
+    &.tdz-i--file:before         , &.z-i--file:before          {content: "\f093";}
+    &.tdz-i--url:before          , &.z-i--url:before           {content: "\f0c1";}
+    &.tdz-i--toggle:before       , &.z-i--toggle:before        {content: "\f111";}
 }
 
-input[data-alt-type="file"] ~ .z-i--toggle:before {content:"\f093";}
-input[data-alt-type="url"]  ~ .z-i--toggle:before {content:"\f0c1";}
 .app-enable-type-toggler input[type="file"][data-alt-type] {
   padding:0;
 }
 .z-type-toggler {
-  position:absolute;
-  right:1em;
-  top:0;
-  z-index:1;
-  width:2em;
-  line-height:2em;
-  height:2em;
-  text-align:center;
-  background:@colorTabActive;
-  color:@colorTabActiveText !important;
+  position:relative;
+  display: inline-block;
+  background:#999;
+  border: 1px solid #888;
+  border-radius: 1em;
+  height:1em;
+  width:1.75em;
   cursor: pointer;
-  opacity: 0.5;
-  &:hover, &:active {
-    opacity:1;
+  line-height:2em;
+  margin-left:2.5em;
+  vertical-align:middle;
+  &:before, i {
+    font-size:1em;
+    display:inline-block;
+    vertical-align:middle;
+    line-height:1em;
+    vertical-align: top;
   }
+  &:before {
+    color:@colorTabActive;
+    background:#fff;
+    text-align:center;
+    border-radius:1em;
+    width:1em;
+    height:1em;
+    z-index:1;
+    position:absolute;
+  }
+  &[data-toggler-option="1"]:before {
+    right:0;
+  }
+  .i-toggler-0 {
+    position:absolute;
+    left:-1.5em;
+    &:before {color:#999;}
+  }
+  .i-toggler-1 {
+    position:absolute;
+    right:-1.5em;
+    &:before {color:#999;}
+  }
+  &[data-toggler-option="0"] .i-toggler-0:before {
+    color: @colorTabActive;
+  }
+  &[data-toggler-option="1"] .i-toggler-1:before {
+    color: @colorTabActive;
+  }
+}
+
+.has-auto-remove .z-type-toggler {
+  display:none;
 }
 
 .tdz-i-button, .tdz-i-link {
