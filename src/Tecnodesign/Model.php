@@ -758,13 +758,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $cn::$increment[$sfn]=1;
                 if(!$conn) {
                     if(!is_null($cn::$_conn)) $conn=$cn::$_conn;
-                    else $conn = tdz::connect($schema['database']);
+                    else $conn = tdz::connect($schema->database);
                 }
                 $driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-                if(count($w)==0 && $driver=='dblib') {
+                $mssql = (in_array($driver, ['dblib', 'sqlsrv', 'odbc']));
+                if(count($w)==0 && $mssql) {
                     $sql = "select ident_current('{$schema['tableName']}') as next";
                 } else {
-                    $ifnull = ($driver=='dblib')?('isnull'):('ifnull');
+                    $ifnull = ($mssql)?('isnull'):('ifnull');
                     $sql = "select {$ifnull}(max({$fn}),0)+1 as next from {$schema['tableName']}";
                     if(count($w)>0) {
                         $sql .= ' where '.implode(' and ', $w);
