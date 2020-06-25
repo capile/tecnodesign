@@ -165,6 +165,7 @@ class tdz
         $useDatabaseHandlers=true,
         $log,
         $logDir,
+        $sqlUnicode=true,
         $noeval
         ;
 
@@ -851,7 +852,8 @@ class tdz
         $s = array('\\', "'");
         $r = array('\\\\', "''");
         $str = str_replace($s, $r, $str);
-        $str = ($enclose) ? ("'{$str}'") : ($str);
+        $N = ($enclose && tdz::$sqlUnicode) ?'N' :'';
+        $str = ($enclose) ? ("$N'{$str}'") : ($str);
         return $str;
     }
     public static function sqlEscape($str, $enclose=true) {return tdz::sql($str, $enclose);}

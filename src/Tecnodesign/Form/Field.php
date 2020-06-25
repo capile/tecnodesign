@@ -1891,7 +1891,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
         if(strpos($arg['class'], 'app-image-preview')!==false) {
-            $s .= '<span class="text">'
+            $s .= '<span class="text tdz-f-file">'
                 . (($arg['value'])?($this->filePreview($arg['name'], true)):(''))
                 . '</span>';
                 $hi = false;
