@@ -53,7 +53,7 @@ class Tecnodesign_User
         $_credentials=null,
         $_message=null,
         $_o=array(),
-        $_useMem=false,
+        $_storage,
         $lastAccess;
 
     /**
@@ -184,7 +184,7 @@ class Tecnodesign_User
     {
         $cid = (is_null($this->_cid))?($this->getSessionId()):($this->_cid);
         $lk = 'user/access-log-'.$cid;
-        $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_useMem);
+        $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_storage);
         $l = Tecnodesign_Cache::get($lk, 0, $storage, true);
         if(!$l) {
             $l=array('from'=>TDZ_TIME,'to'=>TDZ_TIME);
@@ -205,7 +205,7 @@ class Tecnodesign_User
     {
         if(is_null($this->lastAccess) && $this->_uid) {
             $uk = 'user/user-log-'.$this->_uid;
-            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_useMem);
+            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_storage);
             $s = Tecnodesign_Cache::get($uk, 0, $storage, true);
             $cid = (is_null($this->_cid))?($this->getSessionId()):($this->_cid);
             $t = 0;
@@ -399,7 +399,7 @@ class Tecnodesign_User
         $cid = (is_null($this->_cid))?($this->getSessionId()):($this->_cid);
         $ckey = "user/message-{$cid}";
         if(is_null($storage)) {
-            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_useMem);
+            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_storage);
         }
         $msg = Tecnodesign_Cache::get($ckey, 0, $storage, true);
         if(!$this->_message) $this->_message=array();
@@ -466,7 +466,7 @@ class Tecnodesign_User
         $cid = (is_null($this->_cid))?($this->getSessionId(true)):($this->_cid);
         $ckey = "user/message-{$cid}";
         if(is_null($storage)) {
-            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_useMem);
+            $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_storage);
         }
         $message = null;
         $store   = false;
@@ -657,7 +657,7 @@ class Tecnodesign_User
     public function setSession($s, $merge=false)
     {
         $this->_session = ($merge)?($s+$this->_session):($s);
-        $this->store($this->_useMem);
+        $this->store($this->_storage);
     }
 
     public function authenticate($user, $key=null)
@@ -1033,7 +1033,7 @@ class Tecnodesign_User
                 $u = $this;
             }
             if(!method_exists($u, $m)) {
-                tdz::log(get_class($u).'::'.$m.' does not exist!!!');
+                tdz::log('[ERROR] Method '.get_class($u).'::'.$m.' does not exist!!!');
                 continue;
             }
             $opt = $o + $nso;
@@ -1100,7 +1100,7 @@ class Tecnodesign_User
             if($o['form']->validate($p)) {
                 $d = $o['form']->data;
                 if($this->authenticate($d[static::FORM_USER], $d[static::FORM_PASSWORD])) {
-                    $this->store($this->_useMem);
+                    $this->store($this->_storage);
                     $msg = (isset($o['message-success']))?($o['message-success']):(tdz::t('User %s connected.', 'user'));
                     $this->setMessage(sprintf($msg, '<strong>'.tdz::xmlEscape((string)$this).'</strong>'));
                     unset($msg);
@@ -1295,7 +1295,7 @@ class Tecnodesign_User
         $ckey = "user/flash-{$msgid}-"
               . ((is_null($this->_cid))?($this->getSessionId(true)):($this->_cid));
         if(is_null($storage)) {
-            $storage = (isset($ns['storage']))?($ns['storage']):($this->_useMem);
+            $storage = (isset($ns['storage']))?($ns['storage']):($this->_storage);
         }
         if(!$msg) {
             $r = Tecnodesign_Cache::delete($ckey, $storage);
@@ -1325,7 +1325,7 @@ class Tecnodesign_User
         try {
             $value = tdz::objectCall($this->_me, $name, $arguments);
         } catch(Exception $e) {
-            tdz::log($e->getMessage());
+            tdz::log("[INFO] Could not call {$name}: ".$e->getMessage());
             return false;
         }
         return $value;
@@ -1344,7 +1344,7 @@ class Tecnodesign_User
             try {
                 $value = $this->_me->$name;
             } catch(Exception $e) {
-                tdz::log($e->getMessage());
+                tdz::log("[INFO] Could not get {$name}: ".$e->getMessage());
                 return false;
             }
         }
@@ -1363,7 +1363,7 @@ class Tecnodesign_User
             if(!property_exists($this->_me, $name)) return false;
             $this->_me->$name = $value;
         } catch(Exception $e) {
-            tdz::log($e->getMessage());
+            tdz::log("[INFO] Could not set {$name}: ".$e->getMessage());
             return false;
         }
         return true;

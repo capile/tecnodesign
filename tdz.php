@@ -165,7 +165,7 @@ class tdz
         $useDatabaseHandlers=true,
         $log,
         $logDir,
-        $sqlUnicode=true,
+        $sqlUnicode,
         $noeval
         ;
 
@@ -852,7 +852,7 @@ class tdz
         $s = array('\\', "'");
         $r = array('\\\\', "''");
         $str = str_replace($s, $r, $str);
-        $N = ($enclose && tdz::$sqlUnicode) ?'N' :'';
+        $N = ($enclose && tdz::$sqlUnicode && !mb_check_encoding($str, 'ASCII')) ?'N' :'';
         $str = ($enclose) ? ("$N'{$str}'") : ($str);
         return $str;
     }

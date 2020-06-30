@@ -23,7 +23,7 @@ class Tecnodesign_Cache
      */
     private static $_siteKey=null;
 
-    public static function getLastModified($key, $expires=0, $method=true)
+    public static function getLastModified($key, $expires=0, $method=null)
     {
         return self::lastModified($key, $expires, $method);
     }

@@ -4,7 +4,7 @@
     "type": "library",
     "license": "GPL-3.0-only",
     "require": {
-        "php": ">=5.6",
+        "php": ">=7.2",
         "erusev/parsedown": "1.7.*",
         "leafo/lessphp": "^0.5.0",
         "scssphp/scssphp": "^1.1.1",
@@ -12,7 +12,6 @@
         "phpoffice/phpspreadsheet": "^1.6.0",
         "swiftmailer/swiftmailer": "^5.4.12 < 6.0",
         "foxy/foxy": "^1.0.0",
-        "ext-dom": "*",
         "ext-mbstring": "*"
     },
     "extra": {
@@ -31,6 +30,7 @@
         "mustangostang/spyc": "^0.6.2",
         "league/html-to-markdown": "4.8.*",
         "ext-yaml": "*",
+        "ext-dom": "*",
         "codeception/codeception": "3.1.*"
     },
     "scripts": {
