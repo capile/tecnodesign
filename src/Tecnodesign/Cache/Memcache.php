@@ -24,8 +24,12 @@ class Tecnodesign_Cache_Memcache
             $conn=false;
             foreach(Tecnodesign_Cache::$memcachedServers as $s) {
                 if(preg_match('/^(.*)\:([0-9]+)$/', $s, $m)) {
-                    if(self::$_memcache->connect($m[1], (int)$m[2])) $conn=true;
-                } else if(self::$_memcache->connect($s, 11211)) $conn=true;
+                    if($conn=self::$_memcache->connect($m[1], (int)$m[2])) {
+                        break;
+                    }
+                } else if($conn=self::$_memcache->connect($s, 11211)) {
+                    break;
+                }
                 unset($s, $m);
             }
             if(!$conn) self::$_memcache=false;
@@ -98,7 +102,10 @@ class Tecnodesign_Cache_Memcache
      */
     public static function set($key, $value, $timeout=0)
     {
-        if(!self::memcache()) return Tecnodesign_Cache_File::set($key, $value, $expires);
+        if(!self::memcache()) {
+            \tdz::debug(__METHOD__);
+            return Tecnodesign_Cache_File::set($key, $value, $timeout);
+        }
 
         $siteKey = Tecnodesign_Cache::siteKey();
         if(!is_array($key)) {
@@ -111,14 +118,14 @@ class Tecnodesign_Cache_Memcache
             }
         }
         unset($siteKey);
-        //$ttl = ($timeout)?($timeout - time()):($timeout);
-        //if($ttl<0) {// a timestamp should be supplied, not the seconds to expire?
-        //    $ttl = $timeout;
-        //}
+        $ttl = (int)($timeout)?($timeout - time()):((int)$timeout);
+        if($ttl<0) {// a timestamp should be supplied, not the seconds to expire?
+            $ttl = (int)$timeout;
+        }
         $ret = true;
-        $meta = time().','.((is_object($value))?(1):(strlen((string)$value)));
+        $meta = time().','.((is_object($value)||is_array($value))?(1):(strlen((string)$value)));
         foreach($keys as $key) {
-            if(!self::$_memcache->set($k.'.meta', $meta, 0, $timeout) || !self::$_memcache->set($key, $value, 0, $timeout)) {
+            if(!self::$_memcache->set($key.'.meta', $meta, 0, $ttl) || !self::$_memcache->set($key, $value, 0, $ttl)) {
                 $ret = false;
                 break;
             }
@@ -130,7 +137,7 @@ class Tecnodesign_Cache_Memcache
     }
     public static function delete($key)
     {
-        if(!self::memcache()) return Tecnodesign_Cache_File::delete($key, $expires);
+        if(!self::memcache()) return Tecnodesign_Cache_File::delete($key);
 
         $siteKey = Tecnodesign_Cache::siteKey();
         if($siteKey) {
