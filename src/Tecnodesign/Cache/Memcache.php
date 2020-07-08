@@ -103,7 +103,6 @@ class Tecnodesign_Cache_Memcache
     public static function set($key, $value, $timeout=0)
     {
         if(!self::memcache()) {
-            \tdz::debug(__METHOD__);
             return Tecnodesign_Cache_File::set($key, $value, $timeout);
         }
 

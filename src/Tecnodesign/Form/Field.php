@@ -1891,10 +1891,14 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
         if(strpos($arg['class'], 'app-image-preview')!==false) {
-            $s .= '<span class="text tdz-f-file">'
-                . (($arg['value'])?($this->filePreview($arg['name'], true)):(''))
-                . '</span>';
+            if($arg['value']) {
+                $s .= '<span class="text tdz-f-file">'
+                    . (($arg['value'])?($this->filePreview($arg['name'], true)):(''))
+                    . '</span>';
                 $hi = false;
+            } else {
+                $s .= '<span class="text"></span>';
+            }
         }
         $h = ($hi) ?$this->renderHidden($arg) :'';
         $this->attributes = $a0;
