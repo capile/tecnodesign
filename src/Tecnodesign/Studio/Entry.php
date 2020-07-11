@@ -696,7 +696,14 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         unset($d, $p);
 
         if($meta) {
-            if(isset($meta['link']) && $meta['link']!=$url && $meta['link']!=tdz::requestUri()) tdz::redirect($meta['link']);
+            if(isset($meta['link']) && $meta['link']!=$url && $meta['link']!=tdz::requestUri()) {
+
+                if(isset($meta['credential']) && $meta['credential'] && !(($U=tdz::getUser()) && $U->hasCredential($meta['credential'], false))) {
+                    unset($meta['link']);
+                } else {
+                    tdz::redirect($meta['link']);
+                }
+            }
             if(isset($meta['languages'])) Tecnodesign_Studio::$languages = $meta['languages'];
             Tecnodesign_Studio::addResponse($meta);
         }

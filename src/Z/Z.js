@@ -867,7 +867,7 @@ Z.formData=function(f, includeEmpty, returnObject)
 
 Z.deleteNode=function(o)
 {
-    return o.parentNode.removeChild(o);
+    if(o.parentNode) return o.parentNode.removeChild(o);
 };
 
 Z.initCallback=function(o)
@@ -1317,6 +1317,27 @@ function ToggleActive()
     }
 }
 
+Z.disableForm=function(F)
+{
+    if(F.className.search(/\bz-disabled\b/)>-1) return;
+    F.className+=' z-disabled';
+    var L=F.querySelectorAll('button,input[type="button"],input[type="submit"]'), i=L.length;
+    while(i--) {
+        if(L[i].className.search(/\bz-no-disable\b/)>-1) continue;
+        L[i].setAttribute('disabled', 'disabled');
+        L[i].className += ' z-disabled-input';
+    }
+}
+
+Z.enableForm=function(F)
+{
+    var L=F.querySelectorAll('.z-disabled-input'), i=L.length;
+    while(i--) {
+        if(L[i].getAttribute('disabled')) L[i].removeAttribute('disabled');
+        if(L[i].className.search(/\bz-disabled-input\b/)>-1) L[i].className = L[i].className.replace(/\s*\bz-disabled-input\b/g, '');
+    }
+    if(F.className.search(/\bz-disabled\b/)>-1) F.className = F.className.replace(/\s*\bz-disabled\b/g, '');
+}
 
 window.requestAnimFrame = (function(){
   return  window.requestAnimationFrame       ||
@@ -1434,7 +1455,7 @@ if (typeof exports !== 'undefined') {
           }
 
           // Remove from temporary container
-          if (gaveContainer) {
+          if (gaveContainer && this.parentNode) {
             container.removeChild(this);
           }
 

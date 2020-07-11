@@ -880,7 +880,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
 
             if($type && !isset($u['type'])) {
-                $ftype = tdz::fileFormat($u['file'], false);
+                $ftype = tdz::fileFormat($u['file'], false, $u['name'], ['application/octet-stream', 'text/plain']);
                 if($ftype) {
                     try {
                         $this->checkFileType($ftype);

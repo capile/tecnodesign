@@ -1117,7 +1117,8 @@
     function initAutoRemove()
     {
         if(!this.querySelector('.tdz-i--close')) {
-            Z.element.call(this, {e:'i',p:{className:'tdz-i--close tdz-i-a z-round'},t:{click:autoRemove}});
+            var el=Z.element.call(this, {e:'i',p:{className:'tdz-i--close tdz-i-a z-round'},t:{click:autoRemove}});
+            if(el.previousSibling.nodeName.toLowerCase()=='a' && !el.previousSibling.getAttribute('href')) Z.bind(el.previousSibling, 'click', autoRemove);
             var P=Z.parentNode(this,'.field,.z-i-field,.tdz-i-field');
             if(P) P.className+=' has-auto-remove';
         }

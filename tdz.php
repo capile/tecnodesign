@@ -1355,17 +1355,14 @@ class tdz
         return $html;
     }
 
-    public static function fileFormat($file, $checkExtension=true)
+    public static function fileFormat($file, $checkExtension=true, $fallback=null, $fallbackFormats=[])
     {
         $format = false;
-        if($checkExtension) {
-            $ext = strtolower(
-                preg_replace(
-                    '/.*\.([a-z0-9]{1,5})$/i', '$1',
-                    basename($file)
-                )
-            );
-            if (isset(tdz::$formats[$ext])) {
+        $ext = null;
+        if($checkExtension || $fallback) {
+            $fname = ($fallback && is_string($fallback)) ?strtolower($fallback) :strtolower(basename($file));
+            $ext = preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1',$fname);
+            if ($checkExtension && isset(tdz::$formats[$ext])) {
                 $format = tdz::$formats[$ext];
             }
         }
@@ -1377,6 +1374,12 @@ class tdz
                 $format = @mime_content_type($file);
             }
         }
+
+        if((!$format && $ext) || ($fallback && in_array($format, $fallbackFormats))) {
+            if($ext && isset(tdz::$formats[$ext])) {
+                $format = tdz::$formats[$ext];
+            }
+        } 
 
         return $format;
     }

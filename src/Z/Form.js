@@ -597,7 +597,7 @@ function uploadFile(file, U)
             } else {
                 el.previousSibling.value = d.value;
             }
-            var t={e:'a',p:{className:'tdz-i-upload'},t:{click:removeUpload},c:d.file};
+            var t={e:'a',p:{className:'tdz-i-upload z-auto-remove'},t:{click:removeUpload},c:d.file+' '};
             if(!b) {
                 b=Z.element({e:'span',p:{className:'text'},c:[t]},el.previousSibling);
             } else {
@@ -605,9 +605,14 @@ function uploadFile(file, U)
                 Z.element.call(b, t);
             }
             b.className += ' tdz-f-file';
+            Z.init(b);
             el.setAttribute('data-status', 'ready');
             el = clearFileInput(el);
+            Z.deleteNode(U.progress);
+            Z.enableForm(el.form);
             //var v=d.value;
+        } else if(el.form.className.search(/\bz-disabled\b/)<0) {
+            Z.disableForm(el.form);
         }
 
         if(workers--) {
@@ -619,9 +624,6 @@ function uploadFile(file, U)
 
     var uploadError = function(d)
     {
-
-        //console.log('upload error!', this, d);
-
         // remove any error messages within this form field
         var M=this.parentNode.querySelectorAll('.tdz-i-msg,.tdz-i-progress'), i=M.length, err=(d && ('message' in d)) ?d.message :'There was an error in the file upload.';
         if(err) {
@@ -635,6 +637,7 @@ function uploadFile(file, U)
         } else {
             clearFileInput(this);
         }
+        if(this.form) Z.enableForm(this.form);
         //workers++;
     };
 
