@@ -3401,6 +3401,7 @@ class Tecnodesign_Interface implements ArrayAccess
         foreach($pl as $p=>$k) {
             if(isset($pp[$k])) {
                 $ul[$pp[$k]][1][$p]=&$ul[$p];
+                $ul[$pp[$k]][2]=$k;
             }
             unset($p, $k);
         }
@@ -3422,14 +3423,15 @@ class Tecnodesign_Interface implements ArrayAccess
 
     protected static function _li($o)
     {
-        $s = '<li>'.$o[0];
         if(isset($o[1])) {
-            $s .= '<ul>';
+            $s = '<li class="z-children" data-toggler-options="child">'.$o[0].'<ul id="z-nav-'.tdz::slug($o[2]).'" class="z-toggle-active" data-toggler-options="sibling,storage">';
             foreach ($o[1] as $k=>$v) {
                 $s .= self::_li($v);
                 unset($o[1][$k], $k, $v);
             }
             $s .= '</ul>';
+        } else {
+            $s = '<li>'.$o[0];
         }
         $s .= '</li>';
         return $s;

@@ -1289,26 +1289,45 @@ Z.initToggleActive=function(o)
 {
     if(!o || !Z.node(o)) o=this;
     if(o.parentNode.querySelector(':scope > .z-toggler')) return;
-    Z.element({e:'a',p:{className:'z-toggler'},t:{click:ToggleActive}}, null, o);
+    var id=o.getAttribute('id'), 
+        control=o.getAttribute('data-toggler-options'), 
+        sibling=(control && control.indexOf('sibling')<-1) ?false :true,
+        child=(control && control.indexOf('child')<-1) ?false :true,
+        storage=(control && control.indexOf('storage')>-1) ?true :false,
+        load=false, a;
+    if(!id) {
+        storage = false;
+        id='_n'+(_got++);
+        o.setAttribute('id', id);
+    } else if(Z.storage('z-toggler-'+id)) {
+        load = true;
+    }
+    if(child) a=Z.element.call(o, {e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}});
+    if(sibling) a=Z.element({e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}}, null, o);
+    if(load) {
+        ToggleActive.call(a);
+    }
 };
 
 function ToggleActive()
 {
     var ts=this.getAttribute('data-target'), t=(ts) ?document.querySelector(ts) :this.previousSibling;
     if(!t) return;
-    var c=this.getAttribute('data-active-class');
+    var c=this.getAttribute('data-active-class'), o=t.getAttribute('data-toggler-options'), storage=(o && o.indexOf('storage')>-1) ?t.getAttribute('id') :null;
     if(!c)c='z-active';
     var re=new RegExp('\\s*\\b'+c+'\\b', 'g'), k, L, i, st='on';
     if(t.className.search(c)>-1) { // disable
         t.className = t.className.replace(re, '');
         if(k=t.getAttribute('data-toggler-cookie-disable')) Z.cookie(k, true, null, '/');
         if(k=t.getAttribute('data-toggler-cookie-enable'))  Z.cookie(k, null, new Date(2000, 1, 1), '/');
+        if(storage) Z.storage('z-toggler-'+storage, null);
         st='off';
     } else { // enable
         t.className += ' '+c;
         if(k=t.getAttribute('data-toggler-cookie-disable')) Z.cookie(k, null, new Date(2000, 1, 1),'/');
         if(k=t.getAttribute('data-toggler-cookie-enable'))  Z.cookie(k, true, null, '/');
         st='on';
+        if(storage) Z.storage('z-toggler-'+storage, 1);
     }
     if(k=t.getAttribute('data-toggler-attribute-target')) {
         L=document.querySelectorAll(k);

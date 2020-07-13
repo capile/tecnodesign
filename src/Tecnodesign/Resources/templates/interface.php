@@ -22,7 +22,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
 
 // .tdz-i-header
 ?><div class="tdz-i-header"<?php 
-    if($nav) echo (!Tecnodesign_App::request('cookie', 'z-nav-disable')) ?' data-toggler="on"' :' data-toggler="off"';
+    if($nav) echo ' data-toggler="off"';
     if($Interface::$headerOverflow) echo ' data-overflow="1"';
     echo '>'; 
     $urls = Tecnodesign_Interface::$urls;
@@ -42,8 +42,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
 
     if($nav) {
         $nclass = 'z-i-nav z-toggle-active';
-        if(!Tecnodesign_App::request('cookie', 'z-nav-disable')) $nclass .= ' z-active';
-        echo '<div class="', $nclass, '" data-toggler-cookie-disable="z-nav-disable" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header">', $nav, '</div>'; 
+        echo '<div id="z-nav" class="', $nclass, '" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header" data-toggler-options="child,sibling,storage">', $nav, '</div>'; 
     }
 
     // .tdz-i

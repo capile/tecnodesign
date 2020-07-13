@@ -21,11 +21,17 @@
   }
 }
 
+.z-toggler:before {
+  .flashText();
+}
+
 .z-i-nav {
   display:none;
   background:@colorNavigation;
+  border-bottom: 0.1em solid @colorNavigation * 0.9;
   color:@colorNavigationText;
   margin:0;
+  position:relative;
   a:link {
     color: @colorNavigationText + #111;
     text-decoration:none;
@@ -41,7 +47,7 @@
   .z-current {
     font-weight:bold;
   }
-  ~ .z-toggler {
+  ~ .z-toggler, > .z-toggler {
     cursor: pointer;
     position:absolute;
     height:100%;
@@ -49,6 +55,22 @@
     top:0;
     text-decoration:none;
     background:@colorToggler;
+    &:before {
+      top: 0.25em;
+      left: 0.75em;
+      content: '\f054';
+      font-family: FontAwesome;
+      font-weight: normal;
+      font-style: normal;
+      text-decoration: inherit;
+      position:absolute;
+      font-size:1.4em;
+      height:1em;
+      line-height:1em;
+      width:1em;
+      color: @colorNavigationActive;
+      opacity: 0.5;
+    }
     &:after {
       content: ' ';
       position:absolute;
@@ -59,25 +81,6 @@
       opacity: 0;
       background: @colorNavigationActive;
     }
-    &:before {
-      display:none;
-      content: '\f101';
-      font-family: FontAwesome;
-      font-weight: normal;
-      font-style: normal;
-      text-decoration: inherit;
-      position:absolute;
-      font-size:2em;
-      left: 0.5em;
-      height:1em;
-      line-height:1em;
-      width:1em;
-      color: @colorNavigationActive;
-      opacity: 0.5;
-    }
-    &:before {
-      top:0.25em;
-    }
     &:hover, &:active {
       text-decoration:none;
       &:before {
@@ -87,8 +90,43 @@
         opacity:0.5;
       }
     }
-
   }
+  ~ .z-toggler {
+    &:before {
+      color: @colorNavigationText;
+      opacity: 0.1;
+    }
+    &:hover:before {
+      color: @colorNavigationActive;
+      opacity: 0.5;
+    }
+  }
+  > .z-toggler {
+    display: none;
+    z-index:18;
+    right:0;
+    margin-left: -0.5em;
+    .background-alpha(@colorToggler, 0.1);
+    &:before {
+      content: '\f053';
+      display: inline-block;
+      left:inherit;
+      top:-1.15em;
+      right:0;
+    }
+    &:after {
+      opacity: 0.1;
+    }
+  }
+  &.z-active {
+    & ~ .z-toggler {
+        display:none;
+    }
+    & > .z-toggler {
+        display:block;
+    }
+  }
+
   & ~ .tdz-i.tdz-i-active {
     margin-left: 0.5em;
   }
@@ -97,9 +135,6 @@
     display: inline-block;
     float:left;
     width: 25%;
-    max-height:100%;
-    overflow-x:hidden;
-    overflow-y:auto;
     z-index:17;
     & ~ .tdz-i.tdz-i-active {
       display:inline-block;
@@ -135,18 +170,52 @@
       padding: 0.5em 0.5em 1em 2em;
       border-top: 0.2em solid @colorTabActive;
     }
-    & ~ .z-toggler {
-      z-index:18;
-      margin-left: -0.5em;
-      .background-alpha(@colorToggler, 0.1);
+  }
+  li.z-children {
+    position:relative;
+    > .z-toggler {
+      cursor: pointer;
+      position:absolute;
+      width:1em;
+      top:0;
+      right:0;
+      text-decoration:none;
       &:before {
-        content: '\f100';
-        display: inline-block;
-        left:inherit;
-        top:0;
-        right:0;
+        top: 0.25em;
+        right: 0;
+        font-family: FontAwesome;
+        font-weight: normal;
+        font-style: normal;
+        text-decoration: inherit;
+        position:absolute;
+        height:1em;
+        line-height:1em;
+        width:1em;
+        color: @colorNavigationText;
+        content: "\f107";
       }
+    }
 
+    > ul {
+      display:none;
+      position:relative;
+    }
+
+    > .z-current ~ .z-toggler {
+      opacity:0.5;
+    }
+
+    &.z-active > .z-toggler, ul.z-active ~ .z-toggler {
+      opacity: 1;
+      &:before {
+        color: @colorNavigationActive;
+      }
+    }
+    &.z-active > ul, > .z-current ~ ul, ul.z-active {
+      display:block;
+      ~ .z-toggler:before {
+        content: "\f106";
+      }
     }
   }
 }
@@ -179,6 +248,37 @@
   }
   a {
     text-decoration:none;
+  }
+}
+
+
+@media only screen and (max-width: @mobileBreakPoint) {
+  .z-i-nav.z-active {
+    position:absolute;
+    width: 100%;
+    float:none;
+    z-index:30;
+    .background-alpha(@colorNavigation, 0.95);
+    box-shadow: 0 1em 0.5em rgba(0,0,0,0.2);
+  }
+  .tdz-i.z-active {
+    width:auto;
+    float:none;
+
+  }
+  .z-i-nav.z-active ~ .z-toggler {
+    display:none;
+  }
+  .z-i-nav.z-active > .z-toggler {
+    &:before {
+      display:none;
+    }
+  }
+  .tdz-i-header[data-toggler="on"] {
+    margin-left:0 !important;
+    &::before {
+      display:none;
+    }
   }
 }
 
@@ -1814,6 +1914,75 @@ th > input[type=checkbox], td > input[type=checkbox]{
   100% {
     -webkit-transform: rotate(-359deg);
             transform: rotate(-359deg);
+  }
+}
+
+
+.flash(@a:flash 0.75s linear 3s 1)
+{
+  .animation(@arguments);
+}
+
+.flashText(@a:flash-text 0.75s linear 3s 1)
+{
+  .animation(@arguments);
+}
+
+@-webkit-keyframes flash-text {
+  0% {
+    text-shadow: 0 0 1em rgba(255,255,255,0);
+  }
+  50% {
+    opacity:1;
+    text-shadow: 0 0 0.5em @colorNavigationActive, 0 0 2em @colorNavigationActive * 1.5, 0 0 3em @colorNavigationActive * 1.75;
+  }
+  100% {
+    text-shadow: 0 0 1em rgba(255,255,255,0);
+  }
+}
+
+@keyframes flash-text {
+  0% {
+    text-shadow: 0 0 0 rgba(255,255,255,0);
+  }
+  50% {
+    opacity:1;
+    text-shadow: 0 0 0.5em @colorNavigationActive, 0 0 2em @colorNavigationActive * 1.5, 0 0 3em @colorNavigationActive * 1.75;
+  }
+  100% {
+    text-shadow: 0 0 0 rgba(255,255,255,0);
+  }
+}
+
+@-webkit-keyframes flash {
+  0% {
+    box-shadow: 0 0 0 rgba(255,255,255,0);
+    background:transparent;
+  }
+  50% {
+    opacity:1;
+    box-shadow: 0 0 1em @colorNavigationActive * 1.5;
+    background: @colorNavigationActive *1.5;
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(255,255,255,0);
+    background:transparent;
+  }
+}
+
+@keyframes flash {
+  0% {
+    box-shadow: 0 0 0 rgba(255,255,255,0);
+    background:transparent;
+  }
+  50% {
+    opacity:1;
+    box-shadow: 0 0 1em @colorNavigationActive * 1.5;
+    background: @colorNavigationActive *1.5;
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(255,255,255,0);
+    background:transparent;
   }
 }
 
