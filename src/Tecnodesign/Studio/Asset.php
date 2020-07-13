@@ -48,7 +48,8 @@ class Tecnodesign_Studio_Asset
             'less'=>'css',
             'scss'=>'css',
         ),
-        $outputToRoot=true;
+        $outputToRoot = true,
+        $importDir = [];
 
 
     protected $source, $output, $root, $format, $optimize=true;
@@ -219,7 +220,7 @@ class Tecnodesign_Studio_Asset
         }
 
         if(is_array($fs) && count($fs)>1) {
-            $importDir = array();
+            $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
             $s = '';
             foreach($fs as $i=>$o) {
                 if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d.'/';
