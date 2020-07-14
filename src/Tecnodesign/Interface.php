@@ -450,6 +450,23 @@ class Tecnodesign_Interface implements ArrayAccess
 
             if(!$I) return false;
 
+            if(static::$breadcrumbs && isset($I->options['list-parent'])) {
+                $pi = $I->options['list-parent'];
+                $urls = [];
+                while($pi && ($Pi=static::find($pi)) && isset($Pi[0]['interface']) && isset($Pi[0]['title'])) {
+                    $pi = null;
+                    $urls[static::$base.'/'.$Pi[0]['interface']] = ['title'=> $Pi[0]['title'],'interface'=>false];
+                    if(isset($Pi[0]['options']['list-parent'])) {
+                        $pi = $Pi[0]['options']['list-parent'];
+                    }
+                    unset($Pi);
+                }
+                unset($Pi, $pi);
+                if($urls) { 
+                    Tecnodesign_Interface::$urls = array_reverse($urls, true) + Tecnodesign_Interface::$urls;
+                }
+            }
+
             static::loadAssets();
 
             //if($I && $I->auth) tdz::cacheControl('private, no-store, no-cache, must-revalidate',0);
@@ -1618,7 +1635,13 @@ class Tecnodesign_Interface implements ArrayAccess
             if($this->params) $o[] = $this->params;
             if(is_string($call[0]) && get_class($this)==$call[0]) $call[0] = $this;
             if(isset($this->text['title'])) Tecnodesign_App::response('title', $this->text['title']);
-            return tdz::call($call, $o);
+
+            $text = tdz::call($call, $o);
+            if(true) {
+                $this->text['preview'] = $text;
+            } else {
+                return $text;
+            }
         } else if (!$this->action && $this->originalText) {
             $data = null;
             $this->action = 'text';
@@ -3424,7 +3447,7 @@ class Tecnodesign_Interface implements ArrayAccess
     protected static function _li($o)
     {
         if(isset($o[1])) {
-            $s = '<li class="z-children" data-toggler-options="child">'.$o[0].'<ul id="z-nav-'.tdz::slug($o[2]).'" class="z-toggle-active" data-toggler-options="sibling,storage">';
+            $s = '<li id="z-nav-'.tdz::slug($o[2]).'" class="z-children z-toggle-active" data-toggler-options="child,storage">'.$o[0].'<ul>';
             foreach ($o[1] as $k=>$v) {
                 $s .= self::_li($v);
                 unset($o[1][$k], $k, $v);

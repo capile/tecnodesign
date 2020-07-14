@@ -1,6 +1,30 @@
 /* FONT PATH
  * -------------------------- */
 @fontAwesomePath: ~"@{studio-url}";
+@iconFont: "FontAwesome";
+@iconNavigationToggler: '\f054';
+@iconNavigationTogglerActive: '\f053';
+@iconNavigationItemToggler: '\f106';
+@iconNavigationItemTogglerActive: '\f107';
+@iconActionsMenu: '\f0c9';
+@iconDefault: '\f105';
+@iconNavigationItem: ' ';
+@iconNavigationItemChild: '\f105';
+
+@borderSize: 0.1em;
+
+@msg: #369;
+@msgBackground: #def;
+@error: #900;
+@borderRadius: 0.5em;
+@tabSpacing: 0.1em;
+@link: #039;
+@visited: #309;
+@hover: #ff8000;
+@active: #ff8000;
+@mobileBreakPoint: 640px;
+@bigScreenBreakPoint: 1280px;
+@lh: 1.5em;
 
 @colorTab: #903;
 @colorTabText: #eee;
@@ -19,24 +43,25 @@
 @colorNavigationTab: #666;
 @colorNavigationTabText: #eee;
 @colorNavigation: #444;
+@colorNavigationSub: #444;
 @colorNavigationText: #def;
 @colorNavigationLink: @colorNavigationText + #111;
 @colorNavigationVisited: @colorNavigationText - #111;
 @colorNavigationActive: @colorActive;
+@colorNavigationCurrent: @colorActive;
+
+@colorBreadcrumbs: @colorSummary;
+@colorBreadcrumbsText: @colorSummaryText;
+@colorBreadcrumbsLink: @link;
 
 @colorToggler: #eee;
 @colorTogglerActive: #ff8000;
 
+@colorBody: @fff;
+@colorHeader: linear-gradient(to bottom, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
 
-@msg: #369;
-@msgBackground: #def;
-@error: #900;
-@borderRadius: 0.5em;
-@tabSpacing: 0.1em;
-@link: #039;
-@visited: #309;
-@hover: #ff8000;
-@active: #ff8000;
-@mobileBreakPoint: 640px;
-@bigScreenBreakPoint: 1280px;
-@lh: 1.5em;
+@colorActionsMenu: #fff - (@colorSummary);
+@colorActionsMenuActive: #444;
+@colorActionsMenuButtons: @colorTab;
+@colorActionsMenuButtonsText: @colorTabText;
+@colorActionsMenuButtonsActive: @colorTab + #111;

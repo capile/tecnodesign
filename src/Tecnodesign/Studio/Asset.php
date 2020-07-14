@@ -219,8 +219,11 @@ class Tecnodesign_Studio_Asset
             return $this->build($fs, $outputFile);
         }
 
+        $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
+        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) $importDir[] = $d;
+        if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root.'/';
+
         if(is_array($fs) && count($fs)>1) {
-            $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
             $s = '';
             foreach($fs as $i=>$o) {
                 if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d.'/';
@@ -233,12 +236,10 @@ class Tecnodesign_Studio_Asset
             unset($s);
         } else {
             if(is_array($fs)) $fs = array_shift($fs);
-            $importDir = array(dirname($fs).'/');
+            $importDir[] = dirname($fs).'/';
             $save = false;
         }
 
-        if($this->root && !in_array($this->root, $importDir)) array_unshift($importDir, $this->root.'/');
-        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) array_unshift($importDir, $d);
         $parser->setImportDir($importDir);
         unset($importDir);
 

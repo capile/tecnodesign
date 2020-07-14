@@ -1287,14 +1287,16 @@ Z.formatBytes=function(s, precision)
 
 Z.initToggleActive=function(o)
 {
-    if(!o || !Z.node(o)) o=this;
-    if(o.parentNode.querySelector(':scope > .z-toggler')) return;
+    o=Z.node(this,o);
     var id=o.getAttribute('id'), 
         control=o.getAttribute('data-toggler-options'), 
-        sibling=(control && control.indexOf('sibling')<-1) ?false :true,
-        child=(control && control.indexOf('child')<-1) ?false :true,
+        sibling=(control && control.indexOf('sibling')<0) ?false :true,
+        child=(control && control.indexOf('child')<0) ?false :true,
         storage=(control && control.indexOf('storage')>-1) ?true :false,
         load=false, a;
+    if((sibling && o.parentNode.querySelector(':scope > .z-toggler')) || (child && o.querySelector(':scope > .z-toggler'))) {
+        return;
+    }
     if(!id) {
         storage = false;
         id='_n'+(_got++);
