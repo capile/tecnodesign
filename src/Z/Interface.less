@@ -511,11 +511,11 @@
         top:0;
         width:1em;
         height:2em;
-        .background-alpha-gradient(@colorTab);
+        .background-alpha-gradient(@colorTabShade);
       }
     }
     .tdz-i-title.tdz-i-title-active:after {
-      .background-alpha-gradient(@colorTabActive);
+      .background-alpha-gradient(@colorTabActiveShade);
     }
   }
 }
@@ -792,15 +792,15 @@ input.tdz-i-switch{
     margin: 0 -0.5em;
     padding:0;
     background:none;
-    border-bottom: 1px solid @colorTab + #666;
+    border-bottom: 1px solid @colorHeading + #666;
   }
   & > h3, & > form > h3, & > form fieldset legend {
     display:block;
     text-indent:0;
     font-weight:normal;
     font-size:1em;
-    color:@colorTabText;
-    background:@colorTabActive;
+    color:@colorHeadingText;
+    background:@colorHeading;
     margin: 0 -0.5em;
     padding:0.375em 0.5em;
     text-shadow:none;
@@ -859,19 +859,21 @@ input.tdz-i-switch{
     line-height:1.5em;
     margin:0 0.75em 0 0;
     padding:0.5em 1em;
-    background:(@colorTab *0.1) + #d6d6d6;
-    color:@colorTab;
+    background: @colorButton;
+    color: @colorButtonText;
     border-radius: @borderRadius;
     &:hover, &:active {
-      background: (@active*0.1) + #d6d6d6;
+      background: @colorButtonActive;
+      color: @colorButtonActiveText;
     }
   }
   button[type=submit] {
-    background:@colorTabActive;
-    color:@colorTabText;
-    border-color:@colorTabActive;
+    background:@colorButtonSubmit;
+    color:@colorButtonSubmitText;
+    border-color:@colorButtonSubmit;
      &:hover, &:active {
-      background: @active;
+      background: @colorButtonSubmitActive;
+      color: @colorButtonSubmitActiveText;
      }
   }
 }
@@ -879,7 +881,7 @@ input.tdz-i-switch{
 .tdz-i-container .ui-buttons {
   padding: 0.5em;
   button, a.button {
-    border: @borderSize solid @colorTab;
+    border: @borderSize solid @colorButton;
     .border(@borderRadius);
   }
 }
