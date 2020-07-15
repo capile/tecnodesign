@@ -440,7 +440,10 @@
     content:' ';
     position:absolute;
     display:block;
-    width:2em;height:2em;line-height:2em;text-align:center;
+    width:2em !important;
+    height:2em;
+    line-height:2em;
+    text-align:center;
     vertical-align:baseline;opacity:0.8;
   }
   /*
@@ -1566,7 +1569,8 @@ form .i-mono dd {
   &:before {
     font-family: @iconFont;
     font-weight: normal;
-    min-width:1em;
+    display:inline-block;
+    width:1.5em;
     content: @iconDefault;
   }
 }
@@ -1801,13 +1805,13 @@ th > input[type=checkbox], td > input[type=checkbox]{
       display:inline-block;
     }
     a.z-i-a, a.z-i-a:link, a.z-i-a:visited {
-      background: @colorTab;
-      color: @colorTabText;
+      background: @colorButtonSubmit;
+      color: @colorButtonSubmitText;
       text-decoration:none;
     }
     a.z-i-a:hover, a.z-i-a:active, a.z-i-a:focus {
-      background: @colorTabActive;
-      color: @colorTabActiveText;
+      background: @colorButtonSubmitActive;
+      color: @colorButtonSubmitActiveText;
     }
     & ~ .z-standalone-buttons {
       display:none;
