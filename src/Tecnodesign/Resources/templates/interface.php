@@ -25,13 +25,14 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
     if($nav) echo ' data-toggler="off"';
     if($Interface::$headerOverflow) echo ' data-overflow="1"';
     echo '>'; 
+    if($nav) echo '<a href="'.tdz::xml($Interface::base()).'" class="z-spacer z-left z-nav" data-draggable-style="width:{w0}"></a>';
     $urls = Tecnodesign_Interface::$urls;
     if(Tecnodesign_App::request('ajax')) {
         $urls = array_slice($urls, -1, 1, true);
     }
     foreach($urls as $iurl=>$t) {
         if($iurl!='/' && (!isset($t['interface']) || $t['interface'])):
-            ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' tdz-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><?php echo \tdz::xml($t['title']); ?></a><?php
+            ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' z-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><span class="z-text"><?php echo \tdz::xml($t['title']); ?></span></a><?php
         endif;
     }
 
@@ -42,7 +43,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
 
     if($nav) {
         $nclass = 'z-i-nav z-toggle-active';
-        echo '<div id="z-nav" class="', $nclass, '" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header" data-toggler-options="child,sibling,storage">', $nav, '</div>'; 
+        echo '<div id="z-nav" data-draggable-style="width:{w0}" data-draggable-default=style="width:{w1}" class="', $nclass, '" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header" data-toggler-drag-target=".tdz-i-body" data-toggler-drag=".z-nav,.z-i-nav,.tdz-i.tdz-i-active" data-toggler-options="child,sibling,storage,draggable">', $nav, '</div>'; 
     }
 
     // .tdz-i
@@ -52,10 +53,10 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
         if(isset($ui)) echo ' data-ui="'.base64_encode(tdz::serialize($ui, 'json')).'"';
         ?>><?php
 
-        // .tdz-i-actions
-        if($buttons): ?><div class="<?php echo trim('tdz-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
-            /*if(count(Tecnodesign_Interface::$urls)>1): ?><a class="tdz-i-a tdz-i--close" href="<?php echo tdz::xmlEscape(array_shift(array_keys(Tecnodesign_Interface::$urls))) ?>"></a><?php endif;*/
-            ?><input type="checkbox" id="tdz-i-b-<?php echo $id; ?>" class="tdz-i-switch tdz-i-actions" /><label for="tdz-i-b-<?php echo $id; ?>"><?php
+        // .z-i-actions
+        if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
+            /*if(count(Tecnodesign_Interface::$urls)>1): ?><a class="tdz-i-a z-i--close" href="<?php echo tdz::xmlEscape(array_shift(array_keys(Tecnodesign_Interface::$urls))) ?>"></a><?php endif;*/
+            ?><input type="checkbox" id="tdz-i-b-<?php echo $id; ?>" class="tdz-i-switch z-i-actions" /><label for="tdz-i-b-<?php echo $id; ?>"><?php
             echo $Interface::$labelActions; ?></label><div class="tdz-i-buttons tdz-i-switched"><?php
                 echo $buttons; 
         ?></div></div><?php endif; 
@@ -89,7 +90,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
             else if(isset($options['before'])) echo \tdz::markdown($options['before']);
 
 
-            ?><div class="tdz-i-summary tdz-i--<?php echo $Interface['action']; ?>"><?php
+            ?><div class="tdz-i-summary z-i--<?php echo $Interface['action']; ?>"><?php
 
                 if(isset($summary)) {
                     echo $summary;
@@ -188,7 +189,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
             if(isset($options['after-'.$action])) echo \tdz::markdown($options['after-'.$action]);
             else if(isset($options['after'])) echo \tdz::markdown($options['after']);
 
-            // .tdz-i-actions
+            // .z-i-actions
             ?></div><div class="<?php echo $Interface::$attrFooterClass; ?>"><div class="tdz-i-buttons"><?php
                 echo $buttons; 
             ?></div></div><?php 

@@ -18,6 +18,7 @@
             Z.setInterface = setInterface;
             // run once
             Z.bind(window, 'hashchange', hashChange);
+            Z.resizeCallback(headerOverflow);
         }
         _init = true;
         var i, l;
@@ -67,7 +68,7 @@
         }
 
         // bind links to Interface actions
-        l=I.querySelectorAll('a[href^="'+base+'"],.tdz-i-a');
+        l=I.querySelectorAll('a[href^="'+base+'"],.z-i-a');
         i=l.length;
         while(i-- > 0) if(!l[i].getAttribute('target') && !l[i].getAttribute('download')) Z.bind(l[i], 'click', loadInterface);
         l=null;
@@ -101,13 +102,13 @@
                 M[j].removeAttribute('data-action-scope');
                 if(M[j].nodeName.toLowerCase()=='button') {
                     M[j].setAttribute('data-url', u+'?scope='+bu+iurl);
-                    M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'tdz-i--close';
+                    M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'z-i--close';
                     Z.bind(M[j], 'click', loadAction);
                     bt = M[j].form.parentNode;
                 } else {
                     bt= M[j];
                 }
-                Z.element.call(bt, {e:'a',a:{href:u+'?scope='+bu+iurl,'class':'tdz-i-button tdz-i--'+k},t:{click:loadAction}});
+                Z.element.call(bt, {e:'a',a:{href:u+'?scope='+bu+iurl,'class':'tdz-i-button z-i--'+k},t:{click:loadAction}});
                 bt=null;
             }
         }
@@ -418,7 +419,7 @@
         /*jshint validthis: true */
         //Z.trace('loadInterface');
         _init = true;
-        var I, m=false, t, q, urls=[], l, i,u,data,h={'Tdz-Action':'Interface', 'z-action':'Interface'};
+        var I, m=false, t, q, urls=[], l, i,u,data,h={'z-action':'Interface'};
         if(typeof(e)=='string') {
             urls.push(e);
         } else {
@@ -429,7 +430,7 @@
                 I = document.querySelector('.tdz-i[data-url="'+I.getAttribute('data-url')+'"]');
                 if(!I) return true;
             } else if(!Z.parentNode(this, '.z-i-nav')) return true;
-            if(this.className.search(/\btdz-i--close\b/)>-1) {
+            if(this.className.search(/\bz-i--close\b/)>-1) {
                 if((u=this.getAttribute('href'))) {
                     activeInterface(u);
                 }
@@ -440,20 +441,20 @@
             if(_noH) _noH = false;
 
             var valid=true;
-            if(this.className.search(/\btdz-i-a-(many|one)\b/)>-1) {
+            if(this.className.search(/\bz-i-a-(many|one)\b/)>-1) {
                 valid = false;
-                if(this.className.search(/\btdz-i-a-many\b/)>-1) {
+                if(this.className.search(/\bz-i-a-many\b/)>-1) {
                     m=true;
-                    if(I.matchesSelector('.tdz-i-list-many')) valid = true;
+                    if(I.matchesSelector('.z-i-list-many')) valid = true;
                 }
-                if(this.className.search(/\btdz-i-a-one\b/)>-1) {
-                    if(I.matchesSelector('.tdz-i-list-one')) valid = true;
+                if(this.className.search(/\bz-i-a-one\b/)>-1) {
+                    if(I.matchesSelector('.z-i-list-one')) valid = true;
                 }
                 if(!valid) {
                     if (m) {
-                        msg(Z.l[Z.language].moreRecord, 'tdz-i-error');
+                        msg(Z.l[Z.language].moreRecord, 'z-i-error');
                     } else {
-                        msg(Z.l[Z.language].noRecordSelected, 'tdz-i-error');
+                        msg(Z.l[Z.language].noRecordSelected, 'z-i-error');
                     }
                     return false;
                 }
@@ -494,7 +495,7 @@
                     // set index interface to be reloaded
                     var iu = u.replace(/\/[^/]+\/[^/]+(\?.*)$/, ''),
                         ib = Z.parentNode(this, '.tdz-i-box'),
-                        ih = (ib)?(ib.querySelector('.tdz-i-header .tdz-i--list[data-url^="'+iu+'"]')):(null);
+                        ih = (ib)?(ib.querySelector('.tdz-i-header .z-i--list[data-url^="'+iu+'"]')):(null);
                     if(ih) {
                         _reload[ih.getAttribute('data-url')]=true;
                     }
@@ -702,7 +703,9 @@
 
         updateInterface(I);
 
-        if(document.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) headerOverflow(true);
+        //if(document.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) headerOverflow(true);
+        if(I.style) I.removeAttribute('style');
+        Z.resizeCallback();
 
         return false;
     }
@@ -710,20 +713,28 @@
     function headerOverflow(timeout)
     {
         // flow & reflow tabs
-        var box=document.querySelector('.tdz-i-box'),
-            He = box.querySelector('.tdz-i-header'),
+        var He = document.querySelector('.tdz-i-box .tdz-i-header[data-overflow]');
+        if(!He) return;
+
+        var box=Z.parentNode(He, '.tdz-i-box'),
             Hs = box.querySelectorAll('.tdz-i-header > .tdz-i-title'),
             H =  box.querySelector('.tdz-i-header > .tdz-i-title.tdz-i-title-active'),
-            ew, fw=0, ws={}, i, wmax;
+            ew, fw=0, ws={}, i, wmax, hw, el;
 
         i=Hs.length;
-        if(H && He && i) {
+        if(H && i) {
             // remove all styles
-            wmax = He.clientWidth * 0.5;
+            hw = He.clientWidth;
+            if(el=He.querySelector(':scope > .z-spacer')) hw -= el.clientWidth;
+
+            wmax = hw * 0.5;
 
             while(i--) {
-                if(timeout && Hs[i].getAttribute('style')) Hs[i].setAttribute('style', '');
-                ew = Hs[i].scrollWidth;
+                if(Hs[i].getAttribute('style')) Hs[i].setAttribute('style', '');
+                el = Hs[i].querySelector('.z-text');
+                if(!el) el = Hs[i];
+                ew = el.clientWidth;
+                Hs[i].setAttribute('style', 'max-width: '+ew+'px');
                 //if(ew > wmax) ew = wmax;
                 fw += ew;
                 ws[i] = ew;
@@ -731,22 +742,14 @@
 
             i=Hs.length;
             // check length
-            if(i>1 && (He.offsetWidth > He.clientWidth || fw > He.clientWidth)) {
+            if(i>1 && fw > hw) {
                 if(He.className.search(/\bz-overflow\b/)<0) He.className += ' z-overflow';
-
-                if(timeout) {
-                    if(He.className.search(/\bz-overflow\b/)>-1) He.className = He.className.replace(/\s*\bz-overflow\b/g, '');
-                    return setTimeout(headerOverflow, 200);
-                }
-                var w0=(H.scrollWidth/He.getBoundingClientRect().width)*100, w = (100 - w0)/(Hs.length -1);
-                if(w0<=1.25*w) {
-                    w=100.0/Hs.length;
-                }
-                while(i--) {
-                    if(Hs[i]!=H) {
-                        Hs[i].setAttribute('style', 'width:'+w+'%');
-                    }
-                }
+                // flex:1 -- only the selected tab should be resized
+                el = H.querySelector('.z-text');
+                if(!el) el = H;
+                ew = el.clientWidth;
+                if(ew > wmax) el= wmax;
+                H.setAttribute('style', 'flex: 2; width: '+ew+'px; max-width: '+ew+'px');
             } else {
                 if(He.className.search(/\bz-overflow\b/)>-1) He.className = He.className.replace(/\s*\bz-overflow\b/g, '');
             }
@@ -869,12 +872,17 @@
                 }
             }
 
-
             /*
             if(u in _loading) {
                 delete(_loading[u]);
             }
             */
+            i = I.attributes.length;
+            while(i--) {
+                if(I.attributes[i].name.search(/^data-/)>-1) {
+                    O.setAttribute(I.attributes[i].name, I.attributes[i].value);
+                }
+            }
 
 
             i = Hs.length;
@@ -883,7 +891,7 @@
                 h=H.querySelector('.tdz-i-title[data-url="'+cu+'"]');
                 //Z.bind(Hs[i], 'click', activeInterface);
                 if(!Hs[i].querySelector('*[data-action="close"]')) {
-                    Z.element.call(Hs[i], {e:'span',a:{'class':'tdz-i-a tdz-i--close','data-action':'close'},t:{click:loadInterface}});
+                    Z.element.call(Hs[i], {e:'span',a:{'class':'z-i-a z-i--close','data-action':'close'},t:{click:loadInterface}});
                 }
                 if(h) H.replaceChild(Hs[i], h);
                 else if(cu==u) H.appendChild(Hs[i]);
@@ -1054,14 +1062,14 @@
         if(ref && (I.getAttribute('data-id')) && (id=I.getAttribute('data-url'))) {
             _ids[id] = [I.getAttribute('data-id')];
         } else {
-            L = document.querySelectorAll('.tdz-i-active'+_sel+', .tdz-i-standalone');
+            L = document.querySelectorAll('.tdz-i-active'+_sel+', .z-i-standalone');
             i=L.length;
             while(i--) {
                 id=L[i].getAttribute('data-url');
                 _ids[id] = [];
             }
 
-            L = document.querySelectorAll('.tdz-i-active'+_sel+' '+isel+', .tdz-i-standalone '+isel);
+            L = document.querySelectorAll('.tdz-i-active'+_sel+' '+isel+', .z-i-standalone '+isel);
             i=L.length;
             while(i--) {
                 if(!(tI=Z.parentNode(L[i], '.tdz-i'))) continue;
@@ -1076,12 +1084,12 @@
 
         for(id in _ids) {
             if((tI=document.querySelector(_sel+'[data-url="'+id+'"]'))) {
-                cn=tI.className.replace(/\btdz-i-list-(none|one|many)\b\s*/g, '').trim();
+                cn=tI.className.replace(/\bz-i-list-(none|one|many)\b\s*/g, '').trim();
                 i=_ids[id].length;
                 if(i==0 && tI.getAttribute('data-id')) i=1;
-                if(i==0) cn += ' tdz-i-list-none';
-                else if(i==1) cn += ' tdz-i-list-one';
-                else if(i>1) cn+= ' tdz-i-list-many';
+                if(i==0) cn += ' z-i-list-none';
+                else if(i==1) cn += ' z-i-list-one';
+                else if(i>1) cn+= ' z-i-list-many';
                 if(tI.className!=cn)tI.className=cn;
             } else {
                 delete(_ids[id]);
@@ -1116,8 +1124,8 @@
 
     function initAutoRemove()
     {
-        if(!this.querySelector('.tdz-i--close')) {
-            var el=Z.element.call(this, {e:'i',p:{className:'tdz-i--close tdz-i-a z-round'},t:{click:autoRemove}});
+        if(!this.querySelector('.z-i--close')) {
+            var el=Z.element.call(this, {e:'i',p:{className:'z-i--close z-i-a z-round'},t:{click:autoRemove}});
             if(el.previousSibling.nodeName.toLowerCase()=='a' && !el.previousSibling.getAttribute('href')) Z.bind(el.previousSibling, 'click', autoRemove);
             var P=Z.parentNode(this,'.field,.z-i-field,.tdz-i-field');
             if(P) P.className+=' has-auto-remove';

@@ -52,7 +52,7 @@ if(!isset($action)) $action = $Interface['action'];
     else if(isset($options['before'])) echo \tdz::markdown($options['before']);
     $content = false;
 
-    ?><div class="tdz-i-summary tdz-i--<?php echo $Interface['action']; ?>"><?php
+    ?><div class="tdz-i-summary z-i--<?php echo $Interface['action']; ?>"><?php
 
         if(!$Interface::$standalone && isset($summary)) {
             echo $summary;
@@ -146,7 +146,7 @@ if(!isset($action)) $action = $Interface['action'];
         ?></div><?php
     endif;
 
-    // .tdz-i-actions
+    // .z-i-actions
     if($buttons && $content): ?><div class="z-standalone-buttons"><?php
         echo $buttons; 
     ?></div><?php endif;

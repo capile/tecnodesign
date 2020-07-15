@@ -1616,6 +1616,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         tdz::$variables['Interface'] = $this;
         $title = $this->getTitle();
+        $link = $this->link();
         if(!$this->action) {
             foreach(static::$actionsDefault as $a) {
                 $p1 = tdz::urlParams(null, true);
@@ -1625,9 +1626,10 @@ class Tecnodesign_Interface implements ArrayAccess
                 unset($a);
             }
             if(!Tecnodesign_Interface::$urls) {
-                Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$title,'action'=>$this->action);
+                Tecnodesign_Interface::$urls[$link] = array('title'=>$title,'action'=>$this->action);
             }
         }
+
         static::$currentAction = $this->action;
         if($this->run) {
             $o = $this->run;
@@ -1637,8 +1639,11 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($this->text['title'])) Tecnodesign_App::response('title', $this->text['title']);
 
             $text = tdz::call($call, $o);
-            if(true) {
+            if(!static::$standalone) {
                 $this->text['preview'] = $text;
+                if(!isset(Tecnodesign_Interface::$urls[$link])) {
+                    Tecnodesign_Interface::$urls[$link] = array('title'=>$title,'action'=>$this->action);
+                }
             } else {
                 return $text;
             }
@@ -2716,6 +2721,8 @@ class Tecnodesign_Interface implements ArrayAccess
             if($id && !tdz::isempty($this->id)) $sid = $this->id;
             else if($id) $sid = '{id}';
             else $sid = false;
+
+            $ac = (isset($action['icon'])) ?'z-i-a '.$action['icon'] :'z-i-a z-i--'.$aa;
             if(static::$standalone) {
                 if(preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
@@ -2728,7 +2735,6 @@ class Tecnodesign_Interface implements ArrayAccess
                 } else {
                     $href = 'href="'.tdz::xmlEscape($this->link($an, ($id)?($sid):(false), true, $qs)).'"';
                 }
-                $ac = 'z-i-a z-i--'.$aa;
                 $s .= '<a '.$href.' class="'.$ac.'">'
                     . '<span class="tdz-i-label">'
                     . $label
@@ -2758,10 +2764,9 @@ class Tecnodesign_Interface implements ArrayAccess
                     $href .= ' '.tdz::xmlEscape($k).'="'.tdz::xmlEscape($v).'"';
                 }
             }
-            $ac = 'tdz-i-a tdz-i--'.$aa
-                . ((static::$attrButtonClass)?(' '.static::$attrButtonClass):(''))
-                . (($bt)?(' tdz-i-a-many'):(''))
-                . (($id)?(' tdz-i-a-one'):(''))
+            $ac .= ((static::$attrButtonClass)?(' '.static::$attrButtonClass):(''))
+                . (($bt)?(' z-i-a-many'):(''))
+                . (($id)?(' z-i-a-one'):(''))
             ;
             $s .= '<a '.$href.' class="'.$ac.'">'
                 . '<span class="tdz-i-label">'

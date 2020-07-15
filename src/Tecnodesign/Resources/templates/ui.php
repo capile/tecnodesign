@@ -22,8 +22,8 @@ Tecnodesign_App::response('title', $title);
 <?php if(isset($preview)): ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php echo $preview; ?></div><?php endif; ?>
 <?php if(isset($list)): ?><div class="<?php echo $Interface::$attrListClass; ?>"><?php 
 echo 
-	'<div class="'.trim('tdz-i-actions '.$Interface::$attrButtonsClass).'">'
-	. '<input type="checkbox" id="tdz-i-b-'.$id.'" class="tdz-i-switch tdz-i-actions" /><label for="tdz-i-b-'.$id.'">'.$Interface::$labelActions.'</label><div class="tdz-i-buttons tdz-i-switched">'
+	'<div class="'.trim('z-i-actions '.$Interface::$attrButtonsClass).'">'
+	. '<input type="checkbox" id="tdz-i-b-'.$id.'" class="tdz-i-switch z-i-actions" /><label for="tdz-i-b-'.$id.'">'.$Interface::$labelActions.'</label><div class="tdz-i-buttons tdz-i-switched">'
 	.  $buttons
 	.  '</div>'
 	.'</div>'

@@ -2228,8 +2228,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $s .= '<th class="c-'.$so.' f-'.$fid.(($sc==$sf)?(' ui-order ui-order-'.$sd):('')).'">'
                     . ((isset($first) && $checkbox==='checkbox')?('<input type="checkbox" data-callback="toggleInput" label="'.tdz::t('Select all', 'ui').'" data-label-alternative="'.tdz::t('Clear selection', 'ui').'" />'):(''))
                     . $label
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$soa).'" class="tdz-i--up icon asc"></a>'):(''))
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$sod).'" class="tdz-i--down icon desc"></a>'):(''))
+                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$soa).'" class="z-i--up icon asc"></a>'):(''))
+                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$sod).'" class="z-i--down icon desc"></a>'):(''))
                     . '</th>';
                 $so++;
                 unset($label, $fn, $sort, $first);

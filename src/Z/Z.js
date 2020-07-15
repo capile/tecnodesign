@@ -2,7 +2,7 @@
 if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{}};
 (function(Z) {
 "use strict";
-var _ajax={}, _isReady, _onReady=[], _got=0, _langs={}, _assetUrl, _assets={},
+var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl, _assets={},
   defaultModules={
     Callback:'*[data-callback]',
     Copy:'a.z-copy[data-target]',
@@ -1293,6 +1293,7 @@ Z.initToggleActive=function(o)
         sibling=(control && control.indexOf('sibling')<0) ?false :true,
         child=(control && control.indexOf('child')<0) ?false :true,
         storage=(control && control.indexOf('storage')>-1) ?true :false,
+        drag=(control && control.indexOf('draggable')>-1) ?true :false,
         load=false, a;
     if((sibling && o.parentNode.querySelector(':scope > .z-toggler')) || (child && o.querySelector(':scope > .z-toggler'))) {
         return;
@@ -1304,18 +1305,163 @@ Z.initToggleActive=function(o)
     } else if(Z.storage('z-toggler-'+id)) {
         load = true;
     }
-    if(child) a=Z.element.call(o, {e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}});
-    if(sibling) a=Z.element({e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}}, null, o);
+
+    var el={e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}};
+    if(sibling) a=Z.element(el, null, o);
+    if(drag) {
+        el.p.draggable=true;
+        el.t.dragstart = toggleDragStart;
+        el.t.dragend = toggleDragEnd;
+        if(o.getAttribute('data-toggler-drag-target')) el.a['data-drag-target']=o.getAttribute('data-toggler-drag-target');
+        if(o.getAttribute('data-toggler-drag')) el.a['data-drag']=o.getAttribute('data-toggler-drag');
+        if(o.getAttribute('data-draggable-default-style')) el.a['data-draggable-style']=o.getAttribute('data-draggable-default-style');
+
+    }
+    if(child) a=Z.element.call(o, el);
     if(load) {
         ToggleActive.call(a);
     }
 };
 
+var _drag={}, _dragging, _dragW=-1;
+function toggleDragStart(e)
+{
+    var dt = (this.getAttribute('data-drag-target')) ?document.querySelector(this.getAttribute('data-drag-target')) :null,
+        id = this.getAttribute('id');
+    if(!dt) dt = this.parentNode;
+    if(!dt && e) Z.stopEvent(e);
+    if(!id) {
+        id='_n'+(_got++);
+        this.setAttribute('id', id);
+    }
+
+    var dp=this.getAttribute('data-drag');
+    if(!dp) dp = '#'+id;
+    _dragging = dp;
+
+    if(!(dp in _drag)) _drag[dp]={}; 
+    _drag[dp].source = this;
+    _drag[dp].area = dt
+    _drag[dp].target = dp;
+    _drag[dp].enable = true;
+    _drag[dp].minWidth = 640;
+
+    Z.bind(dt, 'dragover', toggleDragOver);
+    if(_dragW<0) {
+        _dragW = _onResize.length;
+        Z.resizeCallback(applyDrag);
+    }
+}
+
+function toggleDragOver(e)
+{
+    if(!(_dragging in _drag)) return;
+    _drag[_dragging].x = e.clientX;
+    _drag[_dragging].y = e.clientY;
+
+    // enable timeout?
+    applyDrag();
+}
+
+function applyDrag(id)
+{
+    if(!id) {
+        for(id in _drag) {
+            applyDrag(id);
+        }
+        return;
+    }
+
+    if(!(id in _drag) || !_drag[id].enable) return;
+
+    var r=_drag[id].area.getBoundingClientRect();
+    if(('minWidth' in _drag[id]) && window.innerWidth < _drag[id].minWidth) {
+        removeDrag(id);
+        _drag[id].enable = true;
+        return;
+    }
+
+    var x = _drag[id].x - r.x, y = _drag[id].y - r.y, w0=100*_drag[id].x/r.width, w1=99.99-w0, 
+        L=(_drag[id].target) ?(document.querySelectorAll(_drag[id].target)) :[_drag[id].source], i=L.length, el, ds, s;
+
+    while(i--) {
+        el = L[i];
+        ds = el.getAttribute('data-draggable-style');
+        if(!ds) ds = _drag[id].source.getAttribute('data-draggable-style');
+        if(!ds) {
+            s = 'width: '+w1+'%';
+        } else {
+            s = ds.replace('{w0}', w0+'%').replace('{w1}', w1+'%').replace('{x}', x+'px').replace('{y}',y+'px');
+        }
+        el.setAttribute('style',s);
+    }
+}
+
+Z.resizeCallback=function(fn)
+{
+    if(fn && (typeof fn == 'function')) {
+        if(_onResize.length==0) {
+            Z.bind(window, 'resize', Z.resizeCallback);
+        }
+        _onResize.push(fn);
+
+    } else {
+        var i=0;
+        while(i < _onResize.length) {
+            _onResize[i]();
+            i++;
+        }
+    }
+}
+
+function removeDrag(id)
+{
+    if(!id) {
+        for(id in _drag) {
+            if(_drag[id].enable) removeDrag(id);
+        }
+        return;
+    }
+    if(!(id in _drag)) return;
+    var L=(_drag[id].target) ?(document.querySelectorAll(_drag[id].target)) :[_drag[id].source], i=L.length;
+
+    while(i--) {
+        L[i].removeAttribute('style');
+    }
+    _drag[id].enable = false;
+}
+
+function enableAndApplyDrag(id)
+{
+    if(!id) {
+        for(id in _drag) {
+            if(!_drag[id].enable) enableAndApplyDrag(id);
+        }
+        return;
+    }
+
+    _drag[id].enable = true;
+    applyDrag(id);
+}
+
+
+function toggleDragEnd(e)
+{
+    var dt = (this.getAttribute('data-drag-target')) ?document.querySelector(this.getAttribute('data-drag-target')) :null;
+    if(!dt) dt = this.parentNode;
+    if(!dt && e) Z.stopEvent(e);
+    Z.unbind(dt, 'dragover', toggleDragOver);
+    Z.resizeCallback();
+}
+
+
 function ToggleActive()
 {
     var ts=this.getAttribute('data-target'), t=(ts) ?document.querySelector(ts) :this.previousSibling;
     if(!t) return;
-    var c=this.getAttribute('data-active-class'), o=t.getAttribute('data-toggler-options'), storage=(o && o.indexOf('storage')>-1) ?t.getAttribute('id') :null;
+    var c=this.getAttribute('data-active-class'), o=t.getAttribute('data-toggler-options'), 
+        drag=(o && o.indexOf('draggable')>-1) ?true :false,
+        storage=(o && o.indexOf('storage')>-1) ?t.getAttribute('id') :null;
     if(!c)c='z-active';
     var re=new RegExp('\\s*\\b'+c+'\\b', 'g'), k, L, i, st='on';
     if(t.className.search(c)>-1) { // disable
@@ -1323,13 +1469,15 @@ function ToggleActive()
         if(k=t.getAttribute('data-toggler-cookie-disable')) Z.cookie(k, true, null, '/');
         if(k=t.getAttribute('data-toggler-cookie-enable'))  Z.cookie(k, null, new Date(2000, 1, 1), '/');
         if(storage) Z.storage('z-toggler-'+storage, null);
+        if(drag) removeDrag();
         st='off';
     } else { // enable
         t.className += ' '+c;
         if(k=t.getAttribute('data-toggler-cookie-disable')) Z.cookie(k, null, new Date(2000, 1, 1),'/');
         if(k=t.getAttribute('data-toggler-cookie-enable'))  Z.cookie(k, true, null, '/');
-        st='on';
         if(storage) Z.storage('z-toggler-'+storage, 1);
+        if(drag) enableAndApplyDrag();
+        st='on';
     }
     if(k=t.getAttribute('data-toggler-attribute-target')) {
         L=document.querySelectorAll(k);
