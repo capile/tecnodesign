@@ -2138,7 +2138,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $cn = $g['model'];
         if(!$n) $n=uniqid('g');
         $s=null;
-        $G=['data'=>[]];
+        $G=(isset($g['options']))?($g['options']) :[];
+        $G['data']=[];
         $q = (isset($g['where'])) ?$g['where'] :[];
         $orderBy = (isset($g['order-by'])) ?$g['order-by'] :null;
         $groupBy = true;
@@ -2167,6 +2168,8 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         if($R=$cn::find($q,null,$scope,false,$orderBy,$groupBy)) {
             //$x = [];
+            $cmap = [];
+            $kcols = [];
             foreach($R as $i=>$o) {
                 $d = $o->asArray($scope, null, null);
                 if($pivot) {
@@ -2185,6 +2188,35 @@ class Tecnodesign_Interface implements ArrayAccess
                         if(!isset($G['data']['columns'][$i])) $G['data']['columns'][$i] = [$l];
                         $G['data']['columns'][$i][]=$v;
                     }
+                } else if(isset($g['columns'])) {
+                    foreach($g['columns'] as $ck=>$ca) {
+                        if(!isset($d[$ck])) continue;
+                        $coln = $d[$ck];
+                        foreach($ca as $cak=>$cal) {
+
+                            if(!isset($cmap[$coln])) {
+                                $cmap[$coln] = count($cmap)+1;
+                            }
+                            $xn = $cmap[$coln];
+
+                            $v0 = $cak;
+                            $v1 = $cal;
+
+                            $l0 = trim($coln);
+                            $l1 = 'x'.$xn;
+
+                            if(!isset($G['data']['xs'][$l0])) $G['data']['xs'][$l0]=$l1;
+
+                            if(isset($d[$v0])) {
+                                if(!isset($kcols[$l0])) $kcols[$l0] = [$l0];
+                                $kcols[$l0][] = $d[$v0];
+                            }
+                            if(isset($d[$v1])) {
+                                if(!isset($kcols[$l1])) $kcols[$l1] = [$l1];
+                                $kcols[$l1][] = $d[$v1];
+                            }
+                        }
+                    }
                 } else {
                     if(!isset($G['data']['columns'])) {
                         $G['data']['columns']=[];
@@ -2195,6 +2227,14 @@ class Tecnodesign_Interface implements ArrayAccess
                     foreach($h as $k=>$v) $G['data']['columns'][$k][]=$v;
                 }
                 unset($R[$i], $i, $o, $h);
+            }
+
+            if($kcols) {
+                if(!isset($G['data']['columns'])) {
+                    $G['data']['columns']=array_values($kcols);
+                } else {
+                    $G['data']['columns']=array_merge($G['data']['columns'], array_values($kcols));
+                }
             }
             //if($x) $G['data']['columns'][] = $x;
 
@@ -2208,7 +2248,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $G['bindto'] = '#'.$a['id'];
             if(isset($g['title'])) $a['data-title'] = $g['title'];
             if(isset($g['style'])) $G += $g['style'];
-            $a['data-g'] = base64_encode(tdz::serialize($G, 'json'));
+            $a['data-g'] = base64_encode(json_encode($G, JSON_UNESCAPED_SLASHES));
             if(isset($g['class'])) $a['class'] .= ' '.$g['class'];
             $s .= '<div';
             foreach($a as $an=>$av) $s .= ' '.$an.'="'.tdz::xml($av).'"';

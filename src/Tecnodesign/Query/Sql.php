@@ -485,13 +485,11 @@ class Tecnodesign_Query_Sql
         }
         $ta='a';
         if(!$sc) $sc = $this->schema();
-        else {
-            if(isset($this->_alias[$sc['className']])) {
-                $ta = $this->_alias[$sc['className']];
-            }
-        }
-
         if(!is_array($this->_alias)) $this->getFrom();
+
+        if(isset($this->_alias[$sc['className']])) {
+            $ta = $this->_alias[$sc['className']];
+        }
 
         if($ta==='a' && !in_array($ta, $this->_alias)) {
             $this->_alias[$sc['className']] = $ta;
@@ -539,14 +537,11 @@ class Tecnodesign_Query_Sql
                 } else if(isset($sc['relations'][$rn])) {
                     $rcn = (isset($sc['relations'][$rn]['className']))?($sc['relations'][$rn]['className']):($rn);
                     $rsc = $rcn::$schema;
-                    if(!isset($this->_alias[$rnf])) {
+                    if(!isset($this->_alias[$rcn])) {
                         $chpos=($this->_alias)?(ceil(count($this->_alias)/2)):(0);
                         while(in_array($an=tdz::letter($chpos), $this->_alias)) $chpos++;
 
-                        $this->_alias[$rnf]=$an;
-                        if($rcn != $rnf) {
-                            $this->_alias[$rcn]=$an;
-                        }
+                        $this->_alias[$rcn]=$an;
                         if($sc['relations'][$rn]['type']!='one') {
                             $this->_distinct = ' distinct';
                         }
@@ -611,7 +606,7 @@ class Tecnodesign_Query_Sql
                             unset($ar);
                         }
                     } else {
-                        $an = $this->_alias[$rnf];
+                        $an = $this->_alias[$rcn];
                     }
                     unset($sc, $rn);
                     $sc = $rsc;
