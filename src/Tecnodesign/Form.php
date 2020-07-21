@@ -23,7 +23,7 @@ class Tecnodesign_Form implements ArrayAccess
     protected $id, $method = 'post', $action = '', $model, $err, $prefix = '', $limits;
     public $buttons = array('submit' => '*Send'), $attributes = array('class' => 'z-form'), $before, $after;
     private static $_instances;
-    public static $assets='Z.Form,moment,pikaday-time/pikaday,pikaday-time/css/pikaday',
+    public static $assets='Z.Form',
         $enableLimits,
         $defaultLimits=[
             'requests'=>10,         // how many requests will be enabled per time set below

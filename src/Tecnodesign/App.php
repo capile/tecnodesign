@@ -37,6 +37,10 @@ class Tecnodesign_App
             'credentials'=>false,
         ),
         $assets=array('Z'),
+        $assetRequirements=[
+            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday',
+            'Z.Graph'=>'d3/dist/d3.min,c3/c3.min',
+        ],
         $result,
         $http2push=false,
         $link;
@@ -485,13 +489,18 @@ class Tecnodesign_App
             $output = true;
         }
 
+        if(isset(static::$assetRequirements[$component])) {
+            $component .= ','.static::$assetRequirements[$component];
+        } else if(strpos($component, '/') && isset(static::$assetRequirements[$c2 = str_replace('/', '.', $component)])) {
+            $component .= ','.static::$assetRequirements[$c2];
+        }
+
         static $types=array('js'=>'js','less'=>'css');
         static $destination=array('js'=>'script','css'=>'style');
         static $copyExt='{eot,ttf,svg,woff,png,jpg,gif}';
         $build = false;
 
         $projectRoot = file_exists(TDZ_APP_ROOT.'/composer.json') ?TDZ_APP_ROOT :dirname(TDZ_APP_ROOT);
-
         foreach($types as $from=>$to) {
             // first look for assets
             if(!isset(self::$_response[$destination[$to]])) self::$_response[$destination[$to]]=array();

@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Form v2.3 | (c) 2018 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -445,8 +445,18 @@ function initDatepicker()
     this.setAttribute('data-datepicker', id);
 
     if(Z.datepicker=='Pikaday') {
-        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false };
+        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false }, D, d;
         if(!t) t=this.getAttribute('type');
+        if(this.value) {
+            if('moment' in window) {
+                D = moment(this.value);
+                cfg.defaultDate = new Date(D.valueOf());
+                if(d=D.format(cfg.format)) this.value = d;
+                cfg.setDefaultDate = true;
+                D=null;
+                d=null;
+            }
+        }
         if(t && t.search(/time/)>-1) {
             cfg.showTime = true;
             cfg.use24Hour = true;

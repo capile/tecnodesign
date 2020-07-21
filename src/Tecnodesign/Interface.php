@@ -394,7 +394,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         Tecnodesign_App::$assets[] = 'Z.Interface';
         Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
-        Tecnodesign_App::$assets[] = '!Z.Graph,d3/dist/d3.min,c3/c3.min';
+        Tecnodesign_App::$assets[] = '!Z.Graph';
     }
 
     public static function action()
