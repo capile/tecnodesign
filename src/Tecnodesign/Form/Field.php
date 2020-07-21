@@ -820,7 +820,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function checkFile($value=false, $message='')
     {
         // check ajax uploader
-        if(Tecnodesign_App::request('headers', 'tdz-action')==='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
+        if(Tecnodesign_App::request('headers', 'z-action')==='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
             static $timeout = 60;
             // check id
             $U=tdz::getUser();

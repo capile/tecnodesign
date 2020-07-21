@@ -40,6 +40,7 @@ class Tecnodesign_Query_Sql
         $_limit, 
         $_offset, 
         $_alias, 
+        $_classAlias, 
         $_transaction, 
         $_last;
 
@@ -148,6 +149,7 @@ class Tecnodesign_Query_Sql
         $this->_limit = null;
         $this->_offset = null;
         $this->_alias = null;
+        $this->_classAlias = null;
         $this->_transaction = null;
         $this->_last = null;
         return $this;
@@ -191,7 +193,8 @@ class Tecnodesign_Query_Sql
     {
         if(!$this->_from || !is_array($this->_alias)) {
             if(!$sc) $sc = $this->schema();
-            $this->_alias = [$sc['className']=>'a'];
+            $this->_classAlias = [''=>$sc['className']];
+            $this->_alias = [''=>'a'];
             $quote = static::QUOTE;
             if(isset($sc['view']) && $sc['view']) {
                 $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].')' :$sc['view'] );
@@ -452,8 +455,19 @@ class Tecnodesign_Query_Sql
         return 'ifnull(max('.$this->getAlias($fn).'),0)+1';
     }
 
-    protected function getAlias($f, $sc=null, $noalias=null)
+    protected function getAlias($f, $ref=null, $noalias=null)
     {
+        $sc = null;
+        $cn = null;
+        if(is_string($ref) && isset($this->_classAlias[$ref])) {
+            $cn = $this->_classAlias[$ref];
+            $sc = $cn::$schema;
+        } else if($ref && ($ref instanceof Tecnodesign_Model)) {
+            $sc = $ref::$schema;
+            $ref = $sc->className;
+        }
+        if(!$sc) $sc = $this->schema();
+
         $ofn = $fn = $f;
         $r = null;
         if($f==='null' || $f===false || (substr($f, 0, 1)=='-' && substr($f,-1)=='-')) {
@@ -462,17 +476,17 @@ class Tecnodesign_Query_Sql
             $r = $s = array();
             foreach($m[1] as $i=>$nfn) {
                 $s[]=$m[0][$i];
-                $r[]=$this->getAlias($nfn, $sc, true);
+                $r[]=$this->getAlias($nfn, $ref, true);
                 unset($i, $nfn);
             }
             return str_replace($s, $r, $fn);
-        } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $sc, true))) {
+        } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $ref, true))) {
             return $r.' '.tdz::sql($m[3]);
         } else if($r===false) {
             return null;
         } else if(preg_match('/@([a-z]+)\(([^\)]*)\)/', $fn, $m) && method_exists($this, $a='getFunction'.ucfirst($m[1]))) {
             return str_replace($m[0], $this->$a(trim($m[2])), $fn);
-        } else if(substr($f, 0, 1)=='_' && !isset($this->schema('columns')[$f])) {
+        } else if(substr($f, 0, 1)=='_' && !isset($sc->properties[$f])) {
             // not to be queried
             return false;
         }
@@ -484,157 +498,146 @@ class Tecnodesign_Query_Sql
             unset($m);
         }
         $ta='a';
-        if(!$sc) $sc = $this->schema();
         if(!is_array($this->_alias)) $this->getFrom();
 
-        if(isset($this->_alias[$sc['className']])) {
-            $ta = $this->_alias[$sc['className']];
+        if(isset($this->_alias[$ref])) {
+            $ta = $this->_alias[$ref];
         }
-
+        /*
         if($ta==='a' && !in_array($ta, $this->_alias)) {
-            $this->_alias[$sc['className']] = $ta;
+            $this->_alias[''] = $ta;
         }
-        $found=false;
+        */
         if($fn=='*') {
-            return '*';
+            return ($ref) ?$ta.'.*' :'*';
         }
 
-        if (isset($sc['columns'][$fn])) {
-            $found = true;
-            if(isset($sc['columns'][$fn]['alias'])) {
-                if($sc['columns'][$fn]['alias']===false) {
+        $found=false;
+        if(!$cn) $cn = $sc->className;
+
+        if (isset($sc->properties[$fn])) {
+            $found = $sc->properties[$fn];
+            if(isset($found['alias'])) {
+                if($found['alias']===false) {
                     return null;
-                } else if(strpos($sc['columns'][$fn]['alias'], '`')!==false) {
-                    $fn = $this->getAlias($sc['columns'][$fn]['alias'], $sc, true).((!$noalias)?(' '.tdz::sql($fn)):(''));
+                } else if(strpos($found['alias'], '`')!==false) {
+                    $fn = $this->getAlias($found['alias'], $ref, true).((!$noalias)?(' '.tdz::sql($fn)):(''));
                 } else {
-                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
+                    $fn = $ta.'.'.$found['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
                 }
             } else {
-                if(!$noalias && isset($sc['columns'][$fn]['type']) && $sc['columns'][$fn]['type']=='string' && isset($sc['columns'][$fn]['size']) && $this::$textToVarchar && $this::$textToVarchar<=$sc['columns'][$fn]['size']) {
+                if(!$noalias && isset($found['type']) && $found['type']=='string' && isset($found['size']) && $this::$textToVarchar && $this::$textToVarchar<=$found['size']) {
                     if(!$this->_selectDistinct) $this->_selectDistinct=array();
                     $scn = $sc['className'];
                     $this->_selectDistinct[$ta.'.'.$fn] = 'cast('.$ta.'.'.$fn.' as varchar(max)) '.((!property_exists($scn, $fn) && !$scn::$allowNewProperties) ?'_' :'' ).$fn;
                 }
                 $fn = $ta.'.'.$fn;
             }
-        } else if(!$found) {
-            $rnf = '';
-            $cn = get_called_class();
-
+        } else {
+            $rnf = (string)$ref;
             $quote = static::QUOTE;
-            while(strpos($ofn, '.')) {
-                @list($rn, $fn) = explode('.', $ofn,2);
-                $ofn=$fn;
-                $rnf .= ($rnf)?('.'.$rn):($rn);
-                if($rn==$rnf && isset($sc['columns'][$rn]['serialize'])) {
-                    $found = true;
-                    if(isset($sc['columns'][$rn]['alias']) && $sc['columns'][$rn]['alias']) {
-                        $fn = $ta.'.'.$sc['columns'][$rn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
+            if(strpos($fn, '.')) {
+                @list($rn, $ofn) = explode('.', $fn,2);
+                $rnf .= ($rnf) ?('.'.$rn) :($rn);
+                if(isset($sc->properties[$rn]['serialize'])) {
+                    $found = $sc->properties[$rn];
+                    if(isset($found['alias']) && $found['alias']) {
+                        $fn = $ta.'.'.$found['alias'].((!$noalias)?(' '.tdz::sql($ofn)):(''));
                     } else {
                         $fn = $ta.'.'.$rn;
                     }
-                    break;
-                } else if(isset($sc['relations'][$rn])) {
-                    $rcn = (isset($sc['relations'][$rn]['className']))?($sc['relations'][$rn]['className']):($rn);
+                } else if(isset($sc->relations[$rn])) {
+                    $rel = $sc->relations[$rn];
+                    $rcn = (isset($rel['className']))?($rel['className']):($rn);
                     $rsc = $rcn::$schema;
-                    if(!isset($this->_alias[$rcn])) {
+                    if(!isset($this->_alias[$rnf])) {
                         $chpos=($this->_alias)?(ceil(count($this->_alias)/2)):(0);
                         while(in_array($an=tdz::letter($chpos), $this->_alias)) $chpos++;
 
-                        $this->_alias[$rcn]=$an;
-                        if($sc['relations'][$rn]['type']!='one') {
+                        $this->_alias[$rnf]=$an;
+                        $this->_classAlias[$rnf]=$rcn;
+                        if($rel['type']!='one') {
                             $this->_distinct = ' distinct';
                         }
 
-                        if(isset($rsc['view']) && $rsc['view']) {
-                            $jtn = (strpos($rsc['view'], ' '))?('('.$rsc['view'].')'):($rsc['view']);
-                        } else if(isset($rsc['database']) && $rsc['database']!=$this->schema('database')) {
-                            $jtn = $this->getDatabaseName($rsc['database']).'.'.$rsc['tableName'];
+                        if(isset($rsc->view) && $rsc->view) {
+                            $jtn = (strpos($rsc->view, ' '))?('('.$rsc->view.')'):((string)$rsc->view);
+                        } else if(isset($rsc->database) && $rsc->database!=$this->schema('database')) {
+                            $jtn = $this->getDatabaseName($rsc->database).'.'.$rsc->tableName;
                         } else {
-                            $jtn = $rsc['tableName'];
+                            $jtn = $rsc->tableName;
                         }
-                        if(!is_array($sc['relations'][$rn]['foreign'])) {
-                            $rfn = $this->getAlias($sc['relations'][$rn]['foreign'], $rsc, true);
-                            $lfn = $this->getAlias($sc['relations'][$rn]['local'], $sc, true);
+                        if(!is_array($rel['foreign'])) {
+                            $rfn = $this->getAlias($rel['foreign'], $rnf, true);
+                            $lfn = $this->getAlias($rel['local'], $ref, true);
                             $this->_from .= " left outer join {$jtn} as {$quote[0]}{$an}{$quote[1]} on {$lfn}={$rfn}";
                         } else {
                             $this->_from .= " left outer join {$jtn} as {$quote[0]}{$an}{$quote[1]} on";
-                            foreach($sc['relations'][$rn]['foreign'] as $rk=>$rv) {
-                                $rfn = $this->getAlias($rv, $rsc, true);
-                                $lfn = $this->getAlias($sc['relations'][$rn]['local'][$rk], $sc, true);
+                            foreach($rel['foreign'] as $rk=>$rv) {
+                                $rfn = $this->getAlias($rv, $rnf, true);
+                                $lfn = $this->getAlias($rel['local'][$rk], $ref, true);
                                 $this->_from .= (($rk>0)?(' and'):(''))." {$lfn}={$rfn}";
                             }
                         }
-                        if(isset($sc['relations'][$rn]['on'])) {
-                            if(!is_array($sc['relations'][$rn]['on'])) $sc['relations'][$rn]['on']=array($sc['relations'][$rn]['on']); 
-                            foreach($sc['relations'][$rn]['on'] as $rfn) {
+                        if(isset($rel['on'])) {
+                            if(!is_array($rel['on'])) $rel['on']=array($rel['on']); 
+                            foreach($rel['on'] as $rfn) {
                                 @list($rfn,$fnc)=explode(' ', $rfn, 2);
                                 if(substr($rfn,0,strlen($rn))==$rn) {
                                     $this->_from .= " and {$an}".substr($rfn,strlen($rn))." {$fnc} ";
                                 } else {
-                                    $this->_from .= ' and '.$this->getAlias($rfn, $rsc, true).' '.$fnc;
+                                    $this->_from .= ' and '.$this->getAlias($rfn, $rnf, true).' '.$fnc;
                                 }
                                 unset($rfn, $fnc);
                             }
                         }
-                        if(isset($sc['relations'][$rn]['params']) && is_array($sc['relations'][$rn]['params'])) {
-                            $this->_from .= ' and '.$this->getWhere($sc['relations'][$rn]['params'], 'and', $rsc);
+                        if(isset($rel['params']) && is_array($rel['params'])) {
+                            $this->_from .= ' and '.$this->getWhere($rel['params'], 'and', $rnf);
                         }
 
-                        if(isset($rsc['events']['active-records']) && $rsc['events']['active-records']) {
-                            $ar = $rsc['events']['active-records'];
-                            unset($rsc['events']['active-records']);
+                        if(isset($rsc->events['active-records']) && $rsc->events['active-records']) {
+                            $ar = $rsc->events['active-records'];
+                            unset($rsc->events['active-records']);
                             if(is_array($ar)) {
                                 foreach($ar as $r=>$v) {
                                     if(is_int($r)) {
-                                        $this->_from .= ' and '.$this->getAlias($v, $rsc, $noalias);
+                                        $this->_from .= ' and '.$this->getAlias($v, $rnf, $noalias);
                                     } else {
-                                        $this->_from .= ' and '.$this->getWhere(array($r=>$v), 'and', $rsc);
+                                        $this->_from .= ' and '.$this->getWhere(array($r=>$v), 'and', $rnf);
                                     }
                                     unset($r, $v);
                                 }
                             } else {
                                 if(strpos($ar, '`')!==false || strpos($ar, '[')!==false) {
-                                    $this->_from .= ' and '.$this->getAlias($ar, $rsc, $noalias);
+                                    $this->_from .= ' and '.$this->getAlias($ar, $rnf, $noalias);
                                 } else if(preg_match('/^([a-z0-9\_]+)[\s\<\>\!\=]/', $ar, $m)) {
-                                    $this->_from .= ' and '.$this->getAlias($m[1], $rsc, $noalias).substr($ar, strlen($m[1]));
+                                    $this->_from .= ' and '.$this->getAlias($m[1], $rnf, $noalias).substr($ar, strlen($m[1]));
                                 } else {
                                     $this->_from .= ' and '.$ar;
                                 }
                             }
-                            $rsc['events']['active-records'] = $ar;
+                            $rsc->events['active-records'] = $ar;
                             unset($ar);
                         }
-                    } else {
-                        $an = $this->_alias[$rcn];
                     }
-                    unset($sc, $rn);
-                    $sc = $rsc;
-                    unset($rsc);
-                    $ta=$an;
-                    $fn = $this->getAlias($fn, $sc, $noalias);
-                    //$fn = $an.'.'.$fn;
+                    unset($rn, $rsc, $rel);
+                    $fn = $this->getAlias($ofn, $rnf, $noalias);
                     $found = true;
-                } else {
-                    $found = false;
-                    break;
                 }
             }
         }
         if(!$found) {
-            if (isset($sc['relations'][$fn]) || strtolower($fn)==='null') {
+            if (isset($sc->relations[$fn]) || strtolower($fn)==='null') {
                 // ignore
                 return;
-            } else if ((isset($sc['className']) && $sc['className']::$allowNewProperties) || isset($sc['columns'][$fn]) || property_exists($cn, $fn)) {
+            } else if ($cn::$allowNewProperties || property_exists($cn, $fn)) {
                 $found = true;
-                if(isset($sc['columns'][$fn]['alias']) && $sc['columns'][$fn]['alias']) {
-                    $fn = $ta.'.'.$sc['columns'][$fn]['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
-                } else if($fn) {
+                if($fn) {
                     $fn = $ta.'.'.$fn;
                 }
             } else {
-                tdz::log("[WARNING] Cannot find by [{$ofn}] at [{$sc['tableName']}]");
-                throw new Exception("Cannot find by [{$ofn}] at [{$sc['tableName']}]");
+                tdz::log("[WARNING] Cannot find by [{$fn}] at [{$sc->tableName}]");
+                throw new Exception("Cannot find by [{$ofn}] at [{$sc->tableName}]");
             }
         }
         unset($found, $sc, $ta);
@@ -645,10 +648,20 @@ class Tecnodesign_Query_Sql
         return $fn;
     }
 
-    protected function getWhere($w, $xor='and', $sc=null)
+    protected function getWhere($w, $xor='and', $ref=null)
     {
         $r='';
+        $sc = null;
+        $cn = null;
+        if(is_string($ref) && isset($this->_classAlias[$ref])) {
+            $cn = $this->_classAlias[$ref];
+            $sc = $cn::$schema;
+        } else if($ref && ($ref instanceof Tecnodesign_Model)) {
+            $sc = $ref::$schema;
+            $ref = $sc->className;
+        }
         if(!$sc) $sc = $this->schema();
+
         $e = (isset($sc->events))?($sc->events):(null);
         $add=array();
         $ar = null;
@@ -657,7 +670,7 @@ class Tecnodesign_Query_Sql
                 $add=$e['active-records'];
             } else {
                 if(strpos($e['active-records'], '`')!==false || strpos($e['active-records'], '[')!==false) {
-                    $ar = $this->getAlias($e['active-records'], $sc, true);
+                    $ar = $this->getAlias($e['active-records'], $ref, true);
                 } else {
                     $ar = $e['active-records'];
                 }
@@ -691,7 +704,7 @@ class Tecnodesign_Query_Sql
         foreach($w as $k=>$v) {
             if(is_int($k)) {
                 if(is_array($v)) {
-                    if($v = $this->getWhere($v, 'and', $sc)) {
+                    if($v = $this->getWhere($v, 'and', $ref)) {
                         $r .= ($r)?(" {$xor} ({$v})"):("({$v})");
                     }
                 } else {
@@ -714,7 +727,7 @@ class Tecnodesign_Query_Sql
                             $r = ' ('.trim($r).')';
                         }
                         $r .= ($r)?(" {$xor}"):('');
-                        $r .= ' ('.$this->getAlias($v, $sc, true).')';
+                        $r .= ' ('.$this->getAlias($v, $ref, true).')';
                     }
                 }
             } else {
@@ -742,7 +755,7 @@ class Tecnodesign_Query_Sql
                         $cop = '=';
                     }
                 }
-                $fn = $this->getAlias($k, $sc, true);
+                $fn = $this->getAlias($k, $ref, true);
                 if($fn) {
                     $cn = (isset($sc['className']))?($sc['className']):($this->_schema);
                     if($cn && $cn::$prepareWhere && method_exists($cn, $m='prepareWhere'.tdz::camelize(substr($fn, 2),true))) {

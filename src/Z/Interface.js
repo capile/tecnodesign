@@ -577,7 +577,7 @@
                 }
                 u=this.getAttribute('href');
             }
-            var a=new Date().getTime(), h={'Tdz-Action':'Interface','z-action': 'Interface'}, I=Z.parentNode('.tdz-i[data-url].tdz-i-active');
+            var a=new Date().getTime(), h={'z-action': 'Interface'}, I=Z.parentNode('.tdz-i[data-url].tdz-i-active');
             if(I) {
                 h['z-referer'] = I.getAttribute('data-url');
                 if(I.getAttribute('data-qs')) h['z-referer'] += '?'+ I.getAttribute('data-qs');
@@ -1025,7 +1025,7 @@
     {
         var n;
         for(n in _bkg) {
-            Z.ajax(_bkg[n].u, null, setInterface, interfaceError, 'html', document.querySelector('.tdz-i.tdz-i-active'), {'Tdz-Action':'Interface', 'Tdz-Param':n});
+            Z.ajax(_bkg[n].u, null, setInterface, interfaceError, 'html', document.querySelector('.tdz-i.tdz-i-active'), {'z-action':'Interface', 'z-param':n});
             delete(_bkg[n]);
         }
 

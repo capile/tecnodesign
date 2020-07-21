@@ -432,10 +432,10 @@ class Tecnodesign_Form implements ArrayAccess
     public function render($arg=array())
     {
         $tpl = false;
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='refreshFields' && isset($_SERVER['HTTP_TDZ_PARAMS']) && ($fs = json_decode($_SERVER['HTTP_TDZ_PARAMS'], true))) {
+        if(Tecnodesign_App::request('headers', 'z-action')=='refreshFields' && ($zp=Tecnodesign_App::request('headers', 'z-params')) && ($fs = json_decode($zp, true))) {
             // check if it's this form
             $r=false;
-            if(isset($_SERVER['HTTP_TDZ_TARGET']) && $_SERVER['HTTP_TDZ_TARGET']==$this->id) $r=true;
+            if(Tecnodesign_App::request('headers', 'z-target')==$this->id) $r=true;
             else {
                 $r=true;
                 foreach($fs['f'] as $k) {

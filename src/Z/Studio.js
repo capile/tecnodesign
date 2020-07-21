@@ -3,7 +3,7 @@
 
 "use strict";
 
-var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'Tdz-Action':'Interface'}, _Studio='/_studio';
+var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'z-action':'Interface'}, _Studio='/_studio';
 
 // load authentication info
 function startup()
@@ -160,7 +160,7 @@ function searchInterface(s)
     } else {
         u+='?q='+escape(s);
     }
-    Z.ajax(u, d, listResults, null, 'json', _Z, {'Tdz-Action':'Studio','Content-Type':'application/json'});
+    Z.ajax(u, d, listResults, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
 }
 
 function listResults(d)
@@ -209,7 +209,7 @@ function getProperties(id)
 
     // fetch new properties
     var d={c:_P.c,s:_P.s};
-    Z.ajax(_Studio+'/p', JSON.stringify(d), setProperties, null, 'json', _Z, {'Tdz-Action':'Studio','Content-Type':'application/json'});
+    Z.ajax(_Studio+'/p', JSON.stringify(d), setProperties, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
 }
 
 var _prop={};

@@ -25,7 +25,7 @@ if(!isset($action)) $action = $Interface['action'];
     ?>><?php
 
     if($title && $Interface::$breadcrumbs) {
-        $urls = Tecnodesign_Interface::$urls;
+        $urls = $Interface::$urls;
         if(!$urls) {
             $urls = array(array('title'=>$title));
         } else {

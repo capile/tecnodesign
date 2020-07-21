@@ -578,7 +578,7 @@ function uploadFile(file, U)
     var total = file.size;
     var i=0;
     var ajax = [];
-    var H = { 'Tdz-Action': 'Upload', 'Content-Type': 'application/json' };
+    var H = { 'z-action': 'Upload', 'Content-Type': 'application/json' };
     var workers = 2;
     var retries = 3;
     U.size += total;

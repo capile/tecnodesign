@@ -26,9 +26,14 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
     if($Interface::$headerOverflow) echo ' data-overflow="1"';
     echo '>'; 
     if($nav) echo '<a href="'.tdz::xml($Interface::base()).'" class="z-spacer z-left z-nav" data-draggable-style="width:{w0}"></a>';
-    $urls = Tecnodesign_Interface::$urls;
+    $urls = $Interface::$urls;
     if(Tecnodesign_App::request('ajax')) {
-        $urls = array_slice($urls, -1, 1, true);
+        foreach(array_reverse($urls) as $iurl=>$t) {
+            if($iurl!='/' && (!isset($t['interface']) || $t['interface'])) {
+                $urls = [$iurl=>$t];
+                break;
+            }
+        }
     }
     foreach($urls as $iurl=>$t) {
         if($iurl!='/' && (!isset($t['interface']) || $t['interface'])):
@@ -55,7 +60,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
 
         // .z-i-actions
         if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
-            /*if(count(Tecnodesign_Interface::$urls)>1): ?><a class="tdz-i-a z-i--close" href="<?php echo tdz::xmlEscape(array_shift(array_keys(Tecnodesign_Interface::$urls))) ?>"></a><?php endif;*/
+            /*if(count($Interface::$urls)>1): ?><a class="tdz-i-a z-i--close" href="<?php echo tdz::xmlEscape(array_shift(array_keys($Interface::$urls))) ?>"></a><?php endif;*/
             ?><input type="checkbox" id="tdz-i-b-<?php echo $id; ?>" class="tdz-i-switch z-i-actions" /><label for="tdz-i-b-<?php echo $id; ?>"><?php
             echo $Interface::$labelActions; ?></label><div class="tdz-i-buttons tdz-i-switched"><?php
                 echo $buttons; 
@@ -65,7 +70,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
         ?><div class="tdz-i-container"><?php 
 
             if($title && $Interface::$breadcrumbs) {
-                $urls = Tecnodesign_Interface::$urls;
+                $urls = $Interface::$urls;
                 if(!$urls) {
                     $urls = array(array('title'=>$title));
                 }

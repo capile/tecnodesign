@@ -278,8 +278,8 @@ class Tecnodesign_Interface implements ArrayAccess
         if(isset($d['template'])) {
             $this->template = $d['template'];
             unset($d['template']);
-        } else if(isset($_SERVER['HTTP_TDZ_INTERFACE_MODE'])) {
-            if($_SERVER['HTTP_TDZ_INTERFACE_MODE']=='standalone') $this->template = 'interface-standalone';
+        } else if(Tecnodesign_App::request('headers', 'z-interface-mode')=='standalone') {
+            $this->template = 'interface-standalone';
         }
         if(isset($d['formats']) && is_array($d['formats'])) {
             static::$formats = $d['formats'];
@@ -367,7 +367,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
 
-        $accept = (Tecnodesign_App::request('headers', 'tdz-action')==='choices') ?null :Tecnodesign_App::request('headers', 'accept');
+        $accept = (Tecnodesign_App::request('headers', 'z-action')==='choices') ?null :Tecnodesign_App::request('headers', 'accept');
         if($accept && preg_match('#^application/([a-z]+)#', $accept, $m)) {
             if($m[1]=='yaml') $m[1]='yml';
             if(!in_array($m[1], static::$formats)) {
@@ -463,7 +463,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 unset($Pi, $pi);
                 if($urls) { 
-                    Tecnodesign_Interface::$urls = array_reverse($urls, true) + Tecnodesign_Interface::$urls;
+                    static::$urls += array_reverse($urls, true);
                 }
             }
 
@@ -497,7 +497,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):($this->link(''));
         $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
 
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+        if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
             Tecnodesign_App::end($s);
             //exit($s);
         }
@@ -654,7 +654,7 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if(is_null($url)) $url = $this->link();
         // ajax handlers
-        if($oldurl && isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+        if($oldurl && Tecnodesign_App::request('headers', 'z-action')=='Interface') {
             $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link()).'"></a>');
         }
         tdz::redirect($url);
@@ -816,7 +816,7 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($cn);
         }
 
-        //Tecnodesign_Interface::$urls[$I->link()] = array('title'=>$I->getTitle(),'action'=>$I->action);
+        //static::$urls[$I->link()] = array('title'=>$I->getTitle(),'action'=>$I->action);
 
         if($I->run) {
             return $I;
@@ -857,7 +857,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 return static::error(404, static::t('errorNotFound'));
             }
         } else if(is_object($A) && $A instanceof Tecnodesign_Interface) {
-            Tecnodesign_Interface::$urls[$A->link()] = array('title'=>$A->getTitle(),'action'=>$A->action);
+            static::$urls[$A->link()] = array('title'=>$A->getTitle(),'action'=>$A->action);
             if($p) {
                 return static::currentInterface($p, $A);
             } else {
@@ -901,7 +901,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public function setAction($a, &$p=null)
     {
         if(isset($this->actions[$a])) {
-            Tecnodesign_Interface::$urls[$link=$this->link()] = [ 'title' => $this->getTitle(), 'interface' => false ];
+            static::$urls[$link=$this->link()] = [ 'title' => $this->getTitle(), 'interface' => false ];
 
             if(isset($this->actions[$a]['identified']) && $this->actions[$a]['identified']) {
                 $n = ($p) ?array_shift($p) :null; 
@@ -942,7 +942,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
 
             $this->action = $a;
-            Tecnodesign_Interface::$urls[$link=$this->link($a)] = [ 'title' => $this->getTitle(), 'action' => $a ];
+            static::$urls[$link=$this->link($a)] = [ 'title' => $this->getTitle(), 'action' => $a ];
 
             if(!$this->auth($a)) {
                 static::error(403, static::t('errorForbidden'));
@@ -1625,8 +1625,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 unset($a);
             }
-            if(!Tecnodesign_Interface::$urls) {
-                Tecnodesign_Interface::$urls[$link] = array('title'=>$title,'action'=>$this->action);
+            if(!isset(static::$urls[$link])) {
+                static::$urls[$link] = array('title'=>$title,'action'=>$this->action);
             }
         }
 
@@ -1641,8 +1641,8 @@ class Tecnodesign_Interface implements ArrayAccess
             $text = tdz::call($call, $o);
             if(!static::$standalone) {
                 $this->text['preview'] = $text;
-                if(!isset(Tecnodesign_Interface::$urls[$link])) {
-                    Tecnodesign_Interface::$urls[$link] = array('title'=>$title,'action'=>$this->action);
+                if(!isset(static::$urls[$link])) {
+                    static::$urls[$link] = array('title'=>$title,'action'=>$this->action);
                 }
             } else {
                 return $text;
@@ -1779,7 +1779,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function backgroundWorker($m, $prefix='w/', $download=true, $redirect=null)
     {
-        if(Tecnodesign_App::request('headers', 'tdz-action')==='Interface') {
+        if(Tecnodesign_App::request('headers', 'z-action')==='Interface') {
             $uri = ($redirect && is_string($redirect)) ?$redirect :$this->link();
             $msg = '<a data-action="redirect" data-url="'.tdz::xml($uri).'"></a>';
             if(!($uid=Tecnodesign_App::request('headers', 'tdz-param'))) {
@@ -1957,7 +1957,7 @@ class Tecnodesign_Interface implements ArrayAccess
     public function download($f, $msg='Download...')
     {
         $fn = preg_replace('/^[0-9\.]+\-/', '', basename($f));
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+        if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
             if($f && file_exists($f)) {
                 $uid = uniqid();
                 $uri = $this->link(null, true);
@@ -2282,7 +2282,7 @@ class Tecnodesign_Interface implements ArrayAccess
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
         try {
             // prevent these actions from being marked as updates
-            $dontpost = (isset($_SERVER['HTTP_TDZ_ACTION']) && in_array($_SERVER['HTTP_TDZ_ACTION'], array('Upload','choices')));
+            $dontpost = (($za=Tecnodesign_App::request('headers', 'z-action')) && in_array($za, array('Upload','choices')));
 
             if(($post=Tecnodesign_App::request('post')) || static::$format!='html') {
                 $msg = '';
@@ -2375,7 +2375,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     if(!isset($this->actions[$next])) $next = null;
                 }
                 if($next) {
-                    if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+                    if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
                         // remove record preview, if  it exists
                         $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link('preview', true)).'"></a>');
                     }
@@ -2502,20 +2502,20 @@ class Tecnodesign_Interface implements ArrayAccess
         if(!$d) $d = array_keys($cn::$schema['columns']);
         $o->refresh($d);
         $link = $this->link();
-        //Tecnodesign_Interface::$urls[$link] = static::t('labelUpdate', 'Update').': '.Tecnodesign_Interface::$urls[$link];
+        //static::$urls[$link] = static::t('labelUpdate', 'Update').': '.static::$urls[$link];
 
         tdz::$variables['form-field-template'] = (static::$updateTemplate)?(static::$updateTemplate):(static::$previewTemplate);
 
 
         if(isset($_GET['item']) && ($label=array_search($_GET['item'], $d))!==false) {
             if(is_integer($label)) $label = $cn::fieldLabel($_GET['item'], false);
-            Tecnodesign_Interface::$urls[$link]['title'] .= ' ('.$label.')';
-            $this->text['title'] = Tecnodesign_Interface::$urls[$link]['title'];
+            static::$urls[$link]['title'] .= ' ('.$label.')';
+            $this->text['title'] = static::$urls[$link]['title'];
             $d = array($label=>$_GET['item']);
             tdz::$variables['form-field-template'] = '$INPUT$ERROR';
         }
 
-        $this->text['summary'] = $this->getSummary(Tecnodesign_Interface::$urls[$link]['title']);
+        $this->text['summary'] = $this->getSummary(static::$urls[$link]['title']);
 
         $sep = static::$headingTemplate;
         foreach($d as $i=>$fn) {
@@ -2620,7 +2620,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $url = $this->url;
         $ic = get_class($this);
 
-        Tecnodesign_Interface::$urls[$this->link()] = array('title'=>$this->getTitle(),'action'=>$this->action);
+        static::$urls[$this->link()] = array('title'=>$this->getTitle(),'action'=>$this->action);
 
         if(isset($this->actions[$n]['relation'])) {
             $f = $this->search;
@@ -2698,8 +2698,8 @@ class Tecnodesign_Interface implements ArrayAccess
     public function getSummary($title=null)
     {
         $cn = $this->getModel();
-        if(!$title && ($l=$this->link()) && isset(Tecnodesign_Interface::$urls[$l]['title'])) {
-            $title = Tecnodesign_Interface::$urls[$l]['title'];
+        if(!$title && ($l=$this->link()) && isset(static::$urls[$l]['title'])) {
+            $title = static::$urls[$l]['title'];
         }
         unset($l);
         $a = ucfirst($this->action);

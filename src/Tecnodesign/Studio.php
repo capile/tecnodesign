@@ -203,7 +203,7 @@ class Tecnodesign_Studio
                 return self::error(403);
             }
 
-            if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Interface') {
+            if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
                 Tecnodesign_App::response('layout', 'layout');
@@ -263,7 +263,7 @@ class Tecnodesign_Studio
         }
 
 
-        if(isset($_SERVER['HTTP_TDZ_ACTION']) && $_SERVER['HTTP_TDZ_ACTION']=='Studio') {
+        if(Tecnodesign_App::request('headers', 'z-action')=='Studio') {
             Tecnodesign_Studio_Interface::headers();
             Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
             //exit($s);
