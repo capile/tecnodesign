@@ -630,14 +630,13 @@ class Tecnodesign_Query_Sql
             if (isset($sc->relations[$fn]) || strtolower($fn)==='null') {
                 // ignore
                 return;
-            } else if ($cn::$allowNewProperties || property_exists($cn, $fn)) {
-                $found = true;
+            } else if (strpos($fn, '.')===false && ($cn::$allowNewProperties || property_exists($cn, $fn))) {
                 if($fn) {
                     $fn = $ta.'.'.$fn;
                 }
             } else {
-                tdz::log("[WARNING] Cannot find by [{$fn}] at [{$sc->tableName}]");
-                throw new Exception("Cannot find by [{$ofn}] at [{$sc->tableName}]");
+                tdz::log("[WARNING] Cannot find by [{$fn}] at [{$this->schema('className')}.$ref]");
+                throw new Exception("Cannot find by [{$fn}] at [{$this->schema('className')}.$ref]");
             }
         }
         unset($found, $sc, $ta);
