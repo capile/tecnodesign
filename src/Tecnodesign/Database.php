@@ -148,7 +148,7 @@ class Tecnodesign_Database
                     $rel = array();
                     foreach($r as $fn=>$fv) {
                         if (isset($sc->properties[$fn])) {
-                            if(trim($fv)=='') {
+                            if(!$fv) {
                                 $fv = false;
                             }
                             $o->$fn = $fv;
