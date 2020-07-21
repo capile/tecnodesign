@@ -2005,7 +2005,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(is_array($arg['value'])) {
                 $arg['value']=$this->parseValue($arg['value']);
             }
-            $t = strtotime($arg['value']);
+            $t = tdz::strtotime($arg['value']);
             if(!self::$dateInputFormat) {
                 self::$dateInputFormat = tdz::$dateFormat;
             }
@@ -2051,7 +2051,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     }
                 }
             } else {
-                $t = strtotime($arg['value']);
+                $t = tdz::strtotime($arg['value']);
                 list($values['y'], $values['m'], $values['d'])=explode(',',date('Y,m,d', $t));
             }
         }
@@ -2066,12 +2066,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(!isset($this->range[0]) || is_bool($this->range[0])) {
             $this->range[0]=0;
         } else if(!is_int($this->range[0])) {
-            $this->range[0]=strtotime($this->range[0]);
+            $this->range[0] = tdz::strtotime($this->range[0]);
         }
         if(!isset($this->range[1]) || is_bool($this->range[1])) {
             $this->range[1]=time();
         } else if(!is_int($this->range[1])) {
-            $this->range[1]=strtotime($this->range[1]);
+            $this->range[1] = tdz::strtotime($this->range[1]);
         }
         if($this->range[0]>$this->range[1]) {
             $this->range = array($this->range[1], $this->range[0]);
