@@ -56,7 +56,22 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
     public static function staticInitialize()
     {
-        static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+        if(isset(static::$schema['ref'])) {
+            $cn = static::$schema['ref'];
+            unset(static::$schema['ref']);
+            $source = static::$schema;
+            static::$schema = Tecnodesign_Schema_Model::loadSchema($cn);
+            foreach($source as $k=>$v) {
+                if(is_array($v) && isset(static::$schema[$k]) && is_array(static::$schema[$k])) {
+                    static::$schema[$k] = $v + static::$schema[$k];
+                } else {
+                    static::$schema[$k] = $v;
+                }
+            }
+            static::$schema->className = get_called_class();
+        } else {
+            static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+        }
         if(static::$schema && static::$auditLog) static::$schema->audit = static::$auditLog;
     }
 
