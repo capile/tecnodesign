@@ -1557,8 +1557,9 @@ form .i-mono dd {
 .tdz-i-buttons {
   border-top: @borderSize solid @colorSummary - #111;
   position:relative;
-  background:@colorTab;
-  color:@colorTabText;
+
+  background:@colorButton;
+  color:@colorButtonText;
 }
 
 .z-i--list .tdz-i-label-title, .tdz-i-label-action, .tdz-i-label-model {
@@ -1754,11 +1755,11 @@ th > input[type=checkbox], td > input[type=checkbox]{
     position:relative;
     text-align:center;
     display:inline-block;
-    &:link, &:visited {
-      color: @colorFooterLink !important;
+    &, &:link, &:visited {
+      color: @colorFooterLink;
     }
     &:hover, &:active {
-      color: @colorFooterActive !important;
+      color: @colorFooterActive;
     }
     span {
       display:none;
