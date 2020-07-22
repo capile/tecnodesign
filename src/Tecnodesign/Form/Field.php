@@ -1173,9 +1173,17 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $this->rules=array();
         }
         $rules = array();
-        $m = ucfirst($this->type);
+        $type = ($this->format) ?$this->format :$this->type;
+        $m = ucfirst($type);
         if (method_exists($this, 'check'.$m)) {
-            $rules[$this->type]=static::$defaultErrorMessage;
+            $rules[$type]=static::$defaultErrorMessage;
+        }
+
+        if($this->format && $this->type && $this->format!=$this->type) {
+            $m = ucfirst($this->type);
+            if (method_exists($this, 'check'.$m)) {
+                $rules[$this->type]=static::$defaultErrorMessage;
+            }
         }
         if($m!='None') {
             if($this->required) {

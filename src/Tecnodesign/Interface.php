@@ -3172,25 +3172,25 @@ class Tecnodesign_Interface implements ArrayAccess
                 $slug=tdz::slug($label);
                 $fns[$slug]=$fn;
 
-                if($fd['type']==='string' && isset($fd['format']) && substr($fd['format'],0,4)=='date') {
+                if($fd['type']==='string' && isset($fd['format']) && substr($fd['format'],0,4)=='date' || substr($fd['type'], 0, 4)=='date') {
+                    $type = ($fd['type']==='string') ?$fd['format'] :$fd['type'];
                     $fo['fields'][$slug.'-0']=array(
-                        'type'=>$fd['type'],
+                        'type'=>$type,
                         'format'=>$fd['format'],
                         'label'=>$label,
                         'id'=>$slug.'-0',
-                        //'attributes'=>array('onchange'=>'$(\'#'.$fn.'1\').datepicker(\'option\',\'minDate\', $(this).val());'),
                         'placeholder'=>static::t('From'),
                         'fieldset'=>$fieldset,
-                        'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$fd['type'].'-input',
+                        'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$type.'-input',
                     );
                     $fo['fields'][$slug.'-1']=array(
-                        'type'=>$fd['type'],
+                        'type'=>$type,
                         'format'=>$fd['format'],
                         'label'=>'',
                         'id'=>$slug.'-1',
                         'placeholder'=>static::t('To'),
                         'fieldset'=>$fieldset,
-                        'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$fd['type'].'-input',
+                        'class'=>'tdz-search-input tdz-date tdz-date-to tdz-'.$type.'-input',
                     );
                     $ff[$slug]='date';
                     if(isset($post[$slug.'-0']) || isset($post[$slug.'-1'])) $active = true;
