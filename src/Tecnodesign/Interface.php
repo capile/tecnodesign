@@ -1782,7 +1782,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if(Tecnodesign_App::request('headers', 'z-action')==='Interface') {
             $uri = ($redirect && is_string($redirect)) ?$redirect :$this->link();
             $msg = '<a data-action="redirect" data-url="'.tdz::xml($uri).'"></a>';
-            if(!($uid=Tecnodesign_App::request('headers', 'tdz-param'))) {
+            if(!($uid=Tecnodesign_App::request('headers', 'z-param'))) {
                 $end = false;
                 // send a status check variable
                 $uid = tdz::compress64(uniqid(md5($uri)));

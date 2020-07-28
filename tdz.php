@@ -1650,7 +1650,9 @@ class tdz
             }
         } else {
             $a = array($name=>$a);
-            if($post && $post!=$a) $a[$name]['_'] = $post;
+            if($post && $post!=$a) {
+                $a['_'] = $post;
+            }
         }
         return $a;
     }
