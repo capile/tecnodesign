@@ -48,7 +48,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
 
     if($nav) {
         $nclass = 'z-i-nav z-toggle-active';
-        echo '<div id="z-nav" data-draggable-style="width:{w0}" data-draggable-default=style="width:{w1}" class="', $nclass, '" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header" data-toggler-drag-target=".tdz-i-body" data-toggler-drag=".z-nav,.z-i-nav,.tdz-i.tdz-i-active" data-toggler-options="child,sibling,storage,draggable">', $nav, '</div>'; 
+        echo '<div id="z-nav" data-draggable-style="width:{w0}" data-draggable-default=style="width:{w1}" class="', $nclass, '" data-base-url="', $Interface::base(), '" data-toggler-attribute-target=".tdz-i-header" data-toggler-drag-target=".tdz-i-body" data-toggler-drag=".z-nav,.z-i-nav,.tdz-i.tdz-i-active" data-toggler-options="child,sibling,storage,draggable" data-toggler-default="800">', $nav, '</div>'; 
     }
 
     // .tdz-i

@@ -1306,6 +1306,11 @@ Z.initToggleActive=function(o)
         load = true;
     }
 
+    var tw=o.getAttribute('data-toggler-default');
+    if(tw) {
+        load = (tw==='on' || (tw>0 && tw<window.innerWidth))
+    }
+
     var el={e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}};
     if(sibling) a=Z.element(el, null, o);
     if(drag) {
