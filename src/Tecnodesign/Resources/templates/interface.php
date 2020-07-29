@@ -162,7 +162,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
             if(isset($preview)): 
                 ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php
                     $next = null;
-                    if($Interface['action']!='delete' && !$Interface::$standalone) {
+                    if($Interface['action']!='delete' && $Interface['action']!='text' && !$Interface::$standalone) {
                         $next = ($Interface['action']=='update')?('preview'):('update');
                         if(!isset($Interface['actions'][$next]) || (isset($Interface['actions'][$next]['auth']) && !$Interface::checkAuth($Interface['actions'][$next]['auth']))) {
                             $next = null;

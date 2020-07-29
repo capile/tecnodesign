@@ -1046,6 +1046,8 @@ if(!('l' in Z)) Z.l={en:{},pt:{}};
 Z.l.pt.add='Acrescentar';
 Z.l.pt.del='Excluir';
 Z.l.pt.Nothing='Nenhuma opção foi encontrada para esta consulta.';
+Z.l.pt.Error404='O recurso selecionado não existe (erro 404).';
+Z.l.pt.Error504='O recurso selecionado excedeu o tempo limite da requisição (erro 504).';
 Z.l.pt.Error='Houve um erro ao processar esta informação. Por favor tente novamente ou entre em contato com o suporte.';
 Z.l.pt.moreRecord="É necessário selecionar mais de um registro para essa operação.";
 Z.l.pt.noRecordSelected='Nenhum registro foi selecionado para essa operação.';
@@ -1058,6 +1060,8 @@ Z.l.pt.UploadInvalidFormat='O formato do arquivo não é suportado.';
 Z.l.en.add='Insert';
 Z.l.en.del='Remove';
 Z.l.en.Nothing='No options was selected for this query.';
+Z.l.en.Error404='The selected resource is not available (404 not found).';
+Z.l.en.Error504='The selected resource exceeded the response time limit (504 gateway error).';
 Z.l.en.Error='There was an error while processing this request. Please try again or contact support.';
 Z.l.en.moreRecord="You need to select more than one record for this action.";
 Z.l.en.noRecordSelected='No record was selected for this action.';
@@ -1089,11 +1093,12 @@ Z.l.pt.dateFormat    ='DD/MM/YYYY';
 Z.l.pt.timeFormat    ='HH:mm';
 Z.l.pt_BR = Z.l.pt;
 
-Z.error=function()
+Z.error=function(msg)
 {
-    console.log('ERROR', arguments, arguments[0], arguments[1], this);
-    //msg(Z.l[Z.language].Error, 'tdz-i-error');
-    //Z.delay(msg, 5000, 'msg');
+    if('console' in window) console.log('ERROR', this);
+    for(var i=0;i<arguments.length;i++) {
+        console.log(arguments[i]);
+    }
 };
 
 

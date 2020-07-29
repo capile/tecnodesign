@@ -1437,7 +1437,7 @@ class Tecnodesign_Interface implements ArrayAccess
             $a = $this->action;
         }
 
-        if(!$a) return $url;
+        if(!$a || $a=='text') return $url;
         if(static::$actionAlias && ($aa=array_search($a, static::$actionAlias))) {
             $url .= '/'.$aa;
             unset($aa);
@@ -1617,7 +1617,7 @@ class Tecnodesign_Interface implements ArrayAccess
         tdz::$variables['Interface'] = $this;
         $title = $this->getTitle();
         $link = $this->link();
-        if(!$this->action) {
+        if(!$this->action && !$this->run) {
             foreach(static::$actionsDefault as $a) {
                 $p1 = tdz::urlParams(null, true);
                 if($this->setAction($a, $p1)) {
@@ -1639,6 +1639,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if(isset($this->text['title'])) Tecnodesign_App::response('title', $this->text['title']);
 
             $text = tdz::call($call, $o);
+            $this->action = 'text';
             if(!static::$standalone) {
                 $this->text['preview'] = $text;
                 if(!isset(static::$urls[$link])) {

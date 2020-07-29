@@ -695,7 +695,7 @@
                     if(txt=Z.text(I.querySelector('h'+i))) break;
                 }
             }
-            if(txt.trim()) document.title = txt;
+            if(txt && txt.trim()) document.title = txt;
         }
 
         var N = Z.parentNode(I, '.tdz-i-body').querySelector(':scope > .z-i-nav'), nb;
@@ -811,6 +811,15 @@
         }
     }
 
+    function parseResponse(d, req)
+    {
+        var h=req.getAllResponseHeaders(), c=h.match(/content-type: [^\;]+;\s*charset=([^\s\n]+)/i);
+        if(c && c.length>1 && c[1].search(/^utf-?(8|16)$/i)<0) {
+            console.log('decode from '+c[1], d, escape(d));
+            d =  decodeURIComponent(escape(d));
+        }
+        return d;
+    }
 
     function setInterface(c)
     {
@@ -819,6 +828,10 @@
             getBase();
         }
         if(c) {
+
+            if(arguments.length>=4 && arguments[1]==200) {
+                c=parseResponse(c, arguments[3]);
+            }
             var f = document.createElement('div'), O=Z.node(this),box=(O)?(Z.parentNode(O, '.tdz-i-box')):(null), ft, I;
             if(!box) box=document.querySelector('.tdz-i-box');
 
@@ -1047,7 +1060,8 @@
             if(!I) I = document.querySelector('.tdz-i-active .tdz-i-container');
             if(!I) I = document.querySelector('.tdz-i-active');
             if(!I) return;
-            M=Z.element({e:'div',p:{className:'tdz-i-msg'}}, I.children[0]);
+            if(I.children.length>0) M=Z.element({e:'div',p:{className:'tdz-i-msg'}}, I.children[0]);
+            else M=Z.element.call(I, {e:'div',p:{className:'tdz-i-msg'}});
         }
         if(!c) c='';
         else c+=' ';
@@ -1079,12 +1093,17 @@
 
     }
 
-    function interfaceError()
+    function interfaceError(d, status, url, x)
     {
         /*jshint validthis: true */
-        Z.error.call(this, arguments);
-        msg(Z.l[Z.language].Error, 'tdz-i-error');
+        var mid = 'Error';
+        if(status) mid += String(status);
+        var m=(mid in Z.l[Z.language]) ?Z.l[Z.language][mid] :Z.l[Z.language].Error;
+        Z.error.call(this, m);
+        msg(m, 'tdz-i-error');
         Z.delay(msg, 5000, 'msg');
+        Z.focus(document.querySelector('.tdz-i-body.tdz-blur'));
+        if(this.className.search(/\btdz-i-off\b/)>-1) Z.deleteNode(this);
     }
 
     function updateInterfaceDelayed(e)
