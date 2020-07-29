@@ -193,11 +193,19 @@ class Tecnodesign_Studio_Asset
             mkdir($cacheDir, 0777, true);
         }
         if(isset($r['less'])) {
-            $tmpCss = $cacheDir.'/less-'.md5(implode(':',array_keys($r['less']))).'.css';
+            $tmpCss = $cacheDir.'/less-'.md5(tdz::$assetsUrl.'/'.implode(':',array_keys($r['less']))).'.css';
             if(!file_exists($tmpCss) || filemtime($tmpCss)<max($r['less'])) {
                 $this->parseLess(array_keys($r['less']), $tmpCss);
             }
             $r['less'] = $tmpCss;
+        }
+
+        if(isset($r['scss'])) {
+            $tmpCss = $cacheDir.'/scss-'.md5(tdz::$assetsUrl.'/'.implode(':',array_keys($r['scss']))).'.css';
+            if(!file_exists($tmpCss) || filemtime($tmpCss)<max($r['scss'])) {
+                $this->parseScss(array_keys($r['scss']), $tmpCss);
+            }
+            $r['scss'] = $tmpCss;
         }
 
         return $this->build($r);
@@ -205,20 +213,18 @@ class Tecnodesign_Studio_Asset
 
     public function parseLess($fs, $outputFile)
     {
-        static $compiler='ScssPhp\\ScssPhp\\Compiler';
-        $parser = null;
+        static $compiler='lessc';
         // inspect memory usage by this component
         tdz::tune(null, 32, 10);
-        if(class_exists('lessc')) {
-            $parser = new lessc();
-            $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
-            $parser->registerFunction('dechex', function($a){
-                return dechex($a[1]);
-            });
-        } else {
+        if(!class_exists($compiler)) {
             return $this->build($fs, $outputFile);
         }
 
+        $parser = new $compiler();
+        $parser->registerFunction('dechex', function($a) {
+            return dechex($a[1]);
+        });
+        $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
         $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
         if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) $importDir[] = $d;
         if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root.'/';
@@ -256,33 +262,33 @@ class Tecnodesign_Studio_Asset
     public function parseScss($fs, $outputFile)
     {
         static $compiler='ScssPhp\\ScssPhp\\Compiler';
-        $parser = null;
-        if(is_null($parser) && class_exists($compiler)) {
-            $parser = new $compiler();
-            //$parser->setVariables(array('assets-url'=>'"'.tdz::$assetsUrl.'"'));
-            $parser->registerFunction('dechex', function($a){
-                return dechex($a[1]);
-            });
-        } else {
-            tdz::debug('not found????');
+        if(!class_exists($compiler)) {
             return $this->build($fs, $outputFile);
         }
 
+        $parser = new $compiler();
+        $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
+        $parser->registerFunction('dechex', function($a){
+            return dechex($a[1]);
+        });
+        $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
+        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) $importDir[] = $d;
+        if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root.'/';
+
         if(is_array($fs) && count($fs)>1) {
-            $importDir = array();
             $s = '';
             foreach($fs as $i=>$o) {
                 if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d;
                 unset($d);
-                $s .= '@import '.escapeshellarg($o).";\n";
+                $s .= '@import '.escapeshellarg(basename($o)).";\n";
                 unset($fs[$i], $i, $o);
             }
             $fs = $s;
             unset($s);
         } else {
             if(is_array($fs)) $fs = array_shift($fs);
-            $importDir = array(dirname($fs));
-            $fs = '@import '.escapeshellarg($fs);
+            $importDir[] = dirname($fs);
+            $fs = '@import '.escapeshellarg(basename($fs));
         }
 
         if($this->root!=TDZ_DOCUMENT_ROOT && is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($s, $importDir)) $importDir[] = $d;
