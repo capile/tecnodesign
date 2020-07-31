@@ -27,7 +27,7 @@
                 return startup(document.querySelectorAll(_sel));
             }
         }
-        if('length' in I) {
+        if(!Z.node(I) && ('length' in I)) {
             if(I.length==0) return;
             if(I.length==1) I=I[0];
             else {
@@ -59,7 +59,9 @@
 
         if(_reStandalone.test(I.className)) return true;
 
-        if((b=Z.parentNode(I, '.tdz-i-body').querySelector('.z-i-nav')) && !b.getAttribute('data-startup')) {
+        var B=Z.parentNode(I, '.tdz-i-body');
+
+        if(B && (b=B.querySelector(':scope > .z-i-nav')) && !b.getAttribute('data-startup')) {
             b.setAttribute('data-startup', '1');
             l=b.querySelectorAll('a[href]');
             i=l.length;
@@ -419,7 +421,7 @@
         /*jshint validthis: true */
         //Z.trace('loadInterface');
         _init = true;
-        var I, m=false, t, q, urls=[], l, i,u,data,h={'z-action':'Interface'}, ft;
+        var I, m=false, t, q, urls=[], l, i,u,data,h={'z-action':'Interface'}, ft, method='get';
         if(typeof(e)=='string') {
             urls.push(e);
         } else {
@@ -481,6 +483,7 @@
                 u=t;
                 if(this.id) ft=this.id;
                 if(this.getAttribute('method').toLowerCase()=='post') {
+                    method = 'post';
                     var enc=this.getAttribute('enctype');
                     if(enc=='multipart/form-data') {
                         // usually file uploads
@@ -540,7 +543,7 @@
                 if(I.getAttribute('data-qs')) h['z-referer'] += '?'+ I.getAttribute('data-qs');
             }
 
-            if(ft) {
+            if(ft && method==='post') {
                 o.setAttribute('data-target-id', ft);
                 ft=null;
             }
@@ -828,7 +831,6 @@
             getBase();
         }
         if(c) {
-
             if(arguments.length>=4 && arguments[1]==200) {
                 c=parseResponse(c, arguments[3]);
             }
@@ -857,7 +859,6 @@
                 if(r[i].parentNode) r[i].parentNode.removeChild(r[i]);
             }
             r=null;
-
             if(!I) I = f.querySelector('.tdz-i');
             if(!I) {
                 if(O) {
@@ -964,6 +965,9 @@
                 }
                 if(u in _loading) {
                     delete(_loading[u]);
+                }
+                if(!I.parentNode && box) {
+                    box.querySelector('.tdz-i-body').appendChild(I);
                 }
             }
 
