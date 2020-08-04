@@ -33,6 +33,7 @@ function buildGraph(id)
 
     if(!D) return;
   	D.bindto = '#'+id;
+    if('data' in D) D.data.onclick = graphInteraction;
     if('format' in D) {
     	if(!('axis' in D)) D.axis={};
     	if(!('y' in D.axis)) D.axis.y={};
@@ -40,6 +41,36 @@ function buildGraph(id)
     	D.axis.y.tick.format = d3.format(D.format);
     }
     _G[id]=c3.generate(D);
+}
+
+function graphInteraction(d, el)
+{
+    if(Z.parentNode(el, '.tdz-i.tdz-i-active')) {
+        return graphInterface(d, el);
+    }
+    //console.log('click!', arguments);
+}
+
+function graphInterface(d, el)
+{
+    var I=Z.parentNode(el, '.tdz-i.tdz-i-active'), O=I.querySelector('#omnibar'), G=Z.parentNode(el, '.z-graph[data-title]'), n=('name' in d) ?d.name :null;
+    if(!O || !G || !n) return;
+
+    var t=Z.slug(G.getAttribute('data-title')),m=null;
+    if((t in O.form) && ('multiple' in O.form[t])) m=O.form[t].multiple;
+    if(t) {
+        t+=':';
+    }
+
+    if(n.indexOf(' ')>-1) n = '"'+n.replace(/\"/g, '\\\"')+'"';
+    t+=n;
+
+    if(O.value.indexOf(t)<0) {
+        if(!m && O.value) O.value+=' '+t;
+        else O.value = t;
+        Z.fire(O, 'change');
+        Z.fire(O.form, 'submit');
+    }
 }
 
 // default modules loaded into Z

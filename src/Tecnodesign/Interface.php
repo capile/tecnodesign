@@ -65,6 +65,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $displaySearch      = true,
         $displayList        = true,
         $displayGraph       = true,
+        $graphAutoMax       = 4,
+        $graphLegendMax     = 5,
         $listPagesOnTop     = true,
         $listPagesOnBottom  = true,
         $translate          = true,
@@ -2118,8 +2120,67 @@ class Tecnodesign_Interface implements ArrayAccess
     {
         if(!static::$displayGraph) return;
         $cn = $this->getModel();
-        if(!$this->graph) {
+        if(!$this->graph && static::$displayGraph==='auto') {
             // autobuild graph based on index values
+            $ckey = 'z-i-graph/'.$cn;
+            $this->graph = Tecnodesign_Cache::get($ckey);
+            if(!is_array($this->graph)) {
+                $columns = $cn::columns('search');
+                $this->graph = [];
+                foreach($columns as $label=>$fd) {
+                    if(!is_array($fd) || !isset($fd['bind']) || preg_match('/^[^a-z_0-9]+$/i', $fd['bind'])) continue;
+                    if(isset($fd['choices'])) {
+                        $one = $rn = $rd = null;
+                        foreach($cn::$schema->relations as $rn=>$rd) {
+                            if($rd['local']===$fd['bind'] && !isset($rd['on'])) {
+                                $one = ($rd['type']==='one');
+                                $rlabel = null;
+                                $rcn = (isset($rd['className'])) ?$rd['className'] :$rn;
+                                if(isset($rcn::$schema->scope['string']) && ($rsc=$rcn::$schema->scope['string']) && ($rsc0=array_shift($rsc)) && !strpos($rsc0, ' ')) {
+                                    $rlabel = $rn.'.'.$rsc0;
+                                } else {
+                                    foreach($rcn::$schema->properties as $rnk=>$rnd) {
+                                        if(!$rnd->primary && $rnd->type=='string') {
+                                            $rlabel = $rn.'.'.$rnk;
+                                            unset($rnk, $rnd);
+                                            break;
+                                        }
+                                        unset($rnk, $rnd);
+                                    }
+                                }
+                                break;
+                            }
+
+                            $rn = $rd = null;
+                        }
+                        if(!$rn || !$rlabel || is_array($pk=$cn::pk(null, false))) continue;
+
+                        if(isset($fd['label'])) $label = $fd['label'];
+                        $n = tdz::slug($label);
+                        if($one) {
+                            $this->graph[$n] = [
+                                'title'=>$label,
+                                'type'=>'donut',
+                                'pivot'=>$rlabel,
+                                'options'=>['legend'=>['show'=>true]],
+                                'axis'=>[
+                                    '_x'=>['label'=>$rlabel, 'bind'=>$rlabel.' _x', 'type'=>'string'],
+                                    '_y'=>['label'=>$label, 'bind'=>'count(`'.$pk.'`) _y', 'type'=>'number'],
+                                ],
+                                'group-by'=>$rlabel,
+                                'order-by'=>[$rlabel=>'asc'],
+                            ];
+                        }
+                        if(count($this->graph)>=static::$graphAutoMax) break;
+                    }
+                }
+                if(($count=count($this->graph))>1) {
+                    foreach($this->graph as $n=>$g) {
+                        $this->graph[$n]['class'] = 'g-'.$count.' i1s'.$count;
+                    }
+                }
+                Tecnodesign_Cache::set($ckey, $this->graph, tdz::$timeout);
+            }
         }
         if(!$this->graph) return;
         $s = '';
@@ -2171,6 +2232,9 @@ class Tecnodesign_Interface implements ArrayAccess
             //$x = [];
             $cmap = [];
             $kcols = [];
+            if(count($R) > static::$graphLegendMax && isset($g['type']) && in_array($g['type'], ['donut','pie']) && isset($G['legend']['show'])) {
+                $G['legend']['show'] = false;
+            }
             foreach($R as $i=>$o) {
                 $d = $o->asArray($scope, null, null);
                 if($pivot) {
@@ -2178,6 +2242,7 @@ class Tecnodesign_Interface implements ArrayAccess
                         $G['data']['columns']=[];
                     }
                     $l = $d[$pivot];
+                    if(is_null($l)) $l='';
                     unset($d[$pivot]);
                     /*
                     if(!$x) {
@@ -3266,6 +3331,9 @@ class Tecnodesign_Interface implements ArrayAccess
                 } else {
                     $ff['q'][$slug]=$label;
                     if(!isset($fo['fields']['q'])) {
+                        if(count($fo['fields'])>1) {
+                            $fo['fields'] = ['_omnibar'=>$fo['fields']['_omnibar'], 'q'=>[],'w'=>[]] + $fo['fields'];
+                        }
                         $fo['fields']['q']=array(
                             'type'=>'string',
                             'size'=>'200',
@@ -3276,6 +3344,9 @@ class Tecnodesign_Interface implements ArrayAccess
                         );
                     } else {
                         if(!isset($fo['fields']['w'])) {
+                            if(count($fo['fields'])>2) {
+                                $fo['fields'] = ['_omnibar'=>$fo['fields']['_omnibar'], 'q'=>$fo['fields']['q'],'w'=>[]] + $fo['fields'];
+                            }
                             $fo['fields']['w']=array(
                                 'type'=>'string',
                                 'format'=>'checkbox',
@@ -3293,6 +3364,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 unset($scope[$k], $k, $fd, $fdo, $label, $fn, $slug);
             }
+
+            if(isset($fo['fields']['w']) && !$fo['fields']['w']) unset($fo['fields']['w']);
             if($scopes > 0) {
                 if(isset($addScope) && $addScope) {
                     $scope = array_shift($addScope);

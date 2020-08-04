@@ -1,5 +1,5 @@
 /*! Tecnodesign Z v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
-if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{}};
+if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{},env:'prod',timestamp:null};
 (function(Z) {
 "use strict";
 var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl, _assets={},
@@ -21,6 +21,14 @@ var _reWeb=/^https?:\/\//;
 function initZ(d)
 {
     Z.lang();
+
+    if(document.querySelector('html[data-z-config]')) {
+        var zh = document.querySelector('html'), zc=zh.getAttribute('data-z-config'), cfg=JSON.parse(zc.indexOf('{')<0 ?atob(zc) :zc), cn;
+        zh.removeAttribute('data-z-config');
+        if(cfg) {
+            for(cn in cfg) if((cn in Z) && (typeof(Z[cn])!='function')) Z[cn] = cfg[cn];
+        }
+    }
 
     if(!('modules' in Z)) {
         Z.modules = defaultModules;
@@ -178,15 +186,15 @@ Z.init=function(o)
 var _delayed={};
 function loadAsset(f, fn, args, ctx)
 {
-    var T, o, r;
+    var T, o, r, s=((Z.env=='dev' && Z.timestamp) ?'?'+(new Date().getTime()) :'');
     if(f in _assets) return;
     _assets[f]=true;
 
     if(f.indexOf('.')<0) {
         if(!('Z.'+f in window)) window['Z.'+f] = [ctx];
         else window['Z.'+f].push(ctx);
-        loadAsset(f+'.js', fn, args, ctx);
-        loadAsset(f+'.css', fn, args, ctx);
+        loadAsset(f+'.js'+s, fn, args, ctx);
+        loadAsset(f+'.css'+s, fn, args, ctx);
         return;
     }
     if(f.indexOf('/')<0) {
