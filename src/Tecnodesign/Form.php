@@ -20,7 +20,7 @@ class Tecnodesign_Form implements ArrayAccess
      */
     protected $fields;
 
-    protected $id, $method = 'post', $action = '', $model, $err, $prefix = '', $limits;
+    protected $id, $method = 'post', $action = '', $model, $err, $prefix = '', $limits, $parent;
     public $buttons = array('submit' => '*Send'), $attributes = array('class' => 'z-form'), $before, $after;
     private static $_instances;
     public static $assets='Z.Form',
@@ -395,6 +395,32 @@ class Tecnodesign_Form implements ArrayAccess
         }
     }
 
+    public function setParent($id=null)
+    {
+        if(is_string($id) && $id!=$this->_uid && isset(self::$_instances[$id])) {
+            $this->parent = $id;
+            return $id;
+        }
+    }
+
+    public function getParent()
+    {
+        if($id=$this->parent) {
+            if(!isset(self::$_instances[$id])) {
+                $id = null;
+                $this->parent = null;
+            }
+            return $id;
+        }
+    }
+
+    public function getParentForm()
+    {
+        if(($id=$this->parent) && isset(self::$_instances[$id])) {
+            return self::$_instances[$id];
+        }
+    }
+
     protected function getEnctype()
     {
         if(!isset($this->attributes['enctype'])) {
@@ -480,7 +506,7 @@ class Tecnodesign_Form implements ArrayAccess
         }
         $this->getEnctype();
         $this->getLimits();
-        $vars = array();
+        $vars = array('Form'=>$this);
         foreach($this as $k=>$v){
             $vars[$k]=$v;
         }

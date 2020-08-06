@@ -597,7 +597,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
      *
      * @return Tecnodesign_Form instance
      */
-    public function getForm($scope=null, $pk=false)
+    public function getForm($scope=null, $pk=false, $parentForm=null)
     {
         if(is_null($scope)) {
             $scope = 0;
@@ -625,6 +625,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 }
             }
             $F = new Tecnodesign_Form($fo);
+            if($parentForm) {
+                $F->setParent((is_string($parentForm)) ?$parentForm :$parentForm->uid);
+            }
             unset($fo);
             $this->_forms[$hash] = $F->uid;
         }

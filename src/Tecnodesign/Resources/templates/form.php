@@ -53,6 +53,7 @@ if($hasFieldset) {
 }
 
 ?><form<?php if($id): ?> id="<?php echo $id ?>"<?php endif; ?> action="<?php echo tdz::xmlEscape($action) ?>" method="<?php echo $method ?>"<?php
+if(isset($Form) && $Form) $attributes = $Form->attributes;
 foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"';
 ?>><?php
 foreach($fieldsets as $fn=>$fv) {

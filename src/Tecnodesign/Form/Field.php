@@ -673,7 +673,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 try {
                     $fid = $this->getName().'['.$i.']';
                     if(!($F=Tecnodesign_Form::getInstance($fid))) {
-                        $F = $O->getForm($sid, true);
+                        $F = $O->getForm($sid, true, $this->form);
                         $F->prefix = $fid;
                         $F->setLimits(false);
                         $F->register($fid);
@@ -1634,7 +1634,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
 
                 if(!$this->min_size || !$this->size) {
-                    $form = $model->getForm($scope, false);
+                    $form = $model->getForm($scope, false, $this->form);
 
                     // get the template for issuing new fields with js
                     $jsinput = '<div class="item">';
@@ -1676,7 +1676,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
             if($arg['value']) {
                 foreach ($arg['value'] as $i=>$model) {
-                    $form = $model->getForm($scope, !$model->isNew());
+                    $form = $model->getForm($scope, !$model->isNew(), $this->form);
                     $input .= '<div class="item '.(($i%2)?('even'):('odd')).'">';
                     foreach($form->fields as $fn=>$f) {
                         $id = ($f->bind)?($f->bind):($f->id);
@@ -1852,7 +1852,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function renderFile(&$arg)
     {
         $arg['type']='file';
-        $this->getForm()->attributes['enctype']='multipart/form-data';
+        if($F=$this->getForm()) {
+            while($P=$F->getParentForm()) {
+                $F = $P;
+            }
+            $F->attributes['enctype']='multipart/form-data';
+        }
         if($this->multiple) {
             $this->attributes['multiple']=true;
             //$arg['name'].='[]';
