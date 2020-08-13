@@ -4,7 +4,7 @@
 
 "use strict";
 
-var _G={}, _gids=0, _gT;
+var _G={}, _gids=0, _gT, _c;
 function Graph(o)
 {
     var n=Z.node(o, this), d, D, id;
@@ -41,6 +41,26 @@ function buildGraph(id)
     	D.axis.y.tick.format = d3.format(D.format);
     }
     _G[id]=c3.generate(D);
+    if(!_c) {
+        Z.resizeCallback(checkGraph);
+        _c = true;
+    }
+}
+
+function checkGraph()
+{
+    var n, el, I;
+    for(n in _G) {
+        if(_G[n] && ('element' in _G[n]) && (el=_G[n].element) && (I=Z.parentNode(el, '.tdz-i'))) {
+            if(I.className.search(/\btdz-i-active\b/)>-1) {
+                _G[n].flush();
+            }
+        } else if(_G[n]) {
+            _G[n].destroy();
+            if(el) Z.deleteNode(el);
+            delete(_G[n]);
+        }
+    }
 }
 
 function graphInteraction(d, el)
@@ -57,7 +77,11 @@ function graphInterface(d, el)
     if(!O || !G || !n) return;
 
     var t=Z.slug(G.getAttribute('data-title')),m=null;
-    if((t in O.form) && ('multiple' in O.form[t])) m=O.form[t].multiple;
+    if((t in O.form)) {
+        if('multiple' in O.form[t]) m=O.form[t].multiple;
+    } else {
+        return;
+    }
     if(t) {
         t+=':';
     }
