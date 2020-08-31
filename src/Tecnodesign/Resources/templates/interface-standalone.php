@@ -61,7 +61,7 @@ if(!isset($action)) $action = $Interface['action'];
 
         echo $Interface->message(), (isset($app))?($app):('');
 
-        if($buttons): ?><div class="z-standalone-buttons"><?php
+        if($buttons && $Interface::$listPagesOnTop): ?><div class="z-standalone-buttons"><?php
             echo $buttons; 
         ?></div><?php endif;
 
@@ -133,7 +133,7 @@ if(!isset($action)) $action = $Interface['action'];
                 $preview::$boxTemplate = $box;
                 unset($preview);
             } else if(is_object($preview) && $preview instanceof Tecnodesign_Form) {
-                if($buttons) {
+                if($buttons && $Interface::$listPagesOnTop) {
                     $preview->buttons[] = $buttons;
                     $buttons = null;
                 }
@@ -147,7 +147,7 @@ if(!isset($action)) $action = $Interface['action'];
     endif;
 
     // .z-i-actions
-    if($buttons && $content): ?><div class="z-standalone-buttons"><?php
+    if($buttons && $content && $Interface::$listPagesOnBottom): ?><div class="z-standalone-buttons"><?php
         echo $buttons; 
     ?></div><?php endif;
 

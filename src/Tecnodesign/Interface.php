@@ -150,6 +150,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $formats=array( 'html', 'json', 'xls', 'xlsx', 'csv', 'yml', 'xml' ),
         $format,
         $ext,
+        $msg,
         $statusCodes = array(
             200 => 'OK',
             201 => 'Created',
@@ -298,6 +299,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
                 unset($v, $k);
             }
+
             if(is_null($this->text)) $this->text = $d;
             else $this->text += array_filter($d);
         }
@@ -662,7 +664,6 @@ class Tecnodesign_Interface implements ArrayAccess
         tdz::redirect($url);
     }
 
-    protected static $msg;
     public function message($m=null)
     {
         if($m) {
@@ -670,6 +671,10 @@ class Tecnodesign_Interface implements ArrayAccess
             static::$msg .= $m;
         } else if(is_null(static::$msg)) {
             static::$msg .= (string) tdz::getUser()->getMessage(false, true);
+        } else if($m===false) {
+            $msg = static::$msg;
+            static::$msg = null;
+            return $msg;
         }
         return static::$msg;
     }
@@ -933,6 +938,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 } else if($n && $n!=$this->id) {
                     return false;
                 }
+
                 if(tdz::isempty($this->id)) {
                     if(isset($n)) {
                         array_unshift($p, $n);
@@ -2124,7 +2130,7 @@ class Tecnodesign_Interface implements ArrayAccess
             // autobuild graph based on index values
             $ckey = 'z-i-graph/'.$cn;
             $this->graph = Tecnodesign_Cache::get($ckey);
-            if(!is_array($this->graph)) {
+            if(is_array($this->graph)) {
                 $columns = $cn::columns('search');
                 $this->graph = [];
                 foreach($columns as $label=>$fd) {
@@ -3395,6 +3401,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if($active && $F->validate($post)) {
             $d=$F->getData();
             $this->text['searchTerms'] = '';
+            $S = [];
             if(is_null($this->search)) $this->search = array();
             foreach($d as $k=>$v) {
                 if($v==='' || is_null($v)) continue;
@@ -3402,14 +3409,14 @@ class Tecnodesign_Interface implements ArrayAccess
                     if(!$v) continue;
                     $w = (isset($d['w']))?($d['w']):(array_keys($ff['q']));
                     if(!is_array($w)) $w = preg_split('/\,/', $w, null, PREG_SPLIT_NO_EMPTY);
-                    $ps = $this->search;
-                    $this->search = array();
+                    $ps = $S;
+                    $S = array();
                     foreach($w as $slug) {
-                        $this->search['|'.$fns[$slug].'%=']=$v;
+                        $S['|'.$fns[$slug].'%=']=$v;
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?(' '.static::t('or').' '):(''))
                                         . '<span class="'.static::$attrParamClass.'">'.$ff['q'][$slug].'</span>';
                     }
-                    $this->search += $ps;
+                    $S += $ps;
                     unset($ps);
                     if($this->text['searchTerms']) $this->text['searchTerms'] .= ': <span class="'.static::$attrTermClass.'">'.tdz::xmlEscape($post['q']).'</span>';
                     continue;
@@ -3449,10 +3456,10 @@ class Tecnodesign_Interface implements ArrayAccess
                             $fk=$rcn::pk();
                             if(is_array($fk)) $fk=array_shift($fk);
                             if($c1) $fk.='!=';
-                            $this->search[$fns[$k].'.'.$fk]='';
+                            $S[$fns[$k].'.'.$fk]='';
                         } else {
-                            if($c1) $this->search[$fns[$k].'!=']='';
-                            else $this->search[$fns[$k]]='';
+                            if($c1) $S[$fns[$k].'!=']='';
+                            else $S[$fns[$k]]='';
                         }
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                     . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
@@ -3460,7 +3467,7 @@ class Tecnodesign_Interface implements ArrayAccess
                     }
                 } else if($ff[$k]=='choices') {
                     if(tdz::isempty($v) || !is_object($F[$k0])) continue;
-                    $this->search[$fns[$k]] = $v;
+                    $S[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
                                 . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
@@ -3482,23 +3489,25 @@ class Tecnodesign_Interface implements ArrayAccess
                         $dt = false;
                     }
                     if ($t0 && $t1) { // $cn::renderAs($v, $fns[$k])
-                        $this->search[$fns[$k].'~']=array(date($df, $t0), date($df, $t1));
+                        $S[$fns[$k].'~']=array(date($df, $t0), date($df, $t1));
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
                                 . '<span class="'.static::$attrTermClass.'">'.tdz::dateDiff($t0, $t1, $dt).'</span>';
                     } else if($t0) {
-                        $this->search[$fns[$k].'>=']=date($df, $t0);
+                        $S[$fns[$k].'>=']=date($df, $t0);
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
                                 . '<span class="'.static::$attrTermClass.'">'.static::t('from').' '.tdz::date($t0, $dt).'</span>';
                     } else if($t1) {
-                        $this->search[$fns[$k].'<=']=date($df, $t1);
+                        $S[$fns[$k].'<=']=date($df, $t1);
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
                                 . '<span class="'.static::$attrTermClass.'">'.static::t('to').' '.tdz::date($t1, $dt).'</span>';
                     }
                 }
             }
+
+            $this->search[] = $S;
             $this->text['searchCount'] = $this->count();
         } else if($active) {
             $this->searchError = $F->getError(true);

@@ -1097,7 +1097,18 @@ button .i-label {
   &:last-child:after { content: ''; }
   .z-round {
     margin:0 0 0 0.25em;
-    display:inline-block;line-height:1em;width:1em;height:1em !important;border-radius:0.5em;text-align:center;&:before{display:inline-block;vertical-align:top;}}
+    display:inline-block;
+    line-height:1em;
+    width:1em;
+    height:1em !important;
+    border-radius:0.5em;
+    text-align:center;
+    font-style:normal;
+    &:before{display:inline-block;vertical-align:top;}
+  }
+  .z-i--close {
+    position:absolute;
+  }
 }
 
 form .tdz-i-field a.tdz-i-upload {
