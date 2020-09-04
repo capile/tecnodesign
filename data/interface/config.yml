@@ -1,6 +1,5 @@
 ---
 all:
-  title: Configuration
   model: Tecnodesign_Studio_Config
   priority: ~
   actions:
@@ -14,6 +13,10 @@ all:
     report: false
     publish: false
   options:
+    list-parent: i
+    navigation: ~
+    position: ~
+    index: false
     scope:
       new:
         Configuration file: id

@@ -1,5 +1,7 @@
 ---
 all:
   model: Tecnodesign_Studio_Entry
-  priority: 10
-  index: true
+  options:
+    list-parent: i
+    priority: 1
+    index: true

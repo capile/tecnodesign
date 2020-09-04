@@ -1,5 +1,7 @@
 ---
 all:
   model: Tecnodesign_Studio_Permission
-  priority: 12
-  index: true
+  options:
+    list-parent: i
+    priority: 5
+    index: true

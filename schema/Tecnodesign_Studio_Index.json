@@ -1,6 +1,6 @@
 {
-    "title": "*Index",
-    "database": "studio-index",
+    "title": "*Studio",
+    "database": "studio",
     "tableName": "z_index",
     "className": "Tecnodesign_Studio_Index",
     "properties": {

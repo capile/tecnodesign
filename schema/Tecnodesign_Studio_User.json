@@ -1,4 +1,5 @@
 {
+    "title": "*Users",
     "database": "studio",
     "tableName": "tdz_users",
     "properties": {

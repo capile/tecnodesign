@@ -30,23 +30,14 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrCounterClass   = 'tdz-counter',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
-        $dir                = array('interface'),
-        $additionalActions   = array(
-                                //'publish'=> array('position'=>31, 'action' => 'executePublish',  'identified'=>true, 'batch'=>true, 'renderer'=>'renderPublish'),
-                            ),
-        $actionAlias        = array(
+        $dir                = [ 'interface' ],
+        $indexFile          = 'i',
+        $actionAlias        = [
             'n'=>'new',
             'v'=>'preview',
             'u'=>'update',
             'q'=>'list',
-        ),
-        $models             = array(
-                                //'e'=>'Entry',
-                                'c'=>'Content',
-                                //'p'=>'Permission',
-                                //'w'=>'User',
-                                //'g'=>'Group',
-            );
+        ];
 
     protected static
         $base

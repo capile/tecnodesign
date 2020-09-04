@@ -1,12 +1,13 @@
 ---
 all:
   model: Tecnodesign_Studio_Content
-  priority: 11
   actions:
     report: false
     publish: false
   index: true
   options:
+    list-parent: i
+    priority: 2
     scope:
       review:
         Content: id

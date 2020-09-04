@@ -111,7 +111,8 @@ class Tecnodesign_Studio
 
         // try the interface
         if(static::$webInterface && ($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0)) {
-            if($sn!=self::$home) tdz::scriptName($sn);
+            tdz::scriptName($sn);
+            tdz::cacheControl('private,must-revalidate,no-cache', 0);
             return self::_runInterface();
         } else if(static::$cliInterface && self::$cli && TDZ_CLI && ($sn===self::$cli || (isset($req['scheme']) && $req['scheme']===self::$cli))) {
             // cli apps

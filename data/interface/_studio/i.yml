@@ -1,0 +1,15 @@
+---
+all:
+  title: Studio
+  model: Tecnodesign_Studio_Index
+  options:
+    index: false
+    navigation: true
+    priority: 999
+  actions:
+    create: false
+    update: false
+    delete: false
+    preview: false
+    report: false
+    new: false

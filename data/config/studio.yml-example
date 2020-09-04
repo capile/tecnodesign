@@ -14,4 +14,10 @@ all:
         log: 5
         database:
           studio:
-            dsn: 'sqlite:data/studio.db'
+            dsn: sqlite:data/studio.db
+    controller-options:
+      class: Tecnodesign_Studio
+      static: true
+      additional-params: true
+      layout: layout
+    default-route: run

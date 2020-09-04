@@ -108,6 +108,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $renderer           = 'renderPreview',
         $dir                = array('interface'),
         $urls               = array(),
+        $indexFile          = 'index',
         $baseInterface      = array(
             'interface'     => 'index',
             'run'           => 'listInterfaces',
@@ -791,12 +792,12 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             if(!$f) {
                 if(isset($p0)) $p = $p0;
-                if(!$p && ($f=static::configFile('index'))) {
-                    $n = 'index';
+                if(!$p && ($f=static::configFile(static::$indexFile))) {
+                    $n = static::$indexFile;
                 } else if($p) {
                     $n = preg_replace('#[^a-z0-9\-\_\@]#i', '', array_shift($p));
-                    $rn = '/index';
-                    while(!file_exists($f=static::configFile($n.'/index')) && $p) {
+                    $rn = '/'.static::$indexFile;
+                    while(!file_exists($f=static::configFile($n.'/'.static::$indexFile)) && $p) {
                         $n .= '/'.array_shift($p);
                     }
                     if($f) $n .= $rn;
