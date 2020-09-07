@@ -627,13 +627,15 @@ class Tecnodesign_Query_Sql
             }
         }
         if(!$found) {
+            if(isset($sc->className) && $cn!=$sc->className) $cn = $sc->className;
             if (isset($sc->relations[$fn]) || strtolower($fn)==='null') {
                 // ignore
                 return;
+            } else if(isset($sc->properties[$fn])) {
+                if($sc->properties[$fn]->alias)  $fn = $ta.'.'.$sc->properties[$fn]->alias.((!$noalias)?(' '.tdz::sql($fn)):(''));
+                else $fn = $ta.'.'.$fn;
             } else if (strpos($fn, '.')===false && ($cn::$allowNewProperties || property_exists($cn, $fn))) {
-                if($fn) {
-                    $fn = $ta.'.'.$fn;
-                }
+                $fn = $ta.'.'.$fn;
             } else {
                 tdz::log("[WARNING] Cannot find by [{$fn}] at [{$this->schema('className')}.$ref]");
                 throw new Exception("Cannot find by [{$fn}] at [{$this->schema('className')}.$ref]");
