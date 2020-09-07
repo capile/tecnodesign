@@ -3246,6 +3246,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $fns[$slug]=$fn;
 
                 if($fd['type']==='string' && isset($fd['format']) && substr($fd['format'],0,4)=='date' || substr($fd['type'], 0, 4)=='date') {
+                    if(!isset($fd['format'])) $fd['format'] = $fd['type'];
                     $type = ($fd['type']==='string') ?$fd['format'] :$fd['type'];
                     $fo['fields'][$slug.'-0']=array(
                         'type'=>$type,
