@@ -47,7 +47,7 @@ class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Studio_Model
         return $content;
     }
 
-    public function getForm($scope = NULL, $pk = false)
+    public function getForm($scope = NULL, $pk = false, $parentForm = null)
     {
         $cn = get_called_class();
         if(!isset($cn::$schema['e-studio-configured'])) {
@@ -85,7 +85,7 @@ class Tecnodesign_Studio_ContentDisplay extends Tecnodesign_Studio_Model
             $cn::$schema['scope']['e-studio'][]='hide_at';
         }
         $cn::$schema['scope'][$scope]=$cn::$schema['scope']['e-studio'];
-        return parent::getForm($scope);
+        return parent::getForm($scope, $pk, $parentForm);
     }
 
     public static function getContentTypes()

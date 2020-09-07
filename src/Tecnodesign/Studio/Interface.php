@@ -15,12 +15,13 @@
 class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 {
     public static
-        $breadcrumbs        = false,
+        $breadcrumbs        = true,
         $displaySearch      = true,
         $displayList        = true,
         $listPagesOnTop     = true,
         $listPagesOnBottom  = true,
         $translate          = true,
+        $headerOverflow     = true,
         $hitsPerPage        = 25,
         $attrListClass      = 'tdz-i-list',
         $attrPreviewClass   = 'tdz-i-preview',

@@ -75,6 +75,7 @@ class Tecnodesign_Studio
     {
         self::$app = tdz::getApp();
         $req = Tecnodesign_App::request();
+
         if($req['shell']) {
             tdz::scriptName($req['script-name']);
             self::$cacheTimeout = false;
@@ -114,7 +115,7 @@ class Tecnodesign_Studio
             tdz::scriptName($sn);
             tdz::cacheControl('private,must-revalidate,no-cache', 0);
             return self::_runInterface();
-        } else if(static::$cliInterface && self::$cli && TDZ_CLI && ($sn===self::$cli || (isset($req['scheme']) && $req['scheme']===self::$cli))) {
+        } else if(static::$cliInterface && self::$cli && TDZ_CLI && (isset($req['scheme']) && $req['scheme']===self::$cli)) {
             // cli apps
             tdz::$variables['template'] = 'cli';
             Tecnodesign_App::response('layout', 'cli');

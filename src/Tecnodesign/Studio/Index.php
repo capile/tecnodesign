@@ -41,9 +41,9 @@ class Tecnodesign_Studio_Index extends Tecnodesign_Model
     public static function reindex()
     {
         // studio indexing
-        if(!static::checkConnection()) return;
-        if(Tecnodesign_Cache::get('studio/indexing')) return;
-        Tecnodesign_Cache::set('studio/indexing', $t=TDZ_TIME, 20);
+        //if(!static::checkConnection()) return;
+        //if(Tecnodesign_Cache::get('studio/indexing')) return;
+        //Tecnodesign_Cache::set('studio/indexing', $t=TDZ_TIME, 20);
         foreach(static::$interfaces as $cn) {
             if($is = $cn::find(null, false)) {
                 foreach($is as $i=>$a) {

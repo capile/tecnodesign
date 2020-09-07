@@ -362,8 +362,8 @@ if(!($S=$H->getTableSchema('tdz_contents_display'))) {
         // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
         $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents where coalesce(show_at,\'\')<>\'\'';
         $r = tdz::query($q);
-        $e = tdzContentDisplay::$schema['events'];
-        tdzContentDisplay::$schema['events'] = array();
+        $e = Tecnodesign_Studio_ContentDisplay::$schema['events'];
+        Tecnodesign_Studio_ContentDisplay::$schema['events'] = array();
         if($r) {
             try {
                 foreach($r as $i=>$c) {
@@ -379,7 +379,7 @@ if(!($S=$H->getTableSchema('tdz_contents_display'))) {
                         $b['display'] = 1;
                         foreach($s as $l) {
                             $b['link'] = $l;
-                            $C = new tdzContentDisplay($b, true, true);
+                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
                             unset($l, $C);
                         }
                         unset($s);
@@ -389,7 +389,7 @@ if(!($S=$H->getTableSchema('tdz_contents_display'))) {
                         $b['display'] = 0;
                         foreach($s as $l) {
                             $b['link'] = $l;
-                            $C = new tdzContentDisplay($b, true, true);
+                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
                             unset($l, $C);
                         }
                         unset($s);
@@ -424,13 +424,13 @@ if(!($S=$H->getTableSchema('tdz_contents_display_version'))) {
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
 
-    if($content) {
+    if($contents) {
         // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
         $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents_version where coalesce(show_at,\'\')<>\'\'';
         $r = tdz::query($q);
-        $e = tdzContentDisplay::$schema['events'];
-        tdzContentDisplay::$schema['events'] = array();
-        tdzContentDisplay::$schema['tableName'] .= '_version';
+        $e = Tecnodesign_Studio_ContentDisplay::$schema['events'];
+        Tecnodesign_Studio_ContentDisplay::$schema['events'] = array();
+        Tecnodesign_Studio_ContentDisplay::$schema['tableName'] .= '_version';
         if($r) {
             try {
                 foreach($r as $i=>$c) {
@@ -446,7 +446,7 @@ if(!($S=$H->getTableSchema('tdz_contents_display_version'))) {
                         $b['display'] = 1;
                         foreach($s as $l) {
                             $b['link'] = $l;
-                            $C = new tdzContentDisplay($b, true, true);
+                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
                             unset($l, $C);
                         }
                         unset($s);
@@ -456,7 +456,7 @@ if(!($S=$H->getTableSchema('tdz_contents_display_version'))) {
                         $b['display'] = 0;
                         foreach($s as $l) {
                             $b['link'] = $l;
-                            $C = new tdzContentDisplay($b, true, true);
+                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
                             unset($l, $C);
                         }
                         unset($s);
@@ -522,4 +522,18 @@ if(!($S=$H->getTableSchema('tdz_credentials'))) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_Credential'";
     tdz::query($q);
+}
+
+
+if(!($S=$H->getTableSchema('z_index_interfaces'))) {
+    $H->create(Tecnodesign_Studio_IndexInterfaces::$schema);
+}
+if(!($S=$H->getTableSchema('z_index'))) {
+    $H->create(Tecnodesign_Studio_Index::$schema);
+}
+if(!($S=$H->getTableSchema('z_index_properties'))) {
+    $H->create(Tecnodesign_Studio_IndexProperties::$schema);
+}
+if(!($S=$H->getTableSchema('z_index_log'))) {
+    $H->create(Tecnodesign_Studio_IndexLog::$schema);
 }

@@ -17,7 +17,8 @@ class Tecnodesign_User
     public static 
         $timeout=0,             // session timeout in seconds
         $cfg, 
-        $hashType='sha256',     // hashing method
+        $hashType='ssha256',    // hashing method
+        $hashTypes=['sha256' ],  // alternative hash methods
         $usePhpSession=false,   // load/destroy user based on PHP session
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess,         // property to use when setting last access, set to false to disable
@@ -25,7 +26,8 @@ class Tecnodesign_User
         $cookieValidation='/^[a-z0-9\-\_]{20,40}$/i',
         $cookieSecure=true,
         $cookieHttpOnly=true,
-        $resetCookie=0.5;       // percentage of timeout to set a new cookie
+        $resetCookie=0.5,       // percentage of timeout to set a new cookie
+        $actions = [];          // force signin URLs
 
     const FORM_USER = 'user';
     const FORM_PASSWORD = 'pass';
@@ -702,16 +704,24 @@ class Tecnodesign_User
                     }
                     return true;
                 }
-
-            } else if(tdz::hash($key, $pass, static::$hashType)==$pass) {
-                // user authenticated
-                $this->_me = $U;
-                if(isset($this->_ns['properties'])) {
-                    $this->_map = $this->_ns['properties'];
+            } else {
+                $valid = (tdz::hash($key, $pass, static::$hashType)==$pass);
+                if(!$valid && static::$hashTypes) {
+                    foreach(static::$hashTypes as $t) {
+                        if($valid = (tdz::hash($key, $pass, $t)==$pass)) break;
+                    }
                 }
-                return true;
+                if($valid) {
+                    // user authenticated
+                    $this->_me = $U;
+                    if(isset($this->_ns['properties'])) {
+                        $this->_map = $this->_ns['properties'];
+                    }
+                    return true;
+                }
             }
         }
+
         return false;
     }
     
@@ -1061,14 +1071,20 @@ class Tecnodesign_User
     {
         if (is_string($o['redirect-success'])) {
             $url = $o['redirect-success'];
-        } else if(isset($_SERVER['HTTP_REFERER']) && substr($_SERVER['HTTP_REFERER'], 0, strlen(tdz::scriptName()))!=tdz::scriptName()) {
-            $url = $_SERVER['HTTP_REFERER'];
+        } else if(($ref=Tecnodesign_App::request('headers', 'referer')) && substr($ref, 0, strlen(tdz::scriptName()))!=tdz::scriptName()) {
+            $url = $ref;
         } else {
             $url = tdz::requestUri();
         }
         $s = (isset($o['app']))?($o['app']):('');
         $buttons = (isset($o['buttons']))?($o['buttons']):(array('submit'=>tdz::t('Sign in', 'ui')));
-        $action =  (isset($o['action']))?($o['action']):(tdz::getRequestUri());
+        if(isset($o['action'])) {
+            $action = $o['action'];
+        } else if(isset(static::$actions['signin'])) {
+            $action = (strpos(static::$actions['signin'], '$')!==false) ?tdz::expandVariables(static::$actions['signin']) :static::$actions['signin'];
+        } else {
+            $action = null;
+        }
 
         $f=array(
             'method'=>'post',
@@ -1095,8 +1111,9 @@ class Tecnodesign_User
             $o['form']->setLimits(['requests'=>static::MAX_ATTEMPTS, 'time'=>static::MAX_ATTEMPTS_TIMEOUT,'error-status'=>429]);
         }
 
+        $active = (!$action || preg_replace('/\?.*/', '', $action)===\tdz::scriptName(true));
 
-        if(($p=Tecnodesign_App::request('post')) && isset($p[static::FORM_USER]) && isset($p[static::FORM_PASSWORD])) {
+        if($active && ($p=Tecnodesign_App::request('post')) && isset($p[static::FORM_USER]) && isset($p[static::FORM_PASSWORD])) {
             if($o['form']->validate($p)) {
                 $d = $o['form']->data;
                 if($this->authenticate($d[static::FORM_USER], $d[static::FORM_PASSWORD])) {

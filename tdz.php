@@ -481,8 +481,13 @@ class tdz
         if(!is_array($a) && !is_object($a)) {
             if(preg_match_all('/\$(([A-Z0a-z-9\_]+\:\:)?[A-Z0a-z-9\_]+)/', $a, $m)) {
                 foreach($m[1] as $i=>$o) {
-                    if(defined($o)) {
-                        $a = str_replace($m[0][$i], constant($o), $a);
+                    $r = null;
+                    if(defined($o)) $r = constant($o);
+                    else if($o==='SCRIPT_NAME' || $o==='URL') $r = \tdz::scriptName();
+                    else if($o==='PATH_INFO') $r = \tdz::scriptName(true);
+                    else if($o==='REQUEST_URI') $r = tdz::requestUri();
+                    if(!is_null($r)) {
+                        $a = str_replace($m[0][$i], $r, $a);
                     }
                     unset($m[1][$i], $m[0][$i], $i, $o);
                 }
@@ -1103,6 +1108,14 @@ class tdz
             include $script_name;
             $tdzres.=ob_get_contents();
         };
+
+        if(isset($a['shell']) && $a['shell']) {
+            $output = [];
+            $ret = 0;
+            exec($a['shell'], $output, $ret);
+            if($ret===0) $tdzres.=implode("\n", $output);
+            unset($output, $ret);
+        }
 
         ob_end_clean();
 

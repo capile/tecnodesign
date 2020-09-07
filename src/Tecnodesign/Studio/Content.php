@@ -202,7 +202,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return parent::save($beginTransaction, $relations, $conn);
     }
 
-    public function render($display=false)
+    public function render($display=true)
     {
         /*
         if(!$this->hasPermission('preview')) {
@@ -223,21 +223,17 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             unset($attr[$n], $n, $v);
         }
         unset($attr);
-        $d = Tecnodesign_Studio::$app->tecnodesign['templates-dir'];
-        if(!is_array($d)) $d=array($d);
-        foreach($d as $dir) {
-            if(file_exists($tpl=$dir.'/tdz-contents-'.$type.'.php')) {
-                if(!isset($code['txt']) && isset($code[0])) {
-                    $code['txt']=$code[0];
-                    unset($code[0]);
-                }
-                $s = "<div{$a}>"
-                    . tdz::exec(array('script'=>$tpl, 'variables'=>$code))
-                    . '</div>';
-                return $s;
+        if($tpl=\tdz::templateFile('tdz-contents-'.$type)) {
+            if(!isset($code['txt']) && isset($code[0])) {
+                $code['txt']=$code[0];
+                unset($code[0]);
             }
-            unset($tpl, $dir);
+            $s = "<div{$a}>"
+                . tdz::exec(array('script'=>$tpl, 'variables'=>$code))
+                . '</div>';
+            return $s;
         }
+
         $ct = (isset(static::$contentType[$type]))?(static::$contentType[$type]):(array());
         $call = (isset($ct['class']) && class_exists($ct['class']))?(array($ct['class'])):(array($this));
         if(isset($ct['method']) && method_exists($call[0], $ct['method'])) {
@@ -271,6 +267,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         if(is_array($r)) {
             $r['before'] = "<div{$a}>";
             $r['after'] = "</div>";
+        } else {
+            $r = "<div{$a}>{$r}</div>";
         }
         return $r;
     }

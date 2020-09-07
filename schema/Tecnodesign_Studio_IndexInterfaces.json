@@ -1,6 +1,6 @@
 {
     "title": "*Index Interfaces",
-    "database": "studio-index",
+    "database": "studio",
     "tableName": "z_index_interfaces",
     "className": "Tecnodesign_Studio_IndexInterfaces",
     "properties": {

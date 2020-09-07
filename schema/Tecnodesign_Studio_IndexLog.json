@@ -1,6 +1,6 @@
 {
     "title": "*Index Log",
-    "database": "studio-index",
+    "database": "studio",
     "tableName": "z_index_log",
     "className": "Tecnodesign_Studio_IndexLog",
     "properties": {
