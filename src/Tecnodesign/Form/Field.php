@@ -1541,7 +1541,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $m = tdz::camelize('render-'.$this->id.'FormField');
             $M = $this->getModel();
             if(method_exists($M, $m)) {
-                $input = $M->$m($arg);
+                $input = $M->$m($arg, $this);
             }
             unset($M, $m);
         }
@@ -1555,6 +1555,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         if(!$input) {
             return $input;
+        }
+        if(is_array($input) && isset($input['input'])) {
+            $run['variables'] = $input + $run['variables'];
+            $input = $run['variables']['input'];
         }
         $tpl = ($this->template) ?tdz::templateFile($this->template) :null;
         if (!$tpl && isset($arg['template'])) {

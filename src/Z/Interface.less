@@ -937,8 +937,9 @@ input,select,textarea {
   background:#fff;
   border:none;
   border-bottom:1px solid @colorBorder;
-  width:100%;
+  width:99.9%;
 }
+
 input[type=text],input[type=search],input[type=url],input[type^=date] {
   text-indent: 0.25em;
 }
@@ -1188,14 +1189,14 @@ select, input {
   li {margin:0;padding:0;}
 }
 
-.tdz-i-error {
+.tdz-i-error, .z-i-error {
   color:@error;
   background: @error + #ccc;
   border:@borderSize solid @error;
   .border(0.25em);
   line-height:1em;
   margin:0;
-  padding:0.25em;
+  padding:0.5em;
 }
 
 .tdz-i-msg.tdz-m-inactive{
@@ -1356,18 +1357,18 @@ form .i-mono dd {
     overflow-x:visible;
   }
 }
-.ih1  > dd, .ih1  > .input, .ih1  > label > .input { min-height:@lh * 1  - @lh;max-height:@lh * 1  + @lh; textarea,select[multiple] { height:@lh * 1  + @lh * 0.5; } }
-.ih2  > dd, .ih2  > .input, .ih2  > label > .input { min-height:@lh * 2  - @lh;max-height:@lh * 2  + @lh; textarea,select[multiple] { height:@lh * 2  + @lh * 0.5; } }
-.ih3  > dd, .ih3  > .input, .ih3  > label > .input { min-height:@lh * 3  - @lh;max-height:@lh * 3  + @lh; textarea,select[multiple] { height:@lh * 3  + @lh * 0.5; } }
-.ih4  > dd, .ih4  > .input, .ih4  > label > .input { min-height:@lh * 4  - @lh;max-height:@lh * 4  + @lh; textarea,select[multiple] { height:@lh * 4  + @lh * 0.5; } }
-.ih5  > dd, .ih5  > .input, .ih5  > label > .input { min-height:@lh * 5  - @lh;max-height:@lh * 5  + @lh; textarea,select[multiple] { height:@lh * 5  + @lh * 0.5; } }
-.ih6  > dd, .ih6  > .input, .ih6  > label > .input { min-height:@lh * 6  - @lh;max-height:@lh * 6  + @lh; textarea,select[multiple] { height:@lh * 6  + @lh * 0.5; } }
-.ih7  > dd, .ih7  > .input, .ih7  > label > .input { min-height:@lh * 7  - @lh;max-height:@lh * 7  + @lh; textarea,select[multiple] { height:@lh * 7  + @lh * 0.5; } }
-.ih8  > dd, .ih8  > .input, .ih8  > label > .input { min-height:@lh * 8  - @lh;max-height:@lh * 8  + @lh; textarea,select[multiple] { height:@lh * 8  + @lh * 0.5; } }
-.ih9  > dd, .ih9  > .input, .ih9  > label > .input { min-height:@lh * 9  - @lh;max-height:@lh * 9  + @lh; textarea,select[multiple] { height:@lh * 9  + @lh * 0.5; } }
-.ih10 > dd, .ih10 > .input, .ih10 > label > .input { min-height:@lh * 10 - @lh;max-height:@lh * 10 + @lh; textarea,select[multiple] { height:@lh * 10 + @lh * 0.5; } }
-.ih15 > dd, .ih15 > .input, .ih15 > label > .input { min-height:@lh * 15 - @lh;max-height:@lh * 15 + @lh; textarea,select[multiple] { height:@lh * 15 + @lh * 0.5; } }
-.ih20 > dd, .ih20 > .input, .ih20 > label > .input { min-height:@lh * 20 - @lh;max-height:@lh * 20 + @lh; textarea,select[multiple] { height:@lh * 20 + @lh * 0.5; } }
+.ih1  > dd, .ih1  > .input, .ih1  > label > .input { min-height:@lh * 1  - @lh;max-height:@lh * 1  + @lh; textarea,select[multiple] { height:@lh * 1  + @lh * 0.25; } }
+.ih2  > dd, .ih2  > .input, .ih2  > label > .input { min-height:@lh * 2  - @lh;max-height:@lh * 2  + @lh; textarea,select[multiple] { height:@lh * 2  + @lh * 0.25; } }
+.ih3  > dd, .ih3  > .input, .ih3  > label > .input { min-height:@lh * 3  - @lh;max-height:@lh * 3  + @lh; textarea,select[multiple] { height:@lh * 3  + @lh * 0.25; } }
+.ih4  > dd, .ih4  > .input, .ih4  > label > .input { min-height:@lh * 4  - @lh;max-height:@lh * 4  + @lh; textarea,select[multiple] { height:@lh * 4  + @lh * 0.25; } }
+.ih5  > dd, .ih5  > .input, .ih5  > label > .input { min-height:@lh * 5  - @lh;max-height:@lh * 5  + @lh; textarea,select[multiple] { height:@lh * 5  + @lh * 0.25; } }
+.ih6  > dd, .ih6  > .input, .ih6  > label > .input { min-height:@lh * 6  - @lh;max-height:@lh * 6  + @lh; textarea,select[multiple] { height:@lh * 6  + @lh * 0.25; } }
+.ih7  > dd, .ih7  > .input, .ih7  > label > .input { min-height:@lh * 7  - @lh;max-height:@lh * 7  + @lh; textarea,select[multiple] { height:@lh * 7  + @lh * 0.25; } }
+.ih8  > dd, .ih8  > .input, .ih8  > label > .input { min-height:@lh * 8  - @lh;max-height:@lh * 8  + @lh; textarea,select[multiple] { height:@lh * 8  + @lh * 0.25; } }
+.ih9  > dd, .ih9  > .input, .ih9  > label > .input { min-height:@lh * 9  - @lh;max-height:@lh * 9  + @lh; textarea,select[multiple] { height:@lh * 9  + @lh * 0.25; } }
+.ih10 > dd, .ih10 > .input, .ih10 > label > .input { min-height:@lh * 10 - @lh;max-height:@lh * 10 + @lh; textarea,select[multiple] { height:@lh * 10 + @lh * 0.25; } }
+.ih15 > dd, .ih15 > .input, .ih15 > label > .input { min-height:@lh * 15 - @lh;max-height:@lh * 15 + @lh; textarea,select[multiple] { height:@lh * 15 + @lh * 0.25; } }
+.ih20 > dd, .ih20 > .input, .ih20 > label > .input { min-height:@lh * 20 - @lh;max-height:@lh * 20 + @lh; textarea,select[multiple] { height:@lh * 20 + @lh * 0.25; } }
 
 
 .i-text-pre, .i-text-code {

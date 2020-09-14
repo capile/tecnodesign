@@ -328,8 +328,9 @@ class Tecnodesign_Query_Sql
     public function addSelect($o)
     {
         if(is_null($this->_select)) $this->_select = array();
-
-        if(!is_string($o) || preg_match('/[-:]{2}/', $o)) {
+        if(is_array($o) && isset($o['bind'])) {
+            $o = $o['bind'];
+        } else if(!is_string($o) || preg_match('/[-:]{2}/', $o)) {
             $o = $this->scope($o);
         }
 

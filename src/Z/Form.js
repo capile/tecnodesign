@@ -37,7 +37,7 @@ function checkLabel(e)
         _Tl=setTimeout(checkLabel, 50);
         return;
     }
-    var L=document.querySelectorAll(Z.modules.CheckLabel), i=L.length, P, cn;
+    var L=('Form.CheckLabel' in Z.modules) ?document.querySelectorAll(Z.modules['Form.CheckLabel']) :[], i=L.length, P, cn;
     if(!i && _L.length>0) {
         L = _L;
         i=L.length;
@@ -99,9 +99,40 @@ function autoSubmit(e)
 {
     /*jshint validthis: true */
     Z.stopEvent(e);
-    if(this.form) this.form.submit(e);
+    if(this.form && this.form.getAttribute('data-do-not-submit')) return false;
+    else if(this.form) this.form.submit(e);
     else if(this.submit) this.submit(e);
     return false;
+}
+
+
+function formReload(e)
+{
+    /*jshint validthis: true */
+    Z.stopEvent(e);
+    if(this.form && !this.form.getAttribute('data-do-not-submit')) {
+        var data=Z.formData(this.form, true);
+        Z.ajax(this.form.getAttribute('action'), data, formReloadData, Z.error, 'html', this, {'z-action':'Form.Validate'});
+    }
+    return false;
+}
+
+function formReloadData(d)
+{
+    var F=(this.form) ?this.form :this, R=document.createElement('div');
+    R.innerHTML=d;
+    R=R.querySelector('form');
+    if(!F.parentNode || !R) return;
+    var l=this.getAttribute('data-do-not-reload'), L=(l) ?l.split(/\s*\,\s*/g) :[], i=L.length, S, T;
+    while(i--) {
+        if((S=F.querySelector('#'+L[i])) && (T=R.querySelector('#'+L[i]))) {
+            T.parentNode.replaceChild(S, T);
+        }
+    }
+    F.parentNode.replaceChild(R, F);
+    R.setAttribute('data-do-not-submit', '1');
+    Z.init(R);
+    R.removeAttribute('data-do-not-submit');
 }
 
 function initCleanup(o)
@@ -1396,6 +1427,7 @@ function Form(o)
 window['Z.Form.Form'] = Form;
 window['Z.Form.CheckLabel']=initCheckLabel;
 window['Z.Form.AutoSubmit']=initAutoSubmit;
+window['Z.Form.Reload']=formReload;
 
 if('Z.z-form' in window) {
     var i=window['Z.z-form'].length;

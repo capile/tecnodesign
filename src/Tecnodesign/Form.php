@@ -37,6 +37,7 @@ class Tecnodesign_Form implements ArrayAccess
             'captcha-level'=>0.75,  // after this threshold, display a captcha in addition to the rate limiting
             'error-status'=>null,   // http status to send when limit is reached, usually 429
             'accept-failed'=>null,  // whether the form data should be accepted if it fails 
+            'skip-actions'=>[],     // actions to skip in limit checking
         ];
 
     private $_uid;
@@ -204,10 +205,15 @@ class Tecnodesign_Form implements ArrayAccess
                 $this->limits['fields'][$fn]->setValue($salt);
             }
             $valid = true;
+            $action = (isset($this->limits['skip-actions'])) ?Tecnodesign_App::request('headers', 'z-action') :null;
             foreach($this->limits['keys'] as $k=>$ks) {
                 $ks = Tecnodesign_Cache::get('f-limit/'.$k, $timeout) +$add;
                 if(isset($ks[$pk]) && $ks[$pk][1]==0 && $ks[$pk][0] + $time >= $now) {
-                    $ks[$pk][1] = 1;
+                    if($action && in_array($action, $this->limits['skip-actions'])) {
+                        unset($ks[$pk]);
+                    } else {
+                        $ks[$pk][1] = 1;
+                    }
                     Tecnodesign_Cache::set('f-limit/'.$k, $ks, $timeout);
                 } else {
                     $valid = false;
@@ -527,12 +533,13 @@ class Tecnodesign_Form implements ArrayAccess
         if($this->getEnctype()==='multipart/form-data') {
             $values = tdz::postData($values);
         }
+        $req = (Tecnodesign_App::request('headers', 'z-action')==='Form.Validate');
         $values = tdz::fixEncoding($values);
         $valid = true;
         if(!$this->checkLimits($values)) {
             if(isset($this->limits['accept-failed']) && $this->limits['accept-failed']) {
                 $valid = false;
-            } else {
+            } else if(!$req) {
                 return false;
             }
         }
@@ -544,6 +551,9 @@ class Tecnodesign_Form implements ArrayAccess
                 $valid = false;
             }
             unset($fn, $fv);
+        }
+        if($req) {
+            \tdz::output((string)$this);
         }
         return $valid;
     }
