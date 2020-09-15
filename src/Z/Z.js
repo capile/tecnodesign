@@ -1067,7 +1067,7 @@ Z.l.pt.UploadInvalidFormat='O formato do arquivo não é suportado.';
 
 Z.l.en.add='Insert';
 Z.l.en.del='Remove';
-Z.l.en.Nothing='No options was selected for this query.';
+Z.l.en.Nothing='No records were found.';
 Z.l.en.Error404='The selected resource is not available (404 not found).';
 Z.l.en.Error504='The selected resource exceeded the response time limit (504 gateway error).';
 Z.l.en.Error='There was an error while processing this request. Please try again or contact support.';

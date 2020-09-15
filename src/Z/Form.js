@@ -191,6 +191,9 @@ function initDatalist(o)
     }
     Z.bind(t, 'change', datalistQueryTimeout);
     t.parentNode.className += ' tdz-input-search';
+    if(t.getAttribute('data-datalist-visible')) {
+        datalistQuery.call(t);
+    }
 }
 
 function datalistKeypress(e)
@@ -258,8 +261,9 @@ function datalistQuery(e)
     /*jshint validthis: true */
     var o=this, v=datalistVal(o), t=new Date().getTime(), focus=(e && ('type' in e) && e.type=='focus');
     if(_dq) clearTimeout(_dq);
-    if(v==o.getAttribute('data-datalist-q') || o.getAttribute('data-datalist-t')>t) {
-        if(!focus) {
+    if(o.getAttribute('data-datalist-visible') && !o.parentNode.querySelector('.tdz-datalist-container')) {
+    } else if(v==o.getAttribute('data-datalist-q') || o.getAttribute('data-datalist-t')>t) {
+        if(!focus || o.getAttribute('data-datalist-visible')) {
             return;
         }
     }
@@ -341,7 +345,7 @@ function datalistBlurTimeout()
 function datalistBlur(e)
 {
     /*jshint validthis: true */
-    if(document.activeElement && !Z.parentNode(document.activeElement, this.parentNode)) {
+    if(!this.getAttribute('data-datalist-visible') && document.activeElement && !Z.parentNode(document.activeElement, this.parentNode)) {
         datalistClear.apply(this);
     }
 }
@@ -399,7 +403,7 @@ function datalistRender(d)
         }
     }
     if(!p) {
-        p={e:'li',p:{className:'tdz-msg tdz-alert'},c:Z.l[Z.language].Nothing};
+        p={e:'li',p:{className:'z-i-msg z-i-alert'},c:Z.l[Z.language].Nothing};
         Z.element.call(c,p);
     }
     return _D;
@@ -412,6 +416,18 @@ function datalistOption()
     if(!o) return;
     o.setAttribute('data-datalist-t', new Date().getTime() + 1000);
     var v=this.getAttribute('data-value'),p=_D[id][v],b=this.getAttribute('data-prefix'), s=false,fo=o.form, e, n;
+    var url=o.getAttribute('data-datalist-link');
+    if(url) {
+        var m=url.match(/\$[a-z0-9\-]+/), mi=m.length, mp;
+        while(mi--) {
+            mp=m[mi].substr(1);
+            if(mp in p) {
+                url = url.replace(m[mi], encodeURIComponent(p[mp]));
+            }
+        }
+        window.location.href=url;
+        return;
+    }
     var dts=o.getAttribute('data-datalist-target'), dt={};
     if(dts) {
         var L=dts.split(/[\s\,\;]+/g), i=L.length;
@@ -1412,7 +1428,6 @@ function Form(o)
         Z.addPlugin('Cleanup', initCleanup, 'button.cleanup');
         Z.addPlugin('Omnibar', initOmnibar, 'input[data-omnibar]');
         Z.clearForm=clearForm;
-
         var n=Z.node(o, this);
         if(n) Z.init(n);
     }
