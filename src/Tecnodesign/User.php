@@ -27,7 +27,8 @@ class Tecnodesign_User
         $cookieSecure=true,
         $cookieHttpOnly=true,
         $resetCookie=0.5,       // percentage of timeout to set a new cookie
-        $actions = [];          // force signin URLs
+        $actions = [],          // force signin URLs
+        $fingerprint;
 
     const FORM_USER = 'user';
     const FORM_PASSWORD = 'pass';
@@ -112,6 +113,9 @@ class Tecnodesign_User
                     $ckey = "user/{$ns}-{$cookie}";
                     $last = Tecnodesign_Cache::lastModified($ckey, $timeout, $storage);
                     $this->_me = Tecnodesign_Cache::get($ckey, 0, $storage);
+                    if($this->_me && !$this->checkFingerprint($cookie, $nso, $storage, $timeout)) {
+                        $this->_me = false;
+                    }
                     $this->_session = null;
                     $loc = (isset($nso['storage-location']))?($nso['storage-location']):(ini_get('session.save_path'));
                     if($loc) {
@@ -260,6 +264,34 @@ class Tecnodesign_User
             unset($t, $fn);
         }
         return $this->lastAccess;
+    }
+
+    public function checkFingerprint($sid=null, $nso=null, $storage=null, $timeout=null)
+    {
+        if(!$sid) $sid=$this->getSessionId(false);
+        if(!$sid || !isset(static::$fingerprint)) return true;
+        if($nso && !is_array($nso)) {
+            if(isset(static::$cfg['ns'][$nso])) {
+                if(static::$cfg['ns'][$nso]['id']!=$nso)static::$cfg['ns'][$nso]['id']=$nso;
+                $nso = static::$cfg['ns'][$nso];
+            } else {
+                $nso = null;
+            }
+        }
+        if(!$storage) $storage = (isset($this->_ns['storage']))?($this->_ns['storage']):($this->_storage);
+        if(is_null($timeout)) $timeout = (isset($nso['timeout']))?($nso['timeout']):(static::$timeout);
+        $fkey = "fpr/{$sid}";
+        if($this->_me && is_object($this->_me)) {
+            $fprk = static::$fingerprint;
+            $fpru=$this->_me->$fprk;
+            $fpr = Tecnodesign_Cache::get($fkey, 0, $storage);
+            if(!$fpr) {
+                Tecnodesign_Cache::set($fkey, $fpru, $timeout, $storage);
+            } else if($fpr!=$fpru) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public function setObject($nso=false, $me=null, $store=true, $timeout=null)
@@ -422,7 +454,7 @@ class Tecnodesign_User
             }
         }
         if(count($msgs)>1) {
-            krsort($msgs);
+            ksort($msgs);
         }
         foreach($msgs as $t=>$s) {
             if($s) $msg .= '<div class="tdz-msg" data-created="'.date('Y-m-d\TH:i:s Z', $t).'">'.$s.'</div>';
@@ -598,9 +630,17 @@ class Tecnodesign_User
         if(is_null($storage) && isset($this->_ns['storage'])) {
             $storage = $this->_ns['storage'];
         }
-        $ckey = "user/{$this->_ns['id']}-".$this->getSessionId(true);
+        $sid = $this->getSessionId(true);
+        $ckey = "user/{$this->_ns['id']}-".$sid;
+        $fkey = 'fpr/'.$sid;
         $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         Tecnodesign_Cache::set($ckey, $this->_me, $timeout, $storage);
+        if(isset(static::$fingerprint) && is_object($this->_me)) {
+            $fprk = static::$fingerprint;
+            $fpru=$this->_me->$fprk;
+            Tecnodesign_Cache::set($fkey, $fpru, $timeout, $storage);
+        }
+
         self::$_current = $this;
         
         return true;
@@ -627,7 +667,8 @@ class Tecnodesign_User
         if($this->_cid) {
             $ckey = "user/{$this->_ns['id']}-{$this->_cid}";
             Tecnodesign_Cache::delete($ckey, $storage);
-            Tecnodesign_Cache::delete("user/attr-".$this->_cid);
+            Tecnodesign_Cache::delete("user/attr-{$this->_cid}");
+            Tecnodesign_Cache::delete("fpr/{$this->_cid}");
             $this->_cid = tdz::hash(microtime(true), null, 20);
             $this->_me = null;
             //$n = $this->getSessionId();
