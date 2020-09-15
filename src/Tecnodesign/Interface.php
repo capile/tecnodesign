@@ -3214,6 +3214,7 @@ class Tecnodesign_Interface implements ArrayAccess
         while($scopes-- > 0) {
             foreach($scope as $k=>$fn) {
                 $label = $k;
+                $fd0 = null;
                 if(is_array($fn)) {
                     $fd0 = $fn;
                     if(isset($fd0['bind'])) {
@@ -3231,26 +3232,23 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(is_int($label)) $label = $cn::fieldLabel($fn);
                 $fd = $cn::column($fn, true, true);
                 if(!$fd) {
-                    if(isset($fd0)) {
-                        $fd = $fd0;
-                        unset($fd0);
-                    } else {
-                        $fd = array('type'=>'text');
-                    }
-                } else if(isset($fd0)) {
-                    $fd = array_merge((array)$fd, $fd0);
-                    unset($fd0);
+                    $fd = array('type'=>'text');
                 }
-                if(!isset($fd['type'])) $fd['type']='string';
+                if(isset($fd0)) {
+                    if(isset($fd0['type']) && !isset($fd0['format'])) $fd0['format'] = $fd0['type'];
+                    $fd = $fd0 + (array)$fd;
+                }
+                unset($fd0);
                 $slug=tdz::slug($label);
                 $fns[$slug]=$fn;
+                if(!isset($fd['type'])) $fd['type']='string';
+                if(!isset($fd['format'])) $fd['format'] = $fd['type'];
+                $type = $fd['format'];
 
-                if($fd['type']==='string' && isset($fd['format']) && substr($fd['format'],0,4)=='date' || substr($fd['type'], 0, 4)=='date') {
-                    if(!isset($fd['format'])) $fd['format'] = $fd['type'];
-                    $type = ($fd['type']==='string') ?$fd['format'] :$fd['type'];
+                if(substr($type,0,4)=='date') {
                     $fo['fields'][$slug.'-0']=array(
-                        'type'=>$type,
-                        'format'=>$fd['format'],
+                        'type'=>'string',
+                        'format'=>$type,
                         'label'=>$label,
                         'id'=>$slug.'-0',
                         'placeholder'=>static::t('From'),
@@ -3258,8 +3256,8 @@ class Tecnodesign_Interface implements ArrayAccess
                         'class'=>'tdz-search-input tdz-date tdz-date-from tdz-'.$type.'-input',
                     );
                     $fo['fields'][$slug.'-1']=array(
-                        'type'=>$type,
-                        'format'=>$fd['format'],
+                        'type'=>'string',
+                        'format'=>$type,
                         'label'=>'',
                         'id'=>$slug.'-1',
                         'placeholder'=>static::t('To'),
@@ -3289,15 +3287,15 @@ class Tecnodesign_Interface implements ArrayAccess
                     }
                 } else if(isset($fd['choices'])) {
                     $ff[$slug]='choices';
-                    if(!isset($fd['type']))$fd['type']='checkbox';
-                    $type = ($fd['type']!='select')?($fd['type']):('select');
-
-                    if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className']))
+                    if(!in_array($type, ['select', 'checkbox', 'radio'])) $type = 'checkbox';
+                    if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className'])) {
                         $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
-                    else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($cn, $m)) $fd['choices']=$cn::$m();
+                    } else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($cn, $m)) {
+                        $fd['choices']=$cn::$m();
+                    }
 
                     $fo['fields'][$slug]=array(
-                        'type'=>$type,
+                        'format'=>$type,
                         'choices'=>$fd['choices'],
                         'multiple'=>((isset($fd['multiple']) && $fd['multiple']) || $type=='checkbox'),
                         'label'=>$label,
@@ -3307,11 +3305,11 @@ class Tecnodesign_Interface implements ArrayAccess
                     );
                     if(isset($fd['attributes'])) $fo['fields'][$slug]['attributes'] = $fd['attributes'];
                     if(isset($post[$slug])) $active=true;
-                } else if($fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
+                } else if($type=='bool' || $fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
                     if(!isset($cb))
                         $cb=array('1'=>static::t('Yes'), '-1'=>static::t('No'));
                     $fo['fields'][$slug]=array(
-                        'type'=>'checkbox',
+                        'format'=>'checkbox',
                         'choices'=>$cb,
                         'label'=>$label,
                         'multiple'=>true,
@@ -3328,7 +3326,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 } else if($noq || (isset($fd['filter']) && $fd['filter'])) {
                     $ff[$slug]='choices';
                     $fo['fields'][$slug]=array(
-                        'type'=>'text',
+                        'format'=>'text',
                         'size'=>'200',
                         'label'=>$label,
                         'fieldset'=>$fieldset,
@@ -3343,7 +3341,7 @@ class Tecnodesign_Interface implements ArrayAccess
                             $fo['fields'] = ['_omnibar'=>$fo['fields']['_omnibar'], 'q'=>[],'w'=>[]] + $fo['fields'];
                         }
                         $fo['fields']['q']=array(
-                            'type'=>'string',
+                            'format'=>'text',
                             'size'=>'200',
                             'label'=>'',
                             'placeholder'=>static::t('Search for'),
