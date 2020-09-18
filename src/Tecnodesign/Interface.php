@@ -1464,7 +1464,7 @@ class Tecnodesign_Interface implements ArrayAccess
             if($id===true || (tdz::isempty($id) && isset($A['identified']) && $A['identified'])) {
                 $id = $this->id;
             }
-            if(!tdz::isempty($id)) $url .= '/'.$id;
+            if(!tdz::isempty($id)) $url .= '/'.rawurlencode($id);
         } else if(!tdz::isempty($this->params)) {
             $url .= '/'.$this->params;
         }
@@ -1545,7 +1545,7 @@ class Tecnodesign_Interface implements ArrayAccess
         if(is_null($this->parent) && $this->action!='list' && ($uid=Tecnodesign_App::request('get', '_uid'))) {
             if(!$this->search) $this->search=array();
             $pk = $cn::pk();
-            $rq = explode(',', $uid);
+            $rq = (is_array($this->key)) ?explode(Tecnodesign_Model::$keySeparator, $uid, count($this->key)) :[$uid];
             if(is_array($pk) && count($pk)>1) {
                 foreach($rq as $i=>$o) {
                     if(!isset($pk[$i])) {
@@ -3346,7 +3346,8 @@ class Tecnodesign_Interface implements ArrayAccess
                             'label'=>'',
                             'placeholder'=>static::t('Search for'),
                             'fieldset'=>$fieldset,
-                            'class'=>'tdz-search-input'
+                            'class'=>'tdz-search-input',
+                            'attributes'=>['data-always-send'=>1],
                         );
                     } else {
                         if(!isset($fo['fields']['w'])) {

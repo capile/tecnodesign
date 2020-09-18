@@ -699,7 +699,7 @@ function uploadFile(file, U)
     };
 
     reader.onload = function(e) {
-        var d = { _upload: { id: U.target.id, uid: U.id, file: file.name, start: loaded, end: loaded+step, total: total, data: e.target.result, index: i++ }  };
+        var d = { _upload: { id: U.target.id, uid: U.id, uploader: U.target.getAttribute('data-uploader-id'), file: file.name, start: loaded, end: loaded+step, total: total, data: e.target.result, index: i++ }  };
         loaded += step;
         if(U.target.name.indexOf('[')) {
             var n=U.target.name, t=d, p=n.indexOf('['), m;
@@ -707,9 +707,14 @@ function uploadFile(file, U)
                 m=n.substr(0,p+1).replace(/[\[\]]+/, '');
                 n=n.substr(p+1);
                 p=n.indexOf('[');
-                if(p>-1) t[m]={};
-                else t[m]=0;
+                t[m]={};
                 t=t[m];
+                if(p<=-1) {
+                    m = n.substr(0, n.length -1);
+                    t[m]=0;
+                    t=null;
+                    break;
+                }
             }
         }
         //progress.value = (loaded/total) * 100;

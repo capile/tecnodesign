@@ -131,6 +131,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($val!='') {
             $this->setValue($val);
         }
+
+        $Type = \tdz::camelize(($this->format) ?$this->format :$this->type, true);
+        if($Type && method_exists($this, $m='preCheck'.$Type)) {
+            $this->$m();
+        }
+        unset($Type, $m);
+
     }
 
     public function setForm($F)
@@ -266,7 +273,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($type=='') {
             $type = 'text';
         }
-        if(!method_exists($this, 'render'.ucfirst($type))) {
+        if(!method_exists($this, 'render'.\tdz::camelize($type, true))) {
             throw new Tecnodesign_Exception(array(tdz::t('Field type "%s" is not available.'), $type));
         }
         $this->type = $type;
@@ -561,12 +568,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $sid = $scope = (!$this->scope)?('subform'):($this->scope);
         $errors=[];
 
-        if(!isset($schema['relations'][$this->bind]) && $this->choices && is_string($this->choices) && isset($schema['relations'][$this->choices]) && $schema['relations'][$this->choices]['local']==$this->bind) {
+        if(!isset($schema->relations[$this->bind]) && $this->choices && is_string($this->choices) && isset($schema->relations[$this->choices]) && $schema->relations[$this->choices]['local']==$this->bind) {
             $this->bind = $this->choices;
             $this->choices=null;
         }
-        if($this->bind && isset($schema['relations'][$this->bind])) {
-            $rel = $schema['relations'][$this->bind];
+        if($this->bind && isset($schema->relations[$this->bind])) {
+            $rel = $schema->relations[$this->bind];
             $R = $this->getValue();
             if(!$R) {
                 $R = $M->getRelation($this->bind, null, null, false);
@@ -587,7 +594,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 return $value;
             }
             $add=array();
-            if($this->bind && isset($schema['relations'][$this->bind])) {
+            if($this->bind && isset($schema->relations[$this->bind])) {
                 if(isset($rel['params'])) {
                     $add = $rel['params'];
                 }
@@ -613,6 +620,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     }
                     $this->toAdd[$this->bind]=$add;
                 }
+
                 $vcount = count($value);
             }
             $new = ($M->isNew())?($rel['foreign']):(false);
@@ -817,13 +825,18 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return $value;
     }
 
-    public function checkFile($value=false, $message='')
+    public function preCheckFile()
     {
-        // check ajax uploader
-        if(Tecnodesign_App::request('headers', 'z-action')==='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['id']==$this->getId()) {
+        if(!isset($this->accept['uploader']) || !$this->accept['uploader']) return;
+
+        $uid = Tecnodesign_Form::userToken();
+        if(!isset($this->attributes['data-uploader-id']) || !$this->attributes['data-uploader-id']) {
+            $this->attributes['data-uploader-id'] = tdz::compress64($uid.':'.$this->_className.':'.$this->id);
+        }
+
+        if(Tecnodesign_App::request('headers', 'z-action')==='Upload' && ($upload=Tecnodesign_App::request('post', '_upload')) && $upload['uploader']==$this->attributes['data-uploader-id']) {
             static $timeout = 60;
             // check id
-            $U=tdz::getUser();
 
             /**
              $upload = [
@@ -848,7 +861,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
             }
 
-            $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$U->getSessionId().':'.preg_replace('/(ajax|_index)=[0-9]+/', '', tdz::requestUri()));
+            $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$uid.':'.preg_replace('/(ajax|_index)=[0-9]+/', '', tdz::requestUri()));
             $size = $upload['end'] - $upload['start'];
             if(!($u=Tecnodesign_Cache::get($ckey, $timeout))) {
                 $f = tempnam(self::$tmpDir, $ckey);
@@ -911,6 +924,31 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
             tdz::output($R, 'json');
         }
+
+    }
+
+    public function checkFile($value=false, $message='')
+    {
+        // check ajax uploader
+        if(is_string($value) && preg_match('/^ajax:([^\|]+)/', $value, $m)) {
+            $uid = $m[1];
+            unset($m);
+            if(($u=Tecnodesign_Cache::get($uid)) && (file_exists($u['file']))) {
+                $value = [
+                    'tmp_name'  => $u['file'],
+                    'error'     => 0,
+                    'name'      => $u['name'],
+                    'size'      => $u['size'],
+                    'type'      => tdz::fileFormat($u['name']),
+                    'ajax'      => true,
+                ];
+                if(!$value['type']) $value['type'] = tdz::fileFormat($u['file']);
+                Tecnodesign_Cache::delete($uid);
+            } else {
+                throw new Tecnodesign_Exception(tdz::t('Could not read uploaded file.', 'exception'));
+            }
+        }
+
         if(is_array($value)){
             if(isset($value['name'])) {
                 $value = array($value);
@@ -961,19 +999,18 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     } else if(isset($upload['_']) && substr($upload['_'], 0, 5)=='ajax:') {
                         $uid = substr($upload['_'], 5, strpos($upload['_'], '|') -5);
 
-                        if($u=Tecnodesign_Cache::get($uid)) {
-                            if(file_exists($u['file'])) {
-                                $upload['tmp_name'] = $u['file'];
-                                $upload['error'] = 0;
-                                $upload['name'] = $u['name'];
-                                $upload['size'] = $u['size'];
-                                $upload['type'] = tdz::fileFormat($u['name']);
-                                if(!$upload['type']) $upload['type'] = tdz::fileFormat($u['file']);
-                                $upload['ajax'] = true;
-                            }
+                        if(($u=Tecnodesign_Cache::get($uid)) && file_exists($u['file'])) {
+                            $upload['tmp_name'] = $u['file'];
+                            $upload['error'] = 0;
+                            $upload['name'] = $u['name'];
+                            $upload['size'] = $u['size'];
+                            $upload['type'] = tdz::fileFormat($u['name']);
+                            if(!$upload['type']) $upload['type'] = tdz::fileFormat($u['file']);
+                            $upload['ajax'] = true;
                             Tecnodesign_Cache::delete($uid);
+                        } else {
+                            throw new Tecnodesign_Exception(tdz::t('Could not read uploaded file.', 'exception'));
                         }
-                        unset($U);
                     }
                     /**
                      * Result should be [disk-name]|[user-name]
@@ -1173,18 +1210,17 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $this->rules=array();
         }
         $rules = array();
-        $type = ($this->format) ?$this->format :$this->type;
-        $m = ucfirst($type);
-        if (method_exists($this, 'check'.$m)) {
-            $rules[$type]=static::$defaultErrorMessage;
+        $m = null;
+
+        if($this->format && method_exists($this, tdz::camelize('check-'.$this->format))) {
+            $rules[$this->format]=static::$defaultErrorMessage;
+            $m = ucfirst($this->format);
+        }
+        if($this->type && $this->format!=$this->type && method_exists($this, tdz::camelize('check-'.$this->type))) {
+            $rules[$this->type]=static::$defaultErrorMessage;
+            if(!$m) $m = ucfirst($this->type);
         }
 
-        if($this->format && $this->type && $this->format!=$this->type) {
-            $m = ucfirst($this->type);
-            if (method_exists($this, 'check'.$m)) {
-                $rules[$this->type]=static::$defaultErrorMessage;
-            }
-        }
         if($m!='None') {
             if($this->required) {
                 $rules['required']='"%s" is mandatory and should not be blank.';
@@ -1273,7 +1309,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
      */
     public function parseValue($value=false)
     {
-        if(substr($this->type, 0, 4)=='date') {
+        $type = ($this->format) ?$this->format :$this->type;
+        if(substr($type, 0, 4)=='date') {
             if(is_array($value)) {
                 ksort($value);
                 $value = implode('-', $value);
@@ -1303,13 +1340,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
             }
         }
-        if(is_array($value) && $this->type=='file') {
+        if(is_array($value) && $type=='file') {
             $value = $this->checkFile($value);
         }
         if($this->multiple) {
             if(is_array($value)) $value = array_filter($value, ['tdz','notEmpty']);
             if(tdz::isempty($value)) $value = null;
-        } else if($this->type!='form') {
+        } else if($type!='form') {
             if(is_array($value)) {
                 $value = ($this->serialize)?(tdz::serialize($value, $this->serialize)):(tdz::implode($value));
             } else if($value===false) {
@@ -1381,9 +1418,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     try {
                         $m = $this->getModel();
                         $cn = get_class($m);
-                        if(isset($cn::$schema['relations'][$choices])) {
-                            //if(isset($cn::$schema['relations'][$choices]['className'])) {
-                            //    $choices = $cn::$schema['relations'][$choices]['className'];
+                        if(isset($cn::$schema->relations[$choices])) {
+                            //if(isset($cn::$schema->relations[$choices]['className'])) {
+                            //    $choices = $cn::$schema->relations[$choices]['className'];
                             //}
                             $r = $m->getRelation($choices);
                         }
@@ -1545,9 +1582,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             unset($M, $m);
         }
-        $type = ($this->format) ?$this->format :$this->type;
+        $Type = \tdz::camelize(($this->format) ?$this->format :$this->type, true);
         if(!$input) {
-            $m = 'render' . ucfirst($type);
+            $m = 'render' . $Type;
             if (!method_exists($this, $m)) {
                 $m = 'renderText';
             }

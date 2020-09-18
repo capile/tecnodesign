@@ -840,7 +840,7 @@ Z.formData=function(f, includeEmpty, returnObject)
 
                 v = Z.val(f.elements[i]);
                 if(nt=='checkbox' || nt=='radio') skip[n]=true;
-                if(v!==null && (v || includeEmpty)) {
+                if(v!==null && (v || includeEmpty || f.elements[i].getAttribute('data-always-send'))) {
                     if((n in d) && n.substr(-2)=='[]') {
                         if(typeof(d[n])=='string') d[n]=[d[n]];
                         d[n].push(v);

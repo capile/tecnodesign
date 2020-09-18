@@ -147,6 +147,17 @@ class Tecnodesign_Form implements ArrayAccess
         Tecnodesign_App::$assets[] = static::$assets;
     }
 
+    public static function userToken($key='form-token')
+    {
+        $U = tdz::getUser();
+        $uid = $U->getAttribute($key);
+        if(!$uid) {
+            $uid = tdz::salt();
+            $U->setAttribute($key, $uid);
+            $U->store();
+        }
+    }
+
     /**
      * Rate limiting configuration
      *
