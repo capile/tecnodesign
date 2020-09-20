@@ -2275,7 +2275,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     }
                     $s .= '<a href="'.$asort.'"'.$attrs.'>'.$label.'</a>';
                 } else {
-                    $s .= $label;
+                    $s .= '<a>'.$label.'</a>';
                 }
 
                 $s .= '</th>';
