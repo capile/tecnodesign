@@ -3,3 +3,9 @@ Sign in: "Entrar"
 Account: "Conta"
 Username: "Apelido"
 Password: "Senha"
+'&#8592; previous': '← anterior'
+'next &#8594;': 'próximo →'
+last: fim
+first: início
+Clear selection: Limpar seleção
+Select all: Selecionar todos

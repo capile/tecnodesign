@@ -18,11 +18,14 @@ labelPreview: Visualizar
 labelUpdate: Editar
 labelPublish: Publicar
 labelDelete: Remover
+labelList: Consultar
+labelReport: Relatório
 Search: Consultar
 buttonNew: Criar
 buttonUpdate: Atualizar
 or: ou
 'Yes': Sim
 'No': Não
-
-
+Search options: Opções de consulta
+Search for: Consultar por
+Search at: Consultar em

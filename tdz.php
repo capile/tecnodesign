@@ -1332,7 +1332,7 @@ class tdz
         );
         foreach($tpl as $k=>$v) {
             if(substr($v, 0, 1)=='*') {
-                $tpl[$k]=tdz::t(substr($v,1));
+                $tpl[$k]=tdz::t(substr($v,1), 'ui');
             }
         }
         if ($pager['last-page'] > 1) {
