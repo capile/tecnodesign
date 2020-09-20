@@ -90,7 +90,7 @@ class Tecnodesign_Form implements ArrayAccess
 
         $this->fields = new arrayObject();
         if (isset($formConfig['fields'])) {
-            $last = '';
+            $last = null;
             foreach ($formConfig['fields'] as $fieldName => $fieldDefinition) {
                 if (is_string($fieldDefinition)) {
                     if (!isset($before)) {
@@ -127,7 +127,7 @@ class Tecnodesign_Form implements ArrayAccess
                 unset($formConfig['fields'][$fieldName], $fieldDefinition);
             } // endforeach ($def['fields'] as $fieldName => $fieldDefinition)
 
-            if (isset($before)) {
+            if ($last && isset($before)) {
                 $this->fields[$last]->after .= $before;
                 unset($before);
             }

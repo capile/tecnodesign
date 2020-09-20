@@ -31,14 +31,15 @@
 @iconPdf:      '\f1c1';
 @iconVideo:    '\f03d';
 @iconReload:   '\f021';
+@iconSubmit:   '\f00c';
 
 @borderSize: 0.1em;
 
-@msg: #369;
+@msg: #039;
 @msgBackground: #def;
 @error: #900;
-@borderRadius: 0.5em;
-@tabSpacing: 0.1em;
+@borderRadius: 0;
+@tabSpacing: 1px;
 @link: #039;
 @visited: #309;
 @hover: #ff8000;
@@ -47,54 +48,61 @@
 @bigScreenBreakPoint: 1280px;
 @lh: 1.5em;
 
-@colorTab: #903;
-@colorTabText: #eee;
-@colorTabShade: #903;
-@colorTabActive: #f09;
-@colorTabActiveText: #fff;
-@colorTabActiveShade: #f09;
+@color1: #0cf;
+@color2: #f09;
+@colorBackground: #ddd;
+@colorForeground: #555;
 
-@colorHeading: @colorTabActive;
-@colorHeadingText: @colorTabActiveText;
 
-@colorButton: (@colorTab *0.1) + #d6d6d6;
-@colorButtonText: @colorTabText;
-@colorButtonSubmit: @colorTabActive;
-@colorButtonSubmitText: @colorTabActiveText;
-@colorButtonActive: @colorTabActive + #111;
-@colorButtonSubmitActiveText: @colorTabActiveText;
-@colorButtonSubmitActive: @colorTabActive + #111;
-@colorButtonActiveText: @colorTabActiveText;
+@colorBody: @colorBackground;
+@colorHeader: linear-gradient(to bottom, transparent 0,transparent 2em,@color1 2em,@color1 100%);
+@colorHeaderBorder: @color1;
+@headerBorder: 0.2em;
+@headerMargin: 1em;
 
 @colorHighlight: #fd9;
 @colorActive: #ff8000;
-@color: #eee;
+@color: #f0f3f6;
 @colorText: #000;
 @colorBorder: #aaa;
-@colorSummary: #111;
-@colorSummaryText: #fff;
+@colorSummary: @color;
+@colorSummaryText: @colorText;
+
+@colorTab: @colorBackground;
+@colorTabText: @colorForeground;
+@colorTabShade: @colorBackground - #111;
+@colorTabActive: @color1;
+@colorTabActiveText: #fff;
+@colorTabActiveShade: @color1 - #111;
+
+@colorHeading: @color1 - #222;
+@colorHeadingText: @colorTabActiveText;
+
+@colorButton: @colorBackground - #111;
+@colorButtonText: @colorForeground;
+@colorButtonSubmit: @colorTabActive;
+@colorButtonSubmitText: @colorTabActiveText;
+@colorButtonActive: (@colorTab * 0.7) + (@colorTabActive * 0.3);
+@colorButtonActiveText: @colorForeground - #222;
+@colorButtonSubmitActive: @colorTabActive - #333;
+@colorButtonSubmitActiveText: @colorTabActiveText;
 
 /* navigation bar */
-@labelNavigation: ' ';
-@colorNavigationTab: #666;
-@colorNavigationTabText: #eee;
-@colorNavigation: #444;
+@labelNavigation: 'Studio';
+@colorNavigation: @colorBackground;
 @colorNavigationSub: rgba(0,0,0,0.05);
-@colorNavigationText: #def;
-@colorNavigationLink: @colorNavigationText + #111;
-@colorNavigationVisited: @colorNavigationText - #111;
-@colorNavigationActive: @colorActive;
-@colorNavigationCurrent: @colorActive;
+@colorNavigationText: @color2;
+@colorNavigationLink: @colorForeground;
+@colorNavigationVisited: @colorForeground + #111;
+@colorNavigationActive: @color2;
+@colorNavigationCurrent: @color2;
 
 @colorBreadcrumbs: @colorSummary;
 @colorBreadcrumbsText: @colorSummaryText;
 @colorBreadcrumbsLink: @link;
 
-@colorToggler: #eee;
-@colorTogglerActive: #ff8000;
-
-@colorBody: #fff;
-@colorHeader: linear-gradient(to bottom, transparent 0,transparent 2em,@colorTab 2em,@colorTab 100%);
+@colorToggler: @color2;
+@colorTogglerActive: @color2;
 
 @colorActionsMenu: #fff - (@colorSummary);
 @colorActionsMenuActive: #444;

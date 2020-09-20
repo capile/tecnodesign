@@ -95,7 +95,7 @@ $nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interfac
             else if(isset($options['before'])) echo \tdz::markdown($options['before']);
 
 
-            ?><div class="tdz-i-summary z-i--<?php echo $Interface['action']; ?>"><?php
+            ?><div class="z-i-summary z-i--<?php echo $Interface['action']; ?>"><?php
 
                 if(isset($summary)) {
                     echo $summary;

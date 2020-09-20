@@ -25,7 +25,7 @@ if(isset($script)) {
         $js .= tdz::minify($script);
     }
     $nonce = base64_encode(openssl_random_pseudo_bytes(10));
-    header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' data:; script-src 'nonce-{$nonce}' 'strict-dynamic' 'self'; form-action 'self'; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src https:; frame-ancestors 'none'; base-uri 'self'");
+    header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' data:; script-src 'nonce-{$nonce}' 'strict-dynamic'; form-action 'self'; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src https:; frame-ancestors 'none'; base-uri 'self'");
     $js = str_replace('<script', '<script nonce="'.$nonce.'"', $js);
     $script = $js;
     unset($js);
@@ -47,6 +47,7 @@ if(isset($style)) {
     $style = $css;
     unset($css);
 }
+
 
 if(!isset($content) && isset($data) && isset($slots) && class_exists('tdzEntry')) {
     $content = '';

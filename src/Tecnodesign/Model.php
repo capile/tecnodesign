@@ -2152,11 +2152,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $start = (isset($o['start']))?($o['start']):($i);
         $max = (isset($o['hits']))?($o['hits']):(20);
 
+        $sf = null;
         if(isset(tdz::$variables['Interface']) && is_object(tdz::$variables['Interface'])) {
             $I = tdz::$variables['Interface'];
             $sf = Tecnodesign_App::request('get', $I::REQ_ORDER);
             if(strpos($sf, ',')) $sf = substr($sf, 0, strpos($sf, ','));
-            if(substr($sf, 0, 1)=='!') {
+            if($sf && substr($sf, 0, 1)=='!') {
                 $sd = 'desc';
                 $sf = substr($sf,1);
             } else {
@@ -2245,19 +2246,39 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
                 if(isset($I)) {
                     $sc = $label;
-                    $soa = $I::REQ_ORDER.'='.$sc;
-                    $sod = $I::REQ_ORDER.'=!'.$sc;
+                    $soa = $I::REQ_ORDER.'='.rawurlencode($sc);
+                    $sod = $I::REQ_ORDER.'=!'.rawurlencode($sc);
                 } else {
                     $sc = $so;
-                    $soa = 'o='.$so.'&d=asc';
-                    $sod = 'o='.$so.'&d=desc';
+                    $soa = 'o='.urlencode($so).'&d=asc';
+                    $sod = 'o='.urlencode($so).'&d=desc';
                 }
                 $s .= '<th class="c-'.$so.' f-'.$fid.(($sc==$sf)?(' ui-order ui-order-'.$sd):('')).'">'
                     . ((isset($first) && $checkbox==='checkbox')?('<input type="checkbox" data-callback="toggleInput" label="'.tdz::t('Select all', 'ui').'" data-label-alternative="'.tdz::t('Clear selection', 'ui').'" />'):(''))
-                    . $label
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$soa).'" class="z-i--up icon asc"></a>'):(''))
-                    . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$sod).'" class="z-i--down icon desc"></a>'):(''))
-                    . '</th>';
+                    ;
+                if($sort && isset($o['show-sort-icons']) && $o['show-sort-icons']) {
+                    $s .= $label
+                        . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$soa).'" class="z-i--up icon asc"></a>'):(''))
+                        . (($sort)?('<a href="'.tdz::scriptName().$ext.tdz::xml($qsb.$sod).'" class="z-i--down icon desc"></a>'):(''))
+                        ;
+                } else if($sort) {
+                    $attrs = '';
+                    $asort =  tdz::scriptName().$ext.tdz::xml($qsb.$soa);
+                    if($sf==$sc) {
+                        $label = '<strong>'.$label.'</strong>';
+                        if($sd=='asc') {
+                            $asort = tdz::scriptName().$ext.tdz::xml($qsb.$sod);
+                            $attrs = ' class="z-i--up z-icon-right asc"';
+                        } else {
+                            $attrs = ' class="z-i--down z-icon-right desc"';
+                        }
+                    }
+                    $s .= '<a href="'.$asort.'"'.$attrs.'>'.$label.'</a>';
+                } else {
+                    $s .= $label;
+                }
+
+                $s .= '</th>';
                 $so++;
                 unset($label, $fn, $sort, $first);
             }

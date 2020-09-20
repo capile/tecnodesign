@@ -219,7 +219,12 @@ class Tecnodesign_Studio
             } else {
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
-                Tecnodesign_App::response('layout', 'layout');
+                Tecnodesign_App::$assets[] = 'Z.Studio';
+                Tecnodesign_App::$assets[] = 'Z.Interface';
+                Tecnodesign_App::$assets[] = 'Z.Form';
+                Tecnodesign_App::response('layout', 'studio');
+                Tecnodesign_App::response('style', []);
+                Tecnodesign_App::response('script', []);
                 //tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //tdz::$assetsUrl = self::$home;
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));

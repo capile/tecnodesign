@@ -12,7 +12,23 @@
   font-size:15px;
   line-height:15px;
   p{padding:0;margin:0;font-size:1em;line-height:1em;}
+  p.ui-buttons {
+    padding: .5em;
+  }
   .studio-type();
+  h1, h2, h3, h4 {
+    .studio-type();
+    margin:0;
+  }
+  h1, h2 {
+    font-size: 1.5em;
+  }
+  h3, h4 {
+    font-size: 1.25em;
+  }
+  h1, h3 {
+    font-weight: 700;
+  }
 
   .studio-logo{
     position:absolute;
@@ -99,11 +115,16 @@
 
   strong {font-weight:700;}
   .tdz-i-body {
-    margin-bottom:3em;
     box-shadow: 0 1em 1em 1em rgba(0,0,0,@bgAlpha);
-    max-height:100%;
+    height: calc(100% - 6em);
     overflow-y:auto;
     overflow-x:hidden;
+    &:after {
+      content:' ';
+      display:block;
+      clear:both;
+      height:0;
+    }
   }
 }
 
@@ -131,15 +152,15 @@ html.studio-lock {
   }
 }
 @media screen and (min-width: @mobileBreakPoint) {
+  /*
   #studio {
     .tdz-i-header {
       position:relative;
-      top:1em;
-      padding-bottom:1em;
     }
     .tdz-i-header, .tdz-i-body {
       margin-left:1em;
       margin-right:1em;
     }
   }
+  */
 }
