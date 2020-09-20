@@ -315,7 +315,7 @@
     z-index:16;
     position:static;
     overflow-y:visible;
-    overflow-x:hidden;
+    overflow-x:visible;
     display:block;
   }
   &.tdz-i-standalone {
@@ -488,6 +488,7 @@
       display:inline-block;
       width:25%;
       background-color:@colorHeader;
+      text-decoration:none !important;
       &:before {
         content:@labelNavigation;
         color: @colorHeaderBorder;
@@ -1851,11 +1852,11 @@ th > input[type=checkbox], td > input[type=checkbox] {
     }
   }
   thead {
-    background:@colorTabActive;
+    background:@tableHeader;
   }
   th {
-    background:@colorButtonSubmit;
-    color:@colorButtonSubmitText;
+    background:@tableHeader;
+    color:@tableHeaderText;
     font-weight:normal;
     position:relative;
     input {
@@ -1864,7 +1865,7 @@ th > input[type=checkbox], td > input[type=checkbox] {
     }
     a {
       padding: 0.25em 0;
-      color:@colorButtonSubmitText;
+      color:@tableHeaderText;
       &:before {
         content: ' ';
         position:absolute;
@@ -1877,10 +1878,10 @@ th > input[type=checkbox], td > input[type=checkbox] {
       &.z-icon-right {
         padding-right:1.5em;
       }
-      &:hover, &:active {color:@colorHighlight !important; }
+      &:hover, &:active {color:@tableHeaderLink !important; }
     }
     a.icon {
-      color:@colorTabText;
+      color:@tableHeaderText;
       position:absolute;
       right:0;
       top:0;
@@ -1888,7 +1889,7 @@ th > input[type=checkbox], td > input[type=checkbox] {
         right:1em;
       }
     }
-    &.ui-order-asc a.asc:before, &.ui-order-desc a.desc:before {color:@colorHighlight !important;}
+    &.ui-order-asc a.asc:before, &.ui-order-desc a.desc:before {color:@tableHeaderLink !important;}
   }
   tbody th {
     background:@colorTab;
