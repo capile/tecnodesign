@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Soap
 {
-    const TYPE='soap';
+    const TYPE='soap', DRIVER='soap';
     public static $connectionCallback;
     protected static $options, $conn=array(),
         $wsdlOptions=[

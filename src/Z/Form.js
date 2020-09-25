@@ -494,20 +494,20 @@ function initDatepicker()
     if(Z.datepicker=='Pikaday') {
         var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false }, D, d;
         if(!t) t=this.getAttribute('type');
+        if(t && t.search(/time/)>-1) {
+            cfg.showTime = true;
+            cfg.use24Hour = true;
+            cfg.format+= ' '+Z.l[Z.language].timeFormat;
+        }
         if(this.value) {
             if('moment' in window) {
-                D = moment(this.value);
+                D = moment(this.value, cfg.format);
                 cfg.defaultDate = new Date(D.valueOf());
                 if(d=D.format(cfg.format)) this.value = d;
                 cfg.setDefaultDate = true;
                 D=null;
                 d=null;
             }
-        }
-        if(t && t.search(/time/)>-1) {
-            cfg.showTime = true;
-            cfg.use24Hour = true;
-            cfg.format+= ' '+Z.l[Z.language].timeFormat;
         }
         _Picker[id] = new Pikaday(cfg);
     }

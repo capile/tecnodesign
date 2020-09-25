@@ -4,8 +4,8 @@ Account: "Conta"
 Username: "Apelido"
 Password: "Senha"
 '&#8592; previous': '← anterior'
-'next &#8594;': 'próximo →'
-last: fim
-first: início
+'next &#8594;': 'próxima →'
+last: última
+first: primeira
 Clear selection: Limpar seleção
 Select all: Selecionar todos

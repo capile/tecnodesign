@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Api
 {
-    const TYPE='api';
+    const TYPE='api', DRIVER='curl';
     public static
         $microseconds=6,
         $envelope,

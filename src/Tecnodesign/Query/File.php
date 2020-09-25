@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_File
 {
-    const TYPE='file';
+    const TYPE='file', DRIVER='file';
     public static 
         $options=array(
             'recursive'=>false,

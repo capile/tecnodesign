@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Ldap
 {
-    const TYPE='ldap';
+    const TYPE='ldap', DRIVER='ldap';
     public static 
         $microseconds=6,
         $enableOffset=true,

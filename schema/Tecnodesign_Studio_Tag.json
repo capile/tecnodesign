@@ -16,6 +16,7 @@
         "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_tag__entry": "cascade" } }
     },
     "scope": {
+        "string": ["tag"],
         "link": [ "tag", "slug" ]
     },
     "events": {

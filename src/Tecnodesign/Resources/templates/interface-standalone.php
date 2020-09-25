@@ -68,7 +68,9 @@ if(!isset($action)) $action = $Interface['action'];
         if(isset($list)) {
             // list counter
             if(isset($searchForm)) {
-                echo '<div class="tdz-i-search">'.$searchForm.'</div>';
+                if(isset($options['before-search-form'])) echo \tdz::markdown($options['before-search-form']);
+                echo '<div class="'.$Interface::$attrSearchClass.'">'.$searchForm.'</div>';
+                if(isset($options['after-search-form'])) echo \tdz::markdown($options['after-search-form']);
                 $content = true;
             }
 

@@ -98,6 +98,7 @@ function initZ(d)
                     run.pop().call(Z.user);
                 }
             }
+            if('updateUserInfo' in Z) Z.updateUserInfo(Z.user);
         }
     } else if(Z.uid) {
         return;

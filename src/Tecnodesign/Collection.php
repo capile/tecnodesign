@@ -118,8 +118,6 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             return $this;
         }
         
-
-
         if(!$conn) {
             $conn = $this->_conn();
             /*
@@ -137,7 +135,14 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             }
             */
         }
-        $this->_driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if(is_object($conn) && defined(get_class($conn).'::DRIVER')) {
+            $this->_driver = constant(get_class($conn).'::DRIVER');
+            $conn = $conn->connect();
+        } else if(is_object($conn) && method_exists($conn, 'getAttribute')) {
+            $this->_driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
+        } else {
+            $this->_driver = 'unknown';
+        }
         $sqlc=false;
         $mssql = ($this->_driver==='dblib' || $this->_driver==='sqlsrv' || $this->_driver==='odbc');
 

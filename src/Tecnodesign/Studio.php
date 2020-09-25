@@ -37,6 +37,7 @@ class Tecnodesign_Studio
         $indexTimeout=600,  // timeout to trigger new database indexing
         $response=array(    // configurable, this will be added to the App response (passed to the template)
         ),
+        $assetsOptimizeUrl,
         $status,
         $templateRoot='web',
         $languages=array(),
@@ -110,6 +111,8 @@ class Tecnodesign_Studio
         }
         tdz::$translator = 'Tecnodesign_Studio::translate';
 
+        if(!isset(static::$assetsOptimizeUrl)) static::$assetsOptimizeUrl = tdz::$assetsUrl;
+
         // try the interface
         if(static::$webInterface && ($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0)) {
             tdz::scriptName($sn);
@@ -137,7 +140,7 @@ class Tecnodesign_Studio
                 tdz::cacheControl('public', static::$cacheTimeout);
             }
             return true;
-        } else if(substr($sn, 0, strlen(tdz::$assetsUrl))==tdz::$assetsUrl && tdzAsset::run($sn)) {
+        } else if(substr($sn, 0, strlen(static::$assetsOptimizeUrl))==static::$assetsOptimizeUrl && Tecnodesign_Studio_Asset::run($sn)) {
             return true;
         } else {
             self::error(404);
@@ -190,10 +193,10 @@ class Tecnodesign_Studio
         if(strpos($url, '.')!==false) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
-            if(!tdzAsset::run($url, TDZ_ROOT.'/src/Tecnodesign/Resources/assets', true) 
-                && !tdzAsset::run($url, TDZ_ROOT.'/src/Tecnodesign/App/Resources/assets', true)
+            if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Tecnodesign/Resources/assets', true) 
+                && !Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Tecnodesign/App/Resources/assets', true)
                 && (substr($url, -4) == '.css' || substr($url, -3) == '.js') 
-                && !tdzAsset::run($url, TDZ_VAR.'/cache/minify', true)) {
+                && !Tecnodesign_Studio_Asset::run($url, TDZ_VAR.'/cache/minify', true)) {
                 self::error(404);
             }
         } else {
@@ -576,6 +579,7 @@ class Tecnodesign_Studio
         if ($url=='') {
             return false;
         }
+
         $f=array(
             'link'=>$url,
             'type'=>tdzEntry::$previewEntryType,

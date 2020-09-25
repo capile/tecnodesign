@@ -12,4 +12,5 @@
  */
 class Tecnodesign_Query_Pgsql extends Tecnodesign_Query_Sql
 {
+const DRIVER='pgsql';
 }

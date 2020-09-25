@@ -12,6 +12,7 @@
  */
 class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
 {
+    const DRIVER='sqlite';
     protected static $tableAutoIncrement='';
     /**
      * Enables transactions for this connector

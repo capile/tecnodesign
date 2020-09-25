@@ -12,5 +12,5 @@
  */
 class Tecnodesign_Query_Sqlsrv extends Tecnodesign_Query_Dblib
 {
-    const PDO_AUTOCOMMIT=0, PDO_TRANSACTION=1;
+    const DRIVER='sqlsrv', PDO_AUTOCOMMIT=0, PDO_TRANSACTION=1;
 }

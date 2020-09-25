@@ -79,6 +79,8 @@ class Tecnodesign_Interface implements ArrayAccess
         $attrTermClass      = 'tdz-i-term',
         $attrFooterClass    = 'tdz-i-footer',
         $attrErrorClass     = 'tdz-err tdz-msg',
+        $attrSearchClass    = 'tdz-i-search',
+        $attrSearchFormClass= 'tdz-search',
         $attrCounterClass   = 'tdz-counter',
         $attrGraphClass     = 'z-i-graph',
         $attrButtonsClass   = '',
@@ -114,6 +116,7 @@ class Tecnodesign_Interface implements ArrayAccess
             'run'           => 'listInterfaces',
         ),
         $authDefault        = false,
+        $optionsDefault,
         $dateFormat         = 'D, d M Y H:i:s T',
         $currentAction,
         $xmlRoot = 'response',
@@ -321,6 +324,11 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($d['options']);
             if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
             //if(isset($this->options['order-by'])) $this->orderBy = $this->options['order-by'];
+        }
+
+        if(static::$optionsDefault) {
+            if(!$this->options) $this->options = static::$optionsDefault;
+            else $this->options += static::$optionsDefault;
         }
     }
 
@@ -1447,8 +1455,10 @@ class Tecnodesign_Interface implements ArrayAccess
         }
 
         if(!$a || $a=='text') return $url;
-        if(static::$actionAlias && ($aa=array_search($a, static::$actionAlias))) {
-            $url .= '/'.$aa;
+        if(static::$actionAlias && in_array($a, static::$actionAlias)) {
+            if($aa = array_search($a, static::$actionAlias)) {
+                $url .= '/'.$aa;
+            }
             unset($aa);
         } else {
             $url .= '/'.$a;
@@ -3187,7 +3197,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $ff=array();
         $dest = (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])?($this->action):('list');
         $fo=array(
-            'class'=>'z-form tdz-auto tdz-search tdz-no-empty tdz-simple-serialize',
+            'class'=>'z-form tdz-auto '.static::$attrSearchFormClass.' tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
             'limits'=>false,
             'action'=>$this->link($dest, false),

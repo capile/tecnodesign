@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
 {
-    const QUOTE='[]', PDO_AUTOCOMMIT=0, PDO_TRANSACTION=0;
+    const DRIVER='dblib', QUOTE='[]', PDO_AUTOCOMMIT=0, PDO_TRANSACTION=0;
 
     public static 
         $textToVarchar=2147483647,

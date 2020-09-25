@@ -12,7 +12,7 @@
  */
 class Tecnodesign_Query_Sql
 {
-    const TYPE='sql', QUOTE='``', PDO_AUTOCOMMIT=1, PDO_TRANSACTION=1;
+    const TYPE='sql', DRIVER='sql', QUOTE='``', PDO_AUTOCOMMIT=1, PDO_TRANSACTION=1;
     public static 
         $microseconds=6,
         $enableOffset=true,
@@ -1351,7 +1351,7 @@ class Tecnodesign_Query_Sql
                     $i++;
                 }
             }
-        } else {
+        } else if($tns && is_array($tns)) {
             foreach($tns as $i=>$cn) {
                 if(isset($sc['actAs']['before-insert']['timestampable'])) {
                     foreach($sc['actAs']['before-insert']['timestampable'] as $c) {

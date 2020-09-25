@@ -310,6 +310,27 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         }
     }
 
+    public function getFile()
+    {
+        $file = null;
+        if($this->source) {
+            if(!file_exists($file=static::file($this->source))
+                && !file_exists($file=TDZ_VAR.'/'.$this->source)
+                && !file_exists($file=TDZ_DOCUMENT_ROOT.'/'.$this->source)
+                && !file_exists($file=Tecnodesign_Studio::$app->tecnodesign['document-root'].'/'.$this->source)
+            ) {
+                $file = null;
+            }
+            if(file_exists($ufile=tdz::uploadDir().'/'.$this->source)) {
+                if(!$file || filemtime($ufile)>filemtime($file)) {
+                    $file = $ufile;
+                }
+            }
+        }
+
+        return $file;
+    }
+
     public function filePreview($optimize=false)
     {
         if($this->type!='file') return false;
@@ -322,19 +343,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             }
         }
 
-        $file = null;
-        if($this->source) {
-            if(!file_exists($file=static::file($this->source))
-                && !file_exists($file=TDZ_VAR.'/'.$this->source)
-                && !file_exists($file=Tecnodesign_Studio::$app->tecnodesign['document-root'].'/'.$this->source)
-            ) {
-                $file = null;
-            }
-            if(file_exists($ufile=tdz::uploadDir().'/'.$this->source)) {
-                if(!$file || filemtime($ufile)>filemtime($file))
-                    $file = $ufile;
-            }
-        }
+        $file = $this->getFile();
         if(!$file) {
             Tecnodesign_Studio::error(404);
             return false;
@@ -437,7 +446,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     public function getParent($scope=null)
     {
         if(!$this->id) return null;
-        return tdzEntry::find(array('Children.entry'=>$this->id),1,$scope,false);
+        return static::find(array('Children.entry'=>$this->id),1,$scope,false);
     }
 
     public function getCredentials($role='previewPublished')
@@ -458,12 +467,36 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         return null;
     }
 
+    public function getAncestors($stopId=false)
+    {
+        $as = array();
+        $a=$this;
+        $found = false;
+        if($a->id!=$stopId) {
+            while($a=$a->getParent()) {
+                if($a->id==$stopId) {
+                    $found=true;
+                    break;
+                }
+                array_unshift($as, $a);
+            }
+        }
+        if($stopId && !$found) $as=array();
+        return $as;
+    }
+
+    public function getContent($type, $scope='content', $asCollection=false, $orderBy=null, $groupBy=null)
+    {
+        return $this->getContents(['content_type'=>$type]);
+
+    }
+
     public function getContents($search=array(), $scope='content', $asCollection=false, $orderBy=null, $groupBy=null)
     {
         if(!$this->id) return null;
         if(!is_array($search)) $search = array();
         $search['entry'] = $this->id;
-        return tdzContent::find($search,0,$scope,$asCollection,$orderBy,$groupBy);
+        return tdzContent::find($search,null,$scope,$asCollection,$orderBy,$groupBy);
     }
 
     public function getChildren($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null)
@@ -472,7 +505,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(!is_array($search)) $search = array();
         $search['Relation.parent'] = $this->id;
         $search['type'] = 'page';
-        return tdzEntry::find($search,0,$scope,$asCollection,$orderBy,$groupBy);
+        if(!$orderBy) $orderBy = [];
+        $orderBy = ['Relation.position'=>'asc'] + $orderBy;
+        return static::find($search,0,$scope,$asCollection,$orderBy,$groupBy);
     }
 
     public function getTags($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null)

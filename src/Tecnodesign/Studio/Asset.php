@@ -12,15 +12,6 @@
  */
 class Tecnodesign_Studio_Asset
 {
-    /**
-     * Configurable behavior
-     * This is only available for customizing Studio, please use the tdzAsset class
-     * within your lib folder (not TDZ_ROOT!) or .ini files
-     */
-    const 
-        OPTIMIZE='/_',  // URL patter prefix for checking URLs eligible for optimization, use @ to disable
-        URL='/_';       // Where (relative to the document root), the optimized files should be stored 
-
     public static 
         $optimizeActions=array(
           'min'=>array(
@@ -418,9 +409,7 @@ class Tecnodesign_Studio_Asset
     {
         $p = Tecnodesign_Studio::page($url);
         if($p) {
-            $d = TDZ_VAR.'/'.Tecnodesign_Studio::$uploadDir;
-            if(file_exists($file=$d.'/'.$p->source)) {
-                unset($p, $d);
+            if($file=$p->getFile()) {
                 return $file;
             }
         }
@@ -442,20 +431,22 @@ class Tecnodesign_Studio_Asset
             tdz::download($root.$url, tdz::fileFormat($url), null, 0, false, false, false);
             Tecnodesign_Studio::$app->end();
         }
-        if(is_null($optimize)) $optimize = strncmp($url, tdzAsset::OPTIMIZE, strlen(tdzAsset::OPTIMIZE))===0;
+        if(is_null($optimize)) $optimize = strncmp($url, Tecnodesign_Studio::$assetsOptimizeUrl, strlen(Tecnodesign_Studio::$assetsOptimizeUrl))===0;
+
 
         if(!$optimize 
             || !preg_match('/^(.*\.)([^\.\/]+)\.([^\.\/]+)$/', $url, $m) 
-            || !isset(tdzAsset::$optimizeActions[$m[2]]) 
-            || !(in_array($m[3], tdzAsset::$optimizeActions[$m[2]]['extensions']) || in_array('*', tdzAsset::$optimizeActions[$m[2]]['extensions']))
+            || !isset(Tecnodesign_Studio_Asset::$optimizeActions[$m[2]]) 
+            || !(in_array(strtolower($m[3]), Tecnodesign_Studio_Asset::$optimizeActions[$m[2]]['extensions']) || in_array('*', Tecnodesign_Studio_Asset::$optimizeActions[$m[2]]['extensions']))
         ) {
             return false;
         }
+
         $u = $m[1].$m[3];
-        if(!($file=tdzAsset::file($u, $root))) {
-            if(isset(tdzAsset::$optimizeActions[$m[2]]['alt-extension'][$m[3]])) {
-                $u = $m[1].tdzAsset::$optimizeActions[$m[2]]['alt-extension'][$m[3]];
-                $file=tdzAsset::file($u, $root);
+        if(!($file=Tecnodesign_Studio_Asset::file($u, $root))) {
+            if(isset(Tecnodesign_Studio_Asset::$optimizeActions[$m[2]]['alt-extension'][strtolower($m[3])])) {
+                $u = $m[1].Tecnodesign_Studio_Asset::$optimizeActions[$m[2]]['alt-extension'][strtolower($m[3])];
+                $file=Tecnodesign_Studio_Asset::file($u, $root);
             }
             if(!$file) return false;
         }
