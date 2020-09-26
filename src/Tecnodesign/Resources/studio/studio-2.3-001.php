@@ -36,7 +36,7 @@ if($driver=='sqlite') {
     $unsigned=' unsigned';
 }
 //$trans=Tecnodesign_Model::beginTransaction($conn);
-
+$args = (TDZ_CLI) ?Tecnodesign_App::request('argv') :[];
 $tns = array();
 foreach(Tecnodesign_Database::getTables($cid) as $t) {
     if(is_array($t)) $t = $t['table_name'];
@@ -107,7 +107,7 @@ if(!($S=$H->getTableSchema('tdz_entries_version'))) {
     tdz::query($q);
 }
 
-$contents = false;
+$contents = (in_array('--contents', $args));
 if(!($S=$H->getTableSchema('tdz_contents'))) {
     $q = array(
 "create table tdz_contents (
@@ -357,51 +357,51 @@ if(!($S=$H->getTableSchema('tdz_contents_display'))) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: Tecnodesign_Studio_ContentDisplay'";
     tdz::query($q);
-
-    if($contents) {
-        // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
-        $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents where coalesce(show_at,\'\')<>\'\'';
-        $r = tdz::query($q);
-        $e = Tecnodesign_Studio_ContentDisplay::$schema['events'];
-        Tecnodesign_Studio_ContentDisplay::$schema['events'] = array();
-        if($r) {
-            try {
-                foreach($r as $i=>$c) {
-                    $b = array(
-                        'content'=>$c['content'],
-                        'version'=>$c['version'],
-                        'created'=>$c['created'],
-                        'updated'=>$c['updated'],
-                        'expired'=>$c['expired'],
-                    );
-                    if($c['show_at']) {
-                        $s = preg_split('/[\n\s]+/', $c['show_at'], null, PREG_SPLIT_NO_EMPTY);
-                        $b['display'] = 1;
-                        foreach($s as $l) {
-                            $b['link'] = $l;
-                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
-                            unset($l, $C);
-                        }
-                        unset($s);
-                   }
-                    if($c['hide_at']) {
-                        $s = preg_split('/[\n\s]+/', $c['hide_at'], null, PREG_SPLIT_NO_EMPTY);
-                        $b['display'] = 0;
-                        foreach($s as $l) {
-                            $b['link'] = $l;
-                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
-                            unset($l, $C);
-                        }
-                        unset($s);
-                   }
-                   unset($c, $b, $r[$i], $i);
-                }
-            } catch(Exception $E) {
-                tdz::debug((string)$E, var_export($C, true));
+}
+if($contents) {
+    // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
+    $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents where coalesce(show_at,\'\')<>\'\'';
+    $r = tdz::query($q);
+    $e = Tecnodesign_Studio_ContentDisplay::$schema['events'];
+    Tecnodesign_Studio_ContentDisplay::$schema['events'] = array();
+    if($r) {
+        try {
+            foreach($r as $i=>$c) {
+                $b = array(
+                    'content'=>$c['content'],
+                    'version'=>$c['version'],
+                    'created'=>$c['created'],
+                    'updated'=>$c['updated'],
+                    'expired'=>$c['expired'],
+                );
+                if($c['show_at']) {
+                    $s = preg_split('/[\n\s\,]+/', $c['show_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $b['display'] = 1;
+                    foreach($s as $l) {
+                        $b['link'] = $l;
+                        Tecnodesign_Studio_ContentDisplay::replace($b);
+                        unset($l);
+                    }
+                    unset($s);
+               }
+                if($c['hide_at']) {
+                    $s = preg_split('/[\n\s\,]+/', $c['hide_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $b['display'] = 0;
+                    foreach($s as $l) {
+                        $b['link'] = $l;
+                        Tecnodesign_Studio_ContentDisplay::replace($b);
+                        unset($l, $C);
+                    }
+                    unset($s);
+               }
+               unset($c, $b, $r[$i], $i);
             }
+        } catch(Exception $E) {
+            tdz::debug((string)$E, var_export($C, true));
         }
     }
 }
+
 
 if(!($S=$H->getTableSchema('tdz_contents_display_version'))) {
     $q = array(
@@ -423,51 +423,54 @@ if(!($S=$H->getTableSchema('tdz_contents_display_version'))) {
     );
     if($driver!='sqlite') $q[0] .= "comment = 'className: ~'";
     tdz::query($q);
-
-    if($contents) {
-        // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
-        $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents_version where coalesce(show_at,\'\')<>\'\'';
-        $r = tdz::query($q);
-        $e = Tecnodesign_Studio_ContentDisplay::$schema['events'];
-        Tecnodesign_Studio_ContentDisplay::$schema['events'] = array();
-        Tecnodesign_Studio_ContentDisplay::$schema['tableName'] .= '_version';
-        if($r) {
-            try {
-                foreach($r as $i=>$c) {
-                    $b = array(
-                        'content'=>$c['content'],
-                        'version'=>$c['version'],
-                        'created'=>$c['created'],
-                        'updated'=>$c['updated'],
-                        'expired'=>$c['expired'],
-                    );
-                    if($c['show_at']) {
-                        $s = preg_split('/[\n\s]+/', $c['show_at'], null, PREG_SPLIT_NO_EMPTY);
-                        $b['display'] = 1;
-                        foreach($s as $l) {
-                            $b['link'] = $l;
-                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
-                            unset($l, $C);
-                        }
-                        unset($s);
-                   }
-                    if($c['hide_at']) {
-                        $s = preg_split('/[\n\s]+/', $c['hide_at'], null, PREG_SPLIT_NO_EMPTY);
-                        $b['display'] = 0;
-                        foreach($s as $l) {
-                            $b['link'] = $l;
-                            $C = new Tecnodesign_Studio_ContentDisplay($b, true, true);
-                            unset($l, $C);
-                        }
-                        unset($s);
-                   }
-                   unset($c, $b, $r[$i], $i);
-                }
-            } catch(Exception $E) {
-                tdz::debug((string)$E, var_export($C, true));
+}
+if($contents) {
+    // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
+    $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents_version where coalesce(show_at,\'\')<>\'\'';
+    $r = tdz::query($q);
+    $e = Tecnodesign_Studio_ContentDisplay::$schema->events;
+    Tecnodesign_Studio_ContentDisplay::$schema->events = array();
+    Tecnodesign_Studio_ContentDisplay::$schema->tableName .= '_version';
+    Tecnodesign_Studio_ContentDisplay::$schema->properties['version']->primary = true;
+    if($r) {
+        try {
+            foreach($r as $i=>$c) {
+                $b = array(
+                    'content'=>$c['content'],
+                    'version'=>$c['version'],
+                    'created'=>$c['created'],
+                    'updated'=>$c['updated'],
+                    'expired'=>$c['expired'],
+                );
+                if($c['show_at']) {
+                    $s = preg_split('/[\n\s]+/', $c['show_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $b['display'] = 1;
+                    foreach($s as $l) {
+                        $b['link'] = $l;
+                        Tecnodesign_Studio_ContentDisplay::replace($b);
+                        unset($l);
+                    }
+                    unset($s);
+               }
+                if($c['hide_at']) {
+                    $s = preg_split('/[\n\s]+/', $c['hide_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $b['display'] = 0;
+                    foreach($s as $l) {
+                        $b['link'] = $l;
+                        Tecnodesign_Studio_ContentDisplay::replace($b);
+                        unset($l, $C);
+                    }
+                    unset($s);
+               }
+               unset($c, $b, $r[$i], $i);
             }
+        } catch(Exception $E) {
+            tdz::debug((string)$E, var_export($C, true));
         }
     }
+    Tecnodesign_Studio_ContentDisplay::$schema->events = $e;
+    Tecnodesign_Studio_ContentDisplay::$schema->tableName = 'tdz_contents_display';
+    Tecnodesign_Studio_ContentDisplay::$schema->properties['version']->primary = null;
 }
 
 if(!($S=$H->getTableSchema('tdz_groups'))) {

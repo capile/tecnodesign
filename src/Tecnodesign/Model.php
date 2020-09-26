@@ -1797,6 +1797,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $M->safeSet($fn, $v);
             }
             if($save && isset($M->_original) && $M->_original) {
+                $M->isNew(false);
                 $M->save();
             }
         }
