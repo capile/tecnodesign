@@ -139,6 +139,7 @@ class tdz
             'mozilla'=>'Mozilla'
         ),
         $lib = null,
+        $pageParam='p',
         $lang = 'en',
         $format = 'text/html',
         $timeout = 0,
@@ -1335,13 +1336,15 @@ class tdz
                 $tpl[$k]=tdz::t(substr($v,1), 'ui');
             }
         }
+
+        $pp = tdz::$pageParam;
         if ($pager['last-page'] > 1) {
             @list($uri,$qs) = explode('?', $uri, 2);
             if($qs) {
-                $qs = preg_replace('#&?p=[0-9]*#', '', $qs);
+                $qs = preg_replace('#&?'.$pp.'=[0-9]*#', '', $qs);
                 if(substr($qs, 0, 1)=='&') $qs = substr($qs,1);
             }
-            $uri .= ($qs)?('?'.$qs.'&p='):('?p=');
+            $uri .= ($qs)?('?'.$qs.'&'.$pp.'='):('?'.$pp.'=');
             if ($pager['page'] != 1) {
                 $html .= '<li class="previous"><a href="'.tdz::xmlEscape($uri).($pager['page'] - 1).
                         '">'.$tpl['previous'].'</a></li>';

@@ -2645,7 +2645,7 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($i, $fn, $label);
         }
         $fo = $o->getForm($d);
-        $fo->id = $this->text['interface'].'--'.(($o->isNew())?('n'):(@implode('-',$o->getPk(true))));
+        $fo->id = tdz::slug($this->text['interface']).'--'.(($o->isNew())?('n'):(@implode('-',$o->getPk(true))));
         $fo->attributes['class']='z-form';
         if($this->action=='update' || $this->action=='new') {
             $fo->buttons['submit']=static::t('button'.ucwords($this->action), ucwords($this->action));
@@ -3392,6 +3392,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 }
             }
         }
+        $islug = tdz::slug($this->text['interface']);
         $fo['fields'] += [
             '_submit' => [
                 'type' => 'submit',
@@ -3404,11 +3405,11 @@ class Tecnodesign_Interface implements ArrayAccess
                 'value'=> '<span class="i-label">'.static::t('Search options').'</span>',
                 'html_labels'=>true,
                 'class' => 'z-i--filter',
-                'attributes'=>[ 'data-display-switch'=>'#q-'.$this->text['interface'].' .z-omnibar|#q-'.$this->text['interface'].' fieldset,#q-'.$this->text['interface'].' button .i-label'],
+                'attributes'=>[ 'data-display-switch'=>'#q-'.$islug.' .z-omnibar|#q-'.$islug.' fieldset,#q-'.$islug.' button .i-label'],
             ],
         ];
         $F = new Tecnodesign_Form($fo);
-        if(!$F->id) $F->id = 'q-'.$this->text['interface'];
+        if(!$F->id) $F->id = 'q-'.$islug;
         if($active && $F->validate($post)) {
             $d=$F->getData();
             $this->text['searchTerms'] = '';

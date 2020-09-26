@@ -15,7 +15,7 @@
  */
 class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
 {
-    protected $_count = 0, $_items=array(), $_hint, $_query, $_queryKey, $_driver, $_current, $_offset=0, $_max=100000000, $_pageStart=0, $_statement=null, $_keyStatement=null, $_cid;
+    protected $_count = 0, $_items=array(), $_hint, $_query, $_queryKey, $_driver, $_current, $_offset=0, $_max=100000000, $_pageStart=0, $_cid;
     protected static $st=array();
     public function __construct($items=null, $hint=null, $query=null, $queryKey=null, $conn=null)
     {
@@ -35,11 +35,6 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         }
         $this->_current = 0;
         if(!is_null($query)) {
-            if(!$this->setQuery($query, $conn)) {
-                return false;
-            }
-        }
-        if($queryKey) {
             if(!$this->setQuery($query, $conn, $queryKey)) {
                 return false;
             }
@@ -84,6 +79,12 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         }
     }
 
+
+    public function setQueryKey($key)
+    {
+        $this->_queryKey = $key;
+    }
+
     /**
      * Adds a SQL query to the collection
      *
@@ -91,219 +92,58 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      */
     public function setQuery($sql, $conn=null, $key=null)
     {
-        if(is_object($sql) || (is_null($sql) && is_object($this->_query))) {
-            if(is_null($sql)) {
+        if(!is_null($key)) {
+            $this->setQueryKey($key);
+        }
+
+        $count = null;
+        if(is_null($sql) || $sql===false) {
+            if(is_object($this->_query)) {
                 $this->_items = $this->getItem(0, $this->_max);
                 $this->_query = null;
                 $this->_count = count($this->_items);
-            } else {
-                $this->_query = $sql;
-                $this->_count = $sql->count();
             }
-            return $this;
-        }
-
-        if(!$sql) {
-            if($this->_statement) {
-                // must fetch the objects and remove the query
-                $toAdd = $this->getItem(0, $this->_max);
-                $this->_queryStatement(false);
-                $this->_count=0;
-                if($toAdd) {
-                    foreach($toAdd as $k=>$v) {
-                        $this->$k=$v;
-                    }
+        } else if(is_object($sql) && method_exists($sql, 'count')) {
+            $this->_query = $sql;
+            $count = true;
+        } else {
+            if(!$this->_query) {
+                if($this->_hint) {
+                    $cn = $this->_hint;
+                    $this->_query = $cn::queryHandler();
+                    unset($cn);
+                } else {
+                    $this->_query = tdz::connect();
                 }
             }
-            return $this;
+
+            if(is_string($sql)) {
+                $this->_query->setQuery($sql);
+            } else {
+                $this->filter($sql);
+            }
+
+            $count = true;
         }
-        
-        if(!$conn) {
-            $conn = $this->_conn();
-            /*
-            // add parameters
+
+        if($conn && $this->_query) {
             if($this->_hint) {
                 $cn = $this->_hint;
-                if(isset($cn::$schema) && isset($cn::$schema['database'])) {
-                    $conn = tdz::connect($cn::$schema['database'], null, true);
-                    $cid = $cn::$schema['database'];
-                }
+                $db = $cn::$schema->database;
+                unset($cn);
+            } else {
+                $db = '';
             }
-            if(!$conn) {
-                $conn = tdz::connect();
-                $cid = tdz::$connection;
-            }
-            */
+            $this->_query::setConnection($db, $conn);
         }
-        if(is_object($conn) && defined(get_class($conn).'::DRIVER')) {
-            $this->_driver = constant(get_class($conn).'::DRIVER');
-            $conn = $conn->connect();
-        } else if(is_object($conn) && method_exists($conn, 'getAttribute')) {
-            $this->_driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-        } else {
-            $this->_driver = 'unknown';
-        }
-        $sqlc=false;
-        $mssql = ($this->_driver==='dblib' || $this->_driver==='sqlsrv' || $this->_driver==='odbc');
 
-        if($mssql) {
-            if(!$this->_cid) {
-                $this->_cid = tdz::$connection;
-            }
-            $dk = 'driverInfo/'.$this->_cid;
-            $dinfo = Tecnodesign_Cache::get($dk);
-            if(!$dinfo) {
-                try{
-                    $dos = $conn->query('select @@version');
-                    if($dos) {
-                        $do = $dos->fetchColumn();
-                        $dos->closeCursor();
-                        if(preg_match('/^Microsoft SQL Server\s+([0-9]+)[^\-]+\-\s+([0-9]+)/', $do, $m)) {
-                            $dinfo=array('version'=>$m[2], 'year'=>$m[1], 'description'=>$do);
-                        }
-                        Tecnodesign_Cache::set($dk, $dinfo);
-                    }
-                } catch(Exception $e) {
-                    tdz::log(__METHOD__.': Failed to get driver options', $e->getMessage());
-                }
-            }
-            if($dinfo && isset($dinfo['version']) && $dinfo['version']>=11) $this->_driver ='mssql2012';
+        if($count) {
+            $this->_count = $this->_query->count();
         }
-        if($key) {
-            $this->_queryKey = $key;
-            $key = preg_replace('/[^a-z0-9\_]+/i', '', $key);
-            if($mssql) {
-                //MSSQL if there's ORDER BY, we must also use TOP, or remove the ORDER BY to count items:
-                // The ORDER BY clause is invalid in views, inline functions, derived tables, and subqueries, unless TOP is also specified.
-                if(preg_match('/^\s*select\s*(top)?(.*\sorder\s+by[^\']+)$/i', $sql, $m) && $m[1]=='') {
-                    $sql = 'select top '.$this->_max.' '.$m[2]; 
-                }
-            }
-            $sql = "select q.* from ($sql) as q where q.{$key}=:key";
-        } else {
-            $this->_query = $sql;
-            // add limiting params for the query
-            // this restricts the Tecnodesign_Collection for MySQL usage only
-            // for MSSQL this will need to be worked with cursors
-            if($mssql) {
-                //MSSQL if there's ORDER BY, we must also use TOP, or remove the ORDER BY to count items:
-                // The ORDER BY clause is invalid in views, inline functions, derived tables, and subqueries, unless TOP is also specified.
-                if(preg_match('/^\s*select\s*(distinct\s+)?(top\s+[0-9]+\s*)?(.*\sorder\s+by[^\']+)$/i', $sql, $m) && $m[2]=='') {
-                    $sql = 'select '.$m[1].'top '.$this->_max.' '.preg_replace('/\s+order by [^\']+$/i', '', $m[3]); 
-                }
-                $sql = "select count(*) as count from ({$sql}) as q";
-                
-            } else if($this->_driver=='pgsql') {
-                $sqlc="select count(*) as count from ({$sql}) as q";
-                $sql .= ' limit :max offset :offset';
-            } else if($this->_driver=='mssql2012') {
-                $sqlc="select count(*) as count from (".preg_replace('/\s+order by [^\']+$/i', '', $sql).") as q";
-                $sql .= ' OFFSET (:offset) ROWS FETCH NEXT :max ROWS ONLY';
-            } else {
-                $sql .= ' limit :offset,:max';
-            }
-            
-        }
-        try {
-            if($key) {
-                $this->_queryStatement($conn->prepare($sql), true);
-            } else {
-                // setting the pdo object with the actual query with limit params
-                // @NOTE: some queries could benefit from stripping the ORDER BY clause from the query (since this involves temporary tables for filesorting)
-                //        however, this would implicitly force the query to be updated and executed again
-                // @TODO: compare both performance and make the best choice
-                if(tdz::$perfmon) tdz::$perfmon = microtime(true);
-                if($mssql) {
-                    // since it's better to store the connection instead of the statement in MSSQL queries, we do it here
-                    $this->_queryStatement($conn);
-                    $query = $conn->query($sql);
-                    $this->_count=($query)?((int) ($query->fetchColumn())):(0);
-                    if($query) $query->closeCursor();
-                    unset($query);
-                    if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem: {$this->_count}\n  query: {$sql}");
-                } else if($this->_driver=='pgsql' || $this->_driver=='mssql2012') { // cannot find the number of rows automatically
-                    $this->_queryStatement($conn->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL)));
-                    $query = $conn->query($sqlc);
-                    if(!$query) {
-                        $err = $conn->errorInfo();
-                        throw new Tecnodesign_Exception("Error at query for Collection: {$err[2]}");
-                    }
-                    $this->_count=(int) $query->fetchColumn();
-                    $query->closeCursor();
-                    unset($query);
-                    if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem: {$this->_count}\n  query: {$sql}");
-                } else {
-                    $query = $this->_queryStatement($conn->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL)));
-                    $query->bindParam(':offset', $this->_offset, PDO::PARAM_INT);
-                    $query->bindParam(':max', $this->_max, PDO::PARAM_INT);
-                    $query->execute();
-                    if(!$query) {
-                        $err = $conn->errorInfo();
-                        throw new Tecnodesign_Exception("Error at query for Collection: {$err[2]}");
-                    }
-                    $this->_count=$query->rowCount();
-                    if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem: {$this->_count}\n  query: {$sql}");
-                }
-            }
-        } catch(Exception $e) {
-            tdz::log(__METHOD__.': '.$e->getMessage()."\nSQL: {$sql}");
-            return false;
-        }
+
         return $this;
     }
 
-    private function _queryStatement($st=null, $key=false)
-    {
-        $n = ($key)?('_keyStatement'):('_statement');
-        if($this->$n) {
-            $cid = $this->_cid.':'.$this->$n;
-            if(!isset(self::$st[$cid])) {
-                if(!(self::$st[$cid]=$this->_conn(true))) {
-                    $this->$n = null;
-                }
-            } else {
-                // check if valid
-                if((self::$st[$cid] instanceof PDOStatement) && self::$st[$cid]->errorCode()) {
-                    // need to reset PDOStatement
-                    self::$st[$cid] = $this->_conn(true);
-                }
-            }
-        }
-        if($st) {
-            if(isset($cid) && isset(self::$st[$cid])) unset(self::$st[$cid]);
-            $this->$n = microtime(true);
-            $cid = $this->_cid.':'.$this->$n;
-            self::$st[$cid] = $st;
-        } else if($st!=null && $this->$n) {
-            if(isset($cid) && isset(self::$st[$cid])) unset(self::$st[$cid]);
-            $this->$n = null;
-        }
-
-        if($this->$n && isset($cid) && isset(self::$st[$cid])) return self::$st[$cid];
-        return false;
-    }
-
-    protected function _conn($reset=false)
-    {
-        // add parameters
-        $conn = null;
-        if($this->_hint) {
-            $cn = $this->_hint;
-            if(isset($cn::$schema) && isset($cn::$schema['database'])) {
-                $this->_cid = $cn::$schema['database'];
-                if($reset) tdz::setConnection($this->_cid, null);
-                $conn = tdz::connect($this->_cid, null, true);
-            }
-        }
-        if(!$conn) {
-            if($reset) tdz::setConnection('', null);
-            $conn = tdz::connect();
-            $this->_cid = tdz::$connection;
-        }
-        return $conn;
-    }
-
-    
     public function getQueryKey()
     {
         return $this->_queryKey;
@@ -318,7 +158,8 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
     }
     
 
-    public function rewind() {
+    public function rewind()
+    {
         $this->_current = 0;
     }
 
@@ -334,25 +175,27 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             $this->_count = null;
             $this->_query = null;
             $this->_queryKey = null;
-            $this->_queryStatement(false);
-            $this->_queryStatement(false, true);
         }
     }
 
-    public function current() {
+    public function current()
+    {
         return $this->getItem($this->_current);
     }
 
-    public function key() {
+    public function key()
+    {
         return (isset($this->_items[$this->_current]))?($this->_items[$this->_current]):($this->_current);
     }
 
-    public function next() {
+    public function next()
+    {
         ++$this->_current;
     }
 
-    public function valid() {
-        return (isset($this->_items[$this->_current]) || ($this->_queryStatement() && $this->_current < $this->_count));
+    public function valid()
+    {
+        return (isset($this->_items[$this->_current]) || ($this->_query && $this->_current < $this->_count));
     }
 
     public function asSpreadsheet($fname=null, $scope='review')
@@ -487,8 +330,8 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
     {
         $page = 1;
         $pages = ceil($this->_count/$hpp);
-        if(isset($_GET['p']) && is_numeric($_GET['p'])) {
-            $page = (int)$_GET['p'];
+        if(($get=Tecnodesign_App::request('get', tdz::$pageParam)) && is_numeric($get)) {
+            $page = (int)$get;
             if($page<1) $page=1;
             else if($page>$pages)$page=$pages;
             $this->_current = ($page -1)*$hpp;
@@ -502,12 +345,15 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                 $s .= $pn;
             }
             $this->_pageStart = $this->_current;
-            $items = $this->getItem($this->_current, $hpp);
+            $items = $this->getItem($this->_current, $hpp, false, false);
             if(!isset($renderArgs[0]) && count($renderArgs)>0) {
                 $renderArgs = array_values($renderArgs);
             }
-            $renderArgs[0]['start']=$this->_current;
-            $renderArgs[0]['hits']=count($items);
+
+            if($arga = is_array($renderArgs[0])) {
+                $renderArgs[0]['start']=$this->_current;
+                $renderArgs[0]['hits']=count($items);
+            }
 
             $hint = true;
             $ap=0;
@@ -523,7 +369,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                 } else {
                     $renderArgs[0] = $o;
                 }
-                $renderArgs[$ap]['position']=$this->_current;
+                if($arga) $renderArgs[$ap]['position']=$this->_current;
                 $s .= tdz::call($renderMethod, $renderArgs);
                 if($hint) {
                     unset($renderMethod[0]);
@@ -588,17 +434,37 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         $ret = null;
         if(isset($this->$p)) {
             $ret = $this->$p;
-        } else if($st = $this->_queryStatement(null, true)) {
-            $ft = PDO::FETCH_ASSOC;
-            if($this->_hint) {
-                $st->setFetchMode(PDO::FETCH_CLASS, $this->_hint);
-                $ft = PDO::FETCH_CLASS;
+        } else if($this->_query) {
+            if($this->_queryKey) {
+                $k = $this->_queryKey;
+            } else if($this->_hint) {
+                $cn = $this->_hint;
+                $k = $cn::pk();
+            } else {
+                \tdz::log('[WARNING] Cannot fetch named item from unhinted query or query without a key!');
+                return null;
             }
-            $st->bindParam(':key', $p);
-            $st->execute();
-            $ret = $st->fetch($ft);
-            $this->$p = $ret;
-            unset($st);
+
+            if(is_array($k) && count($k)==1) $k = implode('', $k);
+            $p0 = $p;
+            if(is_array($k)) {
+                if(!is_array($p)) {
+                    if(!isset($cn)) $cn = ($this->_hint) ?$this->_hint :Tecnodesign_Model;
+                    $p = explode($cn::$keySeparator, $p, count($k));
+                }
+                $q = [];
+                foreach($k as $fn) {
+                    $q[$fn] = array_shift($p);
+                    unset($fn);
+                    if(!$p) break;
+                }
+            } else {
+                $q = [$k=>$p];
+            }
+
+            $this->_query->filter(['where'=>$q]);
+            $ret = $this->getItem(0, 1);
+            $this->_current = $p0;
         }
         return $ret;
     }
@@ -626,125 +492,33 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
                 $ret = $this->{$this->_items[$p]};
             }
         } else if($p < $this->_count && $p >= 0) {
-            if(is_object($this->_query)) {
-                $this->_offset = (int) $p;
-                $this->_max    = (int) $limit;
-                if($this->_hint) {
-                    $ret = $this->_query->fetch($this->_offset, $this->_max);
-                } else {
-                    $ret = $this->_query->fetchArray($this->_offset, $this->_max);
-                }
-                if($single && is_int($offset0) && $limit===1 && $ret) $ret = array_shift($ret);
+            $this->_offset = (int) $p;
+            $this->_max    = (int) $limit;
+            if($this->_hint) {
+                $ret = $this->_query->fetch($this->_offset, $this->_max);
             } else {
-                $q=$this->_queryStatement();
-                $mssql = ($this->_driver==='dblib' || $this->_driver==='sqlsrv' || $this->_driver==='odbc');
-                if(!$mssql && get_class($q)=='PDO') { // lost original connection
-                    $sql = $this->_query;
-                    if($this->_driver=='pgsql') {
-                        $sql .= ' limit :max offset :offset';
-                    } else if($this->_driver=='mssql2012') {
-                        $sql .= ' OFFSET (:offset) ROWS FETCH NEXT :max ROWS ONLY';
-                    } else {
-                        $sql .= ' limit :offset,:max';
-                    }
-                    $q = $q->prepare($sql, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
-                    unset($sql);
+                $ret = $this->_query->fetchArray($this->_offset, $this->_max);
+            }
+            if($single && is_int($offset0) && $limit===1 && $ret) $ret = array_shift($ret);
+            else if($ret && $this->_queryKey && $limit>1) {
+                $r = [];
+                $key = $this->_queryKey;
+                foreach($ret as $i=>$o) {
+                    $r[$o->$key] = $o;
+                    unset($ret[$i], $i, $o);
                 }
-
-                try {
-                    $ft = PDO::FETCH_ASSOC;
-                    $this->_offset = (int) $p;
-                    $this->_max    = (int) $limit;
-
-                    if(get_class($q)=='PDO') { // the connection is stored for dblib (MSSQL)
-                        $scroll = uniqid('tdz');
-                        $start = $this->_offset +1;
-                        $q->query('set rowcount '.($p+$limit));
-                        $q->query('set nocount on');
-                        $q->query("DECLARE {$scroll} SCROLL CURSOR FOR {$this->_query}");
-                        $q->query("OPEN {$scroll}");
-                        $st = $q->query("FETCH ABSOLUTE {$start} FROM {$scroll}");
-                        //$this->reset();
-                        if($this->_hint) {
-                            $ret = $st->fetchObject($this->_hint);
-                        } else {
-                            $ret = $st->fetch($ft);
-                        }
-                        unset($st);
-                        if($ret && $limit > 1) {
-                            if($asCollection) {
-                                $this->{$this->_offset} = $ret;
-                                $this->_count--;
-                                //$this->_items[]=$this->_offset;
-                                unset($ret);
-                            } else {
-                                $ret=array($ret);
-                            }
-                            $l=$limit -1;
-                            while($l>0) {
-                                $st = $q->query("FETCH NEXT FROM {$scroll}");
-                                if($this->_hint) {
-                                    $r = $st->fetchObject($this->_hint);
-                                } else {
-                                    $r = $st->fetch($ft);
-                                }
-                                unset($st);
-                                if($r) {
-                                    if($asCollection) {
-                                        $this->{$start} = $r;
-                                        $this->_count--;
-                                        //$this->_items[]=$start;
-                                        $start++;
-                                    } else {
-                                        $ret[]=$r;
-                                    }
-                                } else {
-                                    break;
-                                }
-                                unset($r);
-                                $l--;
-                            }
-                        }
-                        $q->query("CLOSE {$scroll}");
-                        $q->query("DEALLOCATE {$scroll}");
-                        $q->query('set rowcount 0');
-                        $q->query('set nocount off');
-                        unset($q);
-                    } else {
-                        if($this->_hint) {
-                            $q->setFetchMode(PDO::FETCH_CLASS, $this->_hint);
-                            $ft = PDO::FETCH_CLASS;
-                        }
-                        $q->bindParam(':offset', $this->_offset, PDO::PARAM_INT);
-                        $q->bindParam(':max', $this->_max, PDO::PARAM_INT);
-                        $q->execute();
-                        if($limit > 1) {
-                            if($this->_hint) {
-                                $ret = $q->fetchAll($ft, $this->_hint);
-                            } else {
-                                $ret = $q->fetchAll($ft);
-                            }
-                            if ($asCollection) {
-                                //$this->reset();
-                                foreach($ret as $k=>$v) {
-                                    $this->__set($k, $v);
-                                    $this->_count--;
-                                    //$this->_items[] = $k;
-                                }
-                            }
-                        } else {
-                            $ret = $q->fetch($ft);
-                        }
-                        $q->closeCursor();
-                        unset($q);
-                    }
-                } catch(Exception $e) {
-                    tdz::log(__METHOD__.': '.$e->getMessage()."\n  ".$e->getFile().':'.$e->getLine()."\n{$e}");
-                }
+                $ret = $r;
+                unset($r);
+            } else if(is_null($ret) || $ret===false) {
+                $ret = [];
             }
         }
         if(tdz::$perfmon>0) tdz::log(__METHOD__.': '.tdz::formatNumber(microtime(true)-tdz::$perfmon).'s '.tdz::formatBytes(memory_get_peak_usage())." mem: {$limit}\n  query: {$sql}");
         if ($limit > 1 && $asCollection) {
+            if($ret) {
+                if(!is_array($this->_items) || !$this->_items) $this->_items = $ret;
+                else $this->_items = array_merge($ret, $this->_items);
+            }
             return $this;
         } else if($ret instanceof Tecnodesign_Model && Tecnodesign_Model::$keepCollection) {
             $ret->setCollection($this); // se for instanceof Tecnodesign_Model

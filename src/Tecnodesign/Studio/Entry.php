@@ -491,23 +491,38 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     }
 
-    public function getContents($search=array(), $scope='content', $asCollection=false, $orderBy=null, $groupBy=null)
+    public function getContents($search=array(), $scope='content', $asCollection=false, $orderBy=null, $groupBy=null, $limit=null)
     {
         if(!$this->id) return null;
         if(!is_array($search)) $search = array();
         $search['entry'] = $this->id;
-        return tdzContent::find($search,null,$scope,$asCollection,$orderBy,$groupBy);
+        return tdzContent::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
     }
 
-    public function getChildren($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null)
+    public function getEntries($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null, $limit=null)
     {
         if(!$this->id) return null;
-        if(!is_array($search)) $search = array();
+        if(!is_array($search)) $search = [];
+        $search['published<']=TDZ_TIMESTAMP;
+        $search['type'] = 'entry';
+        if(!$orderBy) $orderBy = ['published'=>'desc', 'Relation.updated'=>'desc'];
+        return $this->getChildren($search, $scope, $asCollection, $orderBy, $groupBy, $limit);
+    }
+
+    public function getChildren($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null, $limit=null)
+    {
+        if(!$this->id) return null;
+        if(!is_array($search)) $search = [];
+        $search['published<']=TDZ_TIMESTAMP;
         $search['Relation.parent'] = $this->id;
-        $search['type'] = 'page';
-        if(!$orderBy) $orderBy = [];
-        $orderBy = ['Relation.position'=>'asc'] + $orderBy;
-        return static::find($search,0,$scope,$asCollection,$orderBy,$groupBy);
+        if(!isset($search['type'])) $search['type'] = 'page';
+        if(!$orderBy) $orderBy = ['Relation.position'=>'asc'];
+        if($limit==1) {
+            $r = static::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
+            if($r) $r=[$r];
+            return $r;
+        }
+        return static::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
     }
 
     public function getTags($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null)
@@ -515,7 +530,12 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(!$this->id) return null;
         if(!is_array($search)) $search = array();
         $search['entry'] = $this->id;
-        return tdzTag::find($search,0,$scope,$asCollection,$orderBy,$groupBy);
+        $L = tdzTag::find($search,null,$scope,true,$orderBy,$groupBy);
+        if($L) $L->setQueryKey('slug');
+        else if($asCollection) $L = new Tecnodesign_Collection(null, 'Tecnodesign_Studio_Tags', null, 'slug');
+        else $L = [];
+
+        return ($asCollection || !$L) ?$L :$L->getItems();
     }
 
     public static function file($url, $check=true)

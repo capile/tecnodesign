@@ -42,7 +42,8 @@ class Tecnodesign_Query_Sql
         $_alias, 
         $_classAlias, 
         $_transaction, 
-        $_last;
+        $_last,
+        $_query;
 
     public static $schemaBehaviors=array(
         'uid'=>array('before-insert', 'before-update', 'before-delete'),
@@ -75,6 +76,14 @@ class Tecnodesign_Query_Sql
     public function __toString()
     {
         return (string) $this->buildQuery();
+    }
+
+    public static function setConnection($n='', $conn)
+    {
+        $r = null;
+        if(isset(static::$conn[$n])) $r = static::$conn[$n];
+        static::$conn[$n] = $conn;
+        return $r;
     }
 
     public static function connect($n='', $exception=true, $tries=3)
@@ -196,7 +205,18 @@ class Tecnodesign_Query_Sql
             $this->_classAlias = [''=>$sc['className']];
             $this->_alias = [''=>'a'];
             $quote = static::QUOTE;
-            if(isset($sc['view']) && $sc['view']) {
+            if(isset($this->_query)) {
+                $q = $this->_query;
+                if(is_object($q)) $q = $q->buildQuery();
+                if(preg_match('/ order by [^\']+$/', $q, $m)) {
+                    $r = '';
+                    if(preg_match('/( group by [^\']+| limit [0-9]\,]+)$/', $m[0], $n)) {
+                        $r = $n[1];
+                    }
+                    $q = substr($q, 0, strlen($q) - strlen($m[0])).$r;
+                }
+                $this->_from = '('.$q.')';
+            } else if(isset($sc['view']) && $sc['view']) {
                 $this->_from = ( (strpos($sc['view'], ' ')!==false) ?'('.$sc['view'].')' :$sc['view'] );
             } else {
                 $this->_from = $sc['tableName'];
@@ -229,8 +249,18 @@ class Tecnodesign_Query_Sql
         else return $p.$a;
     }
 
+    public function setQuery($q)
+    {
+        $this->_select = $this->_where = $this->_groupBy = $this->_orderBy = $this->_limit = $this->_offset = null;
+        $this->_query = $q;
+    }
+
     public function buildQuery($count=false)
     {
+        if(isset($this->_query) && !$count) {
+            return $this->_query;
+        }
+
         if(is_null($this->_where)) {
             $this->_where = $this->getWhere(array());
         }
