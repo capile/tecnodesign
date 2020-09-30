@@ -1360,9 +1360,13 @@ form .i-mono dd {
 
 .tdz-i-preview {
 .i-auto { width: auto; input, select, textarea { width: auto; } }
-.i-small { width: 25%; }
+.i-small { width: 25%; input, select, textarea { width: 8em; } }
 .i-medium { width: 50%; }
 }
+
+.i-small { input, select, textarea { width: 8em; max-width:50%; } }
+.i-medium { input, select, textarea { width: 16em;max-width: 80%; } }
+.i-medium { width: 50%; }
 
 @media only screen and (min-width: @mobileBreakPoint) {
 
@@ -1384,7 +1388,7 @@ form .i-mono dd {
     }
   }
 
-  .b1s2, .b1s3, .b2s3, .b1s4, .b3s4 {
+  .b1s2, .b1s3, .b2s3, .b1s4, .b3s4, .i-inline .field {
     display:block;
     margin: 0;
     padding: 0;
@@ -1398,7 +1402,10 @@ form .i-mono dd {
       margin-bottom: 1em;
     }
     white-space: nowrap;
-    > dt, > .label {
+    p, div, li {
+      white-space: normal;
+    }
+    > dt, > .label, > label > .label {
       white-space: normal;
       display: inline-block;
       width:48%;
@@ -1408,7 +1415,7 @@ form .i-mono dd {
       text-align: right;
       vertical-align: top;
     }
-    > dd, > .input {
+    > dd, > .input, > label > .input {
       white-space: normal;
       display: inline-block;
       width:49%;
@@ -1424,20 +1431,20 @@ form .i-mono dd {
     }
 
     &.b1s3 {
-      > dt, > .label { width: 64% };
-      > dd, > .input { width: 34% };
+      > dt, > .label, > label > .label { width: 64% };
+      > dd, > .input, > label > .input { width: 34% };
     }
-    &.b2s3 {
-      > dt, > .label { width: 31% };
-      > dd, > .input { width: 67% };
+    &.b2s3, &.field {
+      > dt, > .label, > label > .label { width: 31% };
+      > dd, > .input, > label > .input { width: 67% };
     }
     &.b1s4 {
-      > dt, > .label { width: 73% };
-      > dd, > .input { width: 25% };
+      > dt, > .label, > label > .label { width: 73% };
+      > dd, > .input, > label > .input { width: 25% };
     }
     &.b3s4 {
-      > dt, > .label { width: 23% };
-      > dd, > .input { width: 75% };
+      > dt, > .label, > label > .label { width: 23% };
+      > dd, > .input, > label > .input { width: 75% };
     }
   }
 
@@ -1457,6 +1464,31 @@ form .i-mono dd {
   .i3s4 {width:75%;}
   .i1s3 {width:33.33%;}
   .i2s3 {width:66.66%;}
+
+  .i-inline {
+    width: inherit !important;
+    display: block;
+    .i1s2, .i1s4, .i2s4, .i3s4, .i1s3, .i2s3 {
+      width: inherit;
+      display: block;
+    }
+
+    .i-subform {
+      > .label {
+        width: inherit !important;
+        margin:0;
+        padding:inherit;
+        text-align: left;
+      }
+      > .input {
+        width: inherit !important;
+        display: block;
+        margin:0;
+        padding:inherit;
+        text-align: left;
+      }
+    }
+  }
 
   .i-float, .i-float-block, .i-float-left {float: left;}
   .i-float-right {float: right;}

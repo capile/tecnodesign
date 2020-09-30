@@ -1,2 +1,4 @@
 ---
 Sign in: "Entrar"
+'User %s connected.': 'Seja bem-vindo %s!'
+'User disconnected.': 'Você está desconectado, até mais! 😓'

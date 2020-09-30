@@ -408,8 +408,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $msg = $e->getMessage();
                     //$msg .= var_export($value, true)." {$m};";
                     $this->error[$msg] = $msg;
-                    //$cn = get_class((object) $this->getModel());
-                    //tdz::log($cn.": Could not set '".print_r($value, true)."' to {$this->id}\n because of errors in {$m}: {$msg}");
                 }
                 break;
             }
@@ -1574,7 +1572,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
             'variables' => $arg,
         );
         $input=false;
-        if($this->bind) {
+
+        if($this->bind && !isset($arg['no-render-model'])) {
+            $arg['no-render-model'] = true;
             $m = tdz::camelize('render-'.$this->id.'FormField');
             $M = $this->getModel();
             if(method_exists($M, $m)) {
@@ -1856,7 +1856,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $fo = array(
             'fields'=>$columns,
             'prefix'=>$this->prefix.$this->id,
-            'model'=>$this->getModel(),
+            'model'=>$M,
         );
         return $fo;
 

@@ -44,6 +44,7 @@ class Tecnodesign_Studio
         $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
         $allowedExtensions=array('.html'),
+        $userMessage,
         $cliInterface,      // enable command-line interface
         $cli='studio',      // configurable, where to load Studio command-line interface
         $cliApps=['config'=>['Tecnodesign_App_Install','config'],'index'=>['Tecnodesign_Studio_Index','reindex']];
@@ -536,6 +537,11 @@ class Tecnodesign_Studio
             }
         } else {
             $r = array();
+        }
+
+        if(static::$userMessage && ($m=$U->getMessage(null, true))) {
+            $mp = (is_string(static::$userMessage)) ?static::$userMessage :'message';
+            $r[$mp] = $m;
         }
 
         if(tdz::scriptName(true)===self::$uid) {
