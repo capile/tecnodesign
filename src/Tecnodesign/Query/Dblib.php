@@ -49,7 +49,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
                 if(strpos($this->_groupBy, ',')) $cc = 'checksum('.trim($this->_groupBy).')';
                 else $cc = trim($this->_groupBy);
             } else if($pk && $this->_from && strpos($this->_from, ' left outer join ')) {
-                $cc = static::concat($pk,'a.');
+                $cc = $this->concat($pk);
             }
             if($cc) {
                 $s = ' count(distinct '.$cc.')';
@@ -116,13 +116,18 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
         return $this;
     }
 
-    public static function concat($a, $p='a.', $sep='-')
+    public function concat($a, $sep='-')
     {
-        if(is_array($a)) {
-            $r = $p.implode('+'.tdz::sql($sep).'+'.$p, $a);
+        if(is_array($a) && count($a)>1) {
+            $r = '';
+            foreach($a as $fn) {
+                $r .= (($r) ?'+'.tdz::sql($sep).'+' :'')
+                    . 'coalesce('.$this->getAlias($fn, null, true).',\'\')';
+            }
             return $r;
         } else {
-            return $p.$a;
+            if(is_array($a)) $a = array_shift($a);
+            return $this->getAias($a, null, true);
         }
     }
 

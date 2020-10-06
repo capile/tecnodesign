@@ -243,10 +243,21 @@ class Tecnodesign_Query_Sql
         return $this;
     }
 
-    public static function concat($a, $p='a.', $sep='-')
+    public function concat($a, $sep='-')
     {
-        if(is_array($a)) return 'concat('.$p.implode(','.tdz::sql($sep).','.$p, $a).')';
-        else return $p.$a;
+        if(is_array($a) && count($a)>1) {
+            $r = '';
+            foreach($a as $fn) {
+                $r .= (($r) ?','.tdz::sql($sep).',' :'')
+                    . 'coalesce('.$this->getAlias($fn, null, true).',\'\')';
+            }
+            return ($r) ?'concat('.$r.')' :'null';
+        } else {
+            if(is_array($a)) $a = array_shift($a);
+            $r = $this->getAias($a, null, true);
+        }
+
+        return $r;
     }
 
     public function setQuery($q)
@@ -269,12 +280,12 @@ class Tecnodesign_Query_Sql
                 $cc = '';
                 if($this->_groupBy) {
                     if(strpos($this->_groupBy, ',')!==false) {
-                        $cc = static::concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),'');
+                        $cc = $this->concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),'');
                     } else {
                         $cc = trim($this->_groupBy);
                     }
                 } else if($this->_from && strpos($this->_from, ' left outer join ')) {
-                    $cc = static::concat($this->scope('uid'),'a.');
+                    $cc = $this->concat($this->scope('uid'));
                 } else {
                     $count = '1';
                 }
