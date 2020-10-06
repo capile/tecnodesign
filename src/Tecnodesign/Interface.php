@@ -1316,13 +1316,16 @@ class Tecnodesign_Interface implements ArrayAccess
                 if(is_string($this->key)) {
                     $w[$this->key] = $this->id;
                 } else {
-                    foreach($this->key as $k) {
-                        if(isset($this->id[$k])) $w[$k] = $this->id[$k];
+                    $id = (!is_array($this->id)) ?explode($cn::$keySeparator, $this->id, count($this->key)) :$this->id;
+                    foreach($this->key as $k=>$v) {
+                        if(isset($id[$k])) $w[$v] = $id[$k];
+                        else if(isset($id[$v])) $w[$v] = $id[$v];
+                        else if(isset($this->search[$v])) $w[$v] = $this->search[$v];
                     }
                 }
             }
-
-            $r = $cn::find($w,0,'string',false,null,$this->groupBy);
+            if(!$w) $w = ($this->search) ?$this->search :$this->id;
+            $r = $cn::find($w,null,'string',false,null,$this->groupBy);
             if($r) {
                 if(method_exists($cn, 'renderTitle')) {
                     $s = '';
