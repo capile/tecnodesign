@@ -99,6 +99,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $relationAction     =                  array('position'=>60,    'action' => 'executeInterface','identified'=>true,  'batch'=>false, 'query'=>false, 'renderer'=>'renderInterface'),
         $additionalActions  = array(),
         $listAction         = 'preview',
+        $modelRenderPrefix  = 'render',
         $actionsDefault     = array( 'preview', 'list' ),
         $share              = null,
         $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
@@ -1350,6 +1351,8 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         if(!isset($this->text['title'])) {
             return tdz::xml($cn::label());
+        } else if(substr($this->text['title'], 0, 1)=='*') {
+            return tdz::xml(static::t(substr($this->text['title'],1)));
         }
         return $this->text['title'];
     }
@@ -1574,7 +1577,6 @@ class Tecnodesign_Interface implements ArrayAccess
             }
         }
 
-        $m='render'.ucfirst($this->action);
         if(($this->action=='list' || !isset($this->id)) && static::$displaySearch &&
             (
                 (isset($this->options['search']) && $this->options['search'])
@@ -1585,13 +1587,13 @@ class Tecnodesign_Interface implements ArrayAccess
 
         if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
 
-        if($this->isOne() && method_exists($cn, $m)) {
+        if($this->isOne() && method_exists($cn, $m=static::$modelRenderPrefix.tdz::camelize($this->action, true))) {
             $this->getButtons();
             $this->scope((isset($cn::$schema->scope[$this->action]))?($this->action):('preview'));
             $o = $this->model();
             $this->text['preview'] = $o->$m($this);
             unset($o);
-        } else if(method_exists($this, $m)) {
+        } else if(method_exists($this, $m='render'.tdz::camelize($this->action, true))) {
             $this->getButtons();
             $this->text['preview'] = $this->$m();
         } else {
@@ -3546,6 +3548,8 @@ class Tecnodesign_Interface implements ArrayAccess
                 $m = $I['model'];
                 $I['title'] = $m::label();
                 unset($m);
+            } else if(static::$translate && substr($I['title'], 0, 1)=='*') {
+                $I['title'] = static::t(substr($I['title'], 1));
             }
             $p = str_pad((isset($I['options']['priority']))?($I['options']['priority']):(''), 5, '0', STR_PAD_LEFT).tdz::slug($I['title']);
             if(isset($I['options']['list-parent'])) {

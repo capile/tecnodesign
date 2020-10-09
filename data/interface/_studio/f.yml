@@ -1,10 +1,10 @@
 ---
 all:
-  title: '*Pages'
+  title: '*Files'
   model: Tecnodesign_Studio_Entry
   search:
-    type: page
+    type: file
   options:
     list-parent: i
-    priority: 1
+    priority: 2
     index: true

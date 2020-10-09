@@ -29,9 +29,11 @@
         "Children": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" }
     },
     "scope": {
+        "string": [ "title" ],
         "link": [ "id", "link", "title" ],
         "studio-new": [ "type", "title", "link", "summary", "published" ],
-        "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ]
+        "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ],
+        "review": [ "title", "link", "updated" ]
     },
     "order": {
         "published": "desc",

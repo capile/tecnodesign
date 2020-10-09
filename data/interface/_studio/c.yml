@@ -7,7 +7,7 @@ all:
   index: true
   options:
     list-parent: i
-    priority: 2
+    priority: 10
     scope:
       review:
         Content: id

@@ -3,5 +3,5 @@ all:
   model: Tecnodesign_Studio_Permission
   options:
     list-parent: i
-    priority: 5
+    priority: 50
     index: true

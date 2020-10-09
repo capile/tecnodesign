@@ -35,7 +35,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         $pageDir='web',                                // where pages are stored (relative to TDZ_VAR)
         $uploadDir,                                    // deprecated, use tdz::uploadDir
         $indexFile='index',                            // filename to use for directory reads
-        $previewEntryType=array('feed','file','page'); // which entry types can be previewed
+        $previewEntryType=array('feed','file','page'), // which entry types can be previewed
+        $hostnames=[];                                 // list of hostnames that should be skipped in the link validation
 
     public static $s=1;
     public static $schema;
@@ -850,5 +851,35 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         unset($pages);
         return $r;
+    }
+
+
+    public function validateLink($v)
+    {
+        $v = trim($v);
+        if(static::$hostnames && preg_match('#^(https?:)?//([^/]+)(/|$)#', $v, $m)) {
+            if(in_array($m[2], static::$hostnames)) {
+                $v = substr($v, strlen($m[0])-strlen($m[3]));
+            }
+        }
+        return $v;
+    }
+
+    public function previewLink()
+    {
+        $v = null;
+        if($this->link) {
+            $v = $this->validateLink($this->link);
+        }
+
+        if(Tecnodesign_Studio_Interface::format()=='html') {
+            $v = '<a href="'.tdz::xml($v).'" target="_blank">'.tdz::xml($v).'</a>';
+        }
+        return $v;
+    }
+
+    public function choicesTypes()
+    {
+        return static::$types;
     }
 }
