@@ -14,7 +14,7 @@ function startup()
 
     if(!('plugins' in Z)) Z.plugins={};
     if(!('studio' in Z.plugins)) {
-        Z.plugins.studio={home:'/_studio', load:[] };
+        Z.plugins.studio={home:'/_studio', options:{}, load:[] };
     }
 
     if(!('modules' in Z)) Z.modules = {};
@@ -22,68 +22,52 @@ function startup()
         _Studio = Z.plugins.studio.home;
     }
     _P = {c:[],s:[]};
-    var l=document.querySelectorAll('[data-studio-s]'),L,j,i,id,d=[];
-    for (i=0;i<l.length;i++) {
-        Z.addEvent(l[i], 'dblclick', doubleClick);
-        id=l[i].getAttribute('data-studio-s');
-        _P.s.push(id);
-        d.push({e:'div',a:{'class':'s-section s-hidden','data-id':'s/'+id}});
-        L=l[i].querySelectorAll('[data-studio-c]');
-        for(j=0;j<L.length;j++) {
-            id=L[j].getAttribute('data-studio-c');
-            Z.addEvent(L[j], 'dblclick', doubleClick);
-            _P.c.push(id);
-            d.push({e:'div',a:{'class':'s-content s-hidden','data-id':'c/'+id}});
+
+    if(('options' in Z.plugins.studio) && ('interactive' in Z.plugins.studio.options) && Z.plugins.studio.options.interactive) {
+        var l=document.querySelectorAll('[data-studio-s]'),L,j,i,id,d=[];
+        for (i=0;i<l.length;i++) {
+            Z.addEvent(l[i], 'dblclick', doubleClick);
+            id=l[i].getAttribute('data-studio-s');
+            _P.s.push(id);
+            d.push({e:'div',a:{'class':'s-section s-hidden','data-id':'s/'+id}});
+            L=l[i].querySelectorAll('[data-studio-c]');
+            for(j=0;j<L.length;j++) {
+                id=L[j].getAttribute('data-studio-c');
+                Z.addEvent(L[j], 'dblclick', doubleClick);
+                _P.c.push(id);
+                d.push({e:'div',a:{'class':'s-content s-hidden','data-id':'c/'+id}});
+            }
         }
     }
 
-    var ui = [
+    if(('options' in Z.plugins.studio) && ('button' in Z.plugins.studio.options) && Z.plugins.studio.options.button) {
+        var ui = [
           {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':_Studio}},
-          {e:'div',p:{className:'studio-logo tdz-i-button tdz-i--studio'}},
+          {e:'div',p:{className:'studio-logo z-i-button z-i--studio'}}/*,
           {e:'div',p:{className:'studio-menu'},c:[
-            {e:'div',p:{className:'studio-box s-right tdz-i-actions'},c:[
-              {e:'a',p:{className:'tdz-i--search'}},
-              {e:'a',p:{className:'tdz-i--new'   }},
-              {e:'a',p:{className:'tdz-i--update'}},
-              {e:'a',p:{className:'tdz-i--delete'}}
+            {e:'div',p:{className:'studio-box s-right z-i-actions'},c:[
+              {e:'a',p:{className:'z-i--search'}},
+              {e:'a',p:{className:'z-i--new'   }},
+              {e:'a',p:{className:'z-i--update'}},
+              {e:'a',p:{className:'z-i--delete'}}
             ]},
-          ]}
+          ]}*/
         ];
-    /*
-    var ui = [
-          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':_Studio}},
-          {e:'div',p:{className:'studio-logo'},t:{click:trigger},c:[
-              {e:'span',p:{className:'studio-i-new'}},
-              {e:'span',p:{className:'studio-i-square'}},
-          ]},
-          {e:'div',p:{id:'studio-list', className:'studio-list'},c:d},
-          {e:'div',p:{className:'studio-menu'},c:[
-            {e:'div',p:{className:'studio-box s-right'},c:[
-              {e:'div',p:{className:'s-button studio-i-new'   },t:{click:toggle}},
-              {e:'div',p:{className:'s-button studio-i-update'},t:{click:toggle}},
-              {e:'div',p:{className:'s-button studio-i-search'},t:{click:toggle}},
-              {e:'div',p:{className:'s-button studio-i-delete'},t:{click:toggle}},
-              {e:'div',p:{className:'s-button studio-i-meta'  },t:{click:toggle}},
-              {e:'input',a:{type:'search'},p:{className:'s-search s-hidden'},t:{keydown:keyPress}}
-            ]},
-          ]}
-        ];
-        */
-    _Z = document.getElementById('studio');
-    if(!_Z) {
-        _Z = Z.element.call(document.body, {e:'div',p:{id:'studio',className:'studio-interface'},c:ui});
-    } else if(_Z.className.search(/\bs-active\b/)<0) {
-        var b=_Z.querySelector('.tdz-i-box');
-        if(b) {
-            ui.shift();
-            b.id='studio-viewport';
-            b=null;
+        _Z = document.getElementById('studio');
+        if(!_Z) {
+            _Z = Z.element.call(document.body, {e:'div',p:{id:'studio',className:'studio-interface'},c:ui});
+        } else if(_Z.className.search(/\bs-active\b/)<0) {
+            var b=_Z.querySelector('.tdz-i-box');
+            if(b) {
+                ui.shift();
+                b.id='studio-viewport';
+                b=null;
+            }
+            Z.element.call(_Z, ui);
+            trigger(null, true);
         }
-        Z.element.call(_Z, ui);
-        trigger(null, true);
+        Z.bind(_Z, 'click', trigger);
     }
-    Z.bind(_Z, 'click', trigger);
-
     /*
     while(i-->0) {
         if(id=l[i].getAttribute('data-studio-c')) {
@@ -154,13 +138,27 @@ function getInterface(u)
 
 function searchInterface(s)
 {
-    var d, u=_Studio+'/q';
+    var d, u=_Studio+'/e/q';
     if(typeof(s)=='object') {
         d = JSON.stringify({q:s});
     } else {
         u+='?q='+escape(s);
     }
-    Z.ajax(u, d, listResults, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
+
+    loadInterface(u);
+    //Z.ajax(u, d, listResults, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
+}
+
+function loadInterface(u)
+{
+    var p =(u.indexOf(/\?/)>-1) ?u.substr(0, u.indexOf(/\?/)) :u, 
+        qs=(u.indexOf(/\?/)>-1) ?u.substr(u.indexOf(/\?/)+1) :'',
+        P;
+    if(!_Z.querySelector('.tdz-i-box .tdz-i[data-url="'+encodeURIComponent(p)+'"]')) {
+        if(!(P=_Z.querySelector('.tdz-i-body'))) P=_Z.querySelector('.tdz-i-box');
+        Z.element.call(P, {e:'div',a:{'class':'tdz-i', 'data-url':p, 'data-qs':qs, 'data-nav':'1'}});
+    }
+    Z.init(_Z);
 }
 
 function listResults(d)

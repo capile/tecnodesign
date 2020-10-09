@@ -3,11 +3,6 @@
 @import "studio-base.less";
 
 #studio{
-  .background-alpha(@bgViewport, @bgViewportAlpha);
-  position:absolute;
-  bottom:0;
-  left:0;
-  width:100%;
   z-index:100;
   font-size:15px;
   line-height:15px;
@@ -102,7 +97,13 @@
     .transition(opacity 0.4s ease-in-out);
   }
   &.s-active {
-    height:100%;
+    .background-alpha(@bgViewport, @bgViewportAlpha);
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    height: 100%;
+    z-index: 999;
     .tdz-i-box {
       position:relative;
       bottom:0;
@@ -113,7 +114,6 @@
     }
   }
 
-  strong {font-weight:700;}
   .tdz-i-body {
     box-shadow: 0 1em 1em 1em rgba(0,0,0,@bgAlpha);
     height: calc(100% - 6em);
@@ -141,7 +141,7 @@ html.studio-lock {
 
 @media screen and (max-height: 960px) {
   #studio {
-    overflow-y:auto;
+    overflow-y:hidden;
     overflow-x:hidden;
     .tdz-i-box {
       max-height:100%;

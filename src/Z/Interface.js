@@ -2,7 +2,7 @@
 (function()
 {
     "use strict";
-    var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _reload={}, _loading={}, _ids={}, _prop={}, _q=[], _last, _reStandalone=/\btdz-i-standalone\b/, _msgs=[];
+    var _is=false, _init, _cu='/', _i=0, _sel='.tdz-i[data-url]', _base, _load=0, _toLoadTimeout, _toLoad=[], _reload={}, _loading={}, _ids={}, _prop={}, _q=[], _last, _reStandalone=/\btdz-i-standalone\b/, _msgs=[];
 
     function startup(I)
     {
@@ -145,7 +145,7 @@
                 _is = true;
             }
         }
-        activeInterface(I);
+        if(!_toLoadTimeout) activeInterface(I);
         l=document.querySelectorAll('.tdz-i-header .tdz-i-title');
         i=l.length;
         while(i-- > 0) {
@@ -196,7 +196,7 @@
                 h=_H[i];
                 if(h.substr(0,1)=='?') h=_base+h;
                 else if(h.substr(0,1)!='/') h = _base+'/'+h;
-                loadInterface(h);
+                loadInterface(h, true);
                 _cu = h.replace(/\?.*/, '');
             }
         } else {
@@ -209,7 +209,7 @@
             _is = true;
         }
         _last = new Date().getTime();
-        reHash();
+        if(I.className.search(/\nbtdz-i-active\b/)>-1) reHash();
 
         if(I.getAttribute('data-ui') || (I.getAttribute('data-url') in _prop)) {
             metaInterface(I);
@@ -416,12 +416,12 @@
         if(document.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) setTimeout(function() { headerOverflow(true); }, 200);       
     }
 
-    function loadInterface(e)
+    function loadInterface(e, delayed)
     {
         /*jshint validthis: true */
         //Z.trace('loadInterface');
         _init = true;
-        var I, m=false, t, q, urls=[], l, i,u,data,h={'z-action':'Interface'}, ft, method='get';
+        var I, m=false, t, q, urls=[], l, i,u,data,h={'z-action':'Interface'}, ft, method='get',nav=false;
         if(typeof(e)=='string') {
             urls.push(e);
         } else {
@@ -535,6 +535,12 @@
                 }
                 B = Z.parentNode(o, '.tdz-i-body');
             }
+
+            if(delayed) {
+                _toLoad.push(urls[i]);
+                continue;
+            }
+
             _loading[url]=t;
             Z.blur(B);
             //Z.trace('loadInterface: ajax request');
@@ -548,12 +554,30 @@
                 ft=null;
             }
 
+            var hn=h;
+            if(o.getAttribute('data-nav')) hn['z-navigation'] = o.getAttribute('data-nav');
+            else if('z-navigation' in hn) delete(hn['z-navigation']);
+
             Z.ajax((urls[i].search(/\?/)>-1)?(urls[i].replace(/\&+$/, '')+'&ajax='+t):(urls[i]+'?ajax='+t), data, setInterface, interfaceError, 'html', o, h);
 
             _load++;
             o=null;
         }
+
+        if(delayed && _toLoad.length>0) {
+            if(_toLoadTimeout) clearTimeout(_toLoadTimeout);
+            _toLoadTimeout=setTimeout(loadToLoad, 500);
+        }
         return false;
+    }
+
+    function loadToLoad()
+    {
+        if(_toLoadTimeout) clearTimeout(_toLoadTimeout);
+        while(_toLoad.length>0) {
+            loadInterface(_toLoad.shift());
+        }
+        _toLoadTimeout = null;
     }
 
 
@@ -681,6 +705,10 @@
             loadInterface((qs)?(u+'?'+qs):(u));
             return false;
         } else if(!_reStandalone.test(I.className)) {
+            if(!Z.isNode(Z.parentNode(I, '.tdz-i-body'))) {
+                loadInterface((qs)?(u+'?'+qs):(u));
+                return false;
+            }
             if(I.className.search(/\btdz-i-active\b/)<0) I.className += ' tdz-i-active';
             if(H && H.className.search(/\btdz-i-off\b/)>-1) H.className = H.className.replace(/\s*\btdz-i-off\b/, '');
             if(H && H.className.search(/\btdz-i-title-active\b/)<0) H.className += ' tdz-i-title-active';
@@ -860,6 +888,22 @@
             }
             r=null;
             if(!I) I = f.querySelector('.tdz-i');
+            if(I && box && !box.querySelector('.tdz-i-body') && f.querySelector('.tdz-i-body')) {
+                // replace entire box and startup
+                Z.removeChildren(box);
+                var mv = f.querySelector('.tdz-i-header');
+                if(mv) box.appendChild(mv);
+                mv = f.querySelector('.tdz-i-body');
+
+                box.appendChild(mv);
+
+                parseHash();
+                startup(I);
+                Z.init(box);
+                Z.focus(mv);
+                return;
+            }
+
             if(!I) {
                 if(O) {
                     Z.focus(box.querySelector('.tdz-i-body'));

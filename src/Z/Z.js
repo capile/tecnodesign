@@ -14,7 +14,7 @@ var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl,
     'Interface.startup': '.tdz-i[data-url]',
     'Interface.AutoRemove': '.z-auto-remove',
     'Graph.Graph': '.z-graph',
-  };
+  }, _zTimestamp='';
 
 // load authentication info
 var _reWeb=/^https?:\/\//;
@@ -73,6 +73,11 @@ function initZ(d)
         }
     }
     if(d) {
+        if(!Z.timestamp) {
+            var S=document.querySelector('script[src^="'+_assetUrl+'z.js?"]');
+            if(S) _zTimestamp = '?'+encodeURIComponent(S.getAttribute('src').substr(_assetUrl.length + 5));
+        }
+
         if(Object.prototype.toString.call(d)=='[object Array]') {
             Z.user = false;
         } else {
@@ -187,7 +192,7 @@ Z.init=function(o)
 var _delayed={};
 function loadAsset(f, fn, args, ctx)
 {
-    var T, o, r, s=((Z.env=='dev' && Z.timestamp) ?'?'+(new Date().getTime()) :'');
+    var T, o, r, s=((Z.env=='dev' && Z.timestamp) ?'?'+(new Date().getTime()) :_zTimestamp);
     if(f in _assets) return;
     _assets[f]=true;
 
@@ -233,7 +238,7 @@ function loadAsset(f, fn, args, ctx)
         }
         delete(_delayed[f]);
     }
-    if(arguments.length>1) {
+    if(arguments.length>1 && fn && typeof(fn)!='undefined') {
         if(r) {
             fn.apply(args, ctx);
         } else {
@@ -503,7 +508,7 @@ Z.element=function(o,before,after) {
 
     if(before) return before.parentNode.insertBefore(r,before);
     else if(after) return after.parentNode.insertBefore(r,after.nextSibling);
-    else if(this.appendChild) return this.appendChild(r);
+    else if(this && typeof(this)==='object' && ('appendChild' in this) && this.appendChild) return this.appendChild(r);
     else return r;
 };
 

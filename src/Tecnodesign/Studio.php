@@ -22,6 +22,9 @@ class Tecnodesign_Studio
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
         $automatedInstall,  // deprecated
         $webInterface,
+        $webButton,
+        $webInteractive,
+        $cliInterface,      // enable command-line interface
         $checkOrigin=1,     // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $allowOrigin=[],
         $private=[],        // updated at runtime, indicates when a cache-control: private,nocache should be sent
@@ -45,7 +48,6 @@ class Tecnodesign_Studio
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
         $allowedExtensions=array('.html'),
         $userMessage,
-        $cliInterface,      // enable command-line interface
         $cli='studio',      // configurable, where to load Studio command-line interface
         $cliApps=['config'=>['Tecnodesign_App_Install','config'],'index'=>['Tecnodesign_Studio_Index','reindex']];
     const VERSION = 2.3;    // should match the development branch 
@@ -517,14 +519,12 @@ class Tecnodesign_Studio
                 $r['plugins']=array(
                     'studio'=>array(
                         'home'=>self::$home,
-                        'load'=>array(
-                            tdz::$assetsUrl.'/z-studio.js',
-                            tdz::$assetsUrl.'/z-studio.css',
-                            tdz::$assetsUrl.'/z-interface.js',
-                            tdz::$assetsUrl.'/z-interface.css',
-                        ),
+                        'options'=>[],
+                        'load'=>['z-studio','z-interface'],
                     ),
                 );
+                if(static::$webButton) $r['plugins']['studio']['options']['button'] = true;
+                if(static::$webInteractive) $r['plugins']['studio']['options']['interactive'] = true;
             }
             if($U->isAuthenticated() && ($cfg=Tecnodesign_Studio::$app->user)) {
                 if(isset($cfg['export']) && is_array($cfg['export'])) {

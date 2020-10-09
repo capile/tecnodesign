@@ -18,8 +18,12 @@ else $qs='';
 if(isset($title)) Tecnodesign_App::response('title', $title);
 if(!isset($action)) $action = $Interface['action'];
 
-$nav = (!Tecnodesign_App::request('ajax') && $Interface::$navigation) ?$Interface::listInterfaces() :null;
-
+$nav = null;
+if($Interface::$navigation) {
+    if(!Tecnodesign_App::request('ajax') || Tecnodesign_App::request('headers', 'z-navigation')) {
+        $nav = $Interface::listInterfaces();
+    }
+}
 // .tdz-i-header
 ?><div class="tdz-i-header"<?php 
     if($nav) echo ' data-toggler="off"';
