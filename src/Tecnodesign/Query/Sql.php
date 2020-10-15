@@ -254,7 +254,7 @@ class Tecnodesign_Query_Sql
             return ($r) ?'concat('.$r.')' :'null';
         } else {
             if(is_array($a)) $a = array_shift($a);
-            $r = $this->getAias($a, null, true);
+            $r = $this->getAlias($a, null, true);
         }
 
         return $r;
