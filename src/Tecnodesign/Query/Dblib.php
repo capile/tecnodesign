@@ -127,7 +127,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
             return $r;
         } else {
             if(is_array($a)) $a = array_shift($a);
-            return $this->getAias($a, null, true);
+            return $this->getAlias($a, null, true);
         }
     }
 
