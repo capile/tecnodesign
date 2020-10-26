@@ -2791,7 +2791,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         unset($l);
         $a = ucfirst($this->action);
-        $s = '<p>'
+        $s = '<p class="z-i-labels">'
            . ((isset($this->text['title'])) ?'<span class="z-i-label-model">'.tdz::xml($this->text['title']).'</span>' :'')
            . '<span class="z-i-label-action">'.static::t('label'.$a, $a).'</span>'
            . (($this->id) ?'<span class="z-i-label-uid"><span class="z-i-label-key">'.$cn::fieldLabel($this->key).'</span><span class="z-i-label-id">'.tdz::xml($this->id).'</span></span>' :'')

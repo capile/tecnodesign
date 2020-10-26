@@ -960,7 +960,8 @@ button .i-label {
 }
 
 .tdz-i-search, .z-i-search {
-  form {
+  margin-bottom: 0.5em;
+  form, #f__q {
     margin:0;padding:0;
   }
   ~ .tdz-counter, ~ .z-i-counter {
@@ -969,7 +970,7 @@ button .i-label {
   }
   input#omnibar {
     width: calc(~"100% - 8em");
-    margin: 0.5em 0.5em 0.5em 0;
+    margin: 0 0.5em 0.5em 0;
   }
   fieldset{
     padding:0;
@@ -1004,7 +1005,8 @@ button .i-label {
     width:100%;
   }
   .field {
-    padding: 0.5em 0 !important;
+    margin: 0;
+    padding: 0.5em 0;
     position:relative;
     vertical-align:top;
   }
@@ -1570,7 +1572,7 @@ form .i-mono dd {
   color:@colorButtonText;
 }
 
-.z-i--list .z-i-label-title, .z-i-label-action, .z-i-label-model {
+.z-i--list .z-i-labels, .z-i-label-action, .z-i-label-model {
   display:none;
 }
 
@@ -2163,7 +2165,6 @@ th > input[type=checkbox], td > input[type=checkbox] {
 -webkit-border-radius: @arguments;
    -moz-border-radius: @arguments;
         border-radius: @arguments;
-            behavior: url(/_assets/js/PIE.htc);
 }
 
 .transition(@a: "all 0.2s ease-in-out") {
