@@ -1,0 +1,107 @@
+
+@font-face {
+  font-family: @icon-font-name;
+  font-style: normal;
+  font-weight: 400;
+  src: url('@{assets-url}/MaterialIcons-Regular.eot'); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url('@{assets-url}/MaterialIcons-Regular.woff2') format('woff2'),
+       url('@{assets-url}/MaterialIcons-Regular.woff') format('woff'),
+       url('@{assets-url}/MaterialIcons-Regular.ttf') format('truetype');
+}
+
+.material-icons {
+  font-family: @icon-font-name;
+  font-weight: normal;
+  font-style: normal;
+  font-size: @icon-font-size;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+.iconFont(@icon: "") {
+  &:before {
+    .icon(@icon: "");
+  }
+}
+.icon(@icon: "") {
+  content: @icon;
+  font-family: @icon-font-name;
+  font-weight: normal;
+  font-style: normal;
+  font-size: @icon-font-size;  /* Preferred icon size */
+  text-decoration: inherit;
+  display: inline-block;
+  line-height: 1 / @icon-font-size;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+
+
+
+@iconActionsMenu: 'menu';
+@iconDefault: 'arrow_forward_ios';
+@iconNavigationItem: ' ';
+@iconNavigationItemChild: 'keyboard_arrow_down';
+@iconDocument: '\f15b';
+@iconList:     'search';
+@iconReport:   'cloud_download';
+@iconNew:      'create';
+@iconDelete:   'delete';
+@iconUpdate:   'wysiwyg';
+@iconPreview:  'article';
+@iconFilter:   'filter_list';
+@iconRefresh:  'refresh';
+@iconClose:    'cancel';
+@iconUp:       'keybard_arrow_up';
+@iconDown:     'keyboard_arrow_down';
+@iconShare:    '\f064';
+@iconText:     '\f0f6';
+@iconFile:     '\f093';
+@iconUrl:      '\f0c1';
+@iconToggle:   '\f111';
+@iconPdf:      '\f1c1';
+@iconVideo:    '\f03d';
+@iconReload:   '\f021';
+@iconSubmit:   '\f00c';
+@iconBreadcrumbs: 'arrow_forward_ios';
+@iconSettings: 'settings';
+@iconSearch: 'search';
+@iconAdd: 'add_circle';
+@iconRemove: 'remove_circle';
+@iconSearch:'search';
+@iconUpload: 'upload';
+@iconSwitch: 'menu';
+

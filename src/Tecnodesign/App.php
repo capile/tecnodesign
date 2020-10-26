@@ -41,6 +41,10 @@ class Tecnodesign_App
             'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday',
             'Z.Graph'=>'d3/dist/d3.min,c3/c3.min',
         ],
+        $copyNodeAssets=[
+            'Z.Interface'=>'@fortawesome/fontawesome-free/webfonts/fa-solid-900.*',
+            //'Z.Interface'=>'material-design-icons/iconfont/MaterialIcons-Regular.*',
+        ],
         $result,
         $http2push=false,
         $link;
@@ -554,8 +558,11 @@ class Tecnodesign_App
                 unset($f);
             }
             if($t) { // check and build
-                $build = true;
-                if(file_exists($tf) && filemtime($tf)>$fmod) $src = null;
+                if(file_exists($tf) && filemtime($tf)>$fmod) {
+                    $src = null;
+                } else {
+                    $build = true;
+                }
                 if($src) {
                     Tecnodesign_Studio_Asset::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
                     if(!file_exists($tf)) {// && !copy($f, $tf)
@@ -564,7 +571,7 @@ class Tecnodesign_App
                 }
 
                 if($output) {
-                    if($tf) $t .= '?'.date('YmdHis', filemtime($tf));
+                    if($tf) $t .= '?'.date('Ymd-His', filemtime($tf));
 
                     if(isset(self::$_response[$destination[$to]][700])) {
                         self::$_response[$destination[$to]][] = $t;
@@ -585,6 +592,14 @@ class Tecnodesign_App
                 }
             }
             unset($files);
+        }
+        if($build && isset(static::$copyNodeAssets[$component]) && ($files = glob($projectRoot.'/node_modules/'.static::$copyNodeAssets[$component], GLOB_BRACE))) {
+            foreach($files as $source) {
+                $dest = TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.basename($source);
+                if(!file_exists($dest) || filemtime($dest)<filemtime($source)) {
+                    copy($source, $dest);
+                }
+            }
         }
     }
 

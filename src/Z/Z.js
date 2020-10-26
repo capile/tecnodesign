@@ -203,12 +203,15 @@ function loadAsset(f, fn, args, ctx)
         loadAsset(f+'.css'+s, fn, args, ctx);
         return;
     }
+
     if(f.indexOf('/')<0) {
         f=_assetUrl+f;
     }
+    var f0 = f.replace(/\?.*/, '');
+
     if(f.indexOf('.css')>-1) {
-        T=document.getElementsByTagName('head')[0];
-        if(!T.querySelector('link[href^="'+f+'"]')) {
+        T=document.querySelector('head');
+        if(!T.querySelector('link[href^="'+f0+'"]')) {
             o={e:'link',a:{rel:'stylesheet',type:'text/css',href:f}};
         } else {
             T=null;
@@ -216,7 +219,7 @@ function loadAsset(f, fn, args, ctx)
         }
     } else if(f.indexOf('.js')>-1) {
         T=document.body;
-        if(!document.querySelector('script[src^="'+f+'"]')) {
+        if(!document.querySelector('script[src^="'+f0+'"]')) {
             o={e:'script',p:{async:true,src:f}};
         } else {
             T=null;

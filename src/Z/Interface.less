@@ -1,7 +1,7 @@
 /*! Tecnodesign Z.Interface v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
 @import "interface-vars-default.less";
 @import "interface-vars.less";
-@import "fontawesome.less";
+@import @icon-font;
 
 .tdz-i-box{
   color:@colorText;
@@ -365,7 +365,7 @@
 
 .tdz-blur{
   opacity: 0.5;
-  .fontAwesomeBase();
+  .iconFont();
 }
 .tdz-blur:before{
   position:absolute;
@@ -377,7 +377,7 @@
   height:300px;
   padding-top:4px;
   z-index:100;
-  content: "\f013";
+  content: @iconSettings;
   .spin();
   font-size:300px;
   text-align:center;
@@ -386,11 +386,7 @@
   opacity:0.4;
 }
 .tdz-blur:after{
-    font-family: FontAwesome;
-    font-weight: normal;
-    font-style: normal;
-    display: inline-block;
-    text-decoration: inherit;
+  .icon(@iconSettings);
   position:absolute;
   left:50%;
   top:500px;
@@ -400,7 +396,6 @@
   height:300px;
   padding-top:4px;
   z-index:101;
-  content: "\f013";
   .revspin();
   font-size:300px;
   text-align:center;
@@ -545,8 +540,7 @@
       text-decoration: none;
     }
     &:after {
-      font-family: FontAwesome;
-      content: '  \f105  ';
+      .icon(@iconBreadcrumbs);
       color: @colorBreadcrumbsText;
     }
     &:last-child:after {
@@ -615,9 +609,8 @@ input.tdz-i-switch{
     width:1.5em;
     position:relative;
     z-index:21;
-    .fontAwesomeBase();
     &:before{
-      content:"\f0c9";
+      .icon(@iconSwitch);
       display:block;width:1.5em;height:1.5em;line-height:1.5em;
       text-align:center;vertical-align:baseline;
     }
@@ -626,7 +619,7 @@ input.tdz-i-switch{
     color:#fff - @colorSummary;
   }
   &.tdz-i-search + label:before {
-    content:"\f0b0";
+    content:@iconSearch;
   }
 }
 
@@ -674,9 +667,9 @@ input.tdz-i-switch{
     color:@colorTab;
     &:link, &:visited {color:@colorTab;text-decoration:none;}
     &:hover, &:active {color:@colorActive;text-decoration:none;}
-    .fontAwesomeBase();
-    &.tdz-button-add:before{content:'\f196';}
-    &.tdz-button-del:before{content:'\f014';}
+    .iconFont();
+    &.tdz-button-add:before{content:@iconAdd;}
+    &.tdz-button-del:before{content:@iconRemove;}
   }
 }
 
@@ -842,9 +835,8 @@ input.tdz-i-switch{
       }
     }
     a,span {
-      .fontAwesomeBase();
       &:before {
-        content:'\f105';
+        .icon(@iconDefault);
         width:1em;
         text-align:center;
         display:inline-block;
@@ -915,12 +907,12 @@ input.tdz-i-switch{
   }
 
   .tdz-input-search {
-    .fontAwesome();
+    .iconFont();
     &:before {
       position:absolute;
       right:1em;
       top:0.25em;
-      content:'\f002';
+      content:@iconSearch;
       color:@colorForeground + #999;
     }
   }
@@ -1034,12 +1026,12 @@ button .i-label {
   #f__q span.input{display:block;width:auto;padding:0 1em 0 0;}
 
   .tdz-input-search {
-    .fontAwesome();
+    .iconFont();
     &:before {
       position:absolute;
       right:1em;
       top:0.25em;
-      content:'\f002';
+      content:@iconSearch;
       color:@colorText + #999;
     }
   }
@@ -1129,13 +1121,8 @@ form .tdz-i-field a.tdz-i-upload {
     background: @colorTabActive;
   }
   &:after {
+    .icon(@iconUpload);
     color:@colorTabText;
-    content: ' \f00d';
-    font-family: FontAwesome;
-    font-weight: normal;
-    font-style: normal;
-    display: inline-block;
-    text-decoration: inherit;
   }
 }
 
@@ -1565,10 +1552,11 @@ form .i-mono dd {
       &:before{
         display:inline-block;
         text-align:center;
-        height:2em;
-        width:2em;
+        height: 2em / @icon-font-size;
+        width:2em / @icon-font-size;
         margin-right: 0.25em;
-        line-height:2em;
+        line-height:2em / @icon-font-size;
+        vertical-align:middle;
       }
     }
   }
@@ -1588,11 +1576,8 @@ form .i-mono dd {
 
 [class^="tdz-i--"], [class*=" tdz-i--"],[class^="z-i--"], [class*=" z-i--"] {
   &:before {
-    font-family: @iconFont;
-    font-weight: normal;
-    display:inline-block;
+    .icon(@iconDefault);
     width:1.5em;
-    content: @iconDefault;
   }
 }
 

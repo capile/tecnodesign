@@ -40,6 +40,16 @@ class Tecnodesign_Studio_Asset
             'scss'=>'css',
         ),
         $outputToRoot = true,
+        $assetVariables = [
+            'icon-font' => 'fontawesome',
+            'icon-font-name' => 'FontAwesome',
+            'icon-font-size' => '1em',
+            /*
+            'icon-font' => 'material-icons',
+            'icon-font-name' => 'Material Icons',
+            'icon-font-size' => '1.6em',
+            */
+        ],
         $importDir = [];
 
 
@@ -215,7 +225,7 @@ class Tecnodesign_Studio_Asset
         $parser->registerFunction('dechex', function($a) {
             return dechex($a[1]);
         });
-        $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
+        $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home))+static::$assetVariables);
         $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
         if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) $importDir[] = $d;
         if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root.'/';
@@ -258,7 +268,7 @@ class Tecnodesign_Studio_Asset
         }
 
         $parser = new $compiler();
-        $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home)));
+        $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home))+static::$assetVariables);
         $parser->registerFunction('dechex', function($a){
             return dechex($a[1]);
         });
