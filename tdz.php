@@ -535,12 +535,13 @@ class tdz
             if($a[0] === true) {
                 if (is_null(tdz::$real_script_name)) {
                     if(isset($_SERVER['REDIRECT_STATUS']) && $_SERVER['REDIRECT_STATUS']=='200' && isset($_SERVER['REDIRECT_URL'])) {
-                        tdz::$real_script_name = $_SERVER['REDIRECT_URL'];
+                        tdz::$real_script_name = tdz::sanitizeUrl($_SERVER['REDIRECT_URL']);
                     } else if (isset($_SERVER['REQUEST_URI'])) {
-                        tdz::$real_script_name = $_SERVER['REQUEST_URI'];
+                        tdz::$real_script_name = tdz::sanitizeUrl($_SERVER['REQUEST_URI']);
                     } else {
                         tdz::$real_script_name = '';
                     }
+
                     // remove extensions
                     if(!isset($a[1]) || $a[1]) {
                         tdz::$real_script_name = preg_replace('#\.(php|html?)(/.*)?$#i', '$2', tdz::$real_script_name);
@@ -558,14 +559,32 @@ class tdz
                     $a[0] = substr($a[0], 0, $qspos);
                 }
                 unset($qspos);
-                tdz::$script_name = $a[0];
+                tdz::$script_name = tdz::sanitizeUrl($a[0]);
                 if(isset($a[2]) && $a[2]===true)
-                    tdz::$real_script_name = $a[0];
+                    tdz::$real_script_name = tdz::$script_name;
             }
         } else if (is_null(tdz::$script_name)) {
             tdz::$script_name = tdz::scriptName(true);
         }
         return tdz::$script_name;
+    }
+
+    public static function sanitizeUrl(&$s)
+    {
+        if(preg_match('#\./.*(\?|$)#', $s)) {
+            if(strpos($s, '?')!==false) {
+                list($p, $qs) = explode('?', $s, 2);
+            } else {
+                $p = $s;
+                $qs = null;
+            }
+            while($x=strpos($p, '/../')) {
+                $p = preg_replace('#([^/]*$#', '', substr($p, 0, $x)).substr($p, $x+3);
+            }
+            $p = preg_replace('#(/?)(\.\.?/)+#', '$1', $p);
+            $s = $p.((!is_null($qs)) ?'?'.$qs :'');
+        }
+        return $s;
     }
 
 
@@ -723,8 +742,9 @@ class tdz
             if(isset($_SERVER['REDIRECT_QUERY_STRING'])) {
                 $uri .= '?'.$_SERVER['REDIRECT_QUERY_STRING'];
             }
+            $uri = tdz::sanitizeUrl($uri);
         } else if (isset($_SERVER['REQUEST_URI'])) {
-            $uri = $_SERVER['REQUEST_URI'];
+            $uri = tdz::sanitizeUrl($_SERVER['REQUEST_URI']);
         } else {
             $uri = tdz::scriptName(true);
         }

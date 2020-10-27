@@ -847,14 +847,15 @@ class Tecnodesign_App
                 if(isset($_SERVER['SERVER_PORT'])) {
                     self::$_request['port']=$_SERVER['SERVER_PORT'];
                 }
-                $ui=@parse_url($_SERVER['REQUEST_URI']);
+                $uri = tdz::requestUri();
+                $ui=@parse_url($uri);
                 if(!$ui) {
                     $ui=array();
-                    if(strpos($_SERVER['REQUEST_URI'], '?')!==false) {
-                        $ui['path']=substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'], '?'));
-                        $ui['query']=substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], '?')+1);
+                    if(strpos($uri, '?')!==false) {
+                        $ui['path']=substr($uri, 0, strpos($uri, '?'));
+                        $ui['query']=substr($uri, strpos($uri, '?')+1);
                     } else {
-                        $ui['path']=$_SERVER['REQUEST_URI'];
+                        $ui['path']=$uri;
                     }
                 }
             } else {
