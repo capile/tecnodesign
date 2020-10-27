@@ -70,7 +70,7 @@
         }
 
         // bind links to Interface actions
-        l=I.querySelectorAll('a[href^="'+base+'"],.z-i-a');
+        l=I.querySelectorAll('a[href^="'+base+'"],.z-i-a,.z-i-link');
         i=l.length;
         while(i-- > 0) if(!l[i].getAttribute('target') && !l[i].getAttribute('download')) Z.bind(l[i], 'click', loadInterface);
         l=null;
