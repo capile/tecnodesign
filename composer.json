@@ -11,7 +11,7 @@
         "matthiasmullie/minify": "^1.3.61",
         "phpoffice/phpspreadsheet": "^1.6.0",
         "swiftmailer/swiftmailer": "^5.4.12 < 6.0",
-        "foxy/foxy": "^1.0.0",
+        "foxy/foxy": "^1.1.0",
         "ext-mbstring": "*"
     },
     "extra": {
