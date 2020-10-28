@@ -1266,21 +1266,34 @@ class Tecnodesign_Query_Sql
         $q = '';
         $pk = [];
         $idx = [];
+        $map = ['float'=>'decimal', 'number'=>'decimal'];
         $formats = ['date', 'datetime', 'int', 'decimal' ];
         foreach($schema->properties as $fn=>$fd) {
             $q .= (($q)?(",\n "):("\n "))
                 . '`'.$fn.'` ';
-            if($fd->format && in_array($fd->format, $formats)) {
-                $q .= $fd->format;
-                if($fd->format=='datetime') $q .= '(6)';
-            } else if($fd->type=='string') {
+
+            $type = ($fd->format) ?$fd->format :$fd->type;
+            if(isset($map[$type])) {
+                $type = $map[$type];
+            }
+            if(in_array($type, $formats)) {
+                $q .= $type;
+                if($type=='datetime') {
+                    $q .= '(6)';
+                } else if($type=='decimal') {
+                    $d = [10,2];
+                    if($fd->decimal) $d[1] = $fd->decimal;
+                    if($fd->size) $d[0] = $fd->size;
+                    $q .='('.implode(',', $d).')';
+                }
+            } else if($type=='string') {
                 $q .= 'varchar('
                     . ((isset($fd['size']))?((int)$fd['size']):(255))
                     . ')';
             } else if($fd->increment) {
                 $q .= 'int';
             } else {
-                $q .= $fd->type;
+                $q .= $type;
             }
             if($fd->required) $q .= ' not';
             $q .= ' null';
