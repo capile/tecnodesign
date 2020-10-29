@@ -968,6 +968,8 @@ class Tecnodesign_Query_Api
                     }
                 }
             }
+        } else {
+            return $this->response;
         }
         return $R;
     }
