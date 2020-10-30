@@ -1080,6 +1080,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     if(is_string($v) && is_numeric($v) && $type!='string') {
                         if($type==='int')$v = (int) $v;
                         else if($type=='number')$v=(float)$v; 
+                        else if($type=='bool')$v=(bool)$v; 
                     }
                 }
                 if(!is_null($v) || $valueFormat!==false) {
