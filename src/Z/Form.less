@@ -1,16 +1,55 @@
 /*! Tecnodesign Z.Form v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+@import "interface-vars.less";
 .z-no-button {
-	input[type="button"],input[type="submit"],button {
-		display:none;
-	}
+  input[type="button"],input[type="submit"],button {
+    display:none;
+  }
 }
 .z-inline {
-	display:inline-block;
-	width:auto;
-	p, p.field, .input, .label {margin:0;padding:0;}
+  display:inline-block;
+  width:auto;
+  p, p.field, .input, .label {margin:0;padding:0;}
 }
 
 .z-disabled-input {
-	opacity: 0.4 !important;
-	cursor:	not-allowed !important;
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+.z-html-editor {
+  & + textarea {display:none;}
+  box-sizing: border-box;
+  position:absolute;
+  top:0;left:0.5em;right:0.5em;bottom:0;
+}
+
+.z-editor-actionbar {
+  line-height: 1em;
+  background-color: transparent;
+}
+.z-editor-content {
+  box-sizing: border-box;
+  outline: 0;
+  overflow-y: auto;
+  height: calc(~"100% - 2.5em");
+}
+
+
+.z-editor-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  height: 2.5em !important;
+  outline: 0;
+  width: 2.5em !important;
+  vertical-align: bottom;
+  margin:0 !important;
+  padding:0.5em !important;
+  white-space:nowrap;
+  text-align:center;
+  display: inline-block;
+}
+
+.z-editor-button-active {
+  background-color: @colorActive;
 }

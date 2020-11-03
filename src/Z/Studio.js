@@ -43,7 +43,7 @@ function startup()
     if(('options' in Z.plugins.studio) && ('button' in Z.plugins.studio.options) && Z.plugins.studio.options.button) {
         var ui = [
           {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':_Studio}},
-          {e:'div',p:{className:'studio-logo z-i-button z-i--studio'}}/*,
+          {e:'div',p:{className:'studio-logo'}}/*,
           {e:'div',p:{className:'studio-menu'},c:[
             {e:'div',p:{className:'studio-box s-right z-i-actions'},c:[
               {e:'a',p:{className:'z-i--search'}},

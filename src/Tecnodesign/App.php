@@ -38,7 +38,7 @@ class Tecnodesign_App
         ),
         $assets=array('Z'),
         $assetRequirements=[
-            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday',
+            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,pell/dist/pell.min',
             'Z.Graph'=>'d3/dist/d3.min,c3/c3.min',
         ],
         $copyNodeAssets=[

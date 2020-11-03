@@ -8,3 +8,28 @@ all:
     list-parent: i
     priority: 1
     index: true
+    scope:
+      search:
+        q:
+          - title
+          - summary
+          - link
+        '*URL': link
+      preview:
+        - 'scope::meta'
+        - 'scope::content'
+      meta:
+        __default:
+          fieldset: '*Properties'
+          class: i1s2
+        '*Title': title
+        '*Link': link
+        '*Summary':
+          bind: summary
+          class: ih8
+      content:
+        '*Contents':
+          fieldset: '*Contents'
+          bind: contents
+          type: form
+          scope: studio-content

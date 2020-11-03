@@ -2657,7 +2657,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         if(!static::$standalone && isset($ss)) {
             $fo->buttons['button']=array(
-                'label'=>'*Close',
+                'label'=>static::t('buttonClose', 'Close'),
                 'attributes'=>array(
                     'data-action-scope'=>$ss,
                 ),

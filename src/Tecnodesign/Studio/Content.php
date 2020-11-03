@@ -72,9 +72,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         if($this->slot) {
             return Tecnodesign_Studio::t($this->slot, ucfirst($this->slot));
         }
-
-    } 
-
+    }
 
     public static function find($q=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
@@ -409,6 +407,50 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         unset($code);
         return tdz::exec($o);
         //return array('export'=>'tdz::exec('.var_export($o,true).')');
+    }
+
+    public function renderSource()
+    {
+        static $doNotList = ['template'];
+        $ct = $slot = null;
+        if($this->content_type) {
+            $ct = (isset(static::$contentType[$this->content_type])) ?static::$contentType[$this->content_type] :null;
+            if(substr($ct, 0, 1)=='*') $ct = Tecnodesign_Studio::t(substr($ct, 1), ucfirst(substr($ct, 1)));
+        }
+        if($this->slot) {
+            $slot = (isset(Tecnodesign_Studio_Entry::$slots[$this->slot])) ?Tecnodesign_Studio_Entry::$slots[$this->slot] :null;
+            if($slot) $slot = Tecnodesign_Studio::t($slot, ucfirst($slot));
+        }
+
+        $s = '';
+        $C = $this->getContents();
+        if($C) {
+            foreach($C as $i=>$o) {
+                if(!$o) continue;
+                $n = '_'.$i;
+                $label = (isset(static::$schema->overlay[$n]['label'])) ?static::$schema->overlay[$n]['label'] :$n;
+                if(substr($label, 0, 1)=='*') $label = Tecnodesign_Studio::t(substr($label, 1), ucfirst(substr($label, 1)));
+
+                $c = null;
+                if($i=='entry') {
+                    $c = $o;
+                } else if($i=='src') {
+                    $c = '<img src="'.\tdz::xml($o).'" />';
+                } else if($i=='html' && ($c = tdz::xml(trim(strip_tags($o))))) {
+                } else if(is_array($o) || in_array($i, $doNotList)) {
+                    continue;
+                } else {
+                    $c = '<code>'.tdz::xml($o).'</code>';
+                }
+                if($c) $s .= '<span class="z-tag">'.\tdz::xml($label).' </span>'.$c."\n<br />";
+            }
+        }
+
+        if($slot) $s = '<em>'.tdz::xml($slot).' </em> '.$s;
+        if($ct) $s = '<strong>'.tdz::xml($ct).' </strong>'.$s;
+
+        return $s;
+
     }
 
     public static function studioIndex($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)

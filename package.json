@@ -4,7 +4,8 @@
         "pikaday-time": "1.6.1",
         "c3": "0.7.*",
         "d3": "5.*",
-        "@fortawesome/fontawesome-free": "5.*"
+        "@fortawesome/fontawesome-free": "5.*",
+        "pell": "1.0.*"
     },
     "license": "GPL-3.0-only"
 }

@@ -196,8 +196,7 @@ class Tecnodesign_Studio
         if(strpos($url, '.')!==false) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
-            if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Tecnodesign/Resources/assets', true) 
-                && !Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Tecnodesign/App/Resources/assets', true)
+            if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Z', true) 
                 && (substr($url, -4) == '.css' || substr($url, -3) == '.js') 
                 && !Tecnodesign_Studio_Asset::run($url, TDZ_VAR.'/cache/minify', true)) {
                 self::error(404);
@@ -645,7 +644,7 @@ class Tecnodesign_Studio
             unset($f, $published);
         }
         if(!$E && !$exact && substr($url, 0, 1)=='/' && strlen($url)>1) {
-            $f['Content.content_type']=tdzContent::$multiviewContentType;
+            $f['Contents.content_type']=tdzContent::$multiviewContentType;
             $u = $url;
             while(strlen($u)>1) {
                 $u = preg_replace('#/[^/]+$#', '', $u);

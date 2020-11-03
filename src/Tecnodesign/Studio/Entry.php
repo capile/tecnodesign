@@ -40,7 +40,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public static $s=1;
     public static $schema;
-    protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Content, $Permission, $Child, $Parent, $Relation, $Children;
+    protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Contents, $Permission, $Child, $Parent, $Relation, $Children;
     
     protected $dynamic=false, $wrapper, $modified, $credential;
 
@@ -873,13 +873,52 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         }
 
         if(Tecnodesign_Studio_Interface::format()=='html') {
-            $v = '<a href="'.tdz::xml($v).'" target="_blank">'.tdz::xml($v).'</a>';
+            $v = '<a class="z-ellipsis" title="'.tdz::xml(tdz::buildUrl($v)).'" href="'.tdz::xml($v).'" target="_blank">'.tdz::xml($v).'</a>';
         }
         return $v;
+    }
+
+    public function previewContents()
+    {
+        if($L=$this->getContents()) {
+            $r = '<div class="z-items">';
+            $E = (isset(tdz::$variables['entry'])) ?tdz::$variables['entry'] :null;
+            tdz::$variables['entry'] = $this;
+            foreach($L as $i=>$o) {
+                $r .= '<div data-action-schema="update" data-action-url="'.Tecnodesign_Studio::$home.'/c/u/'.$o->id.'" class="z-ellipsis-multiline ih5 z-item"><div  data-action-scope="studio-content" class="tdz-i-scope-block scope-studio-content">'.$o->render().'</a></div></div>';
+            }
+            tdz::$variables['entry'] = $E;
+            unset($E);
+            $r .= '</div>';
+            return $r;
+        }
+    }
+
+    public function previewContentsInline()
+    {
+        if($L=$this->getContents(null, ['content'])) {
+            $r = null;
+            foreach($L as $i=>$o) {
+                $r .= $o->renderSource();
+                if(strlen($r)>750) break;
+            }
+
+            $c = (strpos($r, '<img')!==false) ?'z-ellipsis z-clip' :'z-ellipsis';
+            return '<span class="'.$c.'" title="'.tdz::xml(substr(strip_tags($r), 0, 500)).'">'
+                . $r
+                . '</div>';
+        }
     }
 
     public function choicesTypes()
     {
         return static::$types;
     }
+
+
+    public function previewSummary()
+    {
+        return tdz::markdown($this->summary);
+    }
+
 }

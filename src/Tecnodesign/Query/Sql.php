@@ -575,6 +575,9 @@ class Tecnodesign_Query_Sql
                 }
                 $fn = $ta.'.'.$fn;
             }
+        } else if(isset($sc->overlay[$fn]['bind']) && $sc->overlay[$fn]['bind']!=$fn) {
+            $fn = $this->getAlias($sc->overlay[$fn]['bind'], $ref, $noalias);
+            if(!$fn) return;
         } else {
             $rnf = (string)$ref;
             $quote = static::QUOTE;

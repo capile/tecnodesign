@@ -755,10 +755,11 @@ function initFilters()
 {
     /*jshint validthis: true */
     var t=this;
-    if(this.className.search(/\btdz-a-filters\b/)>-1) return;
+    if(this.className.search(/\bz-a-filters\b/)>-1) return;
     //Z.bind(this, 'input', formFilters);
-    Z.bind(this, 'change', formFilters);
-    formFilters.call(this);
+    var fn=(this.getAttribute('data-query-filter')) ?queryFilters :formFilters;
+    Z.bind(this, 'change', fn);
+    fn.call(this);
 }
 
 var _FF={};
@@ -806,6 +807,56 @@ function displayField(on)
 }
 
 /**
+ * Query Filters
+ *
+ * Just add the attribute data-quey-filters with the DOM query that should be enabled when selected.
+ * By default will disable all .field elements (or @data-query-filter-disable) that are sibling to this one
+ */
+ function queryFilters(e)
+{
+    /*jshint validthis: true */
+    var a=this.getAttribute('data-query-filter');
+    if(!a) {
+        Z.log('[INFO] Nothing to be queried...');
+        return;
+    }
+    var reset=(this.className.search(/\bz-a-filters\b/)<0);
+    if(reset) this.className += ' z-a-filters';
+
+    var b0='.field,.tdz-i-field,.z-i-field',b=this.getAttribute('data-query-filtered');
+    var c = ':scope > '+b.replace(/,/g, ', :scope > ');
+    var P=(b) ?Z.parentNode(this, b) :null;
+    if(!P) P=Z.parentNode(this, b0);
+    if(!P) {
+        Z.log('[ERROR] Could not find parent filtering node');
+        return;
+    }
+
+    var v=Z.val(this);
+    if(typeof(v)=="string" && v) {
+        v = v.split(/\s*\,\s*/g);
+    } else if(typeof(v)!='object') {
+        v = [];
+    }
+    var k=v.length, q='', re, L=P.parentNode.querySelectorAll(c),i=L.length, fn=(this.getAttribute('data-filter-action')=='disable') ?enableField :displayField;
+    while(k--) {
+        q += (q) ?'|' :'';
+        q += a.replace(/\$|\{\}/, v[k]); 
+    }
+
+    if(q) {
+        re = new RegExp('\\b('+q+')\\b');
+    }
+
+    while(i--) {
+        if(!q || !re.test(L[i].className)) fn.call(L[i], false);
+        else fn.call(L[i], true);
+    }
+
+    return;
+}
+
+/**
  * Form filters
  */
 function formFilters(e)
@@ -813,9 +864,8 @@ function formFilters(e)
     /*jshint validthis: true */
     var a=this.getAttribute('data-filters');
     if(!a) return;
-
-    var reset=(this.className.search(/\btdz-a-filters\b/)<0);
-    if(reset) this.className += ' tdz-a-filters';
+    var reset=(this.className.search(/\bz-a-filters\b/)<0);
+    if(reset) this.className += ' z-a-filters';
 
     var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'), 
       tn, ltn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk, n;
@@ -1416,6 +1466,54 @@ function toggleType(e)
     }
 }
 
+function initHtmlEditor()
+{
+    var a=(this.getAttribute('data-editor')), Editor;
+    if(!a) a='pell';
+
+    if(!(a in window)) return;
+
+    if(a=='pell') {
+        Editor = pell.init({
+          element: Z.element({e:'div',p:{id:'z-editor-'+this.id, className:'z-html-editor'}}, this),
+          onChange: html => this.value = html,
+
+          // <string>, optional, default = 'div'
+          // Instructs the editor which element to inject via the return key
+          defaultParagraphSeparator: 'p',
+          styleWithCSS: false,
+          /*
+
+          // <Array[string | Object]>, string if overwriting, object if customizing/creating
+          // action.name<string> (only required if overwriting)
+          // action.icon<string> (optional if overwriting, required if custom action)
+          // action.title<string> (optional)
+          // action.result<Function> (required)
+          // Specify the actions you specifically want (in order)
+          actions: [
+            'bold',
+            {
+              name: 'custom',
+              icon: 'C',
+              title: 'Custom Action',
+              result: () => console.log('Do something!')
+            },
+            'underline'
+          ],
+            */
+          // classes<Array[string]> (optional)
+          // Choose your custom class names
+          classes: {
+            actionbar: 'z-editor-actionbar',
+            button: 'z-editor-button',
+            content: 'z-editor-content z-input z-textarea',
+            selected: 'z-editor-button-active'
+          }
+        });
+        Editor.content.innerHTML = this.value;
+    }
+}
+
 function Form(o)
 {
     var q='Form.Form';
@@ -1429,9 +1527,11 @@ function Form(o)
         Z.addPlugin('Uploader', initUploader, 'input[data-uploader]');
         Z.addPlugin('TypeToggler', initTypeToggler, '.app-enable-type-toggler input[data-alt-type]');
         Z.addPlugin('Filters', initFilters, 'input[data-filters],select[data-filters]');
+        Z.addPlugin('QueryFilters', initFilters, 'input[data-query-filter],select[data-query-filter]');
         Z.addPlugin('Subform', initSubform, 'div.subform[data-template],div.items[data-template]');
         Z.addPlugin('Cleanup', initCleanup, 'button.cleanup');
         Z.addPlugin('Omnibar', initOmnibar, 'input[data-omnibar]');
+        Z.addPlugin('HtmlEditor', initHtmlEditor, 'textarea[data-format="html"]');
         Z.clearForm=clearForm;
         var n=Z.node(o, this);
         if(n) Z.init(n);

@@ -10,7 +10,7 @@
         "content_type": { "type": "string", "size": 100 },
         "source": { "type": "string", "size": 200 },
         "attributes": { "type": "string", "size": 2000, "serialize": "json" },
-        "content": { "type": "string" },
+        "content": { "type": "string", "serialize": "yaml" },
         "position": { "type": "int" },
         "published": { "format": "datetime", "type": "string", "index": [ "z_content__published_idx" ] },
         "version": { "type": "int" },
@@ -25,7 +25,9 @@
         "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_content__entry": "cascade" } }
     },
     "scope": {
-        "string": [ "id", "slot", "Entry.link _url" ]
+        "string": [ "id", "slot", "Entry.link _url" ],
+        "update": [ "content_type", "slot" ],
+        "studio-content": [ "content_type", "slot",  "_title", "_subtitle", "_html", "_img", "_entry", "_master", "_limit", "_hpp", "_options", "_script", "_pi", "_src", "_format", "_href", "_txt" ] 
     },
     "events": {
         "before-insert": [ "actAs" ],
@@ -37,8 +39,24 @@
         "active-records": "`expired` is null"
     },
     "overlay": {
-        "content_type": { "bind": "content_type", "type": "select", "class": "studio-field-content-type s-inline", "attributes": { "data-callback": "contentType" } },
-        "content": { "bind": "content", "type": "textarea", "class": "studio-field-content" }
+        "content_type": { "fieldset": "*Content", "bind": "content_type", "label": "*Content Type", "type": "select", "class": "i1s2", "attributes": { "data-query-filter": ".studio-content-type-$", "data-query-filtered": ".studio-content" } },
+        "slot": { "fieldset": "*Content", "bind": "slot", "label": "*Slot", "type": "select", "class": "i1s2", "choices": "choicesSlot" },
+        "content": { "bind": "content", "type": "textarea", "class": "studio-field-content" },
+        "_title": { "fieldset": "*Content", "label":"*Title","bind":"content.title","class":"studio-content studio-content-type-html studio-content-type-media"},
+        "_subtitle":{"fieldset": "*Content", "label":"*Subtitle","bind":"content.subtitle","class":"studio-content studio-content-type-html"},
+        "_html":{"fieldset": "*Content", "label":"*Content","bind":"content.html","format":"html","class":"studio-content ih10 studio-content-type-html"},
+        "_img":{"fieldset": "*Content", "label":"*Image","bind":"content.img","class":"studio-content studio-content-type-html"},
+        "_entry":{"fieldset": "*Content", "label":"*Feed","bind":"content.entry","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":["feed","page"]},"class":"studio-content i1s2 studio-content-type-feed"},
+        "_master":{"fieldset": "*Content", "label":"*Template","bind":"content.master","class":"studio-content i1s2 studio-content-type-feed"},
+        "_limit":{"fieldset": "*Content", "label":"*Number of items","bind":"content.limit","class":"studio-content i1s2 studio-content-type-feed"},
+        "_hpp":{"fieldset": "*Content", "label":"*Items per page","bind":"content.hpp","class":"studio-content i1s2 studio-content-type-feed"},
+        "_options":{"fieldset": "*Content", "label":"*Options","bind":"content.options","type":"checkbox","multiple":true,"class":"studio-content i-vlabel studio-content-type-feed","choices":{"related":"*Related","linkhome":"*Include link to page","preview":"*Preview","filter":"*Enable search","nometa":"*Disable page metadata"}},
+        "_script":{"fieldset": "*Content", "label":"*Script","bind":"content.script","class":"studio-content studio-content-type-php"},
+        "_pi":{"fieldset": "*Content", "label":"*Script Code","bind":"content.pi","format":"textarea","class":"studio-content ih10 studio-content-type-php"},
+        "_src":{"fieldset": "*Content", "label":"*Source","bind":"content.src","class":"studio-content studio-content-type-media"},
+        "_format":{"fieldset": "*Content", "label":"*Media Format","bind":"content.format","class":"studio-content studio-content-type-media"},
+        "_href":{"fieldset": "*Content", "label":"*Link Target","bind":"content.href","class":"studio-content studio-content-type-media"},
+        "_txt":{"fieldset": "*Content", "label":"*Markdown Text","bind":"content.txt","format":"textarea","class":"studio-content ih10 studio-content-type-text studio-content-type-md"}
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ], "sortable": [ "position" ] },

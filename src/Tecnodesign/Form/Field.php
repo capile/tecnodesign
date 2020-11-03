@@ -3116,11 +3116,14 @@ class Tecnodesign_Form_Field implements ArrayAccess
      */
     public function  __set($name, $value)
     {
-        $m='set'.ucfirst($name);
+        $Name = tdz::camelize($name, true);
+        $m='set'.$Name;
         if (method_exists($this, $m)) {
             $this->$m($value);
         } else if(property_exists($this,$name)) {
             $this->$name=$value;
+        } else if(property_exists($this,$Name=lcfirst($Name))) {
+            $this->$Name=$value;
         } else if(static::$allowedProperties && (static::$allowedProperties===true || in_array($name, static::$allowedProperties))) {
             $this->$name = $value;
         } else {

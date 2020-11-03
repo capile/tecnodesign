@@ -24,32 +24,52 @@
     font-weight: 700;
   }
 
+  .tdz-i-list {
+    th.f-updated {
+      width:10em;
+    }
+    td {
+      position:relative;
+    }
+    td .z-ellipsis, td .z-clip {
+      width: 100%;
+      max-width: 16em;
+      img {
+        position: absolute;
+        left:0;
+      }
+    }
+    td img {
+      max-width:100%;
+      display:inline-block;
+      vertical-align:middle;
+    }
+  }
   .studio-logo{
-    position:absolute;
-    bottom:0.25em;
-    left:0.25em;
+    position:fixed;
+    bottom:1em;
+    left:0em;
     display:inline-block;
-    width:2em;
+    width:6.4em;
     height:2em;
     text-align:center;
-    border-radius:1em;
-    background:@bgIcon;
     color:@text;
     z-index:10;
     cursor:pointer;
     font-weight:normal;
-    &:hover{color:@hover;}
-    &:active{color:@active;}
+    opacity: 0.5;
+    &:hover{color:@hover;opacity:1;}
+    &:active{color:@active;opacity:1;}
+    background: url(@studio-logo) no-repeat 0 0;
+    background-size: cover;
+    /*
     &:before {
       font-size:1.25em;
       line-height:1.75em;
       display:block;
       content:@icon;
-      /*
-      position:absolute;
-      left:0.15em;top:0.25em;
-      */
     }
+    */
   }
 
   .s-section .s-title {

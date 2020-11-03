@@ -21,7 +21,7 @@
     },
     "relations": {
         "Tag": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Tag" },
-        "Content": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Content" },
+        "Contents": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Content" },
         "Permission": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Permission" },
         "Child": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
         "Parent": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" },
@@ -33,7 +33,7 @@
         "link": [ "id", "link", "title" ],
         "studio-new": [ "type", "title", "link", "summary", "published" ],
         "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ],
-        "review": [ "title", "link", "updated" ]
+        "review": { "*Title": "title", "*Content": "null _contents_inline", "*Link": "link", "*Last Modified": "updated" }
     },
     "order": {
         "published": "desc",
@@ -51,7 +51,7 @@
         "link": { "bind": "link", "attributes": { "data-type": "url" }, "fieldset": "*Properties" },
         "summary": { "bind": "summary", "format": "html", "fieldset": "*Properties", "class": "studio-clear" },
         "published": { "bind": "published", "format": "datetime", "fieldset": "*Properties", "class": "studio-left" },
-        "contents": { "bind": "Content", "format": "form", "fieldset": "*Content" }
+        "contents": { "bind": "Contents", "format": "form", "fieldset": "*Content" }
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
