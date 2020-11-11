@@ -765,6 +765,29 @@ class Tecnodesign_Query_Api
             $this->response = array($this->response);
         }
 
+        $m = null;
+        if($msg || preg_match(static::$errorPattern, $this->headers, $m)) {
+            if(!$msg && (!static::$errorAttribute || !($msg=$this->_getResponseAttribute(static::$errorAttribute)))) {
+                $msg=$this->header('x-message');
+            }
+            if(is_array($msg)) {
+                $msg = tdz::xmlImplode($msg);
+            }
+            $msg = '<div class="tdz-i-msg tdz-i-error">'
+                 . $msg
+                 . '</div>';
+            if(isset($this->response['message'])) {
+                $msg .= $this->response['message'];
+            }
+            if($m) {
+                tdz::log("[INFO] Bad response for {$q}: \n{$this->headers}\n  ".strip_tags($msg));
+                if(tdz::$log>2) tdz::log($body);
+            }
+            throw new Tecnodesign_Exception($msg);
+        } else if(!preg_match(static::$successPattern, $this->headers)) {
+            $this->response = false;
+        }
+
         if($enablePaging && $this->response && static::$pagingAttribute && ($this->_next=$this->_getResponseAttribute(static::$pagingAttribute))) {
 
             $page = $q;
@@ -846,28 +869,6 @@ class Tecnodesign_Query_Api
             self::disconnect($this->schema('database'));
         }
 
-        $m = null;
-        if($msg || preg_match(static::$errorPattern, $this->headers, $m)) {
-            if(!$msg && (!static::$errorAttribute || !($msg=$this->_getResponseAttribute(static::$errorAttribute)))) {
-                $msg=$this->header('x-message');
-            }
-            if(is_array($msg)) {
-                $msg = tdz::xmlImplode($msg);
-            }
-            $msg = '<div class="tdz-i-msg tdz-i-error">'
-                 . $msg
-                 . '</div>';
-            if(isset($this->response['message'])) {
-                $msg .= $this->response['message'];
-            }
-            if($m) {
-                tdz::log("[INFO] Bad response for {$q}: \n{$this->headers}\n  ".strip_tags($msg));
-                if(tdz::$log>2) tdz::log($body);
-            }
-            throw new Tecnodesign_Exception($msg);
-        } else if(!preg_match(static::$successPattern, $this->headers)) {
-            $this->response = false;
-        }
         unset($body);
 
         if($cn && $this->response) {

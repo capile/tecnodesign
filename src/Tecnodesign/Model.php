@@ -1724,7 +1724,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $cn::label()));
             }
         } catch(Exception $e) {
-            tdz::log('[WARNING] Error while saving: '.$e->getMessage()."\nerror-message: {$e}");
+            tdz::log('[WARNING] Error while saving: '.$e->getMessage());
 
             $msg = ($e instanceof Tecnodesign_Exception)?($e->getMessage()):('');
             if(!(substr($msg, 0, 1)=='<' && strpos(substr($msg, 0, 100), 'tdz-i-msg'))) {

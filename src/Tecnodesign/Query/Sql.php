@@ -531,6 +531,8 @@ class Tecnodesign_Query_Sql
         } else if(substr($f, 0, 1)=='_' && !isset($sc->properties[$f])) {
             // not to be queried
             return false;
+        } else if($this->_alias && preg_match('/^('.implode('|', $this->_alias).')\.[a-zA-Z0-9\-\_]+$/', $f)) {
+            return $f;
         }
 
         if(strpos($fn, '[')!==false && preg_match('/\[([^\]]+)\]/', $fn, $m)) {

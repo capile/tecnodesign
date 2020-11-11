@@ -1550,7 +1550,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $m = 'get'.ucfirst($k);
                 $arg[$k]=$this->$m();
             }
+            unset($k);
         }
+
         if($this->filters) {
             if($this->prefix) {
                 $this->attributes['data-filters']=$this->prefix.'['
@@ -1572,16 +1574,33 @@ class Tecnodesign_Form_Field implements ArrayAccess
             'variables' => $arg,
         );
         $input=false;
+        $M = ($this->bind && !isset($arg['no-render-model'])) ?$this->getModel() :null;
 
-        if($this->bind && !isset($arg['no-render-model'])) {
+        if($M && $this->attributes) {
+            foreach($this->attributes as $k=>$v) {
+                if(preg_match_all('#`([^`]+)`#', $v, $vm)) {
+                    $r = $s = array();
+                    foreach($vm[1] as $i=>$nfn) {
+                        $s[]=$vm[0][$i];
+                        $r[]=$M->renderField($nfn);
+                        unset($i, $nfn);
+                    }
+                    $this->attributes[$k] = str_replace($s, $r, $v);
+                    unset($r, $s, $vm);
+                }
+                unset($k, $v);
+            }
+        }
+
+        if($M) {
             $arg['no-render-model'] = true;
             $m = tdz::camelize('render-'.$this->id.'FormField');
-            $M = $this->getModel();
             if(method_exists($M, $m)) {
                 $input = $M->$m($arg, $this);
             }
             unset($M, $m);
         }
+
         $Type = \tdz::camelize(($this->format) ?$this->format :$this->type, true);
         if(!$input) {
             $m = 'render' . $Type;
