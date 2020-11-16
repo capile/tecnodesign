@@ -1144,7 +1144,11 @@ class Tecnodesign_Query_Sql
             if(!$conn) {
                 $conn = self::connect($this->schema('database'));
             }
-            $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
+            if($quote = static::QUOTE) {
+                $this->_last = "insert into {$tn} ({$quote[0]}".implode("{$quote[1]}, {$quote[0]}", array_keys($data))."{$quote[1]}) values (".implode(', ', $data).')';
+            } else {
+                $this->_last = "insert into {$tn} (".implode(", ", array_keys($data)).") values (".implode(', ', $data).')';
+            }
             $r = $this->exec($this->_last, $conn);
             if($r===false && $conn->errorCode()!=='00000') {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
@@ -1184,6 +1188,7 @@ class Tecnodesign_Query_Sql
             $fs = array_flip(array_keys($odata));
         }
         $sql = '';
+        $quote = static::QUOTE;
         foreach($fs as $fn=>$fv) {
             $original=$M->getOriginal($fn, false);
             if(is_object($fv) && ($fv->primary || $fv->alias)) continue;
@@ -1204,8 +1209,9 @@ class Tecnodesign_Query_Sql
             if($original===false) $original=null;
 
             if(@(string)$original!==@(string)$v) {
+                $qfn = ($quote) ?"{$quote[0]}{$fn}{$quote[1]}" :$fn;
                 $sql .= (($sql!='')?(', '):(''))
-                      . "{$fn}={$fv}";
+                      . "{$qfn}={$fv}";
                 $data[$fn]=$v;
                 //$M->setOriginal($fn, $v);
             }
@@ -1216,6 +1222,7 @@ class Tecnodesign_Query_Sql
             $wsql = '';
             $pks = tdz::sql($M->getPk(true));
             foreach($pks as $fn=>$fv) {
+                if($quote) $fn = "{$quote[0]}{$fn}{$quote[1]}";
                 $wsql .= (($wsql!='')?(' and '):(''))
                        . "{$fn}={$fv}";
             }

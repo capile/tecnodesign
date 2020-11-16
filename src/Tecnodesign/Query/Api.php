@@ -689,7 +689,6 @@ class Tecnodesign_Query_Api
 
     public function run($q, $conn=null, $enablePaging=true, $keepAlive=null, $cn=null, $defaults=null, $callback=null, $args=array())
     {
-        if(tdz::$log) tdz::log("[INFO] API call to $q (".ceil(memory_get_peak_usage() * 0.000001).'M, '.substr((microtime(true) - TDZ_TIME), 0, 5).'s)');
         if(!$conn) $conn = static::connect($this->schema('database'));
         curl_setopt($conn, CURLOPT_URL, $q);
         if(isset($this->_options['certificate']) && $this->_options['certificate']) {
@@ -712,6 +711,7 @@ class Tecnodesign_Query_Api
         } else if($this->_method!='GET' && $this->_method!='POST') {
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
+        if(tdz::$log) tdz::log("[INFO] {$this->_method} call to $q (".ceil(memory_get_peak_usage() * 0.000001).'M, '.substr((microtime(true) - TDZ_TIME), 0, 5).'s)');
         $this->cleanup();
         $r = curl_exec($conn);
 
