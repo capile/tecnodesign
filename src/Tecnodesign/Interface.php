@@ -2591,15 +2591,18 @@ class Tecnodesign_Interface implements ArrayAccess
         $o->refresh($d);
         $link = $this->link();
         //static::$urls[$link] = static::t('labelUpdate', 'Update').': '.static::$urls[$link];
+        if(!isset(static::$urls[$link])) {
+            static::$urls[$link] = ['title'=>$this->getTitle()];
+        }
 
         tdz::$variables['form-field-template'] = (static::$updateTemplate)?(static::$updateTemplate):(static::$previewTemplate);
 
 
-        if(isset($_GET['item']) && ($label=array_search($_GET['item'], $d))!==false) {
-            if(is_integer($label)) $label = $cn::fieldLabel($_GET['item'], false);
+        if(($itemreq=Tecnodesign_App::request('item')) && ($label=array_search($itemreq, $d))!==false) {
+            if(is_integer($label)) $label = $cn::fieldLabel($itemreq, false);
             static::$urls[$link]['title'] .= ' ('.$label.')';
             $this->text['title'] = static::$urls[$link]['title'];
-            $d = array($label=>$_GET['item']);
+            $d = array($label=>$itemreq);
             tdz::$variables['form-field-template'] = '$INPUT$ERROR';
         }
 
@@ -3678,6 +3681,11 @@ class Tecnodesign_Interface implements ArrayAccess
             static $r;
             if(!$r) {
                 $r = array('$DATE'=>date('Y-m-d\TH:i:s'), '$TODAY'=>date('Y-m-d'), '$NOW'=>date('H:i:s'));
+                $U = tdz::getUser();
+                if($U->isAuthenticated()) {
+                    $r['$UID'] = $U->getPk();
+                }
+                unset($U);
             }
             $a = tdz::replace($a, $r);
             unset($f);

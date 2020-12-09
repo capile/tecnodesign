@@ -968,6 +968,11 @@ input,select,textarea,.z-textarea,.z-input {
   background: #fff;
   border:none;
   width:99.9%;
+
+  &.z-readonly {
+    background:transparent;
+    cursor: not-allowed;
+  }
 }
 
 input[type=text],input[type=search],input[type=url],input[type^=date],.z-input {
