@@ -502,6 +502,9 @@ function initDatepicker()
         if(this.value) {
             if('moment' in window) {
                 D = moment(this.value, cfg.format);
+                if(!D.valueOf() || D.valueOf()=='NaN') {
+                    D = moment(this.value);
+                }
                 cfg.defaultDate = new Date(D.valueOf());
                 if(d=D.format(cfg.format)) this.value = d;
                 cfg.setDefaultDate = true;
