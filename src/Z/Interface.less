@@ -901,6 +901,9 @@ input.tdz-i-switch{
       background: @colorButtonActive;
       color: @colorButtonActiveText;
     }
+    &.z-i-link {
+      padding:0;
+    }
   }
   button[type=submit], a.submit, button.submit, input[type="submit"] {
     background:@colorButtonSubmit;
@@ -1699,7 +1702,7 @@ form .i-mono dd {
   display:none;
 }
 
-.tdz-i-button, .tdz-i-link {
+.tdz-i-button, .tdz-i-link, .z-i-link {
   color:@colorTabActive;
   background:none;
   &:hover, &:active {
@@ -1712,7 +1715,7 @@ form .i-mono dd {
   }
 }
 
-.tdz-i-link {
+.tdz-i-link, .z-i-link {
   color:@colorTabActive !important;
   background:none !important;
   i {display:inline-block;vertical-align:middle;line-height:0.8em;font-size:1.25em;padding:0 0.1em;}
@@ -1849,6 +1852,9 @@ th > input[type=checkbox], td > input[type=checkbox] {
       min-height:1em;
       border-radius:@borderRadius;
       display:inline-block;
+      &.z-i-link {
+        padding:0;
+      }
     }
     a.z-i-a, a.z-i-a:link, a.z-i-a:visited {
       background: @colorButtonSubmit;
