@@ -1702,7 +1702,7 @@ form .i-mono dd {
   display:none;
 }
 
-.tdz-i-button, .tdz-i-link, .z-i-link {
+.tdz-i-button {
   color:@colorTabActive;
   background:none;
   &:hover, &:active {
@@ -1716,8 +1716,18 @@ form .i-mono dd {
 }
 
 .tdz-i-link, .z-i-link {
-  color:@colorTabActive !important;
-  background:none !important;
+  color:@link !important;
+  background:transparent !important;
+  &:link, &:visited {
+    color:@link;
+    text-decoration:none;
+    background-color:transparent;
+  }
+  &:hover, &:active {
+    color: @active !important;
+    text-decoration:none;
+    background-color:transparent !important;
+  }
   i {display:inline-block;vertical-align:middle;line-height:0.8em;font-size:1.25em;padding:0 0.1em;}
 }
 th > input[type=checkbox], td > input[type=checkbox] {
