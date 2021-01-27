@@ -78,7 +78,7 @@
         // bind forms
         l=I.querySelectorAll('form[action^="'+base+'"],.tdz-i-preview form');
         i=l.length;
-        while(i-- > 0) Z.bind(l[i], 'submit', loadInterface);
+        while(i-- > 0) Z.bind(l[i], 'submit', (l[i].parentNode.getAttribute('data-action-schema')) ?loadAction :loadInterface);
         l=null;
 
         L=null;
@@ -587,10 +587,34 @@
         var u,t;
         if(typeof(e)=='object' && ('stopPropagation' in e)) {
 
+            var nn=this.nodeName.toLowerCase(), data=null, method='get', h={'z-action': 'Interface'};
             e.stopPropagation();
             e.preventDefault();
 
-            if(this.nodeName.toLowerCase()=='button') {
+            if(nn==='form') {
+                t=Z.node(Z.parentNode(this, '.tdz-i-scope-block'), this.parentNode);
+                t.setAttribute('data-action-expects', 'form#'+this.id);
+                u=this.getAttribute('action');
+
+                if(this.getAttribute('method').toLowerCase()=='post') {
+                    method = 'post';
+                    var enc=this.getAttribute('enctype');
+                    if(enc=='multipart/form-data') {
+                        // usually file uploads
+                        if('FormData' in window) {
+                            data = new FormData(this);
+                        }
+                        h['Content-Type']=false;
+                    } else {
+                        h['Content-Type'] = enc;
+                    }
+                    if(!data) data = Z.formData(this);
+                } else {
+                    u = u.replace(/\?(.*)$/, '')+'?'+Z.formData(this, false);
+                }
+
+
+            } else if(nn=='button') {
                 t=Z.node(Z.parentNode(this.form, '.tdz-i-scope-block'), this.form.parentNode);
                 u=this.getAttribute('data-url');
             } else if(this.getAttribute('data-action-item')) {
@@ -610,7 +634,7 @@
                 }
                 u=this.getAttribute('href');
             }
-            var a=new Date().getTime(), h={'z-action': 'Interface'}, I=Z.parentNode('.tdz-i[data-url].tdz-i-active');
+            var a=new Date().getTime(), I=Z.parentNode('.tdz-i[data-url].tdz-i-active');
             if(I) {
                 h['z-referer'] = I.getAttribute('data-url');
                 if(I.getAttribute('data-qs')) h['z-referer'] += '?'+ I.getAttribute('data-qs');
@@ -619,19 +643,31 @@
             u=(u.search(/\?/)>-1)?(u.replace(/\&+$/, '')+'&ajax='+a):(u+'?ajax='+a);
             //Z.trace('loadAction: ajax request');
             Z.blur(t);
-            Z.ajax(u, null, loadAction, interfaceError, 'html', t, h);
+            Z.ajax(u, data, loadAction, interfaceError, 'html', t, h);
         } else {
             //Z.trace('loadAction: ajax response start');
-            var f = document.createElement('div');
+            var f = document.createElement('div'), pI=Z.parentNode(this, '.tdz-i'), S, i, expects=this.getAttribute('data-action-expects');
             f.innerHTML = e;
+
+            if(expects && !f.querySelector(expects)) {
+                return setInterface.apply(pI, arguments);
+            }
+
+
+
+
             var I = f.querySelector('.tdz-i[data-url] .tdz-i-preview');
             if(!I) I = f.querySelector('.tdz-i[data-url] .tdz-i-container');
             if(!I) I = f.querySelector('.tdz-i[data-url]');
 
-            var S=I.querySelectorAll('.tdz-i-summary .tdz-i-msg'), i=S.length;
-            while(i--) {
-                Z.deleteNode(S[i]);
+            if(pI) {
+                S=pI.querySelectorAll('.z-i-summary .z-i-msg,.z-i-summary .tdz-i-msg,.tdz-i-msg[data-message],.z-i-msg[data-message]');
+                i=S.length;
+                while(i--) {
+                    Z.deleteNode(S[i]);
+                }
             }
+
             // get tdz-i only
             if(I.children.length==1) {
                 t=I.children[0];
@@ -652,8 +688,21 @@
                     t.appendChild(I.children[i]);
                     i++;
                 }
-
             }
+
+            S=f.querySelectorAll('.z-i-summary .z-i-msg,.z-i-summary .tdz-i-msg');
+            i=S.length;
+            var rt=t;
+            while(i--) {
+                S[i].setAttribute('data-message', 1);
+                rt.parentNode.insertBefore(S[i], rt);
+                rt=S[i];
+                //Z.deleteNode(S[i]);
+            }
+
+
+
+
             startup(t);
             Z.focus(t);
             t=null;
@@ -846,7 +895,7 @@
     {
         var h=req.getAllResponseHeaders(), c=h.match(/content-type: [^\;]+;\s*charset=([^\s\n]+)/i);
         if(c && c.length>1 && c[1].search(/^utf-?(8|16)$/i)<0) {
-            console.log('decode from '+c[1], d, escape(d));
+            //console.log('decode from '+c[1], d, escape(d));
             d =  decodeURIComponent(escape(d));
         }
         return d;

@@ -2653,6 +2653,7 @@ class Tecnodesign_Interface implements ArrayAccess
             unset($i, $fn, $label);
         }
         $fo = $o->getForm($d);
+        if(preg_match('/\&ajax=[0-9]+\b/', $fo->action)) $fo->action = preg_replace('/\&ajax=[0-9]+\b/', '', $fo->action);
         $fo->id = tdz::slug($this->text['interface']).'--'.(($o->isNew())?('n'):(@implode('-',$o->getPk(true))));
         $fo->attributes['class']='z-form';
         if($this->action=='update' || $this->action=='new') {
