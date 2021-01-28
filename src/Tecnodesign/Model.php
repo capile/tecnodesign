@@ -2352,10 +2352,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 }
             }
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
+            $lattrs = null;
+            if($url!==false && isset($o['link-class'])) $lattrs = ' class="'.\tdz::xml($o['link-class']).'"';
 
             $s .= '<td class="f-'.$fn.' '.(($uid!==false && $checkbox)?(' tdz-check'):('')).'">'
                 . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
-                . (($uid!==false && $url!==false)?('<a href="'.$url.$uid.$ext.$qs.'">'.$value.'</a>'):($value))
+                . (($uid!==false && $url!==false)?('<a href="'.$url.$uid.$ext.$qs.'"'.$lattrs.'>'.$value.'</a>'):($value))
                 .'</td>';
             if($uid!==false) $uid=false;
             unset($label, $fn);

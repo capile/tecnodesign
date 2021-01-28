@@ -1312,6 +1312,7 @@ Z.initToggleActive=function(o)
     o=Z.node(this,o);
     var id=o.getAttribute('id'), 
         control=o.getAttribute('data-toggler-options'), 
+        el=((control && control.indexOf('self')>-1) || o.className.search(/\bz-toggler\b/)>-1) ?o :null,
         sibling=(control && control.indexOf('sibling')<0) ?false :true,
         child=(control && control.indexOf('child')<0) ?false :true,
         storage=(control && control.indexOf('storage')>-1) ?true :false,
@@ -1333,7 +1334,14 @@ Z.initToggleActive=function(o)
         load = (tw==='on' || (tw>0 && tw<window.innerWidth))
     }
 
-    var el={e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}};
+    if(!el) {
+        el={e:'a', a:{'data-target':'#'+id}, p:{className:'z-toggler'},t:{click:ToggleActive}};
+    } else {
+        Z.bind(el, 'click', ToggleActive);
+        if(el.className.search(/\bz-toggler\b/)<0) el.className += ' z-toggler';
+    }
+
+
     if(sibling) a=Z.element(el, null, o);
     if(drag) {
         el.p.draggable=true;
@@ -1484,7 +1492,10 @@ function toggleDragEnd(e)
 
 function ToggleActive()
 {
-    var ts=this.getAttribute('data-target'), t=(ts) ?document.querySelector(ts) :this.previousSibling;
+    var ts=this.getAttribute('data-target'), t;
+    if(ts) t=document.querySelector(ts);
+    else if(this.getAttribute('data-toggler-options') && this.getAttribute('data-toggler-options').search(/\bself\b/)>-1) t=this;
+    else this.previousSibling;
     if(!t) return;
     var c=this.getAttribute('data-active-class'), o=t.getAttribute('data-toggler-options'), 
         drag=(o && o.indexOf('draggable')>-1) ?true :false,

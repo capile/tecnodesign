@@ -593,7 +593,7 @@
 
             if(nn==='form') {
                 t=Z.node(Z.parentNode(this, '.tdz-i-scope-block'), this.parentNode);
-                t.setAttribute('data-action-expects', 'form#'+this.id);
+                if(this.id) t.setAttribute('data-action-expects', 'form#'+this.id);
                 u=this.getAttribute('action');
 
                 if(this.getAttribute('method').toLowerCase()=='post') {
@@ -656,7 +656,7 @@
 
 
 
-            var I = f.querySelector('.tdz-i[data-url] .tdz-i-preview');
+            var I = f.querySelector('.tdz-i[data-url] .tdz-i-preview'), del;
             if(!I) I = f.querySelector('.tdz-i[data-url] .tdz-i-container');
             if(!I) I = f.querySelector('.tdz-i[data-url]');
 
@@ -664,7 +664,9 @@
                 S=pI.querySelectorAll('.z-i-summary .z-i-msg,.z-i-summary .tdz-i-msg,.tdz-i-msg[data-message],.z-i-msg[data-message]');
                 i=S.length;
                 while(i--) {
-                    Z.deleteNode(S[i]);
+                    del = S[i];
+                    if(del.parentNode.className.search(/\b(td)?z-msg\b/)>-1) del = del.parentNode;
+                    Z.deleteNode(del);
                 }
             }
 
