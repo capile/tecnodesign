@@ -24,6 +24,7 @@ class Tecnodesign_Query_Api
         $offset='offset',
         $sort='sort',
         $scope='scope',
+        $queryMethod='GET',
         $queryPath='/%s',
         $queryTableName, // deprecated, use $queryPath instead
         $insertPath='/%s/new',
@@ -70,7 +71,7 @@ class Tecnodesign_Query_Api
         $cookieJar,
         $connectionCallback;
     protected static $options, $conn=array();
-    protected $_schema, $_method, $_url, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $_next, $_count, $_unique, $headers, $response;
+    protected $_schema, $_method, $_url, $_reqBody, $_scope, $_select, $_where, $_orderBy, $_limit, $_offset, $_options, $_last, $_next, $_count, $_unique, $headers, $response;
 
     public function __construct($s=null)
     {
@@ -707,10 +708,18 @@ class Tecnodesign_Query_Api
 
         $this->_last = $q;
         if(!$this->_method) {
-            $this->_method = 'GET';
+            $this->_method = ($this->_reqBody) ?'POST' :static::$queryMethod;
         } else if($this->_method!='GET' && $this->_method!='POST') {
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $this->_method);
         }
+
+        if($this->_reqBody && $this->_method!='GET') {
+            $data = $this->_reqBody;
+            if(!is_string($data)) $data = \tdz::serialize($data, static::$postFormat);
+            curl_setopt($conn, CURLOPT_POST, true);
+            curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+        }
+
         if(tdz::$log) tdz::log("[INFO] {$this->_method} call to $q (".ceil(memory_get_peak_usage() * 0.000001).'M, '.substr((microtime(true) - TDZ_TIME), 0, 5).'s)');
         $this->cleanup();
         $r = curl_exec($conn);
