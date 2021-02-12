@@ -593,7 +593,7 @@
 
             if(nn==='form') {
                 t=Z.node(Z.parentNode(this, '.tdz-i-scope-block'), this.parentNode);
-                if(this.id) t.setAttribute('data-action-expects', 'form#'+this.id);
+                if(this.id) t.setAttribute('data-action-expects', 'form#'+Z.slug(this.id));
                 u=this.getAttribute('action');
 
                 if(this.getAttribute('method').toLowerCase()=='post') {
