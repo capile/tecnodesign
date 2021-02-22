@@ -942,7 +942,7 @@ class Tecnodesign_Query_Sql
             if(isset($this::$errorCallback) && $this::$errorCallback) {
                 return call_user_func($this::$errorCallback, $e, func_get_args(), $this);
             }
-            tdz::log('[WARNING] Error in '.get_called_class()."::query: {$e->getCode()}:\n  ".$e->getMessage()."\n {$this}");
+            tdz::log('[WARNING] Error in '.get_called_class()."::query: {$e->getCode()}:\n  ".$e->getMessage()."\n {$this}", var_Export($this, true));
             return false;
         }
     }

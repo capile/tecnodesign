@@ -5,6 +5,7 @@ listResults: Há %s registros disponíveis.
 listCounter: Exibindo de %s até %s.
 listNoResults: Não há registros disponíveis.
 listNoSearchResults: Não há registros disponíveis para esta consulta. Experimente outros parâmetros.
+newSuccess: Registro criado com sucesso.
 updateSuccess: Atualização bem-sucedida!
 createSuccess: Registro criado com sucesso.
 deleteSuccess: Eliminado.

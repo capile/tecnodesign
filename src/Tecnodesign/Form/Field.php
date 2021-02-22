@@ -1392,8 +1392,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
     private $_choicesTranslated=false;
     public function getChoices($check=null, $count=false)
     {
+        $noexec = null;
         if(!$this->choices) {
-            if($this->bind && ($M=$this->getModel()) && method_exists($M, ($m='choices'.tdz::camelize($this->bind,true)))) $this->choices = $M->$m($check, $count);
+            if($this->bind && ($M=$this->getModel()) && method_exists($M, ($m='choices'.tdz::camelize($this->bind,true)))) {
+                $this->choices = $M->$m($check, $count);
+                $noexec = true;
+            }
             if(!$this->choices) $this->choices=array();
             unset($M, $m);
         }
@@ -1439,7 +1443,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     }
                 }
             } else if(is_string($this->choices)) {
-                if(strpos($this->choices, '(')) {
+                if($noexec) {
+                    $this->choices = preg_split('/\s*\,\s*/', $this->choices, null, PREG_SPLIT_NO_EMPTY);
+                }else if(strpos($this->choices, '(')) {
                     $this->choices = @eval('return '.$this->choices.';');
                 } else {
                     $M = $this->getModel();
@@ -1629,6 +1635,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $run['variables']['field']=$this;
         $run['variables']['before']=$this->before;
         $run['variables']['after']=$this->after;
+
 
         return tdz::exec($run);
     }
@@ -2679,7 +2686,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $group = false;
             $attrs = '';
             $styleClasses = '';
-            if (is_object($valueConfig) && $valueConfig instanceof Tecnodesign_Model) {
+            if (is_object($valueConfig) && ($valueConfig instanceof Tecnodesign_Model)) {
                 $value = $valueConfig->pk;
                 $label = (string)$valueConfig;
                 $group = isset($valueConfig->_group) ? $valueConfig->_group : $valueConfig->group;

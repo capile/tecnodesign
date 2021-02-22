@@ -755,6 +755,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public function autoIncrementTrigger($fields, $conn=null)
     {
         $cn = get_class($this);
+        $Q = static::queryHandler();
         $schema = $cn::$schema;
         $scope = $cn::pk();
         foreach($fields as $fn) {
@@ -774,24 +775,20 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $cn::$increment[$sfn]++;
             } else {
                 $cn::$increment[$sfn]=1;
-                if(!$conn) {
-                    if(!is_null($cn::$_conn)) $conn=$cn::$_conn;
-                    else $conn = tdz::connect($schema->database);
-                }
-                $driver = @$conn->getAttribute(PDO::ATTR_DRIVER_NAME);
+                $driver = $Q::DRIVER;
                 $mssql = (in_array($driver, ['dblib', 'sqlsrv', 'odbc']));
                 if(count($w)==0 && $mssql) {
-                    $sql = "select ident_current('{$schema['tableName']}') as next";
+                    $sql = "select ident_current('{$schema->tableName}') as next";
                 } else {
                     $ifnull = ($mssql)?('isnull'):('ifnull');
-                    $sql = "select {$ifnull}(max({$fn}),0)+1 as next from {$schema['tableName']}";
+                    $sql = "select {$ifnull}(max({$fn}),0)+1 as next from {$schema->tableName}";
                     if(count($w)>0) {
                         $sql .= ' where '.implode(' and ', $w);
                     }
                 }
-                $next = tdz::query($sql);
+                $next = $Q->queryColumn($sql);
                 if($next) {
-                    $cn::$increment[$sfn]=$next[0]['next'];
+                    $cn::$increment[$sfn]=(int)$next[0];
                 }
             }
             $this[$fn]=$cn::$increment[$sfn];
@@ -820,6 +817,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         if(is_array($fields)) {
             $fields = array_shift($fields);
         }
+        if(!isset($this->$fields)) $this->refresh([$this->$fields]);
         $version = (int) $this->$fields;
         $version++;
         $sqls = array(
@@ -827,11 +825,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             "replace into {$vtn} ({$fns}) select {$fns} from {$schema->tableName} where {$w}",
         );
         $this->$fields=$version;
-        if(!$conn) {
-            $conn = tdz::connect($schema->database);
-        }
+        $Q = static::queryHandler();
         foreach($sqls as $sql) {
-            $conn->exec($sql);
+            $Q->exec($sql, $conn);
         }
         return true;
     }
@@ -888,11 +884,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if(isset($cn::$increment[$fn.'-'.$ik])) {
                 $cn::$increment[$fn.'-'.$ik]++;
             } else {
-                $sql = "select ifnull(max({$fn}),0)+1 as next from {$schema['tableName']}";
+                $sql = "select ifnull(max({$fn}),0)+1 as next from {$schema->tableName}";
                 if(count($w)>0) {
                     $sql .= ' where '.implode(' and ', $w);
                 }
-                $next = tdz::query($sql);
+                $next = tdz::query($sql, $conn);
                 if($next) {
                     $cn::$increment[$fn.'-'.$ik]=$next[0]['next'];
                 }

@@ -2,7 +2,7 @@
 /**
  * Form template
  * 
- * PHP version 5.6+
+ * PHP version 7
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>

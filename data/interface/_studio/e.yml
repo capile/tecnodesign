@@ -17,6 +17,7 @@ all:
         '*URL': link
       preview:
         - 'scope::meta'
+        - 'scope::_meta'
         - 'scope::content'
       meta:
         __default:
@@ -26,7 +27,18 @@ all:
         '*Link': link
         '*Summary':
           bind: summary
-          class: ih8
+          class: ih5
+        '*Published': published
+        '*Tag': _tags
+        '*Template': master
+        '*Sitemap': _parent
+      _meta:
+        __default:
+          class: i1s4
+        '*Created': created
+        '*Updated': updated
+        '*Version': version
+        '*Source': source
       content:
         '*Contents':
           fieldset: '*Contents'

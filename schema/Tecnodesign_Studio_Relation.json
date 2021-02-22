@@ -16,7 +16,10 @@
         "Child": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_relation_child__entry": "cascade" } },
         "Parent": { "local": "parent", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_relation_parent__entry": "cascade" } }
     },
-    "scope": [],
+    "scope": {
+        "string": [ "Parent.title _s" ],
+        "parent": [ "parent", "order" ]
+    },
     "events": {
         "before-insert": [ "actAs" ],
         "before-update": [ "actAs" ],
@@ -27,10 +30,8 @@
         "after-delete": [ "actAs" ]
     },
     "overlay": {
-        "perfil": { "bind": "perfil", "type": "select", "choices": "Perfil" },
-        "ingresso": { "bind": "ingresso", "type": "select", "choices": "Turma" },
-        "conclusao": { "bind": "conclusao" },
-        "ativo": { "bind": "ativo" }
+        "parent": { "bind": "parent", "format": "search", "choices": "Tecnodesign_Studio_Entry" },
+        "position": { "bind": "position", "format": "int" }
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created",     "updated" ], "sortable": [ "position" ] },
