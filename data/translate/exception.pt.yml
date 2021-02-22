@@ -28,3 +28,4 @@ The supplied code is expired or doesn't exist.: O código informado expirou ou n
 "You're sending a lot of requests to this page and risks reaching the rate limit for it.":"Você está enviando muitas solicitações para esta página e pode vir a atingir o limite de envios para ela."
 "You've sent more requests than allowed in a short period of time. Please wait some time before retrying to send this request.": "Você enviou mais solicitações do que o permitido para esta página em um curto período de tempo. Por favor aguarde uns instantes antes de enviar uma nova solicitação."
 "This request is expired or invalid. Please try sending this request again.": "Esta solicitação expirou ou não é válida. Por favor tente encaminhá-la novamente."
+"You need to confirm you're not a robot to continue.": "Você precisa confirmar que não é um robô para continuar."

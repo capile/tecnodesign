@@ -38,6 +38,7 @@ class Tecnodesign_Form implements ArrayAccess
             'error-status'=>null,   // http status to send when limit is reached, usually 429
             'accept-failed'=>null,  // whether the form data should be accepted if it fails 
             'skip-actions'=>[],     // actions to skip in limit checking
+            'recaptcha'=>null,
         ];
 
     private $_uid;
@@ -199,6 +200,33 @@ class Tecnodesign_Form implements ArrayAccess
         if(isset($this->limits['error']) && $this->limits['error']) {
             return false;
         }
+
+        // recaptcha
+        if(isset($this->limits['recaptcha']) && $this->limits['recaptcha']) {
+            $rc = $this->limits['recaptcha'];
+            $rckey = null;
+            if(is_array($rc) && isset($rc['secret-key'])) $rckey = $rc['secret-key'];
+            else if(isset(tdz::$variables['recaptcha-secret-key'])) $rckey = tdz::$variables['recaptcha-secret-key'];
+
+            if($rckey) {
+                $rcfail = null;
+                if(!isset($post['g-recaptcha-response'])) $rcfail = true;
+                else {
+                    $Q = Tecnodesign_Query_Api::runStatic('https://www.google.com/recaptcha/api/siteverify', '', http_build_query(['secret'=>$rckey, 'response'=>$post['g-recaptcha-response']]));
+
+                    if(!$Q || !isset($Q['success']) || !$Q['success']) {
+                        $rcfail = true;
+                        tdz::log('[INFO] Failed reCAPTCHA validation: '.tdz::serialize($Q, 'json'));
+                    }
+                }
+                if($rcfail) {
+                    $this->limits['error'] = tdz::t('You need to confirm you\'re not a robot to continue.', 'exception');
+                    return false;
+
+                }
+            }
+        }
+
         if($post && isset($post[$this->limits['fieldname']]) && ($pk=$post[$this->limits['fieldname']])) {
             $timeout = $this->limits['timeout'];
             if(!$timeout) $timeout = 3600;

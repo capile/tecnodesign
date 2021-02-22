@@ -14,6 +14,7 @@ var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl,
     'Interface.startup': '.tdz-i[data-url]',
     'Interface.AutoRemove': '.z-auto-remove',
     'Graph.Graph': '.z-graph',
+    Recaptcha: '.z-recaptcha'
   }, _zTimestamp='';
 
 // load authentication info
@@ -1544,6 +1545,14 @@ Z.enableForm=function(F)
         if(L[i].className.search(/\bz-disabled-input\b/)>-1) L[i].className = L[i].className.replace(/\s*\bz-disabled-input\b/g, '');
     }
     if(F.className.search(/\bz-disabled\b/)>-1) F.className = F.className.replace(/\s*\bz-disabled\b/g, '');
+}
+
+
+Z.initRecaptcha = function()
+{
+    if(this.className.search(/\bz-recaptcha\b/)>-1) this.className = this.className.replace(/\bz-recaptcha\b/g, 'g-recaptcha');
+    if(!('grecaptcha' in window)) Z.load('https://www.google.com/recaptcha/api.js?hl='+Z.lang());
+    else grecaptcha.render(this);
 }
 
 window.requestAnimFrame = (function(){
