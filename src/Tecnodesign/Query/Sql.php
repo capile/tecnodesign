@@ -103,8 +103,8 @@ class Tecnodesign_Query_Sql
                 if(isset($db['options']['command'])) {
                     $cmd = $db['options']['command'];
                     unset($db['options']['command']);
-                } else if(isset($db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND])) {
-                    $cmd = $db['options'][\PDO::MYSQL_ATTR_INIT_COMMAND];
+                } else if(isset($db['options']['initialize'])) {
+                    $cmd = $db['options']['initialize'];
                 } else {
                     $cmd = null;
                 }
