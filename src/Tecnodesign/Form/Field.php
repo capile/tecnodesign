@@ -1980,6 +1980,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $s .= '<span class="text"></span>';
             }
         }
+        if(isset($arg['required'])) unset($arg['required']);
         $h = ($hi) ?$this->renderHidden($arg) :'';
         $this->attributes = $a0;
         unset($a0);
@@ -1996,7 +1997,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $uploadDir = tdz::uploadDir();
         $fpart = explode('|', $s);
         $fname = array_pop($fpart);
-        if(count($fpart)>=1 && ($ftmp=preg_replace('/[^a-zA-Z0-9\-\_\.]+/', '', $fpart[0])) && (file_exists($f=$uploadDir.'/'.$ftmp) || (file_exists($f=self::$tmpDir.'/'.$ftmp)))) {
+        if(count($fpart)>=1 && ($ftmp=preg_replace('/[^a-zA-Z0-9\-\_\.\/]+/', '', $fpart[0])) && (file_exists($f=$uploadDir.'/'.$ftmp) || (file_exists($f=self::$tmpDir.'/'.$ftmp)))) {
             if($array) return array('name'=>$fname, 'file'=>$f);
             return $f;
         } else if(file_exists($f=$uploadDir.'/'.$fname)) {

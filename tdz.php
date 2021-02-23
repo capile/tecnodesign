@@ -1681,7 +1681,8 @@ class tdz
             foreach($a as $k=>$v) {
                 $a[$k]=tdz::setLastKey($v, $name);
                 if($post && is_array($post) && isset($post[$k]) && $post[$k]!=$a[$k]) {
-                    $a[$k]['_'] = $post[$k];
+                    if(is_array($a[$k]) && is_array($post[$k])) $a[$k] = $post[$k] + $a[$k];
+                    else $a[$k]['_'] = $post[$k];
                 }
             }
         } else {
