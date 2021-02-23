@@ -2,7 +2,7 @@
 /**
  * Form template
  * 
- * PHP version 5.6+
+ * PHP version 7
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
@@ -56,6 +56,7 @@ if($hasFieldset) {
 if(isset($Form) && $Form) $attributes = $Form->attributes;
 foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"';
 ?>><?php
+
 foreach($fieldsets as $fn=>$fv) {
     if(!$fv) continue;
     if(!is_int($fn) && !tdz::isempty($fn)) {
@@ -65,6 +66,26 @@ foreach($fieldsets as $fn=>$fv) {
         echo $before.$fv;
     }
     if($before) $before = '';
+}
+
+if(isset($limits['recaptcha']) && $limits['recaptcha']) {
+    $rc = $limits['recaptcha'];
+    $rckey = null;
+    if(is_array($rc) && isset($rc['site-key'])) $rckey = $rc['site-key'];
+    else if(isset(tdz::$variables['recaptcha-site-key'])) $rckey = tdz::$variables['recaptcha-site-key'];
+    if($rckey) {
+        if(!isset($rc['submit']) || !$rc['submit']) {
+            echo '<div class="z-recaptcha" data-sitekey="'.tdz::xml($rckey).'"></div>';
+        } else if(isset($buttons['submit'])) {
+            echo '<script src="https://www.google.com/recaptcha/api.js"></script>';
+            if(!is_array($buttons['submit'])) $buttons['submit'] = ['label'=>$buttons['submit'], 'attributes'=>[]];
+            else if(!isset($buttons['submit']['attributes'])) $buttons['submit']['attributes'] = [];
+
+            if(isset($buttons['submit']['attributes']['class'])) $buttons['submit']['attributes']['class'] .= ' g-recaptcha';
+            else $buttons['submit']['attributes']['class'] = 'g-recaptcha';
+            $buttons['submit']['attributes']['data-sitekey'] = tdz::xml($rckey);
+        }
+    }
 }
 
 if($buttons): ?>

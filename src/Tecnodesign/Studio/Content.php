@@ -393,11 +393,11 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $o['variables']['entry']=$E;
         if($E) {
             $o['variables'] += $E->asArray();
-            $f = array('Relation.parent'=>$E->id);
+            $f = array('Related.parent'=>$E->id);
             if(!(Tecnodesign_Studio::$private && !Tecnodesign_Studio::$cacheTimeout)) {
                 $f['published<']=date('Y-m-d\TH:i:s');
             }
-            $o['variables']['entries'] = tdzEntry::find($f,null,'preview',(isset($code['hpp']) && $code['hpp']),($E->type=='page')?(array('Relation.position'=>'asc','published'=>'desc')):(array('published'=>'desc')));
+            $o['variables']['entries'] = tdzEntry::find($f,null,'preview',(isset($code['hpp']) && $code['hpp']),($E->type=='page')?(array('Related.position'=>'asc','published'=>'desc')):(array('published'=>'desc')));
         }
         /*
         if(!Tecnodesign_Studio::$cacheTimeout || (!isset($code['hpp']) || !$code['hpp'])) {

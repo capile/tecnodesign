@@ -2946,8 +2946,28 @@ class Tecnodesign_Interface implements ArrayAccess
             } else {
                 $scope = $this->scope('review');
             }
-            $order = null;
-            if(($order=Tecnodesign_App::request('get', static::REQ_ORDER)) && preg_match('/^(\!)?(.+)$/', $order, $m) && isset($scope[$m[2]])) {
+            $order = Tecnodesign_App::request('get', static::REQ_ORDER);
+            if($scope && (isset($scope[0]) || substr(array_keys($scope)[0], 0, 1)=='*') && static::$translate) {
+                $nscope = [];
+                foreach($scope as $i=>$o) {
+                    $fn = $o;
+                    if(is_array($fn)) {
+                        if(isset($fn['label'])) $i = $fn['label'];
+                        if(isset($fn['bind'])) $fn = $fn['bind'];
+                        else continue;
+                    }
+                    if(is_int($i)) {
+                        $i = $cn::fieldLabel($fn);
+                    } else if(substr($i, 0, 1)=='*') {
+                        $i = tdz::t(substr($i, 1), 'model-'.$cn::$schema->tableName);
+                    }
+                    $nscope[$i] = $o;
+                    unset($scope[$i], $i, $o, $fn);
+                }
+                $scope = $nscope;
+                unset($nscope);
+            }
+            if($order && preg_match('/^(\!)?(.+)$/', $order, $m) && isset($scope[$m[2]])) {
                 $fn = $scope[$m[2]];
                 if(is_array($fn)) $fn=$fn['bind'];
                 if(strpos($fn, ' ')!==false) $fn = preg_replace('/(\s+as)?\s+[^\s]+$/', '', $fn);

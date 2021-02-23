@@ -30,9 +30,9 @@
     },
     "overlay": [],
     "actAs": {
-        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ], "sortable": [ "ordem" ] },
-        "before-update": { "timestampable": [ "updated" ], "sortable": [ "ordem" ] },
-        "before-delete": { "timestampable": [ "updated" ], "sortable": [ "ordem" ], "soft-delete": [ "expired" ] },
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] },
         "after-insert": { "versionable": [ "version" ] },
         "after-update": { "versionable": [ "version" ] },
         "after-delete": { "versionable": [ "version" ] }

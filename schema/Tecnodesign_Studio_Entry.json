@@ -25,7 +25,7 @@
         "Permission": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Permission" },
         "Child": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
         "Parent": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" },
-        "Relation": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Related": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
         "Children": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" }
     },
     "scope": {
@@ -33,7 +33,7 @@
         "link": [ "id", "link", "title" ],
         "studio-new": [ "type", "title", "link", "summary", "published" ],
         "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ],
-        "review": { "*Title": "title", "*Content": "null _contents_inline", "*Link": "link", "*Last Modified": "updated" }
+        "review": { "*Title": "title", "*Link": "link", "*Summary": "summary", "*Last Modified": "updated" }
     },
     "order": {
         "published": "desc",
@@ -46,12 +46,15 @@
         "active-records": "`expired` is null"
     },
     "overlay": {
-        "type": { "bind": "type", "format": "select", "choices": "Tecnodesign_Studio::config('entry_types')", "fieldset": "*Properties", "class": "studio-left" },
-        "title": { "bind": "title", "fieldset": "*Properties", "class": "studio-clear", "required": true },
-        "link": { "bind": "link", "attributes": { "data-type": "url" }, "fieldset": "*Properties" },
-        "summary": { "bind": "summary", "format": "html", "fieldset": "*Properties", "class": "studio-clear" },
-        "published": { "bind": "published", "format": "datetime", "fieldset": "*Properties", "class": "studio-left" },
-        "contents": { "bind": "Contents", "format": "form", "fieldset": "*Content" }
+        "type": { "bind": "type", "format": "select", "choices": "choicesTypes" },
+        "title": { "bind": "title", "required": true },
+        "link": { "bind": "link", "attributes": { "data-type": "url" } },
+        "summary": { "bind": "summary", "format": "textarea" },
+        "published": { "bind": "published", "format": "datetime" },
+        "contents": { "bind": "Contents", "format": "form" },
+        "master": { "bind": "master", "format":"select", "choices": "choicesMaster" },
+        "_tags": { "bind": "_tags", "multiple": true },
+        "_parent_wip": { "bind": "Related", "multiple": true, "format": "form", "scope": "parent" }
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },

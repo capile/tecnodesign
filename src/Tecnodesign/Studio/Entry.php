@@ -40,7 +40,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public static $s=1;
     public static $schema;
-    protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Contents, $Permission, $Child, $Parent, $Relation, $Children;
+    protected $id, $title, $summary, $link, $source, $format, $published, $language, $type, $master, $version=false, $created, $updated=false, $expired, $Tag, $Contents, $Permission, $Child, $Parent, $Related, $Children;
     
     protected $dynamic=false, $wrapper, $modified, $credential;
 
@@ -506,7 +506,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(!is_array($search)) $search = [];
         $search['published<']=TDZ_TIMESTAMP;
         $search['type'] = 'entry';
-        if(!$orderBy) $orderBy = ['published'=>'desc', 'Relation.updated'=>'desc'];
+        if(!$orderBy) $orderBy = ['published'=>'desc', 'Related.updated'=>'desc'];
         return $this->getChildren($search, $scope, $asCollection, $orderBy, $groupBy, $limit);
     }
 
@@ -515,9 +515,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(!$this->id) return null;
         if(!is_array($search)) $search = [];
         $search['published<']=TDZ_TIMESTAMP;
-        $search['Relation.parent'] = $this->id;
+        $search['Related.parent'] = $this->id;
         if(!isset($search['type'])) $search['type'] = 'page';
-        if(!$orderBy) $orderBy = ['Relation.position'=>'asc'];
+        if(!$orderBy) $orderBy = ['Related.position'=>'asc'];
         if($limit==1) {
             $r = static::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
             if($r) $r=[$r];
@@ -537,6 +537,41 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         else $L = [];
 
         return ($asCollection || !$L) ?$L :$L->getItems();
+    }
+
+    public function validateTags($v)
+    {
+        $rel = [];
+        if($v) {
+            if(!is_array($v)) $v = preg_split('/\s*\,\s*/', $v, null, PREG_SPLIT_NO_EMPTY);
+            $tags = $this->getTags();
+            foreach($v as $o) {
+                $o = trim($o);
+                if(!$o) continue;
+                $k = tdz::slug($o);
+                if(isset($tag[$k])) {
+                    if($tag[$k]->tag!=$o) $tag[$k]->tag = $o;
+                    $rel[] = $tag[$k];
+                    unset($tag[$k]);
+                } else {
+                    $rel[] = ['entry'=>$this->id, 'tag'=>$o, 'slug'=>tdz::slug($o)];
+                }
+            }
+
+            foreach($tags as $o) {
+                $o->delete(false);
+                $rel[] = $o;
+            }
+        }
+        $this->setRelation('Tag', $rel);
+
+        return $v;
+    }
+
+    public function validateTemplate($v)
+    {
+        \tdz::log(__METHOD__, $v);
+        return $v;
     }
 
     public static function file($url, $check=true)
@@ -915,6 +950,44 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         return static::$types;
     }
 
+    public static function choicesMaster()
+    {
+        static $master;
+
+        if(!$master && Tecnodesign_Studio::$indexTimeout) {
+            $master = Tecnodesign_Cache::get('studio/entry/master', Tecnodesign_Studio::$indexTimeout);
+        }
+
+        if(!$master) {
+            $master = [];
+            $g = Tecnodesign_Studio::templateDir();
+            while($g) {
+                $d = array_shift($g);
+                if(is_dir($d) && ($nd=glob($d.'/*'))) {
+                    $g = array_merge($g, $nd);
+                } else if(is_file($d) && substr($d, -4)=='.php') {
+                    $n = $l = basename($d, '.php');
+                    if(!isset($master[$n])) {
+                        $c = file_get_contents($d);
+                        if(strpos($c, '<html')!==false) {
+                            if(preg_match('#^\<\?php\s*\n/\*\*?\s*\n\s*\*?([^\n]+)#s', $c, $m)) {
+                                $l = trim($m[1]).' ('.$n.')';
+                            }
+                            $master[$n] = $l;
+                        }
+                        unset($c);
+                    }
+                    unset($n, $l);
+                }
+                unset($d, $nd);
+            }
+            if($master && Tecnodesign_Studio::$indexTimeout) {
+                Tecnodesign_Cache::set('studio/entry/master', $master, Tecnodesign_Studio::$indexTimeout);
+            }
+        }
+
+        return $master;
+    }
 
     public function previewSummary()
     {

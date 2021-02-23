@@ -9,6 +9,7 @@ all:
     scope:
       review:
         - title
+        - summary
         - link
         - type
         - updated
