@@ -1,5 +1,6 @@
 ---
 listResult: Há apenas um registro disponível.
+listSearchResult: Há apenas um registro em %s que atende à consulta por %s.
 listSearchResults: Há %s registros em %s que atendem à consulta por %s.
 listResults: Há %s registros disponíveis.
 listCounter: Exibindo de %s até %s.

@@ -406,6 +406,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             } catch(Exception $e) {
                 if($outputError) {
                     $msg = $e->getMessage();
+                    if(tdz::$log) tdz::log('[INFO] Could not validate form: '.$e);
                     //$msg .= var_export($value, true)." {$m};";
                     $this->error[$msg] = $msg;
                 }
