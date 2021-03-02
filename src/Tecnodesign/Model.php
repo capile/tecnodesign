@@ -1141,6 +1141,17 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 } else {
                     $f = array($pk=>$f);
                 }
+            } else {
+                // remove sub arrays, acceptable for search queries, but the names would fail
+                foreach($f as $k=>$v) {
+                    if(is_int($k) && is_array($v)) {
+                        unset($f[$k]);
+                        foreach($v as $vk=>$vv) {
+                            $f[$vk] = $vv;
+                            unset($v[$vk], $vk, $vv);
+                        }
+                    }
+                }
             }
 
             foreach($rcn::$schema['relations'] as $rrn=>$rr) {
