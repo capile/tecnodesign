@@ -26,6 +26,7 @@
         "Child": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
         "Parent": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" },
         "Related": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Relation": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
         "Children": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" }
     },
     "scope": {
