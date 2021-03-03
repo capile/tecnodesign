@@ -232,6 +232,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 $pk = (is_array($schema->scope['uid']))?($schema->scope['uid']):(array($schema->scope['uid']));
             } else if($schema->properties) {
                 foreach($schema->properties as $fn=>$fd) {
+                    if(is_array($fd)) {
+                        $fd = new Tecnodesign_Schema_Property($fd);
+                        $schema->properties[$fn] = $fd;
+                    }
                     if ($fd->increment=='auto') {
                         $pk[] = $fn;
                     } else if($fd->primary) {
@@ -416,6 +420,10 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 if (!isset(static::$schema->scope[$scope])) {
                     $labels = array();
                     foreach(static::$schema->properties as $fn=>$fd) {
+                        if(is_array($fd)) {
+                            $fd = new Tecnodesign_Schema_Property($fd);
+                            $schema->properties[$fn] = $fd;
+                        }
                         if (!$fd->increment) {
                             $labels[static::fieldLabel($fn)] = $fn;
                         }
@@ -503,6 +511,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $fd += (array) static::$schema->overlay[$fn];
                 }
                 if(isset(static::$schema->properties[$fn])) {
+                    if(is_array(static::$schema->properties[$fn])) {
+                        static::$schema->properties[$fn] = new Tecnodesign_Schema_Property(static::$schema->properties[$fn]);
+                    }
                     $fd += static::$schema->properties[$fn]->value();
                 }
 

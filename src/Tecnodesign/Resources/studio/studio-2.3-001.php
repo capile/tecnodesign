@@ -362,8 +362,8 @@ if($contents) {
     // upgrade from previous studio versions, migrate column tdz_contents.show_at|hide_at to this table
     $q = 'select distinct id as content, version, show_at, hide_at, created, updated, expired from tdz_contents where coalesce(show_at,\'\')<>\'\'';
     $r = tdz::query($q);
-    $e = Tecnodesign_Studio_ContentDisplay::$schema['events'];
-    Tecnodesign_Studio_ContentDisplay::$schema['events'] = array();
+    $e = Tecnodesign_Studio_ContentDisplay::$schema->events;
+    Tecnodesign_Studio_ContentDisplay::$schema->events = array();
     if($r) {
         try {
             foreach($r as $i=>$c) {
