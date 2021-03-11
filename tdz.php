@@ -1878,13 +1878,12 @@ class tdz
      */
     public static function slug($s, $accept='_', $anycase=null)
     {
-        $s = html_entity_decode(preg_replace('/&([a-z]{1,2})(?:acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);/i', '$1', htmlentities($s, ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
-        if($accept) {
-            $accept = preg_replace('/([^a-z0-9])/i', '\\\$1', $accept);
-        }
-        $s = trim(preg_replace('/[^0-9a-z'.$accept.']+/i', '-', $s), '-');
-
-        return ($anycase)?($s):(strtolower($s));
+        $acceptPat = ($accept) ?preg_replace('/([^a-z0-9])/i', '\\\$1', $accept) :'';
+        $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', $s);
+        $r = iconv('utf-8', 'us-ascii//TRANSLIT', $r);
+        $r = preg_replace('/[^0-9a-z'.$acceptPat.']+/i', '-', $r);
+        $r = trim($r, '-');
+        return ($anycase)?($r):(strtolower($r));
     }
 
     public static function textToSlug($str, $accept=''){return tdz::slug($str, $accept);}

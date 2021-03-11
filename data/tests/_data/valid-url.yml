@@ -1,0 +1,11 @@
+---
+/: /
+/accented chars áéíóúãẽĩõũñàèìòùïü: /accented-chars-aeiouaeiounaeiouiu
+/escape%2F%2E%2E%2Ffolder: /escape/folder
+/escape%25%32F%25%32E%25%32E%25%32Ffolder: /escape-2F-2E-2E-2Ffolder
+/Upper/And/Lower: /Upper/And/Lower
+/test/../../../../with/../../../../subs: /test/with/subs
+"\0": "/0"
+without leading /: /without-leading
+~/folder/view: /folder/view
+test/.·./middot: /test/middot

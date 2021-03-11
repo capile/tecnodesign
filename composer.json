@@ -15,10 +15,7 @@
         "ext-mbstring": "*"
     },
     "extra": {
-        "foxy": true,
-        "branch-alias": {
-            "dev-master": "2.2.x-dev"
-        }
+        "foxy": true
     },
     "autoload" : {
         "psr-0": {
@@ -29,19 +26,19 @@
     "require-dev": {
         "mustangostang/spyc": "^0.6.2",
         "league/html-to-markdown": "4.8.*",
-        "ext-yaml": "*",
-        "ext-dom": "*",
-        "codeception/codeception": "3.1.*"
+        "codeception/codeception": "*",
+        "codeception/module-asserts": "^1.3"
     },
     "scripts": {
         "test": "./app-server && vendor/bin/codecept run -v "
     },
     "suggest" : {
+        "ext-dom": "*",
         "geshi/geshi": "Allows syntax highlight in markdown text",
         "setasign/fpdi": "Allows PDF parsing and composition",
         "tecnickcom/tcpdf": "Allows PDF parsing and composition",
         "mustangostang/spyc" : "Allows YAML processing when native support is not available",
-        "ext-yaml": "Needed to YAML processing natively",
+        "ext-yaml": "Use YAML processing natively",
         "dapphp/securimage": "Enables the captcha form field type"
     }
 }
