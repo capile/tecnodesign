@@ -6,7 +6,19 @@ all:
     index: false
     navigation: true
     priority: 999
+    link-generator: getStudioLink
     scope:
+      search:
+        q:
+          - title
+          - summary
+          - link
+        '*Link': link
+        '*Updated': updated
+        '*Type': 
+          bind: type
+          format: checkbox
+          multiple: true
       review:
         - title
         - summary

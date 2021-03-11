@@ -8,17 +8,31 @@ all:
     list-parent: i
     priority: 1
     index: true
+    group-by: id
+    order:
+      'greatest(`updated`,`Contents.updated`)': desc
     scope:
+      review:
+        '*Title': title
+        '*Link': link
+        '*Summary': summary
+        '*Last Modified': 'greatest(`updated`,`Contents.updated`) updated'
       search:
         q:
           - title
           - summary
           - link
         '*URL': link
+        '*Last modified': 
+          bind: 'greatest(`updated`,`Contents.updated`)'
+          format: datetime
       preview:
         - 'scope::meta'
         - 'scope::_meta'
-        - 'scope::content'
+        - 'scope::_content'
+      choices:
+        label: title
+        value: id
       meta:
         __default:
           fieldset: '*Properties'
@@ -39,7 +53,7 @@ all:
         '*Updated': updated
         '*Version': version
         '*Source': source
-      content:
+      _content:
         '*Contents':
           fieldset: '*Contents'
           bind: contents

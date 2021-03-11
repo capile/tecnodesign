@@ -11,6 +11,25 @@
   overflow-x:hidden;
 }
 
+.z-index {
+  z-index:1;
+}
+
+.z-inner-block {
+  position: relative;
+  background: @colorBody;
+  opacity: 0.8;
+  border: 1px solid @colorHeaderBorder;
+  margin-bottom: 2em;
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden; 
+  min-height: 5em;
+  &:hover, &:active {
+    opacity: 1;
+  }
+}
+
 .tdz-i-body {
   background: @colorBody;
   white-space:nowrap;

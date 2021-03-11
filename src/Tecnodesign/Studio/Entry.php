@@ -27,11 +27,17 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         $slot='body',
         $slotElements = array('header', 'nav', 'footer'),
         $types = array(
-            'page'=>'Page',
-            'feed'=>'Newsfeed',
-            'entry'=>'Article',
-            'file'=>'Uploaded file',
+            'page'=>'*Page',
+            'feed'=>'*Newsfeed',
+            'entry'=>'*Article',
+            'file'=>'*Uploaded file',
         ),
+        $typeInterfaces = [
+            'page'=>'e',
+            'feed'=>'l',
+            'entry'=>'a',
+            'file'=>'f',
+        ],
         $pageDir='web',                                // where pages are stored (relative to TDZ_VAR)
         $uploadDir,                                    // deprecated, use tdz::uploadDir
         $indexFile='index',                            // filename to use for directory reads
@@ -570,7 +576,6 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public function validateTemplate($v)
     {
-        \tdz::log(__METHOD__, $v);
         return $v;
     }
 
@@ -915,12 +920,12 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public function previewContents()
     {
-        if($L=$this->getContents()) {
+        if($L=$this->getContents([], 'content', false, ['position'=>'desc', 'id'=>'desc'])) {
             $r = '<div class="z-items">';
             $E = (isset(tdz::$variables['entry'])) ?tdz::$variables['entry'] :null;
             tdz::$variables['entry'] = $this;
             foreach($L as $i=>$o) {
-                $r .= '<div data-action-schema="update" data-action-url="'.Tecnodesign_Studio::$home.'/c/u/'.$o->id.'" class="z-ellipsis-multiline ih5 z-item"><div  data-action-scope="studio-content" class="tdz-i-scope-block scope-studio-content">'.$o->render().'</a></div></div>';
+                $r .= '<div class="z-ellipsis-multiline ih5 z-item"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/c/v/'.$o->id.'" class="z-i-link z-i--preview"></a></span><div class="z-inner-block">'.$o->render().'</div></div>';
             }
             tdz::$variables['entry'] = $E;
             unset($E);
@@ -945,9 +950,47 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         }
     }
 
-    public function choicesTypes()
+    public function getStudioLink()
     {
-        return static::$types;
+        if(!isset($this->type)) {
+            $this->refresh(['type']);
+        }
+
+        if($this->type) {
+            return Tecnodesign_Studio::$home.'/'.static::$typeInterfaces[$this->type];
+        }
+    }
+
+    public function previewType()
+    {
+        if($this->type) {
+            return tdz::xml($this->choicesTypes($this->type));
+        }
+    }
+
+    public function choicesTypes($type=null)
+    {
+        static $r;
+
+        if(is_null($r)) {
+            $r = [];
+            foreach(static::$types as $k=>$v) {
+                if(substr($v, 0, 1)==='*') {
+                    $v = tdz::t(substr($v, 1), 'model-'.static::$schema->tableName);
+                }
+                $r[$k] = $v;
+            }
+
+        }
+
+        if($type) {
+            if(isset($r[$type])) {
+                return $r[$type];
+            }
+            return;
+        }
+
+        return $r;
     }
 
     public static function choicesMaster()

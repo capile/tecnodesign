@@ -103,6 +103,47 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return $a;
     }
 
+    public function checkEntryLink($o=null)
+    {
+        if(!$o) $o = $this->model();
+        $link = $o->getStudioLink();
+        if($link!=$this->url) {
+            $oldurl = $this->link();
+            $this->url = $link;
+            return $this->redirect($this->link(), $oldurl);
+        }
+    }
+
+    public function renderPreview($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
+    {
+        if($this->model=='Tecnodesign_Studio_Entry' && isset($this->text['interface']) && $this->text['interface']=='i') {
+            if($r=$this->checkEntryLink()) {
+                return $r;
+            }
+        }
+        return parent::renderPreview($o, $scope, $class, $translate, $xmlEscape);
+    }
+
+    public function renderUpdate($o=null, $scope=null)
+    {
+        if($this->model=='Tecnodesign_Studio_Entry' && isset($this->text['interface']) && $this->text['interface']=='i') {
+            if($r=$this->checkEntryLink()) {
+                return $r;
+            }
+        }
+        return parent::renderUpdate($o, $scope);
+    }
+
+    public function renderDelete($o=null, $scope=null)
+    {
+        if($this->model=='Tecnodesign_Studio_Entry' && isset($this->text['interface']) && $this->text['interface']=='i') {
+            if($r=$this->checkEntryLink()) {
+                return $r;
+            }
+        }
+        return parent::renderDelete($o, $scope);
+    }
+
     public static function error($code=500, $msg=null)
     {
         Tecnodesign_Studio::error($code);

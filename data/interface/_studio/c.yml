@@ -1,6 +1,7 @@
 ---
 all:
   model: Tecnodesign_Studio_Content
+  prepare: prepareContentTypes
   actions:
     report: false
     publish: false
@@ -9,31 +10,56 @@ all:
     list-parent: i
     priority: 10
     scope:
-      review:
-        Content: id
-        Article: entry
-        Content Type: content_type
       search:
         - id
         - entry
       preview:
-        - "scope::e"
-        - "scope::p"
+        - "scope::_e"
+        - "scope::u"
         - "scope::c"
-      e:
+      new:
+        - "scope::e"
+      update:
+        - "scope::u"
+        - "scope::c"
+      _e:
         __default:
-          fieldset: '*Page'
-        '*Entry':
+          fieldset: '*Page information'
+        '*Page':
             bind: entry
+            choices: Tecnodesign_Studio_Page
+            format: search
             class: i1s2
+            attributes:
+              data-datalist-api: /_studio/e/q.json?envelope=false&scope=choices 
         '*Content Type':
             bind: content_type
             class: i1s2
-        '*Metadata':
-          bind: attributes
-      p:
+      u:
         __default:
-          fieldset: '*Article'
+          fieldset: '*Page information'
+        '*Location':
+          bind: slot
+          type: select
+          class: i1s2
+          choices: choicesSlot
+        '*Order':
+          bind: position
+          type: number
+          class: i1s2
+      e:
+        __default:
+          fieldset: '*Page information'
+        '*Page':
+            bind: entry
+            choices: Tecnodesign_Studio_Page
+            format: search
+            class: i1s2
+            attributes:
+              data-datalist-api: /_studio/e/q.json?envelope=false&scope=choices 
+        '*Content Type':
+            bind: content_type
+            class: i1s2
         '*Location':
           bind: slot
           type: select
@@ -49,3 +75,10 @@ all:
         'Content':
           bind: content
           class: ih10
+      u.html:
+        __default:
+          fieldset: '*Content'
+        '*Title': _title
+        '*Subtitle': _subtitle
+        '*HTML': _html
+        '*Image': _img

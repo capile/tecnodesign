@@ -3264,11 +3264,17 @@ class Tecnodesign_Interface implements ArrayAccess
                     }
                     if(isset($fd0['label'])) $label = $fd0['label'];
                 }
+
                 if(strpos($fn, ' ')) {
                     $fn = preg_replace('/\s+_[a-z0-9\_]+$/', '', $fn);
-                    $scope[$label]=$fn;
+                    $scope[$k]=$fn;
                 }
-                if(is_int($label)) $label = $cn::fieldLabel($fn);
+
+                if(substr($label, 0, 1)=='*' && static::$translate) {
+                    $label = tdz::t(substr($label, 1), 'model-'.$cn::$schema->tableName);
+                } else if(is_int($label)) {
+                    $label = $cn::fieldLabel($fn);
+                }
                 $fd = $cn::column($fn, true, true);
                 if(!$fd) {
                     $fd = array('type'=>'text');

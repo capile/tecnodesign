@@ -2166,7 +2166,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else {
             $checkbox = false;
         }
-        $link = (isset($o['link']))?($o['link']):(tdz::scriptName());
+        if(isset($o['link-generator']) && method_exists($this, $o['link-generator'])) {
+            $link = $this->{$o['link-generator']}();
+        } else if(isset($o['link'])) {
+            $link = $o['link'];
+        } else {
+            $link = tdz::scriptName();
+        }
         $linkScope = (isset($o['link-scope'])) ?$o['link-scope'] :null;
         $i = (isset($o['position']))?($o['position']):(0);
         $start = (isset($o['start']))?($o['start']):($i);

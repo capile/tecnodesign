@@ -35,8 +35,10 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         if($this->source) {
             $s = $this->source;
         } else {
-            if($this->_url) {
+            if(isset($this->_url) && $this->_url) {
                 $s = $this->_url;
+            } else if(isset($this->_title)) {
+                $s = trim($this->_title).'#'.$this->id;
             } else {
                 $s = '(#'.$this->id.')';
             }
@@ -72,6 +74,26 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         if($this->slot) {
             return Tecnodesign_Studio::t($this->slot, ucfirst($this->slot));
         }
+    }
+
+    public function previewEntry()
+    {
+        if(!isset($this->entry)) {
+            $this->refresh(['entry']);
+        }
+
+        if($this->entry) {
+            $E = Tecnodesign_Studio_Entry::find(['id'=>$this->entry],1,['title','type']);
+            if($E) {
+                if(substr(tdz::scriptName(), 0, strlen(Tecnodesign_Studio::$home)+1)==Tecnodesign_Studio::$home.'/') {
+                    $link = $E->getStudioLink().'/v/'.$E->id;
+                    return tdz::xml((string)$E).' <a href="'.$link.'" class="z-i-link z-i--preview"></a>';
+                } else {
+                    return tdz::xml((string)$E);
+                }
+            }
+        }
+
     }
 
     public static function find($q=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
@@ -198,6 +220,54 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
         }
         return parent::save($beginTransaction, $relations, $conn);
+    }
+
+    public function previewContent()
+    {
+        return '<div class="z-inner-block">'.$this->render().'</div>';        
+    }
+
+    public function getContent($p=null)
+    {
+        if(!isset($this->content)) {
+            $this->refresh(['content']);
+        }
+        if($this->content) {
+            if(is_string($this->content)) {
+                if(strpos($this->content, "\r")) $this->content = str_replace("\r", '', $this->content);
+                $this->content = tdz::unserialize($this->content, 'yaml');
+            }
+            if($p) {
+                if(isset($this->content[$p])) {
+                    return $this->content[$p];
+                }
+                return;
+            }
+        }
+
+        return $this->content;
+    }
+
+    public static function prepareContentTypes($a)
+    {
+        if(($p=tdz::urlParams()) && count($p)>=2 && $p[0]==='u' && is_numeric($p[1]) && ($E=self::find(['id'=>$p[1]],1,['content_type']))) {
+            if(isset($a['options']['scope']['u.'.$E->content_type])) {
+                $a['options']['scope']['c'] = $a['options']['scope']['u.'.$E->content_type];
+            } else {
+                \tdz::log('[ERROR] Please prepare the scope: Tecnodesign_Studio_Content::$schema->scope[u.'.$E->content_type.']', $E->getContent());
+            }
+        }
+
+        return $a;
+    }
+
+    public function xrenderContentFormField(&$arg, $F)
+    {
+
+
+
+
+
     }
 
     public function render($display=true)

@@ -1608,6 +1608,7 @@ class tdz
     {
         $s = trim($s);
         if($s != '') {
+            if(strpos($s, '%')) $s = urldecode($s);
             if (substr($s, 0, 1) != '/') $s = "/{$s}";
             $s = preg_replace('#\.\.+#', '.', $s);
             $s = preg_replace('#\.+([^a-z0-9-_])#i', '$1', $s);
