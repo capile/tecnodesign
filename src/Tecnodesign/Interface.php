@@ -83,6 +83,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $attrSearchFormClass= 'tdz-search',
         $attrCounterClass   = 'tdz-counter',
         $attrGraphClass     = 'z-i-graph',
+        $attrFormClass      = 'z-form',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
         $actionAlias        = array(),
@@ -2655,7 +2656,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $fo = $o->getForm($d);
         if(preg_match('/\&ajax=[0-9]+\b/', $fo->action)) $fo->action = preg_replace('/\&ajax=[0-9]+\b/', '', $fo->action);
         $fo->id = tdz::slug($this->text['interface']).'--'.(($o->isNew())?('n'):(tdz::slug(@implode('-',$o->getPk(true)))));
-        $fo->attributes['class']='z-form';
+        $fo->attributes['class']=static::$attrFormClass;
         if($this->action=='update' || $this->action=='new') {
             $fo->buttons['submit']=static::t('button'.ucwords($this->action), ucwords($this->action));
         }
@@ -3226,7 +3227,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $ff=array();
         $dest = (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])?($this->action):('list');
         $fo=array(
-            'class'=>'z-form tdz-auto '.static::$attrSearchFormClass.' tdz-no-empty tdz-simple-serialize',
+            'class'=>static::$attrFormClass.' tdz-auto '.static::$attrSearchFormClass.' tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
             'limits'=>false,
             'action'=>$this->link($dest, false),

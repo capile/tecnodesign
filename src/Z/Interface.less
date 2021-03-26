@@ -30,6 +30,19 @@
   }
 }
 
+
+.z-frame {
+  position:relative;
+  iframe {
+    position: absolute;
+    color: @colorText;
+    background: @colorBody;
+    width: calc(~"100% - 1em");
+    height: calc(~"100% - 1em");
+    border: 1px solid @colorHeaderBorder;
+  }
+}
+
 .tdz-i-body {
   background: @colorBody;
   white-space:nowrap;
@@ -1027,8 +1040,8 @@ button .i-label {
     padding-top: 0.5em;
     line-height:1em;
   }
-  input#omnibar {
-    width: calc(~"100% - 8em");
+  input.z-omnibar {
+    width: calc(~"100% - 8em") !important;
     margin: 0 0.5em 0.5em 0;
   }
   fieldset{
@@ -1125,7 +1138,7 @@ button .i-label {
     margin-top: -2em;
   }
   .tdz-i-search, .z-i-search {
-    input#omnibar {
+    input.z-omnibar {
       max-width: 80vw;
     }
   }

@@ -144,6 +144,20 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return parent::renderDelete($o, $scope);
     }
 
+    public function executeMethod()
+    {
+        if(method_exists($o=$this->model, $a=\tdz::camelize($this->action))) {
+            if($this->id) {
+                // get object
+                $o = $this->model();
+                return $o->$a($this);
+            } else {
+                return $o::$a($this);
+            }
+        }
+        return false;
+    }
+
     public static function error($code=500, $msg=null)
     {
         Tecnodesign_Studio::error($code);

@@ -484,8 +484,8 @@ class tdz
                 foreach($m[1] as $i=>$o) {
                     $r = null;
                     if(defined($o)) $r = constant($o);
-                    else if($o==='SCRIPT_NAME' || $o==='URL') $r = \tdz::scriptName();
-                    else if($o==='PATH_INFO') $r = \tdz::scriptName(true);
+                    else if($o==='SCRIPT_NAME' || $o==='URL') $r = tdz::scriptName();
+                    else if($o==='PATH_INFO') $r = tdz::scriptName(true);
                     else if($o==='REQUEST_URI') $r = tdz::requestUri();
                     if(!is_null($r)) {
                         $a = str_replace($m[0][$i], $r, $a);
@@ -1878,7 +1878,7 @@ class tdz
      */
     public static function slug($s, $accept='_', $anycase=null)
     {
-        $acceptPat = ($accept) ?preg_replace('/([^a-z0-9])/i', '\\\$1', $accept) :'';
+        $acceptPat = ($accept) ?preg_quote($accept, '/') :'';
         $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', $s);
         $r = iconv('utf-8', 'us-ascii//TRANSLIT', $r);
         $r = preg_replace('/[^0-9a-z'.$acceptPat.']+/i', '-', $r);

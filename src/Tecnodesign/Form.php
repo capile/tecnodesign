@@ -592,7 +592,7 @@ class Tecnodesign_Form implements ArrayAccess
             unset($fn, $fv);
         }
         if($req) {
-            \tdz::output((string)$this);
+            tdz::output((string)$this);
         }
         return $valid;
     }

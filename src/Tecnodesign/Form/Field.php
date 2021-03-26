@@ -132,7 +132,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $this->setValue($val);
         }
 
-        $Type = \tdz::camelize(($this->format) ?$this->format :$this->type, true);
+        $Type = tdz::camelize(($this->format) ?$this->format :$this->type, true);
         if($Type && method_exists($this, $m='preCheck'.$Type)) {
             $this->$m();
         }
@@ -273,7 +273,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($type=='') {
             $type = 'text';
         }
-        if(!method_exists($this, 'render'.\tdz::camelize($type, true))) {
+        if(!method_exists($this, 'render'.tdz::camelize($type, true))) {
             throw new Tecnodesign_Exception(array(tdz::t('Field type "%s" is not available.'), $type));
         }
         $this->type = $type;
@@ -316,7 +316,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         } else {
             $name = $id;
         }
-        if(($this->multiple && $this->type!='form') || $this->type == 'file') {
+        if(substr($name, -2)!='[]' && ($this->multiple && $this->type!='form') || $this->type == 'file') {
             $name.='[]';
         }
         return $name;
@@ -444,7 +444,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $this->value = $value;
         if($this->bind) {
             $o = $this->getModel();
-            if(isset($o::$schema['relations'][$this->bind])) {
+            if(isset($o::$schema->relations[$this->bind])) {
                 if($update) {
                     $o->setRelation($this->bind, $update, true);
                 }
@@ -642,6 +642,15 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 unset($fn);
             }
             foreach($value as $i=>$v) {
+                if(!is_array($v)) {
+                    if(!$v) continue;
+                    foreach($scope as $fn) {
+                        if(strpos($fn, ' ')) $fn = substr($fn, strrpos($fn, ' '));
+                        $v = [$fn => $v];
+                        unset($fn);
+                        break;
+                    }
+                }
                 $v += $bnull;
                 if(isset($R[$i])) {
                     $O = $R[$i];
@@ -1608,7 +1617,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             unset($M, $m);
         }
 
-        $Type = \tdz::camelize(($this->format) ?$this->format :$this->type, true);
+        $Type = tdz::camelize(($this->format) ?$this->format :$this->type, true);
         if(!$input) {
             $m = 'render' . $Type;
             if (!method_exists($this, $m)) {
@@ -2882,6 +2891,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         if($this->multiple) {
             $this->attributes['class']=(isset($this->attributes['class']))?($this->attributes['class'].' multiple'):('multiple');
+            if(substr($a['name'], -2)!='[]') $a['name'] .= '[]';
         }
         $a += $this->attributes;
         $choices = $this->choices;
@@ -2989,11 +2999,16 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
         if($values) {
             $ref = null;
-            if($this->bind && ($sc=$this->getSchema()) && isset($sc['relations'][$this->bind])) {
-                $rel = $sc['relations'][$this->bind];
+            if($this->bind && ($sc=$this->getSchema()) && isset($sc->relations[$this->bind])) {
+                $rel = $sc->relations[$this->bind];
                 $cn = (isset($rel['className']))?($rel['className']):($this->bind);
-                $rpk = $cn::pk($cn::$schema, true);
-                $ref = array_pop($rpk);
+                if(isset($this->scope)) {
+                    $scope = (is_array($this->scope)) ?$this->scope :$cn::columns($this->scope);
+                    foreach($scope as $ref) break;
+                } else {
+                    $rpk = $cn::pk($cn::$schema, true);
+                    $ref = array_pop($rpk);
+                }
             }
             foreach($values as $k=>$v) {
                 if(is_object($v) && $v instanceof Tecnodesign_Model) {
