@@ -1803,7 +1803,7 @@ class Tecnodesign_Interface implements ArrayAccess
         return $s;
     }
 
-    public function backgroundWorker($m, $prefix='w/', $download=true, $redirect=null)
+    public function backgroundWorker($m, $prefix='w/', $download=true, $redirect=null, $unload=null)
     {
         if(Tecnodesign_App::request('headers', 'z-action')==='Interface') {
             $uri = ($redirect && is_string($redirect)) ?$redirect :$this->link();
@@ -1823,8 +1823,12 @@ class Tecnodesign_Interface implements ArrayAccess
                         $curl = $this->link();
                         if($uri!=$curl) {
                             $msg = '<a data-action="unload" data-url="'.\tdz::xml(preg_replace('/\?.*/', '', $curl)).'"></a>'.$msg;
+                        } else if(!$unload) {
+                            $msg = '<a data-action="load" data-url="'.\tdz::xml($uri).'"></a>'.$msg;
                         }
-                        $msg = '<a data-action="load" data-url="'.\tdz::xml($uri).'"></a>'.$msg;
+                    } else if($unload) {
+                        $curl = (is_string($unload)) ?$unload :$this->link();
+                        $msg .= '<a data-action="unload" data-url="'.\tdz::xml(preg_replace('/\?.*/', '', $curl)).'"></a>';
                     }
                 }
             } else if(($st=Tecnodesign_Cache::get($prefix.$uid))) {
@@ -1965,7 +1969,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function renderReport($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
     {
-        $pid = $this->backgroundWorker(tdz::t('Building report...','interface'), 'irs/', true, true);
+        $pid = $this->backgroundWorker(tdz::t('Building report...','interface'), 'irs/', true, false, $this->link($this->action, null, true, false));
 
         unset($this->text['searchForm']);
         $r=array();
