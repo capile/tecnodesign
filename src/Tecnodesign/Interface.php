@@ -1980,7 +1980,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $this->text['listLimit']=50000;
     }
 
-    public function download($f, $msg='Download...')
+    public function download($f, $msg='Download...', $unload=null)
     {
         $fn = preg_replace('/^[0-9\.]+\-/', '', basename($f));
         if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
@@ -1994,6 +1994,12 @@ class Tecnodesign_Interface implements ArrayAccess
             } else {
                 $msg = '<a data-action="error" data-message="'.tdz::xml(tdz::t('There was an error while processing your request. Please try again or contact support.','interface')).'"></a>';
             }
+
+            if($unload) {
+                $url = (is_string($unload)) ?$unload :$this->link($this->action, $this->id, true, false);
+                $msg .= '<a data-action="unload" data-url="'.tdz::xmlEscape($url).'"></a>';
+            }
+
             tdz::output($msg, 'text/html; charset=utf8', true);
         } else if(($uid=Tecnodesign_App::request('get', '-bgd')) && ($f=Tecnodesign_Cache::get('bgd/'.$uid)) && file_exists($f)) {
             Tecnodesign_Cache::delete('bgd/'.$uid);
