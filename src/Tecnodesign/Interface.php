@@ -1965,7 +1965,7 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function renderReport($o=null, $scope=null, $class=null, $translate=false, $xmlEscape=true)
     {
-        $pid = $this->backgroundWorker(tdz::t('Building report...','interface'), 'irs/', true);
+        $pid = $this->backgroundWorker(tdz::t('Building report...','interface'), 'irs/', true, true);
 
         unset($this->text['searchForm']);
         $r=array();
