@@ -1002,7 +1002,7 @@ input,select,textarea,.z-textarea,.z-input {
   color: #000;
   background: #fff;
   border:none;
-  width:99.9%;
+  width: calc(~"100% - 2px");
 
   &.z-readonly {
     background:transparent;
@@ -1179,6 +1179,9 @@ button .i-label {
   .z-i--close {
     position:absolute;
   }
+}
+.z-auto-remove .z-i--close:before {
+  display:none;
 }
 
 form .tdz-i-field a.tdz-i-upload {

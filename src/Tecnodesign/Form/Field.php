@@ -38,7 +38,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $captchaTimeout=3600,
         $captchaCaseSensitive=false,
         $defaultErrorMessage='This is not a valid value for "%s".',
-        $typesNotForValidation=['button','submit']
+        $typesNotForValidation=['button','submit'],
+        $uploadSuffix='--uploader'
         ;
 
     /**
@@ -47,6 +48,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      */
     protected
         $prefix=false,          // prefix to be added to the form field, useful for CSRF and subforms
+        $suffix,                // suffix to form field IDs, to guarantee uniqueness at DOM
         $id=false,              // field ID, usually automatically created from key index
         $type='text',           // field type, must have a corresponding function render$Type
         $format,                // field format, must have a corresponding function render$Type
@@ -1994,11 +1996,16 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $h = ($hi) ?$this->renderHidden($arg) :'';
         $this->attributes = $a0;
         unset($a0);
-        unset($arg['template']);
-        $a = $arg;
+        $a = [];
+        foreach($arg as $k=>$v) {
+            if($k=='template' || $k=='required') continue;
+            $a[$k] = $v;
+            unset($k, $v);            
+        }
         $a['value']='';
-        if(isset($a['required'])) unset($a['required']);
+        $a['id'] .= static::$uploadSuffix;
         $s .= $h.$this->renderText($a, false, false);
+        $this->suffix = ($this->suffix==static::$uploadSuffix) ?null :preg_replace('/'.preg_quote(static::$uploadSuffix, '/').'$/', '', $this->suffix);
         return $s;
     }
 
@@ -2429,7 +2436,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $arg['value'] = $v0;
             return $s;
         }
-        $a = array('type'=>(isset($arg['type']))?($arg['type']):('text'), 'id'=>$arg['id'], 'name'=>$arg['name'], 'value'=>(string)$arg['value']);
+        $a = [
+            'type'=>(isset($arg['type']))?($arg['type']):('text'),
+            'id'=>$arg['id'],
+            'name'=>$arg['name'],
+            'value'=>(string)$arg['value'],
+        ];
         if(tdz::isempty($a['name'])) unset($a['name']);
         if($this->size && !isset($this->attributes['maxlength']) && !$this->choices) {
             $this->attributes['maxlength']=$this->size;

@@ -653,6 +653,7 @@
                 return setInterface.apply(pI, arguments);
             }
 
+            runActions(f);
 
 
 
@@ -660,35 +661,38 @@
             if(!I) I = f.querySelector('.tdz-i[data-url] .tdz-i-container');
             if(!I) I = f.querySelector('.tdz-i[data-url]');
 
-            if(pI) {
-                S=pI.querySelectorAll('.z-i-summary .z-i-msg,.z-i-summary .tdz-i-msg,.tdz-i-msg[data-message],.z-i-msg[data-message]');
-                i=S.length;
-                while(i--) {
-                    del = S[i];
-                    if(del.parentNode.className.search(/\b(td)?z-msg\b/)>-1) del = del.parentNode;
-                    Z.deleteNode(del);
-                }
-            }
+            if(I) {
 
-            // get tdz-i only
-            if(I.children.length==1) {
-                t=I.children[0];
-                //while(t.children.length==1 && t.children[0].className.search(/\btdz-i-scope-block\b/)>-1) {
-                //    t=t.children[0];
-                //}
-                t.className=this.className;
-                if(t.className.search(/\btdz-i-scope-block\b/)<0) {
-                    t.className+=' tdz-i-scope-block';
+                if(pI) {
+                    S=pI.querySelectorAll('.z-i-summary .z-i-msg,.z-i-summary .tdz-i-msg,.tdz-i-msg[data-message],.z-i-msg[data-message]');
+                    i=S.length;
+                    while(i--) {
+                        del = S[i];
+                        if(del.parentNode.className.search(/\b(td)?z-msg\b/)>-1) del = del.parentNode;
+                        Z.deleteNode(del);
+                    }
                 }
-                this.parentNode.replaceChild(t, this);
-            } else {
-                t=this.parentNode.insertBefore(document.createElement('div'), this);
-                t.className='tdz-i-scope-block';
-                this.parentNode.removeChild(this);
-                i=0;
-                while(i<I.children.length) {
-                    t.appendChild(I.children[i]);
-                    i++;
+
+                // get tdz-i only
+                if(I.children.length==1) {
+                    t=I.children[0];
+                    //while(t.children.length==1 && t.children[0].className.search(/\btdz-i-scope-block\b/)>-1) {
+                    //    t=t.children[0];
+                    //}
+                    t.className=this.className;
+                    if(t.className.search(/\btdz-i-scope-block\b/)<0) {
+                        t.className+=' tdz-i-scope-block';
+                    }
+                    this.parentNode.replaceChild(t, this);
+                } else {
+                    t=this.parentNode.insertBefore(document.createElement('div'), this);
+                    t.className='tdz-i-scope-block';
+                    this.parentNode.removeChild(this);
+                    i=0;
+                    while(i<I.children.length) {
+                        t.appendChild(I.children[i]);
+                        i++;
+                    }
                 }
             }
 
@@ -702,12 +706,13 @@
                 //Z.deleteNode(S[i]);
             }
 
+            if(!t) t = Z.node(this);
 
-
-
-            startup(t);
-            Z.focus(t);
-            t=null;
+            if(t) {
+                startup(t);
+                Z.focus(t);
+                t=null;
+            }
         }
 
         return false;
@@ -1071,6 +1076,18 @@
 
         }
         return false;
+    }
+
+    function runActions(el)
+    {
+        var r = el.querySelectorAll('a[data-action]'), i=r.length, ra;
+        while(i-- > 0) {
+            ra = r[i].getAttribute('data-action');
+            if(ra && (ra in _A)) {
+                _A[ra].call(this, r[i]);
+            }
+            if(r[i].parentNode) r[i].parentNode.removeChild(r[i]);
+        }
     }
 
     var _A = {
