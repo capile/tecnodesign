@@ -5,7 +5,8 @@
         "d3": "5.*",
         "moment": "2.24.*",
         "pell": "1.0.*",
-        "pikaday-time": "1.6.1"
+        "pikaday-time": "1.6.1",
+        "quill": "^1.3.6"
     },
     "license": "GPL-3.0-only"
 }

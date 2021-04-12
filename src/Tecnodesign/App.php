@@ -1,11 +1,11 @@
 <?php
 /**
  * Tecnodesign Application Server
- * 
+ *
  * This package enable Tecnodesign application management.
- * 
+ *
  * PHP version 5.6+
- * 
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
@@ -38,7 +38,8 @@ class Tecnodesign_App
         ),
         $assets=array('Z'),
         $assetRequirements=[
-            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,pell/dist/pell.min',
+            #'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,pell/dist/pell.min',
+            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,quill/dist/quill.min,quill/dist/quill.snow,quill/dist/quill.min.js.map',
             'Z.Graph'=>'d3/dist/d3.min,c3/c3.min',
         ],
         $copyNodeAssets=[
