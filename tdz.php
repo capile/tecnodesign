@@ -1,9 +1,9 @@
 <?php
 /**
  * Tecnodesign Framework shortcuts and multi-purpose utils
- * 
+ *
  * PHP version 5.6+
- * 
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
@@ -1128,7 +1128,7 @@ class tdz
         static $mb;
         if(is_null($mb)) $mb=function_exists('mb_check_encoding');
 
-        if(tdz::$encoder===false || ($mb && mb_check_encoding($s, $encoding))) {
+        if(tdz::$encoder===false || ($mb && PHP_VERSION_ID > 70200 && mb_check_encoding($s, $encoding))) {
             return $s;
         } else if($mb && !tdz::$encoder && PHP_VERSION_ID > 70200) {
             return mb_convert_encoding($s, $encoding);

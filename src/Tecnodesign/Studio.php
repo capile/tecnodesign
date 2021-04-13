@@ -1,11 +1,11 @@
 <?php
 /**
  * Tecnodesign Studio
- * 
+ *
  * Stand-alone Content Management System.
- * 
+ *
  * PHP version 5.6+
- * 
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
@@ -15,10 +15,10 @@
 class Tecnodesign_Studio
 {
     /**
-     * These are the basic configuration settings. Update them by creating a 
+     * These are the basic configuration settings. Update them by creating a
      * configuration file named: config/autoload.Tecnodesign_Studio.yml
      */
-    public static 
+    public static
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
         $automatedInstall,  // deprecated
         $webInterface,
@@ -46,7 +46,7 @@ class Tecnodesign_Studio
         $cliInterface,      // enable command-line interface
         $cli='studio',      // configurable, where to load Studio command-line interface
         $cliApps=['config'=>['Tecnodesign_App_Install','config'],'index'=>['Tecnodesign_Studio_Index','reindex']];
-    const VERSION = 2.3;    // should match the development branch 
+    const VERSION = 2.3;    // should match the development branch
 
     /**
      * This is a Tecnodesign_App, the constructor is loaded once and then cached (until configuration changes)
@@ -188,9 +188,9 @@ class Tecnodesign_Studio
         if(strpos($url, '.')!==false) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
-            if(!tdzAsset::run($url, TDZ_ROOT.'/src/Tecnodesign/Resources/assets', true) 
+            if(!tdzAsset::run($url, TDZ_ROOT.'/src/Tecnodesign/Resources/assets', true)
                 && !tdzAsset::run($url, TDZ_ROOT.'/src/Tecnodesign/App/Resources/assets', true)
-                && (substr($url, -4) == '.css' || substr($url, -3) == '.js') 
+                && (substr($url, -4) == '.css' || substr($url, -3) == '.js')
                 && !tdzAsset::run($url, TDZ_VAR.'/cache/minify', true)) {
                 self::error(404);
             }
@@ -268,7 +268,7 @@ class Tecnodesign_Studio
             Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
             //exit($s);
         }
-        return $s;        
+        return $s;
     }
 
     public static function listProperties()
@@ -491,7 +491,7 @@ class Tecnodesign_Studio
                         @header('access-control-allow-origin: '.$allow);
                         @header('access-control-allow-headers: x-requested-with');
                         @header('access-control-allow-credentials: true');
-                        break; 
+                        break;
                     }
                 }
                 if(!$valid) return false;
@@ -546,14 +546,14 @@ class Tecnodesign_Studio
             unset($p);
         }
         return false;
-    } 
+    }
 
     /**
      * URL mapping to entries
-     * 
-     * Searches the database for entries that correspond to the given address. 
+     *
+     * Searches the database for entries that correspond to the given address.
      * Allows multiviews, just like Apache behavior, on html pages with scripting enabled
-     * 
+     *
      * @param  string $url          Address to be searched
      * @param  bool   $exact        If multiviews should be allowed
      * @param  bool   $published    If only published pages should be retrieved
@@ -664,6 +664,9 @@ class Tecnodesign_Studio
         if($C) {
             foreach($C as $i=>$o) {
                 if(!isset($tpl[$o->slot]))$tpl[$o->slot]='';
+                /**
+                 * @todo Isso é mesmo necessário? Ele já é executado de novo logo em seguida
+                 */
                 $r = $o->render();
                 $tpl[$o->slot] .= $o->render();
                 unset($C[$i], $o, $i);
@@ -679,9 +682,13 @@ class Tecnodesign_Studio
             tdz::$variables+=$tpl;
         }
         $d = TDZ_ROOT.'/src/Tecnodesign/Resources/templates/';
-        if(is_null(tdz::$tplDir)) {
-            tdz::$tplDir = array(Tecnodesign_Studio::$app->tecnodesign['templates-dir'], $d);
-        } else  if(!in_array($d, tdz::$tplDir)) {
+        if(tdz::$tplDir === null) {
+            $templatesDir = self::$app->tecnodesign['templates-dir'];
+            if (!is_array($templatesDir)) {
+                $templatesDir = [$templatesDir];
+            }
+            tdz::$tplDir = array_merge($templatesDir, [$d]);
+        } else if(!in_array($d, tdz::$tplDir, true)) {
             tdz::$tplDir[] = $d;
         }
         unset($d);
@@ -754,7 +761,7 @@ class Tecnodesign_Studio
      *
      * public content/pages:
      *   publish: Administrator,Editor
-     * 
+     *
      * Authors may only publish content (and not the entry)
      *   publishContent: Administrator,Editor,Author
      *
