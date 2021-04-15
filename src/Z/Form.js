@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Form v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.3 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -1474,8 +1474,10 @@ function initHtmlEditor()
     if(this.getAttribute('data-html-editor')) return;
     var a=(this.getAttribute('data-editor')), Editor, elcontainer;
 
-    if(!a) a='Quill';
-
+    if(!a) {
+        if('Quill' in window) a = 'Quill';
+        else if('pell' in window) a = 'pell';
+    }
     if(!(a in window)) return;
     this.setAttribute('data-html-editor', a);
 
@@ -1575,56 +1577,6 @@ function initChoicesJs()
         duplicateItemsAllowed: false,
         removeItems: true,
         removeItemButton: true,
-        /*
-    items: [],
-    choices: [],
-    renderChoiceLimit: -1,
-    maxItemCount: -1,
-    addItems: true,
-    addItemFilter: null,
-    removeItems: true,
-    removeItemButton: false,
-    editItems: false,
-    duplicateItemsAllowed: true,
-    delimiter: ',',
-    paste: true,
-    searchEnabled: true,
-    searchChoices: true,
-    searchFloor: 1,
-    searchResultLimit: 4,
-    searchFields: ['label', 'value'],
-    position: 'auto',
-    resetScrollPosition: true,
-    shouldSort: true,
-    shouldSortItems: false,
-    sorter: () => {...},
-    placeholder: true,
-    placeholderValue: null,
-    searchPlaceholderValue: null,
-    prependValue: null,
-    appendValue: null,
-    renderSelectedChoices: 'auto',
-    loadingText: 'Loading...',
-    noResultsText: 'No results found',
-    noChoicesText: 'No choices to choose from',
-    itemSelectText: 'Press to select',
-    addItemText: (value) => {
-      return `Press Enter to add <b>"${value}"</b>`;
-    },
-    maxItemText: (maxItemCount) => {
-      return `Only ${maxItemCount} values can be added`;
-    },
-    valueComparer: (value1, value2) => {
-      return value1 === value2;
-    },
-    // Choices uses the great Fuse library for searching. You
-    // can find more options here: https://github.com/krisk/Fuse#options
-    fuseOptions: {
-      include: 'score'
-    },
-    callbackOnInit: null,
-    callbackOnCreateTemplates: null
-    */
         searchEnabled: true,
         classNames: {
           containerOuter: 'choices',

@@ -38,13 +38,19 @@ class Tecnodesign_App
         ),
         $assets=array('Z'),
         $assetRequirements=[
-            #'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,pell/dist/pell.min',
-            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,quill/dist/quill.min,quill/dist/quill.snow,quill/dist/quill.min.js.map',
+            'Z.Form'=>'moment,pikaday-time/pikaday,pikaday-time/css/pikaday,pell/dist/pell.min',
             'Z.Graph'=>'d3/dist/d3.min,c3/c3.min',
+        ],
+        $assetsOptional=[
+            'Z.Form'=>[
+                'quill'=>'quill/dist/quill.min,quill/dist/quill.snow',
+                'choices.js'=>'choices.js/public/assets/scripts/choices.min,choices.js',
+            ],
         ],
         $copyNodeAssets=[
             'Z.Interface'=>'@fortawesome/fontawesome-free/webfonts/fa-solid-900.*',
             //'Z.Interface'=>'material-design-icons/iconfont/MaterialIcons-Regular.*',
+            'Z.Form'=>'quill/dist/quill.min.js.map',
         ],
         $result,
         $http2push=false,
@@ -494,10 +500,22 @@ class Tecnodesign_App
             $output = true;
         }
 
-        if(isset(static::$assetRequirements[$component])) {
-            $component .= ','.static::$assetRequirements[$component];
-        } else if(strpos($component, '/') && isset(static::$assetRequirements[$c2 = str_replace('/', '.', $component)])) {
-            $component .= ','.static::$assetRequirements[$c2];
+        $c0 = $component;
+
+        if(isset(static::$assetRequirements[$c0])) {
+            $component .= ','.static::$assetRequirements[$c0];
+        } else if(strpos($c0, '/') && isset(static::$assetRequirements[$c1 = str_replace('/', '.', $c0)])) {
+            $component .= ','.static::$assetRequirements[$c1];
+            unset($c1);
+        }
+
+        if(isset(static::$assetsOptional[$c0])) {
+            foreach(static::$assetsOptional[$c0] as $n=>$c1) {
+                if(file_exists(TDZ_PROJECT_ROOT.'/node_modules/'.$n)) {
+                    $component .= ','.$c1;
+                }
+                unset($n, $c1);
+            }
         }
 
         static $types=array('js'=>'js','less'=>'css');
@@ -554,6 +572,7 @@ class Tecnodesign_App
                     if(($mod=filemtime($f)) && $mod > $fmod) $fmod = $mod;
                     unset($mod);
                 } else {
+                    if(tdz::$log) tdz::log('[INFO] Component '.$src[$i].' not found.');
                     unset($src[$i]);
                 }
                 unset($f);
@@ -594,7 +613,7 @@ class Tecnodesign_App
             }
             unset($files);
         }
-        if($build && isset(static::$copyNodeAssets[$component]) && ($files = glob($projectRoot.'/node_modules/'.static::$copyNodeAssets[$component], GLOB_BRACE))) {
+        if($build && isset(static::$copyNodeAssets[$c0]) && ($files = glob($projectRoot.'/node_modules/'.static::$copyNodeAssets[$c0], GLOB_BRACE))) {
             foreach($files as $source) {
                 $dest = TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/'.basename($source);
                 if(!file_exists($dest) || filemtime($dest)<filemtime($source)) {

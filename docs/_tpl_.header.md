@@ -6,6 +6,7 @@
   - [Installation](./#Installation)
   - [Configuration](./#Configuration)
 - [Use](use)
+  - [Additional Packages](Packages)
 - [Develop](development)
   - [Database Configuration](Database)
   - [Interface](Interface)
