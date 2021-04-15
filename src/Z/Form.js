@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Form v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.3 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -71,7 +71,7 @@ function initCheckLabel(e)
     if(!this.getAttribute('data-check-label')) {
         this.setAttribute('data-check-label',1);
         var l=Z.parentNode(this, 'label');
-        if(!l) l=this.parentNode; 
+        if(!l) l=this.parentNode;
         Z.bind(l, 'click', checkLabel);
         checkLabel(true);
     }
@@ -298,7 +298,7 @@ function datalistQuery(e)
         //u = formUrl(o.parents('form'));
         //if(('form' in o) && (o.form.getAttribute('method')+'').toLowerCase()=='get') u=o.form.action;
         if('form' in o) u=o.form.action;
-        else u=window.location.href; 
+        else u=window.location.href;
         h = {'z-action':'choices', 'z-target': encodeURIComponent(x), 'z-term': encodeURIComponent(v)};
     }
     if(u===false || u===true) u=window.location.href;
@@ -740,7 +740,7 @@ function uploadFile(file, U)
         }
     };
     var blob = file.slice(loaded,step);
-    reader.readAsDataURL(blob); 
+    reader.readAsDataURL(blob);
 }
 
 function removeUpload(e)
@@ -844,7 +844,7 @@ function displayField(on)
     var k=v.length, q='', re, L=P.parentNode.querySelectorAll(c),i=L.length, fn=(this.getAttribute('data-filter-action')=='disable') ?enableField :displayField;
     while(k--) {
         q += (q) ?'|' :'';
-        q += a.replace(/\$|\{\}/, v[k]); 
+        q += a.replace(/\$|\{\}/, v[k]);
     }
 
     if(q) {
@@ -870,7 +870,7 @@ function formFilters(e)
     var reset=(this.className.search(/\bz-a-filters\b/)<0);
     if(reset) this.className += ' z-a-filters';
 
-    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'), 
+    var t=(a.indexOf(',')>-1)?(a.split(',')):([a]), i=t.length, nn=this.getAttribute('name'), fa=this.getAttribute('data-filter-action'),
       tn, ltn, tp='', L, l, T, s, v=Z.val(this), tv, O,sel,A,fn,P, fid=(this.form.id)?(this.form.id + '.'):(''), fk, n;
     if(v && this.getAttribute('data-filter-value')) {
         var av=this.getAttribute('data-filter-value').split(/\s*\,\s*/g), avi=av.length,avf;
@@ -1083,12 +1083,12 @@ function subformAdd(e)
         }
     }
     if(!o) return false;
-    var tpl=o.getAttribute('data-template'), 
+    var tpl=o.getAttribute('data-template'),
         prefix=o.getAttribute('data-prefix'),
         _prefix=prefix.replace(/[\[\]\_]+/g, '_').replace(/_+$/, ''),
         sf=o.querySelectorAll('.item'),
-        i=sf.length, 
-        fmax=o.getAttribute('data-max'), 
+        i=sf.length,
+        fmax=o.getAttribute('data-max'),
         n,
         re;
 
@@ -1156,7 +1156,7 @@ function subformDel(e)
     }
 
     var sf=o.querySelectorAll(':scope > .item'),fmin=o.getAttribute('data-min'), i=sf.length;
-   
+
     if(!(fmin && sf.length<=fmin)) {
         el.parentNode.removeChild(el);
         i--;
@@ -1364,7 +1364,7 @@ function omnibarFormField(e)
         if(p && !(p in a)) {
             a[p]=true;
             omnibarApply.call(this, '', p, t, true);
-        } 
+        }
     }
 
     _omnibar = true;
@@ -1472,15 +1472,21 @@ function toggleType(e)
 function initHtmlEditor()
 {
     if(this.getAttribute('data-html-editor')) return;
-    var a=(this.getAttribute('data-editor')), Editor;
-    if(!a) a='pell';
+    var a=(this.getAttribute('data-editor')), Editor, elcontainer;
 
+    if(!a) {
+        if('Quill' in window) a = 'Quill';
+        else if('pell' in window) a = 'pell';
+    }
     if(!(a in window)) return;
     this.setAttribute('data-html-editor', a);
 
+    var selfel = this;
+    elcontainer = Z.element({e:'div',p:{id:'z-editor-'+this.id, className:'z-html-editor'}}, this);
+
     if(a=='pell') {
         Editor = pell.init({
-          element: Z.element({e:'div',p:{id:'z-editor-'+this.id, className:'z-html-editor'}}, this),
+          element: elcontainer,
           onChange: html => this.value = html,
 
           // <string>, optional, default = 'div'
@@ -1516,6 +1522,47 @@ function initHtmlEditor()
           }
         });
         Editor.content.innerHTML = this.value;
+    } else if (a=='Quill') {
+        var toolbarOptions = [
+          ['bold', 'italic', 'underline', 'strike',        // toggled buttons
+          'blockquote', 'code-block'],
+
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+          [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+          [{ 'direction': 'rtl' }],                         // text direction
+
+          [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+          [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+          [{ 'font': [] }],
+          [{ 'align': [] }],
+
+          ['clean']                                         // remove formatting button
+        ];
+
+        var options = {
+            modules: {
+                toolbar: toolbarOptions
+            },
+            placeholder: 'Compose an epic...',
+            theme: 'snow'
+        };
+
+        Editor = new Quill(elcontainer, options);
+
+        Editor.container.firstChild.innerHTML = this.value;
+        Editor.on('text-change', function(delta, oldDelta, source) {
+          if (source == 'user') {
+            selfel.value = Editor.root.innerHTML;
+            if (selfel.type == 'textarea') {
+                selfel.innerText = Editor.root.innerHTML;
+            } else {
+                selfel.value = Editor.root.innerHTML;
+            }
+          }
+        });
     }
 }
 
@@ -1530,56 +1577,6 @@ function initChoicesJs()
         duplicateItemsAllowed: false,
         removeItems: true,
         removeItemButton: true,
-        /*
-    items: [],
-    choices: [],
-    renderChoiceLimit: -1,
-    maxItemCount: -1,
-    addItems: true,
-    addItemFilter: null,
-    removeItems: true,
-    removeItemButton: false,
-    editItems: false,
-    duplicateItemsAllowed: true,
-    delimiter: ',',
-    paste: true,
-    searchEnabled: true,
-    searchChoices: true,
-    searchFloor: 1,
-    searchResultLimit: 4,
-    searchFields: ['label', 'value'],
-    position: 'auto',
-    resetScrollPosition: true,
-    shouldSort: true,
-    shouldSortItems: false,
-    sorter: () => {...},
-    placeholder: true,
-    placeholderValue: null,
-    searchPlaceholderValue: null,
-    prependValue: null,
-    appendValue: null,
-    renderSelectedChoices: 'auto',
-    loadingText: 'Loading...',
-    noResultsText: 'No results found',
-    noChoicesText: 'No choices to choose from',
-    itemSelectText: 'Press to select',
-    addItemText: (value) => {
-      return `Press Enter to add <b>"${value}"</b>`;
-    },
-    maxItemText: (maxItemCount) => {
-      return `Only ${maxItemCount} values can be added`;
-    },
-    valueComparer: (value1, value2) => {
-      return value1 === value2;
-    },
-    // Choices uses the great Fuse library for searching. You
-    // can find more options here: https://github.com/krisk/Fuse#options
-    fuseOptions: {
-      include: 'score'
-    },
-    callbackOnInit: null,
-    callbackOnCreateTemplates: null
-    */
         searchEnabled: true,
         classNames: {
           containerOuter: 'choices',
@@ -1651,7 +1648,7 @@ window['Z.Form.Reload']=formReload;
 if('Z.z-form' in window) {
     var i=window['Z.z-form'].length;
     while(i--) Form(window['Z.z-form'][i]);
-    delete(window['Z.z-form']); 
+    delete(window['Z.z-form']);
 }
 
 })();

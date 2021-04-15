@@ -13,3 +13,5 @@
 /package-lock.json
 data/studio*.db
 data/database/*.db
+data/web/_/fa-solid-900.*
+data/web/_/quill.min.js.map
