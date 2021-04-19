@@ -4,13 +4,13 @@
  * 
  * This package implements applications to build HTML forms
  * 
- * PHP version 5.6+
+ * PHP version 7.2+
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.3
+ * @version   2.4
  */
 
 class Tecnodesign_Form implements ArrayAccess
@@ -235,10 +235,11 @@ class Tecnodesign_Form implements ArrayAccess
             if($timeout < $time) $timeout = $time;
             $now = time();
             $add = [];
-            if(($salt=Tecnodesign_Cache::get('f-limit-current', $timeout)) && $pk==$salt) {
-                Tecnodesign_Cache::delete('f-limit-current');
+            $k = md5(implode(':', array_keys($this->limits['keys'])));
+            if(($salt=Tecnodesign_Cache::get('f-limit-current/'.$k, $timeout)) && $pk==$salt) {
+                Tecnodesign_Cache::delete('f-limit-current/'.$k);
                 $salt = tdz::salt();
-                Tecnodesign_Cache::set('f-limit-current', $salt, $timeout);
+                Tecnodesign_Cache::set('f-limit-current/'.$k, $salt, $timeout);
                 $add[$salt] = [$now,0];
                 $fn = $this->limits['fieldname'];
                 $this->limits['fields'][$fn]->setValue($salt);
@@ -308,6 +309,17 @@ class Tecnodesign_Form implements ArrayAccess
                 if(in_array('url', $ks)) $k .= '__'.tdz::scriptName(true);
 
                 $rks = Tecnodesign_Cache::get('f-limit/'.$k, $timeout);
+                if(!$rks) $rks = [];
+                $this->limits['keys'][$k]=$rks;
+            }
+
+            $k = md5(implode(':', array_keys($this->limits['keys'])));
+            if(!($salt=Tecnodesign_Cache::get('f-limit-current/'.$k, $timeout))) {
+                $salt = tdz::salt();
+                Tecnodesign_Cache::set('f-limit-current/'.$k, $salt, $timeout);
+            }
+
+            foreach($this->limits['keys'] as $k=>$ks) {
                 $reqs = 0;
                 if($rks) {
                     foreach($rks as $rk=>$rt) {
@@ -317,12 +329,6 @@ class Tecnodesign_Form implements ArrayAccess
                             $reqs++;
                         }
                     }
-                } else {
-                    $rks = [];
-                }
-                if(!$salt && !($salt=Tecnodesign_Cache::get('f-limit-current', $timeout))) {
-                    $salt = tdz::salt();
-                    Tecnodesign_Cache::set('f-limit-current', $salt, $timeout);
                 }
                 $rks[$salt] = [$now,0];
                 $this->limits['keys'][$k]=$rks;
@@ -349,7 +355,6 @@ class Tecnodesign_Form implements ArrayAccess
                 }
             }
         }
-
 
         return $this->limits['fields'];
 
