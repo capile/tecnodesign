@@ -1,0 +1,14 @@
+---
+all:
+  tecnodesign:
+    lib-dir: [ vendor, data/examples/oauth2 ]
+    routes:
+      /examples/oauth2:
+        class: OAuth2Example
+        method: app
+        static: true
+        additional-params: true
+    export:
+      tdz:
+        log: 5
+
