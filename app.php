@@ -4,7 +4,7 @@
  *
  * This is the only resource that needs to be called.
  * 
- * PHP version 5.6+
+ * PHP version 7.2+
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
