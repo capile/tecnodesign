@@ -1,0 +1,8 @@
+---
+Studio\OAuth2\Tokens:
+  - type: client_credentials
+    id: test-client
+    options:
+      client_secret: test-secret
+      redirect_uri: 'http://127.0.0.1:9999/_me'
+    _delete: true

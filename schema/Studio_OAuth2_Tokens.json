@@ -6,12 +6,12 @@
     "properties": {
         "type": { "type": "string", "size": 100, "primary": true, "required": true },
         "id": { "type": "string", "size": 100, "primary": true, "required": true },
-        "token": { "type": "string", "size": 100 },
-        "user": { "type": "string", "size": 100 },
+        "token": { "type": "string", "size": 100, "index": [ "idx__studio_tokens__token" ] },
+        "user": { "type": "string", "size": 100, "index": [ "idx__studio_tokens__user" ] },
         "options": { "type": "string", "serialize": "json", "size": 5000  },
-        "created": { "type": "datetime", "required": true },
+        "created": { "type": "datetime", "required": true, "index": [ "idx__studio_tokens__created" ] },
         "updated": { "type": "datetime", "required": true },
-        "expires": { "type": "datetime" }
+        "expires": { "type": "datetime", "index": [ "idx__studio_tokens__expires" ] }
     },
     "relations": {
     },
@@ -30,6 +30,6 @@
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },
         "before-update": { "timestampable": [ "updated" ] },
-        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expires" ] }
+        "before-delete": { "timestampable": [ "updated" ] }
     }
 }

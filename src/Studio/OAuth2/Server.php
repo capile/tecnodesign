@@ -65,5 +65,17 @@ class Server extends \OAuth2\Server
             \tdz::debug(__METHOD__, var_export($e, true));
         }
         $R->send();
+        exit();
+    }
+
+    public function executeAuth()
+    {
+        // Handle a request to a resource and authenticate the access token
+        if (!$this->verifyResourceRequest(Request::createFromGlobals())) {
+            $this->getResponse()->send();
+            die;
+        }
+
+        \tdz::output(array('success' => true, 'message' => 'OK'), 'json');
     }
 }

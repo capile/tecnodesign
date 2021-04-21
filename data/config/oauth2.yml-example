@@ -3,11 +3,21 @@ all:
   tecnodesign:
     lib-dir: [ vendor, data/examples/oauth2 ]
     routes:
-      /examples/oauth2:
+      /examples/oauth2/access_token:
         class: OAuth2Example
-        method: app
+        method: executeAccessToken
         static: true
-        additional-params: true
+        additional-params: false
+      /examples/oauth2/auth:
+        class: OAuth2Example
+        method: executeAuth
+        static: true
+        additional-params: false
+      data-import:
+        class: Tecnodesign_Database
+        method: import
+        static: true
+        layout: cli
     export:
       tdz:
         log: 5

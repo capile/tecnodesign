@@ -101,8 +101,17 @@ class Tecnodesign_Database
     }
     
     
-    public static function import($data)
+    public static function import($data=null)
     {
+        if(!$data && TDZ_CLI && ($data=Tecnodesign_App::request('argv'))) {
+            if(count($data)==1) $data = array_shift($data);
+            else {
+                foreach($data as $f) {
+                    self::import($data);
+                }
+                return;
+            }
+        }
         if(!is_array($data)) {
             if(strpos($data, "\n")===false && file_exists($data)) {
                 $data = file_get_contents($data);
@@ -147,7 +156,7 @@ class Tecnodesign_Database
                     }
                     $rel = array();
                     foreach($r as $fn=>$fv) {
-                        if (isset($sc->properties[$fn])) {
+                        if (isset($sc->properties[$fn]) || substr($fn, 0, 1)=='_') {
                             if(!$fv) {
                                 $fv = false;
                             }

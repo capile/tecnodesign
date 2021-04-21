@@ -27,6 +27,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
             'client_credentials'=>[
                 'client_id'=>'id',
                 'client_secret'=>'options.client_secret',
+                'redirect_uri'=>'options.redirect_uri',
             ],
             'access_token'=>[
                 'expires'=>'expires',
@@ -65,7 +66,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
         ];
     protected 
         $tokens = [],
-        $tokenFinder='Studio\\Oauth2\\Tokens';
+        $tokenFinder='Studio\\OAuth2\\Tokens';
 
 
     public function getObject($type, $id, $asArray=true)
@@ -73,14 +74,14 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
         $Q = $this->tokenFinder;
         $R = $Q::find(['id'=>$id, 'type'=>$type],1);
 
-        if($R && $R->expires && \tdz::strtotime($R->expires)>time()) $R=null;
+        if($R && $R->expires && \tdz::strtotime($R->expires)<TDZ_TIMESTAMP) $R=null;
         if($R) {
             if(!$asArray) {
                 return $R;
             } else if(is_string($asArray)) {
                 $fn = $asArray;
-                if (isset($static::$scopes[$type][$fn])) {
-                    $fn = $static::$scopes[$type][$fn];
+                if (isset(static::$scopes[$type][$fn])) {
+                    $fn = static::$scopes[$type][$fn];
                 }
                 return $R[$fn];
             }
