@@ -231,8 +231,10 @@ class tdz
      */
     public static function user($uid=null)
     {
-        if(!is_null($uid)) {
-
+        if(!is_null($uid) && $uid) {
+            $cn = tdz::getApp()->config('user', 'className');
+            if(!$cn) $cn = 'Tecnodesign_User';
+            return $cn::find($uid);
         }
         return tdz::getUser();
     }

@@ -1,0 +1,35 @@
+{
+    "title": "Authentication Tokens",
+    "database": "studio",
+    "tableName": "studio_tokens",
+    "className": "Studio\\OAuth2\\Tokens",
+    "properties": {
+        "type": { "type": "string", "size": 100, "primary": true, "required": true },
+        "id": { "type": "string", "size": 100, "primary": true, "required": true },
+        "token": { "type": "string", "size": 100 },
+        "user": { "type": "string", "size": 100 },
+        "options": { "type": "string", "serialize": "json", "size": 5000  },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true },
+        "expires": { "type": "datetime" }
+    },
+    "relations": {
+    },
+    "scope": {
+    },
+    "order": {
+        "created": "desc"
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expires" ] }
+    }
+}

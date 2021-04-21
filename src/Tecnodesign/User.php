@@ -382,7 +382,53 @@ class Tecnodesign_User
         
     }
     
-    
+    public static function find($q, $ns=null)
+    {
+
+        if(!$ns) {
+            if(!isset(static::$cfg['ns'])) return false;
+
+            foreach(static::$cfg['ns'] as $ns=>$nso) {
+                $R = static::find($q, $ns);
+                if($R) break;
+            }
+
+            return ($R) ?$R :false;
+        }
+
+        if(is_array($ns)) $nso = $ns;
+        else if(isset(static::$cfg['ns'][$ns])) $nso = $ns;
+        else return;
+
+        if(isset(static::$cfg['model'])) {
+            $cn = static::$cfg['model'];
+        } else if(isset($nso['type']) && class_exists($cn='Tecnodesign_User_'.tdz::camelize($nso['type'], true))) {
+        } else if(isset($nso['class'])){
+            $cn = $nso['class'];
+        } else if(isset($nso['finder'])) {
+            $cn = $nso['finder'];
+        } else {
+            return false;
+        }
+
+        $nsoptions = (isset($nso['options']))?($nso['options']):(array());
+        if(method_exists($cn, 'find')) {
+            if(!is_array($q)) {
+                if(isset($nso['properties']['username'])) {
+                    $q = [$nso['properties']['username']=>$q];
+                } else if(isset(static::$cfg['properties']['username'])) {
+                    $q = [static::$cfg['properties']['username']=>$q];
+                } else {
+                    $q['username'] = $q;
+                }
+            }
+
+            $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
+            $R = $cn::find($q,1,$scope);
+            $c = get_called_class();
+            if($R) return $c::__set_state(['_me'=>$R, '_ns'=>$nso]);
+        }
+    }
 
     /**
      * Initialization method to retrieve current open sessions, or to create a new one
