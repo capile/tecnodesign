@@ -174,7 +174,7 @@ Z.init=function(o)
             } else {
                 var u='z-'+Z.slug(a[0]);
                 if(!(u in _assets)) {
-                    loadAsset('z-'+Z.slug(a[0]), Z.init, arguments, this);
+                    loadAsset('z-'+Z.slug(a[0]), Z.init, arguments, c);
                 }
             }
         }
@@ -244,10 +244,10 @@ function loadAsset(f, fn, args, ctx)
     }
     if(arguments.length>1 && fn && typeof(fn)!='undefined') {
         if(r) {
-            fn.apply(args, ctx);
+            fn.apply(ctx, args);
         } else {
             if(!(f in _delayed)) _delayed[f]=[];
-            _delayed[f].push([fn, args, ctx]);
+            _delayed[f].push([fn, ctx, args]);
             setTimeout(loadAssetDelayed, 500);
         }
 
