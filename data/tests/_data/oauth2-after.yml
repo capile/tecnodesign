@@ -1,5 +1,9 @@
 ---
 Studio\OAuth2\Tokens:
+  - __key: token
+    token: test-client
+    __multiple: true
+    _delete: true
   - type: client_credentials
     id: test-client
     options:

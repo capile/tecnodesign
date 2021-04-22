@@ -3,16 +3,26 @@ all:
   tecnodesign:
     lib-dir: [ vendor, data/examples/oauth2 ]
     routes:
-      /examples/oauth2/access_token:
-        class: OAuth2Example
-        method: executeAccessToken
+      /examples/oauth2:
+        class: Studio\OAuth2\Server
+        method: app
         static: true
-        additional-params: false
-      /examples/oauth2/auth:
-        class: OAuth2Example
-        method: executeAuth
-        static: true
-        additional-params: false
+        additional-params: true
+      #/examples/oauth2/access_token:
+      #  class: Studio\OAuth2\Server
+      #  method: appAccessToken
+      #  static: true
+      #  additional-params: false
+      #/examples/oauth2/auth:
+      #  class: Studio\OAuth2\Server
+      #  method: appAuth
+      #  static: true
+      #  additional-params: false
+      #/examples/oauth2/authorize:
+      #  class: Studio\OAuth2\Server
+      #  method: appAuthorize
+      #  static: true
+      #  additional-params: false
       data-import:
         class: Tecnodesign_Database
         method: import

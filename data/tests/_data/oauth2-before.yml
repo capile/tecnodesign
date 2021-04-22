@@ -1,5 +1,5 @@
 ---
-Studio\OAuth2\Tokens:
+Studio\OAuth2\Tokens!:
   - type: client_credentials
     id: test-client
     options:
