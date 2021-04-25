@@ -30,5 +30,22 @@ all:
         layout: cli
     export:
       tdz:
-        log: 5
-
+        log: 2
+  studio:
+    oauth2:
+      use_jwt_access_tokens:             false
+      jwt_extra_payload_callable:        ~
+      store_encrypted_token_string:      true
+      use_openid_connect:                false
+      id_lifetime:                       3600
+      access_lifetime:                   3600
+      www_realm:                         Service
+      token_param_name:                  access_token
+      token_bearer_header_name:          Bearer
+      enforce_state:                     true
+      require_exact_redirect_uri:        true
+      allow_implicit:                    false
+      allow_credentials_in_request_body: true
+      allow_public_clients:              true
+      always_issue_new_refresh_token:    false
+      unset_refresh_token_after_use:     true

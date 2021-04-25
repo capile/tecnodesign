@@ -572,7 +572,7 @@ class Tecnodesign_App
                     if(($mod=filemtime($f)) && $mod > $fmod) $fmod = $mod;
                     unset($mod);
                 } else {
-                    if(tdz::$log) tdz::log('[INFO] Component '.$src[$i].' not found.');
+                    if(tdz::$log>3) tdz::log('[DEBUG] Component '.$src[$i].' not found.');
                     unset($src[$i]);
                 }
                 unset($f);
