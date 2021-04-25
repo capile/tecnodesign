@@ -8,8 +8,11 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.3
+ * @version   2.4
  */
+
+if((!isset($script) || !$script) && isset($variables['script'])) $script = $variables['script'];
+if((!isset($style) || !$style)   && isset($variables['style']))  $style  = $variables['style'];
 
 if(isset($script)) {
     $js = '';
