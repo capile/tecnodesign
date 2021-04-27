@@ -42,7 +42,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
             return $schemas[$cn];
         }
         $ckey = 'schema/'.$cn;
-        if(is_int(static::$timeout) && ($Schema=Tecnodesign_Cache::get($ckey, static::$timeout))) {
+        if(false && is_int(static::$timeout) && ($Schema=Tecnodesign_Cache::get($ckey, static::$timeout))) {
             return $Schema;
         }
         $src = static::loadSchemaRef($cn);
@@ -83,22 +83,36 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
 
     public static function expandSchemaRefs(&$src)
     {
-        foreach($src as $i=>$o) {
-            if(is_array($o) && isset($o['ref'])) {
-                if(class_exists($o['ref']) && is_subclass_of($o['ref'], 'Tecnodesign_Schema')) {
-                    $cn = $o['ref'];
-                    $src[$i] = $cn::loadSchema($cn, $o);
-                } else if($ref=static::loadSchemaRef($o['ref'])) {
-                    $src[$i] += $ref;
-                    $src[$i]['refid'] = $o['ref'];
-                    unset($src[$i]['ref']);
-                }
+        if(isset($src['ref'])) {
+            if(class_exists($src['ref']) && is_subclass_of($src['ref'], 'Tecnodesign_Schema')) {
+                $cn = $src['ref'];
+                $src = $cn::loadSchema($cn, $src);
+            } else if($ref=static::loadSchemaRef($src['ref'])) {
+                $src = tdz::mergeRecursive($src, $ref);
+                $src['refid'] = $src['ref'];
+                unset($src['ref']);
             }
-            if(is_array($o)) {
-                $src[$i] = static::expandSchemaRefs($src[$i]);
-            }
-            unset($i, $o);
         }
+        /*
+        if(isset($src[0])) {
+            foreach($src as $i=>$o) {
+                if(is_array($o) && isset($o['ref'])) {
+                    if(class_exists($o['ref']) && is_subclass_of($o['ref'], 'Tecnodesign_Schema')) {
+                        $cn = $o['ref'];
+                        $src[$i] = $cn::loadSchema($cn, $o);
+                    } else if($ref=static::loadSchemaRef($o['ref'])) {
+                        $src[$i] += $ref;
+                        $src[$i]['refid'] = $o['ref'];
+                        unset($src[$i]['ref']);
+                    }
+                }
+                if(is_array($o)) {
+                    $src[$i] = static::expandSchemaRefs($src[$i]);
+                }
+                unset($i, $o);
+            }
+        }
+        */
         return $src;
     }
 
@@ -112,7 +126,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 static::$schemaDir = array(static::$schemaDir);
             }
         }
-        if(substr($ref, 0, 12)=='Tecnodesign_' && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) array_unshift(static::$schemaDir, TDZ_ROOT.'/schema');
+        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) array_unshift(static::$schemaDir, TDZ_ROOT.'/schema');
 
         $src = array();
         $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);

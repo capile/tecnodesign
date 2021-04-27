@@ -1008,6 +1008,16 @@ class Tecnodesign_User
         return $s;
     }
 
+    public static function signOutWidget()
+    {
+        $user = tdz::getUser();
+        $url = (isset(static::$actions['signedout'])) ?static::$actions['signedout'] :'/';
+        if(!$user->isAuthenticated()) {
+            $user->destroy();
+        }
+        tdz::redirect($url);
+    }
+
     /**
      * Display small public profile
      *
@@ -1019,7 +1029,11 @@ class Tecnodesign_User
             if(method_exists($this->_me, 'preview')) {
                 return $this->_me->preview();
             } else {
-                return "<p>{$this->_me}</p>";
+                return '<p>'
+                  . tdz::t('You\'re currently signed in as:', 'user')
+                  . ' <strong>'.\tdz::xml((string)$this->_me).'</strong></p>'
+                  . ((isset(static::$actions['signout'])) ?'<p class="ui-buttons"><a href="'.\tdz::xml(static::$actions['signout']).'" class="button">'.tdz::t('Sign Out', 'user').'</a></p>' :'')
+                  ;
             }
         }
     }

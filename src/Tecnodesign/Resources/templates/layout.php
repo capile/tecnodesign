@@ -12,7 +12,7 @@
  */
 
 if((!isset($script) || !$script) && isset($variables['script'])) $script = $variables['script'];
-if((!isset($style) || !$style)   && isset($variables['style']))  $style  = $variables['style'];
+if((!isset($style) || !$style || (count($style)==1 && isset($style[700]))) && isset($variables['style']))  $style  = $variables['style'];
 
 if(isset($script)) {
     $js = '';

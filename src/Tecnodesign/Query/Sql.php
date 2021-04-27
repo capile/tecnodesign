@@ -1281,6 +1281,7 @@ class Tecnodesign_Query_Sql
         $map = ['float'=>'decimal', 'number'=>'decimal'];
         $formats = ['date', 'datetime', 'int', 'decimal' ];
         foreach($schema->properties as $fn=>$fd) {
+            if($fd->alias) continue;
             $q .= (($q)?(",\n "):("\n "))
                 . '`'.$fn.'` ';
 

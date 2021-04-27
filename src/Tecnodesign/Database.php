@@ -189,7 +189,9 @@ class Tecnodesign_Database
                             unset($fn, $fv);
                         }
 
-                        if($o->asArray()) $o->save();
+                        if($d=$o->asArray()) {
+                            $o->save();
+                        }
 
                         if($set) {
                             foreach($set as $sk=>$sv) {

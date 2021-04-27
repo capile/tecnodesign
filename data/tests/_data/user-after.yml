@@ -1,0 +1,13 @@
+---
+Studio\Model\Credential!:
+  - __key: user
+    user: 1
+    _delete: true
+Studio\Model\User!:
+  - __key: id
+    id: 1
+    _delete: true
+Studio\Model\Group!:
+  - __key: id
+    id: 1
+    _delete: true

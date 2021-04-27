@@ -866,11 +866,9 @@ class Tecnodesign_Studio
 
     public static function translate($s, $table=null, $to=null, $from=null)
     {
-        if($to && $to==$from)  {
+        if($to && !Tecnodesign_Studio_Interface::$translate && $to==$from)  {
             return $s;
         } else {
-            $r = self::t($s, null, $table);
-            return $r;
             return self::t($s, null, $table);
         }
     }
