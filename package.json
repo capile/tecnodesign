@@ -1,4 +1,6 @@
 {
+    "name": "capile/Z",
+    "version": "2.4.2",
     "dependencies": {
         "@fortawesome/fontawesome-free": "5.*",
         "c3": "0.7.*",
