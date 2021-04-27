@@ -13,6 +13,7 @@
         "swiftmailer/swiftmailer": "^5.4.12 < 6.0",
         "foxy/foxy": "^1.1.0",
         "bshaffer/oauth2-server-php": "^1.11",
+        "mustangostang/spyc": "^0.6.2",
         "ext-mbstring": "*"
     },
     "extra": {
