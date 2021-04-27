@@ -4,13 +4,18 @@ namespace Tecnodesign\Test\Api;
 
 class OAuth2Cest
 {
+    protected $configFiles = [];
     public function _before()
     {
-        if(!file_exists($f=TDZ_ROOT . '/data/config/oauth2.yml')) {
-            copy(TDZ_ROOT . '/data/config/oauth2.yml-example', $f);
+        static $config = ['oauth2', 'studio'];
+        foreach($config as $fn) {
+            if(!file_exists($f=TDZ_ROOT . '/data/config/'.$fn.'.yml') && copy($f.'-example', $f)) {
+                $this->configFiles[] = $f;
+            }
+        }
+        if($this->configFiles) {
             touch(TDZ_ROOT.'/app.yml');
         }
-
         exec(TDZ_ROOT.'/app data-import "'.TDZ_ROOT.'/data/tests/_data/oauth2-before.yml"');
     }
     // test if it's not authenticated first
@@ -53,9 +58,14 @@ class OAuth2Cest
 
     public function _after()
     {
-        if(file_exists($f=TDZ_ROOT . '/data/config/oauth2.yml')) {
-            unlink($f);
-        }
         exec(TDZ_ROOT.'/app data-import "'.TDZ_ROOT.'/data/tests/_data/oauth2-after.yml"');
+
+        if($this->configFiles) {
+            foreach($this->configFiles as $i=>$f) {
+                unlink($f);
+                unset($this->configFiles[$i], $i, $f);
+            }
+            touch(TDZ_ROOT.'/app.yml');
+        }
     }
 }

@@ -4,6 +4,10 @@ namespace Tecnodesign\Test\Acceptance;
 
 class StudioCest
 {
+    public function _before()
+    {
+    }
+
     public function docsPageWorks(\AcceptanceTester $I)
     {
         // remove cached css and see if it was properly generated
@@ -15,5 +19,9 @@ class StudioCest
         $I->amOnPage('/docs/');
         $I->see('Tecnodesign Studio');
         $I->seeElement('link[href^="/_/site.css?"]');
+    }
+
+    public function _after()
+    {
     }
 }
