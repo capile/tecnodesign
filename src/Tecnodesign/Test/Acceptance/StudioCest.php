@@ -14,6 +14,6 @@ class StudioCest
 
         $I->amOnPage('/docs/');
         $I->see('Tecnodesign Studio');
-        $I->seeElement('link[href^="/_/docs.css?"]');
+        $I->seeElement('link[href^="/_/site.css?"]');
     }
 }
