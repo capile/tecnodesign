@@ -10,12 +10,12 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.3
+ * @version   2.4
  */
-
-// This makes our life easier when dealing with paths. Everything is relative to the application root now.
 chdir(__DIR__);
-// composer handles all class loading
-require 'vendor/autoload.php';
+require (!file_exists($a='vendor/autoload.php') && !file_exists($a='../../autoload.php'))
+    ?'src/tdz.php'
+    :$a;
+unset($a);
 $appMemoryNamespace = file_exists('.appkey') ? \tdz::slug(file_get_contents('.appkey')) : 'app';
 tdz::app('app.yml', $appMemoryNamespace, 'dev')->run();
