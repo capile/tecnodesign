@@ -21,6 +21,7 @@ class Tecnodesign_App_Install
         $cfgFile, 
         $appsDir,
         $root='.',
+        $configDir='config',
         $cacheDir='cache',
         $dataDir='data',
         $logDir='log',
@@ -63,6 +64,7 @@ class Tecnodesign_App_Install
 
             }
             if(isset($cfg[$this->env]['tecnodesign']['apps-dir']     )) $this->appsDir     = $cfg[$this->env]['tecnodesign']['apps-dir'];     
+            if(isset($cfg[$this->env]['tecnodesign']['config-dir']   )) $this->configDir   = $cfg[$this->env]['tecnodesign']['config-dir'];    
             if(isset($cfg[$this->env]['tecnodesign']['cache-dir']    )) $this->cacheDir    = $cfg[$this->env]['tecnodesign']['cache-dir'];    
             if(isset($cfg[$this->env]['tecnodesign']['data-dir']     )) $this->dataDir     = $cfg[$this->env]['tecnodesign']['data-dir'];     
             if(isset($cfg[$this->env]['tecnodesign']['log-dir']      )) $this->logDir      = $cfg[$this->env]['tecnodesign']['log-dir'];      
@@ -76,7 +78,17 @@ class Tecnodesign_App_Install
     {
         $project = null;
         $modules = [];
-        if($args = Tecnodesign_App::request('argv')) {
+        $apps = [];
+        $args = Tecnodesign_App::request('argv');
+        if($args) {
+            foreach($args as $i=>$a) {
+                if(substr($a, 0, 9)==='--enable-' && strlen($a)>9) $apps[substr($a, 9)]=true;
+                else if(substr($a, 0, 10)==='--disable-' && strlen($a)>10) $apps[substr($a, 10)]=false;
+                else continue;
+                unset($args[$i], $a, $i);
+            }
+        }
+        if($args) {
             $project = array_pop($args);
             while($module=array_shift($args)) {
                 if(!isset(static::$modules[$module])) {
@@ -85,15 +97,42 @@ class Tecnodesign_App_Install
                 $modules[] = $module;
             }
         }
-        $app = new Tecnodesign_App_Install($project);
-        if($modules) {
-            foreach($modules as $module) {
-                if(method_exists($app, $fn=$module.'Install')) {
-                    $app->$fn();
-                }   
+
+        if($project || !$apps) {
+            $app = new Tecnodesign_App_Install($project);
+            if($modules) {
+                foreach($modules as $module) {
+                    if(method_exists($app, $fn=$module.'Install')) {
+                        $app->$fn();
+                    }   
+                }
+            } else if($project) {
+                $app->runInstall();
             }
-        } else {
-            $app->runInstall();
+        }
+
+        if($apps) {
+            $cfgSrc = [TDZ_APP_ROOT.'/data/config'];
+            $cfgRoot = TDZ_APP_ROOT.'/data/config';
+            if(isset($app)) {
+                $cfgRoot = $app->configDir;
+                array_unshift($cfgSrc, $cfgRoot);
+            }
+
+            foreach($apps as $a=>$e) {
+                if(!$e && file_exists($f=$cfgRoot.'/'.$a.'.yml')) {
+                    unlink($f);
+                    echo "> {$a} disabled\n";
+                } else if($e && !file_exists($f=$cfgRoot.'/'.$a.'.yml')) {
+                    foreach($cfgSrc as $d) {
+                        if(file_exists($s=$d.'/'.$a.'.yml-example')) {
+                            copy($f.'-example', $f);
+                            echo "> {$a} enabled\n";
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -146,7 +185,7 @@ class Tecnodesign_App_Install
         if(!$this->cfgFile) $this->cfgFile = tdz::relativePath($this->root.'/config/'.$this->project.'.yml');
         echo '> '.($this->cfgFile = tdz::ask("\n{$b0}Where should the configuration file be created?{$b1} ", $this->cfgFile));
         $buildConfig = true;
-        $P = array('appsDir'=>'apps-dir', 'cacheDir'=>'cache-dir', 'dataDir'=>'data-dir', 'logDir'=>'log-dir', 'tplDir'=>'templates-dir', 'documentRoot'=>'document-root');
+        $P = array('appsDir'=>'apps-dir', 'configDir'=>'config-dir', 'cacheDir'=>'cache-dir', 'dataDir'=>'data-dir', 'logDir'=>'log-dir', 'tplDir'=>'templates-dir', 'documentRoot'=>'document-root');
         if(file_exists($this->cfgFile)) {
             $cfg = Tecnodesign_Yaml::load($this->cfgFile);
             if($this->env!='all') {
@@ -159,6 +198,7 @@ class Tecnodesign_App_Install
 
             }
             if(isset($cfg[$this->env]['tecnodesign']['apps-dir']     )) $this->appsDir     = $cfg[$this->env]['tecnodesign']['apps-dir'];     
+            if(isset($cfg[$this->env]['tecnodesign']['config-dir']   )) $this->configDir   = $cfg[$this->env]['tecnodesign']['config-dir'];    
             if(isset($cfg[$this->env]['tecnodesign']['cache-dir']    )) $this->cacheDir    = $cfg[$this->env]['tecnodesign']['cache-dir'];    
             if(isset($cfg[$this->env]['tecnodesign']['data-dir']     )) $this->dataDir     = $cfg[$this->env]['tecnodesign']['data-dir'];     
             if(isset($cfg[$this->env]['tecnodesign']['log-dir']      )) $this->logDir      = $cfg[$this->env]['tecnodesign']['log-dir'];      
@@ -166,7 +206,7 @@ class Tecnodesign_App_Install
             if(isset($cfg[$this->env]['tecnodesign']['document-root'])) $this->documentRoot= $cfg[$this->env]['tecnodesign']['document-root'];
             if(strtolower(tdz::ask("\n{$b0}Should the configuration file be updated?{$b1} [y/N]"))!='y') {
                 $buildConfig = false;
-                echo "> No";
+                echo "> No\n";
             } else {
                 echo "> Yes\n";
             }
@@ -178,6 +218,8 @@ class Tecnodesign_App_Install
             if(!$this->appsDir) $this->appsDir = $this->root;
             $this->appsDir  = tdz::ask("\n{$b0}Application root{$b1}\nThis will be the base folder for all relative paths. ", $this->appsDir);
             echo '> ', realpath($this->appsDir);
+            $this->configDir  = tdz::ask("\n{$b0}Load additional configuration files{$b1}\nAdditional configuration files should be loaded from this folder (optional). ", $this->configDir);
+            echo '> ', realpath($this->configDir);
             $this->cacheDir = tdz::ask("\n{$b0}Cache dir{$b1}\nWhere temporary files should be stored. ", $this->cacheDir);
             echo '> ', $this->cacheDir;
             $this->dataDir  = tdz::ask("\n{$b0}Data dir{$b1}\nWhere other writable data should be written. ", $this->dataDir);
@@ -190,12 +232,18 @@ class Tecnodesign_App_Install
             echo '> ', $this->documentRoot;
             $config = array('tecnodesign'=>array(
                 'apps-dir'=>$this->appsDir,
+                'config-dir'=>$this->configDir,
                 'cache-dir'=>$this->cacheDir,
                 'data-dir'=>$this->dataDir,
                 'log-dir'=>$this->logDir,
                 'templates-dir'=>$this->tplDir,
                 'document-root'=>$this->documentRoot,
             ));
+            if(!$this->configDir) {
+                unset($config['tecnodesign']['config-dir']);
+            } else {
+                $config = ['include'=>$this->configDir.'/*.yml'] + $config;
+            }
             if(strtolower(tdz::ask("\n{$b0}Is this configuration correct? All non-existing directories will be created.{$b1}\n".Tecnodesign_Yaml::dump($config, 2)."[y/N]"))!='y') {
                 echo "> No\n";
                 return $this->runInstall();
@@ -219,6 +267,10 @@ class Tecnodesign_App_Install
                 }
             }
             $cfg[$this->env]['tecnodesign'] = $config['tecnodesign'] + $cfg[$this->env]['tecnodesign'];
+            if(isset($config['include'])) {
+                unset($config['tecnodesign']);
+                $cfg[$this->env] = $config + $cfg[$this->env];
+            }
             if(tdz::save($this->cfgFile, Tecnodesign_Yaml::dump($cfg, 2), true)) {
                 echo "    + {$this->cfgFile}\n";
             } else {
@@ -228,6 +280,7 @@ class Tecnodesign_App_Install
         if($this->logDir) tdz::$logDir = $this->logDir;
         $this->skel += array(
             $this->appsDir => 0755,
+            $this->configDir => 0755,
             $this->dataDir => 0777,
             $this->cacheDir => 0777,
             $this->logDir => 0755,
