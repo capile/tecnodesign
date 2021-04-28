@@ -51,7 +51,8 @@ class Tecnodesign_Studio
         $cli='studio',      // configurable, where to load Studio command-line interface
         $cliApps=[
             'config'=>['Tecnodesign_App_Install','config'],
-            'index'=>['Tecnodesign_Studio_Index','reindex']
+            'index'=>['Tecnodesign_Studio_Index','reindex'],
+            'import'=>['Tecnodesign_Database','import'],
         ];
     const VERSION = 2.3;    // should match the development branch 
 

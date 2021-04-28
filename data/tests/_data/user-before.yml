@@ -1,9 +1,9 @@
 ---
 Studio\Model\Users!:
-  - __key: [ login ]
+  - __key: [ username ]
     __set:
       USERID: id
-    login: test-user
+    username: test-user
     password: test-password
     name: Example User
     email: test@capile.net

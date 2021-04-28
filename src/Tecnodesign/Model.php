@@ -782,6 +782,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if(count($w)>0) {
                 $sfn .= ':'.implode(',',array_keys($w));
             }
+            $sfn = $cn.'.'.$sfn;
             if(isset($cn::$increment[$sfn])) {
                 $cn::$increment[$sfn]++;
             } else {
@@ -791,8 +792,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 if(count($w)==0 && $mssql) {
                     $sql = "select ident_current('{$schema->tableName}') as next";
                 } else {
-                    $ifnull = ($mssql)?('isnull'):('ifnull');
-                    $sql = "select {$ifnull}(max({$fn}),0)+1 as next from {$schema->tableName}";
+                    $sql = "select coalesce(max({$fn}),0)+1 as next from {$schema->tableName}";
                     if(count($w)>0) {
                         $sql .= ' where '.implode(' and ', $w);
                     }

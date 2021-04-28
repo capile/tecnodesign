@@ -93,26 +93,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 unset($src['ref']);
             }
         }
-        /*
-        if(isset($src[0])) {
-            foreach($src as $i=>$o) {
-                if(is_array($o) && isset($o['ref'])) {
-                    if(class_exists($o['ref']) && is_subclass_of($o['ref'], 'Tecnodesign_Schema')) {
-                        $cn = $o['ref'];
-                        $src[$i] = $cn::loadSchema($cn, $o);
-                    } else if($ref=static::loadSchemaRef($o['ref'])) {
-                        $src[$i] += $ref;
-                        $src[$i]['refid'] = $o['ref'];
-                        unset($src[$i]['ref']);
-                    }
-                }
-                if(is_array($o)) {
-                    $src[$i] = static::expandSchemaRefs($src[$i]);
-                }
-                unset($i, $o);
-            }
-        }
-        */
+
         return $src;
     }
 

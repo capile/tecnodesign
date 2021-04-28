@@ -18,7 +18,7 @@ class Tecnodesign_User
         $timeout=0,             // session timeout in seconds
         $cfg, 
         $hashType='ssha256',    // hashing method
-        $hashTypes=['sha256' ],  // alternative hash methods
+        $hashTypes=['sha256' ], // alternative hash methods
         $usePhpSession=false,   // load/destroy user based on PHP session
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess,         // property to use when setting last access, set to false to disable
@@ -1001,8 +1001,7 @@ class Tecnodesign_User
         $user = tdz::getUser();
         if(!$user->isAuthenticated()) {
             $s = $user->signIn();
-        }
-        if($user->isAuthenticated()) {
+        } else if($user->isAuthenticated()) {
             $s = $user->preview();
         }
         return $s;
@@ -1012,7 +1011,7 @@ class Tecnodesign_User
     {
         $user = tdz::getUser();
         $url = (isset(static::$actions['signedout'])) ?static::$actions['signedout'] :'/';
-        if(!$user->isAuthenticated()) {
+        if($user->isAuthenticated()) {
             $user->destroy();
         }
         tdz::redirect($url);
@@ -1042,9 +1041,6 @@ class Tecnodesign_User
     public function signIn($o=array(), $app=false)
     {
         if(!isset(static::$cfg['ns'])) return;
-        if(!isset($this)) {
-            return self::signInWidget($o);
-        }
         if(!is_array($o)) {
             $o = array();
         }

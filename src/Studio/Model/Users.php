@@ -6,4 +6,18 @@ class Users extends \Tecnodesign_Studio_User
 {
     public static $schema;
     protected $id, $username, $name, $password, $email, $details, $created, $updated, $expired;
+
+    public function getCredentials()
+    {
+        if(is_null($this->credentials)) {
+            $cs = Groups::find(['Credentials.userid'=>$this->id],null,['name'],false);
+            $this->credentials=[];
+            if($cs) {
+                foreach($cs as $C) {
+                    $this->credentials[(int)$C->id]=$C->name;
+                }
+            }
+        }
+        return $this->credentials;
+    }
 }

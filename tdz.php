@@ -1668,7 +1668,7 @@ class tdz
                     if(!isset($res[$k])) {
                         $res[$k] = $v;
                     } else if(is_array($res[$k]) && is_array($v)) {
-                        $res[$k] = tdz::mergeRecursive($v, $res[$k]);
+                        $res[$k] = tdz::mergeRecursive($res[$k], $v);
                     }
                 }
             }

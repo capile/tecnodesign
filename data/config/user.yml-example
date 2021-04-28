@@ -10,11 +10,6 @@ all:
         class: Studio\User
         method: signOutWidget
         static: true
-      data-import:
-        class: Tecnodesign_Database
-        method: import
-        static: true
-        layout: cli
     export:
       Studio\User:
         actions:
@@ -23,7 +18,7 @@ all:
           signedout: /
   user:
     super-admin: Administrator
-    icons: /_assets/img/connect.png
+    icons: /_/img/connect.png
     model: ~
     credentials:
       Author: ~
@@ -39,7 +34,7 @@ all:
         timeout: 14400
         finder: Studio\Model\Users
         export:
-          username: login
+          username: username
           name: name
         properties:
           id: id

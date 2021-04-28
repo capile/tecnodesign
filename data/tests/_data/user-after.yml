@@ -1,13 +1,14 @@
 ---
-Studio\Model\Credential!:
-  - __key: user
-    user: 1
+Studio\Model\Credentials!:
+  - __key: [ Users.username ]
+    Users.username: test-user 
     _delete: true
-Studio\Model\User!:
-  - __key: id
-    id: 1
+    _multiple: true
+Studio\Model\Users!:
+  - __key: [ username ]
+    username: test-user
     _delete: true
-Studio\Model\Group!:
-  - __key: id
-    id: 1
+Studio\Model\Groups!:
+  - __key: [ name ]
+    name: Administrator
     _delete: true
