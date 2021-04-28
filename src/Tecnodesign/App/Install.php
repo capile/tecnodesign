@@ -41,11 +41,8 @@ class Tecnodesign_App_Install
             'studio'=>'Studio CMS',
         );
     
-    public function __construct($config=false, $env='prod')
+    public function __construct($config, $env='prod')
     {
-        if(!$config){
-            tdz::debug("You have to specify the application name to configure. For example: \n    \$ php ".implode(' ', $_SERVER['argv'])." projectname\n");
-        }
         $app = (tdz::getApp()) ?(tdz::getApp()->tecnodesign) :[];
         $customCfg = (TDZ_APP_ROOT!=TDZ_ROOT);
         if($customCfg && $app['apps-dir']!=realpath($this->root)) $this->root = $app['apps-dir'];
@@ -98,8 +95,13 @@ class Tecnodesign_App_Install
             }
         }
 
-        if($project || !$apps) {
+        if($project) {
             $app = new Tecnodesign_App_Install($project);
+        } else if(!$apps) {
+            tdz::debug("You have to specify the application name to configure. For example: \n    \$ php ".implode(' ', $_SERVER['argv'])." projectname\n");
+        }
+
+        if($project && !$apps) {
             if($modules) {
                 foreach($modules as $module) {
                     if(method_exists($app, $fn=$module.'Install')) {
@@ -116,17 +118,25 @@ class Tecnodesign_App_Install
             $cfgRoot = TDZ_APP_ROOT.'/data/config';
             if(isset($app)) {
                 $cfgRoot = $app->configDir;
+                $cwd = getcwd();
+                $sep='/';
+                $vendor="{$sep}vendor{$sep}capile{$sep}tecnodesign";
+                if(($p=strpos($cwd, $vendor)) && substr($cwd, $p)==$vendor) {
+                    chdir($nd=substr($cwd, 0, $p));
+                    unset($nd);
+                }
                 array_unshift($cfgSrc, $cfgRoot);
             }
 
             foreach($apps as $a=>$e) {
-                if(!$e && file_exists($f=$cfgRoot.'/'.$a.'.yml')) {
+                $f=$cfgRoot.'/'.$a.'.yml';
+                if(!$e && file_exists($f)) {
                     unlink($f);
                     echo "> {$a} disabled\n";
-                } else if($e && !file_exists($f=$cfgRoot.'/'.$a.'.yml')) {
+                } else if($e && !file_exists($f)) {
                     foreach($cfgSrc as $d) {
                         if(file_exists($s=$d.'/'.$a.'.yml-example')) {
-                            copy($f.'-example', $f);
+                            copy($s, $f);
                             echo "> {$a} enabled\n";
                             break;
                         }
