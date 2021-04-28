@@ -24,7 +24,7 @@ class Tecnodesign_Studio
         $webInterface,
         $webButton,
         $webInteractive,
-        $cliInterface,      // enable command-line interface
+        $cliInterface=true, // enable command-line interface
         $checkOrigin=1,     // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $allowOrigin=[],
         $private=[],        // updated at runtime, indicates when a cache-control: private,nocache should be sent

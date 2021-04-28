@@ -12,10 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.4
  */
-chdir(__DIR__);
-require (!file_exists($a='vendor/autoload.php') && !file_exists($a='../../autoload.php'))
-    ?'src/tdz.php'
+require (!file_exists($a=__DIR__.'/vendor/autoload.php') && !file_exists($a=__DIR__.'/../../autoload.php'))
+    ?__DIR__.'/src/tdz.php'
     :$a;
 unset($a);
-$appMemoryNamespace = file_exists('.appkey') ? \tdz::slug(file_get_contents('.appkey')) : 'app';
-tdz::app('app.yml', $appMemoryNamespace, 'dev')->run();
+$env = tdz::env();
+$appMemoryNamespace = file_exists(TDZ_APP_ROOT.'/.appkey') ? \tdz::slug(file_get_contents(TDZ_APP_ROOT.'/.appkey')) : 'app';
+tdz::app(__DIR__.'/app.yml', $appMemoryNamespace, $env)->run();
