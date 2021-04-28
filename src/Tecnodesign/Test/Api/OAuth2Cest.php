@@ -4,11 +4,10 @@ namespace Tecnodesign\Test\Api;
 
 class OAuth2Cest
 {
-    protected $configFiles = [];
+    protected $configFiles = [], $configs=['oauth2', 'studio'];
     public function _before()
     {
-        static $config = ['oauth2', 'studio'];
-        foreach($config as $fn) {
+        foreach($this->configs as $fn) {
             if(!file_exists($f=TDZ_ROOT . '/data/config/'.$fn.'.yml') && copy($f.'-example', $f)) {
                 $this->configFiles[] = $f;
             }
@@ -16,7 +15,11 @@ class OAuth2Cest
         if($this->configFiles) {
             touch(TDZ_ROOT.'/app.yml');
         }
-        exec(TDZ_ROOT.'/app data-import "'.TDZ_ROOT.'/data/tests/_data/oauth2-before.yml"');
+        foreach($this->configs as $fn) {
+            if(file_exists($f=TDZ_ROOT.'/data/tests/_data/'.$fn.'-before.yml')) {
+                exec(TDZ_ROOT.'/app data-import "'.$f.'"');
+            }
+        }
     }
     // test if it's not authenticated first
     public function accessToken(\ApiTester $I)
@@ -58,7 +61,11 @@ class OAuth2Cest
 
     public function _after()
     {
-        exec(TDZ_ROOT.'/app data-import "'.TDZ_ROOT.'/data/tests/_data/oauth2-after.yml"');
+        foreach($this->configs as $fn) {
+            if(file_exists($f=TDZ_ROOT.'/data/tests/_data/'.$fn.'-after.yml')) {
+                exec(TDZ_ROOT.'/app data-import "'.$f.'"');
+            }
+        }
 
         if($this->configFiles) {
             foreach($this->configFiles as $i=>$f) {
