@@ -67,12 +67,25 @@ class Tecnodesign_User
      */
     public function __construct()
     {
-        if(is_null(static::$cfg)) {
-            static::$cfg = tdz::getApp()->user;
-            if(!static::$cfg) static::$cfg = array();
-        }
+        static::config();
         Tecnodesign_User::$_current = $this;
         $this->initialize();
+    }
+
+    public static function config($key=null, $value=false)
+    {
+        if(is_null(static::$cfg)) {
+            static::$cfg = tdz::getApp()->user;
+            if(!static::$cfg) static::$cfg = [];
+        }
+
+        if($key) {
+            if($value!==false) self::$cfg[$key] = $value;
+
+            return (isset(static::$cfg[$key])) ?static::$cfg[$key] :null;
+        }
+
+        return static::$cfg;
     }
 
     /**
@@ -91,7 +104,7 @@ class Tecnodesign_User
             return $this->_me;
         }
         $this->_me = false;
-        if (!isset(static::$cfg['ns']) || count(static::$cfg['ns'])==0) {
+        if (!static::config('ns')) {
             return true;
         }
         
@@ -101,7 +114,7 @@ class Tecnodesign_User
         }
         $cookies=array();
         $cookie = false;
-        foreach (static::$cfg['ns'] as $ns=>$nso) {
+        foreach (static::config('ns') as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
                 continue;
             }
@@ -145,7 +158,7 @@ class Tecnodesign_User
                         }
                         if(class_exists($nso['finder'])) {
                             $finder = $nso['finder'];
-                            $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
+                            $scope = static::config('scope');
                             $this->_me = $finder::find($pk,1,$scope);
                             unset($finder,$scope);
                         } else {
@@ -384,11 +397,10 @@ class Tecnodesign_User
     
     public static function find($q, $ns=null)
     {
-
         if(!$ns) {
-            if(!isset(static::$cfg['ns'])) return false;
+            if(!($nss=static::config('ns'))) return false;
 
-            foreach(static::$cfg['ns'] as $ns=>$nso) {
+            foreach($nss as $ns=>$nso) {
                 $R = static::find($q, $ns);
                 if($R) break;
             }
@@ -396,8 +408,10 @@ class Tecnodesign_User
             return ($R) ?$R :false;
         }
 
+        static::config();
+
         if(is_array($ns)) $nso = $ns;
-        else if(isset(static::$cfg['ns'][$ns])) $nso = $ns;
+        else if(isset(static::$cfg['ns'][$ns])) $nso = static::$cfg['ns'][$ns];
         else return;
 
         if(isset(static::$cfg['model'])) {
@@ -412,21 +426,18 @@ class Tecnodesign_User
         }
 
         $nsoptions = (isset($nso['options']))?($nso['options']):(array());
-        if(method_exists($cn, 'find')) {
-            if(!is_array($q)) {
-                if(isset($nso['properties']['username'])) {
-                    $q = [$nso['properties']['username']=>$q];
-                } else if(isset(static::$cfg['properties']['username'])) {
-                    $q = [static::$cfg['properties']['username']=>$q];
-                } else {
-                    $q['username'] = $q;
-                }
-            }
 
+        if(method_exists($cn, 'find')) {
             $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
             $R = $cn::find($q,1,$scope);
             $c = get_called_class();
-            if($R) return $c::__set_state(['_me'=>$R, '_ns'=>$nso]);
+            if($R) {
+                $U = (new ReflectionClass(get_called_class()))->newInstanceWithoutConstructor();
+                $U->_uid = $R->getPk();
+                $U->_me = $R;
+                $U->_ns = $nso;
+                return $U;
+            }
         }
     }
 
@@ -503,13 +514,13 @@ class Tecnodesign_User
             ksort($msgs);
         }
         foreach($msgs as $t=>$s) {
-            if($s) $msg .= '<div class="tdz-msg" data-created="'.date('Y-m-d\TH:i:s Z', $t).'">'.$s.'</div>';
+            if($s) $msg .= '<div class="z-i-msg" data-created="'.date('Y-m-d\TH:i:s Z', $t).'">'.$s.'</div>';
             unset($msgs[$t], $t,$s);
         }
         if(!is_null($cookie)) {
             $cookies = self::getCookies($cookie);
             foreach($cookies as $s) {
-                if($s) $msg .= '<div class="tdz-msg" data-created="'.date('Y-m-d\TH:i:s Z').'">'.strip_tags(urldecode($s)).'</div>';
+                if($s) $msg .= '<div class="z-i-msg" data-created="'.date('Y-m-d\TH:i:s Z').'">'.strip_tags(urldecode($s)).'</div>';
                 unset($s);
             }
             if($delete && count($cookies)>0) {
@@ -1187,6 +1198,7 @@ class Tecnodesign_User
             'method'=>'post',
             'action'=>$action,
             'buttons'=>$buttons,
+            'class'=>'z-form z-signin',
             'fields'=>array(
                 static::FORM_USER=>(isset($o['email-username']) && $o['email-username'])
                     ?(array('type'=>'email', 'required'=>true, 'label'=>tdz::t('E-mail', 'ui'), 'placeholder'=>tdz::t('E-mail', 'ui')))

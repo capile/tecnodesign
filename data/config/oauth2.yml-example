@@ -23,11 +23,6 @@ all:
       #  method: appAuthorize
       #  static: true
       #  additional-params: false
-      data-import:
-        class: Tecnodesign_Database
-        method: import
-        static: true
-        layout: cli
     export:
       tdz:
         log: 2
@@ -36,7 +31,7 @@ all:
       use_jwt_access_tokens:             false
       jwt_extra_payload_callable:        ~
       store_encrypted_token_string:      true
-      use_openid_connect:                false
+      use_openid_connect:                true
       id_lifetime:                       3600
       access_lifetime:                   3600
       www_realm:                         Service
@@ -49,3 +44,20 @@ all:
       allow_public_clients:              true
       always_issue_new_refresh_token:    false
       unset_refresh_token_after_use:     true
+      auth_code_lifetime:                3600
+      default_scope:                     basic openid
+      supported_scopes:
+        - basic
+        - openid
+      grant_types:
+        - authorization_code
+        - client_credentials
+        - jwt_bearer
+        - refresh_token
+        - user_credentials
+      response_types:
+        - token
+        - id_token
+        - code
+        - code id_token
+        - id_token token

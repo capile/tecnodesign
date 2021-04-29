@@ -13,13 +13,17 @@ namespace Studio\OAuth2;
 
 use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\Storage\UserCredentialsInterface;
-use OAuth2\Storage\AuthorizationCodeInterface;
 use OAuth2\Storage\ClientInterface;
 use OAuth2\Storage\AccessTokenInterface;
 use OAuth2\Storage\RefreshTokenInterface;
+use OAuth2\Storage\JwtBearerInterface;
+use OAuth2\OpenID\Storage\AuthorizationCodeInterface;
+use OAuth2\OpenID\Storage\UserClaimsInterface;
+use OAuth2\Storage\ScopeInterface;
 use InvalidArgumentException;
+use tdz as S;
 
-class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, ClientInterface, AccessTokenInterface, RefreshTokenInterface
+class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, ClientInterface, AccessTokenInterface, RefreshTokenInterface, JwtBearerInterface, UserClaimsInterface, ScopeInterface
 {
 
     public static 
@@ -28,6 +32,9 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'client_id'=>'id',
                 'client_secret'=>'options.client_secret',
                 'redirect_uri'=>'options.redirect_uri',
+                'grant_types'=>'options.grant_types',
+                'scope'=>'options.scope',
+                'user_id'=>'user',
             ],
             'access_token'=>[
                 'expires'=>'expires',
@@ -41,12 +48,6 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'user_id'=>'user',
                 'expires'=>'expires',
                 'redirect_uri'=>'options.redirect_uri',
-                'scope'=>'options.scope'
-            ],
-            'client'=>[
-                'client_id'=>'id',
-                'grant_types'=>'options.grant_types',
-                'user_id'=>'user',
                 'scope'=>'options.scope'
             ],
             'access_token'=>[
@@ -63,10 +64,26 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'scope'=>'options.scope',
                 'id_token'=>'options.id_token',
             ],
+            'jwt_bearer'=>[
+                'client_id'=>'id',
+                'subject'=>'token',
+                'user_id'=>'user',
+                'public_key'=>'options.public_key',
+            ],
+            'jti'=> [
+                'issuer'=>'token',
+                'subject'=>'id',
+                'audience'=>'options.audience',
+                'expires'=>'expires',
+                'jti'=>'options.jti',
+            ],
+            'user_claims'=>[
+                'user_id'=>'user',
+            ],
         ];
     protected 
         $tokens = [],
-        $tokenFinder='Studio\\OAuth2\\Tokens';
+        $tokenFinder='Studio\\Model\\Tokens';
 
 
     public function getObject($type, $id, $asArray=true)
@@ -74,7 +91,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
         $Q = $this->tokenFinder;
         $R = $Q::find(['id'=>$id, 'type'=>$type],1);
 
-        if($R && $R->expires && \tdz::strtotime($R->expires)<TDZ_TIMESTAMP) $R=null;
+        if($R && $R->expires && S::strtotime($R->expires)<TDZ_TIMESTAMP) $R=null;
         if($R) {
             if(!$asArray) {
                 return $R;
@@ -88,7 +105,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
 
             $r = $R->asArray(static::$scopes[$type]);
             if(isset($r['expires']) && $r['expires']) {
-                $r['expires'] = \tdz::strtotime($r['expires']);
+                $r['expires'] = S::strtotime($r['expires']);
             }
             return $r;
         }
@@ -165,8 +182,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function checkUserCredentials($username, $password)
     {
-        $U = \tdz::user($username);
-        if($U) {
+        if($U = S::user($username)) {
             return $U->authenticate($password);
         }
 
@@ -187,8 +203,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getUserDetails($username)
     {
-        $U = \tdz::user($username);
-        if($U) {
+        if($U = S::user($username)) {
             return $U->asArray();
         }
 
@@ -314,7 +329,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getClientDetails($client_id)
     {
-        return $this->getObject('client', $client_id);
+        return $this->getObject('client_credentials', $client_id);
     }
 
     /**
@@ -330,7 +345,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
     {
         $r = [
             'id'=>$client_id,
-            'type'=>'client',
+            'type'=>'client_credentials',
             'user'=>$user_id,
             'options' => [
             ],
@@ -354,7 +369,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getClientScope($client_id)
     {
-        return $this->getObject('client', 'client_id', 'scope');
+        return $this->getObject('client_credentials', $client_id, 'scope');
     }
 
     /**
@@ -376,7 +391,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function checkRestrictedGrantType($client_id, $grant_type)
     {
-        if($grant_type = $this->getObject('client', $client_id, 'grant_type')) {
+        if($grant_type = $this->getObject('client_credentials', $client_id, 'grant_type')) {
             $grant_types = explode(' ', $details['grant_types']);
 
             return in_array($grant_type, (array) $grant_types);
@@ -426,6 +441,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
     {
+        if(!$scope) $scope = Server::config('default_scope');
         $r = [
             'id'=>$access_token,
             'type'=>'access_token',
@@ -433,11 +449,10 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
             'user'=>$user_id,
             'options' => [
                 'client_id'=>$client_id,
+                'scope'=>$scope,
             ],
             'expires' => (is_int($expires)) ?date('Y-m-d H:i:s', $expires) :$expires,
         ];
-
-        if($scope) $r['options']['scope'] = $scope;
 
         $Q = $this->tokenFinder;
         $Q::replace($r);
@@ -588,18 +603,44 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
         return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
     }
 
+    /*
+    // valid scope values to pass into the user claims API call
+    const VALID_CLAIMS = 'profile email address phone';
+
+    // fields returned for the claims above
+    const PROFILE_CLAIM_VALUES  = 'name family_name given_name middle_name nickname preferred_username profile picture website gender birthdate zoneinfo locale updated_at';
+    const EMAIL_CLAIM_VALUES    = 'email email_verified';
+    const ADDRESS_CLAIM_VALUES  = 'formatted street_address locality region postal_code country';
+    const PHONE_CLAIM_VALUES    = 'phone_number phone_number_verified';
+    */
+
     /**
-     * @param mixed  $user_id
-     * @param string $claims
-     * @return array|bool
+     * Return claims about the provided user id.
+     *
+     * Groups of claims are returned based on the requested scopes. No group
+     * is required, and no claim is required.
+     *
+     * @param mixed  $user_id - The id of the user for which claims should be returned.
+     * @param string $scope   - The requested scope.
+     * Scopes with matching claims: profile, email, address, phone.
+     *
+     * @return array - An array in the claim => value format.
+     *
+     * @see http://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
      */
     public function getUserClaims($user_id, $claims)
     {
         if (!$userDetails = $this->getUserDetails($user_id)) {
-            return false;
+            return [];
         }
 
         $claims = explode(' ', trim($claims));
+
+        if(in_array('openid', $claims)) {
+            return $userDetails;
+        }
+
+        // @TODO: move claims to model queries
         $userClaims = array();
 
         // for each requested claim, if the user has the claim, set it in the response
@@ -660,10 +701,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getUser($username)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where username=:username', $this->config['user_table']));
-        $stmt->execute(array('username' => $username));
-
-        if (!$userInfo = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        if (!($userInfo = $this->getUserDetails($username))) {
             return false;
         }
 
@@ -684,17 +722,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function setUser($username, $password, $firstName = null, $lastName = null)
     {
-        // do not store in plaintext
-        $password = $this->hashPassword($password);
-
-        // if it exists, update it.
-        if ($this->getUser($username)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET password=:password, first_name=:firstName, last_name=:lastName where username=:username', $this->config['user_table']));
-        } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (username, password, first_name, last_name) VALUES (:username, :password, :firstName, :lastName)', $this->config['user_table']));
-        }
-
-        return $stmt->execute(compact('username', 'password', 'firstName', 'lastName'));
+        S::debug(__METHOD__.' not implemented.');
     }
 
     /**
@@ -703,6 +731,8 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function scopeExists($scope)
     {
+        return true;
+        /*
         $scope = explode(' ', $scope);
         $whereIn = implode(',', array_fill(0, count($scope), '?'));
         $stmt = $this->db->prepare(sprintf('SELECT count(scope) as count FROM %s WHERE scope IN (%s)', $this->config['scope_table'], $whereIn));
@@ -713,6 +743,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
         }
 
         return false;
+        */
     }
 
     /**
@@ -721,74 +752,142 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getDefaultScope($client_id = null)
     {
-        $stmt = $this->db->prepare(sprintf('SELECT scope FROM %s WHERE is_default=:is_default', $this->config['scope_table']));
-        $stmt->execute(array('is_default' => true));
-
-        if ($result = $stmt->fetchAll(\PDO::FETCH_ASSOC)) {
-            $defaultScope = array_map(function ($row) {
-                return $row['scope'];
-            }, $result);
-
-            return implode(' ', $defaultScope);
-        }
-
-        return null;
+        return Server::config('default_scope');
     }
 
     /**
-     * @param mixed $client_id
-     * @param $subject
-     * @return string
+     * Get the public key associated with a client_id
+     *
+     * @param $client_id
+     * Client identifier to be checked with.
+     *
+     * @return
+     * STRING Return the public key for the client_id if it exists, and MUST return FALSE if it doesn't.
      */
     public function getClientKey($client_id, $subject)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key from %s where client_id=:client_id AND subject=:subject', $this->config['jwt_table']));
-
-        $stmt->execute(array('client_id' => $client_id, 'subject' => $subject));
-
-        return $stmt->fetchColumn();
-    }
-
-    /**
-     * @param mixed $client_id
-     * @param $subject
-     * @param $audience
-     * @param $expires
-     * @param $jti
-     * @return array|null
-     */
-    public function getJti($client_id, $subject, $audience, $expires, $jti)
-    {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * FROM %s WHERE issuer=:client_id AND subject=:subject AND audience=:audience AND expires=:expires AND jti=:jti', $this->config['jti_table']));
-
-        $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
-
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            return array(
-                'issuer' => $result['issuer'],
-                'subject' => $result['subject'],
-                'audience' => $result['audience'],
-                'expires' => $result['expires'],
-                'jti' => $result['jti'],
-            );
+        if(($r=$this->getObject('jwt', $subject)) && isset($r['public_key'])) {
+            return $r['public_key'];
         }
-
-        return null;
+        return false;
     }
 
     /**
-     * @param mixed $client_id
+     * Get a jti (JSON token identifier) by matching against the client_id, subject, audience and expiration.
+     *
+     * @param $client_id
+     * Client identifier to match.
+     *
      * @param $subject
+     * The subject to match.
+     *
      * @param $audience
-     * @param $expires
+     * The audience to match.
+     *
+     * @param $expiration
+     * The expiration of the jti.
+     *
      * @param $jti
-     * @return bool
+     * The jti to match.
+     *
+     * @return
+     * An associative array as below, and return NULL if the jti does not exist.
+     * - issuer: Stored client identifier.
+     * - subject: Stored subject.
+     * - audience: Stored audience.
+     * - expires: Stored expiration in unix timestamp.
+     * - jti: The stored jti.
+     */
+    public function getJti($client_id, $subject, $audience, $expiration, $jti)
+    {
+        return $this->getObject('jti', $subject);
+    }
+
+    /**
+     * Store a used jti so that we can check against it to prevent replay attacks.
+     * @param $client_id
+     * Client identifier to insert.
+     *
+     * @param $subject
+     * The subject to insert.
+     *
+     * @param $audience
+     * The audience to insert.
+     *
+     * @param $expiration
+     * The expiration of the jti.
+     *
+     * @param $jti
+     * The jti to insert.
      */
     public function setJti($client_id, $subject, $audience, $expires, $jti)
     {
-        $stmt = $this->db->prepare(sprintf('INSERT INTO %s (issuer, subject, audience, expires, jti) VALUES (:client_id, :subject, :audience, :expires, :jti)', $this->config['jti_table']));
+        $r = [
+            'id'=>$subject,
+            'type'=>'jti',
+            'token'=>$client_id,
+            'options' => [
+                'client_id'=>$client_id,
+                'audience'=>$audience,
+                'jti'=>$jti,
+            ],
+            'expires' => (is_int($expires)) ?date('Y-m-d H:i:s', $expires) :$expires,
+        ];
 
-        return $stmt->execute(compact('client_id', 'subject', 'audience', 'expires', 'jti'));
+        $Q = $this->tokenFinder;
+        $Q::replace($r);
+    }
+
+    /**
+     * @return
+     * TRUE if the grant type requires a redirect_uri, FALSE if not
+     */
+    public function enforceRedirect()
+    {
+        $cfg = (($app=S::getApp()->studio) && isset($app['oauth2'])) ?$app['oauth2'] :[];
+
+        return (isset($cfg['enforce_redirect'])) ?(bool)$cfg['enforce_redirect'] :false;
+    }
+
+    /**
+     * Handle the creation of the authorization code.
+     *
+     * @param mixed  $client_id    - Client identifier related to the authorization code
+     * @param mixed  $user_id      - User ID associated with the authorization code
+     * @param string $redirect_uri - An absolute URI to which the authorization server will redirect the
+     *                               user-agent to when the end-user authorization step is completed.
+     * @param string $scope        - OPTIONAL Scopes to be stored in space-separated string.
+     * @param string $id_token     - OPTIONAL The OpenID Connect id_token.
+     * @return string
+     *
+     * @see http://tools.ietf.org/html/rfc6749#section-4
+     * @ingroup oauth2_section_4
+     */
+    public function createAuthorizationCode($client_id, $user_id, $redirect_uri, $scope = null, $id_token = null)
+    {
+        $code = $this->generateAuthorizationCode();
+        $timeout = Server::config('auth_code_lifetime');
+        if(!$timeout) $timeout = 3600;
+
+        $r = [
+            'id'=>$code,
+            'type'=>'authorization_code',
+            'token'=>$client_id,
+            'user'=>$user_id,
+            'options' => [
+                'client_id'=>$client_id,
+                'redirect_uri'=>$reirect_uri,
+            ],
+            'expires' => date('Y-m-d H:i:s', time()+$timeout),
+        ];
+
+        if($scope) $r['options']['scope'] = $scope;
+        if($id_token) $r['options']['id_token'] = $id_token;
+
+        $Q = $this->tokenFinder;
+        $Q::replace($r);
+
+        return $code;
     }
 
     /**
@@ -835,4 +934,19 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
         return 'RS256';
     }
 
+    /**
+     * Generates an unique auth code.
+     *
+     * Implementing classes may want to override this function to implement
+     * other auth code generation schemes.
+     *
+     * @return
+     * An unique auth code.
+     *
+     * @ingroup oauth2_section_4
+     */
+    protected function generateAuthorizationCode()
+    {
+        return S::salt(40);
+    }
 }

@@ -33,8 +33,14 @@ class OAuth2Cest
         $I->seeResponseContains('"access_token":');
         list($accessToken) = $I->grabDataFromResponseByJsonPath('$.access_token');
 
-        // curl -is http://127.0.0.1:9999/examples/oauth2/auth -d access_token=95244ab62feed0464dc86b3901f146d8b29267e9
         $I->deleteHeader('authorization');
+        // fetch userinfo
+        $I->sendPost('/examples/oauth2/userinfo', ['access_token'=>$accessToken]);
+        $I->seeResponseCodeIs(200);
+        $I->seeResponseIsJson();
+        $I->seeResponseContainsJson(['username'=>'test-user']);
+
+        // curl -is http://127.0.0.1:9999/examples/oauth2/userinfo -d access_token=xxx
         $I->sendPost('/examples/oauth2/auth', ['access_token'=>$accessToken]);
         $I->seeResponseCodeIs(200);
         $I->seeResponseIsJson();

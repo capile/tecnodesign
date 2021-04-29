@@ -27,7 +27,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrPreviewClass   = 'tdz-i-preview',
         $attrParamClass     = 'tdz-i-param',
         $attrTermClass      = 'tdz-i-term',
-        $attrErrorClass     = 'tdz-err tdz-msg',
+        $attrErrorClass     = 'z-i-msg z-i-error',
         $attrCounterClass   = 'tdz-counter',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',

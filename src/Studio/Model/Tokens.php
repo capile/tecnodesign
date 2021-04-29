@@ -9,7 +9,7 @@
  * @version     2.4
  */
 
-namespace Studio\OAuth2;
+namespace Studio\Model;
 
 use Studio\Model;
 

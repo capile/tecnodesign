@@ -1,12 +1,12 @@
 ---
 all:
-  model: Studio\Model\Users
+  model: Studio\Model\Tokens
   options:
     list-parent: i
-    priority: 40
+    priority: 60
     index: true
     scope:
       list:
-        - username
-        - name
+        - type
+        - id
         - updated

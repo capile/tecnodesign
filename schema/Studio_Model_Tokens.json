@@ -2,7 +2,7 @@
     "title": "Authentication Tokens",
     "database": "studio",
     "tableName": "studio_tokens",
-    "className": "Studio\\OAuth2\\Tokens",
+    "className": "Studio\\Model\\Tokens",
     "properties": {
         "type": { "type": "string", "size": 100, "primary": true, "required": true },
         "id": { "type": "string", "size": 100, "primary": true, "required": true },
@@ -16,6 +16,7 @@
     "relations": {
     },
     "scope": {
+        "string": [ "type", "id" ]
     },
     "order": {
         "created": "desc"

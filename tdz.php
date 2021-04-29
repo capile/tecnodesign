@@ -101,6 +101,7 @@ class tdz
             'woff' => 'font/woff',
             'woff2'=> 'font/woff2',
             'eot'  => 'font/vnd.ms-fontobject',
+            'ico'  => 'image/x-icon',
         ),
         $browsers = array(
             'webtv'=>'Web TV',
@@ -1471,7 +1472,7 @@ class tdz
         return $cacheControl;
     }
 
-    public static function download($file, $format=null, $fname=null, $speed=0, $attachment=false, $nocache=false, $exit=true)
+    public static function download($file, $format=null, $fname=null, $speed=0, $attachment=null, $nocache=false, $exit=true)
     {
         if (connection_status() != 0 || !$file)
             return(false);

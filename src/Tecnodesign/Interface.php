@@ -78,7 +78,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $attrParamClass     = 'tdz-i-param',
         $attrTermClass      = 'tdz-i-term',
         $attrFooterClass    = 'tdz-i-footer',
-        $attrErrorClass     = 'tdz-err tdz-msg',
+        $attrErrorClass     = 'z-i-msg z-i-error',
         $attrSearchClass    = 'tdz-i-search',
         $attrSearchFormClass= 'tdz-search',
         $attrCounterClass   = 'tdz-counter',

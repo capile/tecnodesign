@@ -1,12 +1,12 @@
 ---
-Studio\OAuth2\Tokens:
-  - __key: token
-    token: test-client
-    __multiple: true
+Studio\Model\Users:
+  - __key: [ username ]
+    __set:
+      USERID: id
+    username: test-user
     _delete: true
-  - type: client_credentials
-    id: test-client
-    options:
-      client_secret: test-secret
-      redirect_uri: 'http://127.0.0.1:9999/_me'
+Studio\Model\Tokens:
+  - __key: [ user ]
+    user: $USERID
     _delete: true
+    _multiple: true
