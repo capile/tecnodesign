@@ -11,7 +11,7 @@ class StudioCest
     public function docsPageWorks(\AcceptanceTester $I)
     {
         // remove cached css and see if it was properly generated
-        $css = TDZ_DOCUMENT_ROOT . '/_/docs.css';
+        $css = TDZ_DOCUMENT_ROOT . '/_/site.css';
         if (file_exists($css)) {
             unlink($css);
         }

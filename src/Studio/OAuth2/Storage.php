@@ -20,10 +20,11 @@ use OAuth2\Storage\JwtBearerInterface;
 use OAuth2\OpenID\Storage\AuthorizationCodeInterface;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\Storage\ScopeInterface;
+use OAuth2\Storage\PublicKeyInterface;
 use InvalidArgumentException;
 use tdz as S;
 
-class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, ClientInterface, AccessTokenInterface, RefreshTokenInterface, JwtBearerInterface, UserClaimsInterface, ScopeInterface
+class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, ClientInterface, AccessTokenInterface, RefreshTokenInterface, JwtBearerInterface, UserClaimsInterface, ScopeInterface, PublicKeyInterface
 {
 
     public static 
@@ -79,6 +80,13 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
             ],
             'user_claims'=>[
                 'user_id'=>'user',
+            ],
+            'public_key'=>[
+                'user_id'=>'user',
+                'public_key'=>'options.public_key',
+                'private_key'=>'options.private_key',
+                'encryption_algorithm'=>'options.encryption_algorithm',
+                'expires'=>'expires',
             ],
         ];
     protected 
@@ -456,6 +464,15 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
 
         $Q = $this->tokenFinder;
         $Q::replace($r);
+
+        if(Server::config('unique_access_token')) {
+            if($L = $Q::find(['type'=>'access_token','token'=>$client_id,'id!='=>$access_token],null,null,false)) {
+                foreach($L as $i=>$o) {
+                    $o->delete(true);
+                    unset($L[$i], $i, $o);
+                }
+            }
+        }
     }
 
     /**
@@ -896,12 +913,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getPublicKey($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT public_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
-
-        $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            return $result['public_key'];
-        }
+        return $this->getObject('public_key', ['client_id'=>$client_id], 'public_key');
     }
 
     /**
@@ -910,28 +922,16 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getPrivateKey($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT private_key FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
-
-        $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            return $result['private_key'];
-        }
+        return $this->getObject('public_key', ['client_id'=>$client_id], 'private_key');
     }
 
     /**
      * @param mixed $client_id
-     * @return string
+     * @return mixed
      */
     public function getEncryptionAlgorithm($client_id = null)
     {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT encryption_algorithm FROM %s WHERE client_id=:client_id OR client_id IS NULL ORDER BY client_id IS NOT NULL DESC', $this->config['public_key_table']));
-
-        $stmt->execute(compact('client_id'));
-        if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            return $result['encryption_algorithm'];
-        }
-
-        return 'RS256';
+        return ($r=$this->getObject('public_key', ['client_id'=>$client_id], 'encryption_algorithm')) ?$r :'RS256';
     }
 
     /**

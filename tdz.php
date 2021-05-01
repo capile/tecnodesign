@@ -3123,13 +3123,10 @@ class tdz
             if(tdz::$log) tdz::log($s." ({$mem}M)");
         }
     }
-
 }
 
-
-
 if (!defined('TDZ_CLI')) {
-    define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && basename($_SERVER['argv'][0], '.php')=='tdz'));
+    define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SHELL'])));
 }
 define('TDZ_TIME', microtime(true));
 list($u, $t) = explode('.', (string) TDZ_TIME);

@@ -21,7 +21,29 @@ use tdz as S;
 class Server extends \OAuth2\Server
 {
     protected static $instance;
-    public static $metadata, $cfg;
+    public static $metadata, $cfg, $cfgDefault=[
+        'unique_access_token'               => true,
+        'use_jwt_access_tokens'             => false,
+        'jwt_extra_payload_callable'        => null,
+        'store_encrypted_token_string'      => true,
+        'use_openid_connect'                => true,
+        'id_lifetime'                       => 3600,
+        'access_lifetime'                   => 3600,
+        'www_realm'                         => 'Service',
+        'token_param_name'                  => 'access_token',
+        'token_bearer_header_name'          => 'Bearer',
+        'enforce_state'                     => true,
+        'require_exact_redirect_uri'        => true,
+        'allow_implicit'                    => false,
+        'allow_credentials_in_request_body' => false,
+        'allow_public_clients'              => false,
+        'always_issue_new_refresh_token'    => false,
+        'unset_refresh_token_after_use'     => true,
+        'default_scope'                     => 'basic openid',
+        'supported_scopes'                  => ['basic', 'openid'],
+        'grant_types'                       => ['authorization_code', 'client_credentials', 'jwt_bearer', 'refresh_token', 'user_credentials' ],
+        'response_types'                    => ['code', 'code id_token', 'id_token', 'id_token token', 'token' ],
+    ];
 
     public static function instance()
     {
@@ -48,6 +70,7 @@ class Server extends \OAuth2\Server
                 // +implicit ?
             }
 
+            $cfg = self::config();
 
             if($r=self::config('grant_types')) {
                 foreach($r as $i=>$o) {
@@ -77,7 +100,7 @@ class Server extends \OAuth2\Server
 
             try {
                 $cn = get_called_class();
-                static::$instance = new $cn($S, self::config(), $grantTypes, $responseTypes, $tokenType, $Scope);
+                static::$instance = new $cn($S, $cfg, $grantTypes, $responseTypes, $tokenType, $Scope);
             } catch(\Exception $e) {
                 S::debug(__METHOD__, var_export($e, true));
             }
@@ -131,6 +154,7 @@ class Server extends \OAuth2\Server
     {
         if(is_null(static::$cfg)) {
             static::$cfg = (($app=S::getApp()->studio) && isset($app['oauth2'])) ?$app['oauth2'] :[];
+            static::$cfg += static::$cfgDefault;
             unset($app);
         }
 
@@ -143,14 +167,16 @@ class Server extends \OAuth2\Server
         return static::$cfg;
     }
 
-    public static function metadata($useCache=true)
+    public static function metadata($useCache=true, $uri=null)
     {
+        if(!$uri) $uri = S::buildUrl(S::scriptName());
+        if(isset(static::$metadata) && static::$metadata['issuer']!=$uri) {
+            static::$metadata = null;
+        }
         if(!static::$metadata && $useCache) {
-            $M = Cache::get('oauth2/metadata');
+            $M = Cache::get('oauth2/metadata/'.$uri);
         }
         if(!static::$metadata) {
-
-            $uri = S::buildUrl(S::scriptName());
             $M = [
                 'issuer'=>$uri,
             ];
@@ -169,12 +195,14 @@ class Server extends \OAuth2\Server
 
             if($r=self::config('response_types')) {
                 $M['response_types_supported'] = array_values($r);
+                asort($M['response_types_supported']);
             } else if(self::config('use_openid_connect')) {
                 $M['response_types_supported'] = ['code', 'id_token', 'token id_token'];
             }
 
             if($r=self::config('grant_types')) {
                 $M['grant_types_supported'] = array_values($r);
+                asort($M['grant_types_supported']);
             } else if(self::config('use_openid_connect')) {
                 $M['grant_types_supported'] = ['authorization_code', 'implicit'];
             }
@@ -184,7 +212,7 @@ class Server extends \OAuth2\Server
             $M['subject_types_supported'] = ['public'];
             $M['id_token_signing_alg_values_supported']=['RS256'];
 
-            Cache::set('oauth2/metadata', $M);
+            Cache::set('oauth2/metadata/'.$uri, $M);
             static::$metadata = $M;
             unset($M);
         }
@@ -223,13 +251,8 @@ class Server extends \OAuth2\Server
 
     public function executeUserInfo()
     {
-        try {
-            $request = Request::createFromGlobals();
-            $R = $this->handleUserInfoRequest($request);
-        } catch(\Exception $e) {
-            S::debug(__METHOD__, var_export($e, true));
-        }
-        $R->send();
+        $request = Request::createFromGlobals();
+        $this->handleUserInfoRequest($request)->send();
         exit();
     }
 

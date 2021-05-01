@@ -9,13 +9,10 @@ all:
         name: Host-based authentication
         enabled: true
         type: host
-        cookie: ~
+        cookie: false
         options:
           hosts:
             127.0.0.1:
-              id: admin
-              username: admin
-              credentials: [ Administrator ]
+              username: test-user
         export:
           username: username
-          credentials: credentials

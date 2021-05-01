@@ -362,9 +362,9 @@ class Tecnodesign_User
         }
         if(!isset($this->_o[$ns])) {
             $nso = static::$cfg['ns'][$ns];
-            if(isset($nso['type']) && class_exists($cn='Tecnodesign_User_'.tdz::camelize($nso['type'], true))) {
-            } else if(isset($nso['class'])){
+            if(isset($nso['class'])) {
                 $cn = $nso['class'];
+            } else if(isset($nso['type']) && class_exists($cn='Tecnodesign_User_'.tdz::camelize($nso['type'], true))) {
             } else if(isset($nso['finder'])) {
                 $cn = $nso['finder'];
             } else {
@@ -639,7 +639,7 @@ class Tecnodesign_User
     {
         if(!static::$setCookie) return true;
         $n = $this->getSessionName();
-        if(isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
+        if(!$n || isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
 
         if(static::$cookieSecure && !Tecnodesign_App::request('https')) {
             static::$cookieSecure = false;

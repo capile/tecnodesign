@@ -915,7 +915,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
      */
     public function softDeleteTrigger($fields, $conn=null)
     {
-        if($this->_delete) {
+        if($this->_delete && !(isset($this->__skip_soft_delete) && $this->__skip_soft_delete)) {
             $tstamp = date('Y-m-d H:i:s');
             if($fields && !is_array($fields)) {
                 $fields = array($fields);

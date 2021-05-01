@@ -8,56 +8,18 @@ all:
         method: app
         static: true
         additional-params: true
-      #/examples/oauth2/access_token:
-      #  class: Studio\OAuth2\Server
-      #  method: appAccessToken
-      #  static: true
-      #  additional-params: false
-      #/examples/oauth2/auth:
-      #  class: Studio\OAuth2\Server
-      #  method: appAuth
-      #  static: true
-      #  additional-params: false
-      #/examples/oauth2/authorize:
-      #  class: Studio\OAuth2\Server
-      #  method: appAuthorize
-      #  static: true
-      #  additional-params: false
     export:
       tdz:
         log: 2
-  studio:
-    oauth2:
-      use_jwt_access_tokens:             false
-      jwt_extra_payload_callable:        ~
-      store_encrypted_token_string:      true
-      use_openid_connect:                true
-      id_lifetime:                       3600
-      access_lifetime:                   3600
-      www_realm:                         Service
-      token_param_name:                  access_token
-      token_bearer_header_name:          Bearer
-      enforce_state:                     true
-      require_exact_redirect_uri:        true
-      allow_implicit:                    false
-      allow_credentials_in_request_body: true
-      allow_public_clients:              true
-      always_issue_new_refresh_token:    false
-      unset_refresh_token_after_use:     true
-      auth_code_lifetime:                3600
-      default_scope:                     basic openid
-      supported_scopes:
-        - basic
-        - openid
-      grant_types:
-        - authorization_code
-        - client_credentials
-        - jwt_bearer
-        - refresh_token
-        - user_credentials
-      response_types:
-        - token
-        - id_token
-        - code
-        - code id_token
-        - id_token token
+  user:
+    model: Studio\Model\Users
+    ns:
+      oauth2:
+        name: OAuth2
+        enabled: true
+        cookie: false
+        class: Studio\OAuth2\User
+        export:
+          username: username
+          name: name
+
