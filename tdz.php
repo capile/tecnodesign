@@ -1,9 +1,9 @@
 <?php
 /**
  * Tecnodesign Framework shortcuts and multi-purpose utils
- * 
+ *
  * PHP version 5.6+
- * 
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
@@ -480,7 +480,7 @@ class tdz
     public static function expandVariables($a)
     {
         if(!is_array($a) && !is_object($a)) {
-            if(preg_match_all('/\$(([A-Z0a-z-9\_]+\:\:)?[A-Z0a-z-9\_]+)/', $a, $m)) {
+            if(preg_match_all('/\$(([A-Za-z0-9\_]+\:\:)?[A-Za-z0-9\_]+)/', $a, $m)) {
                 foreach($m[1] as $i=>$o) {
                     $r = null;
                     if(defined($o)) $r = constant($o);
@@ -1415,7 +1415,7 @@ class tdz
             if($ext && isset(tdz::$formats[$ext])) {
                 $format = tdz::$formats[$ext];
             }
-        } 
+        }
 
         return $format;
     }
