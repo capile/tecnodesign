@@ -21,7 +21,7 @@ class OAuth2Cest
         }
         foreach($this->configs as $fn) {
             if(file_exists($f=TDZ_ROOT.'/data/tests/_data/'.$fn.'-before.yml')) {
-                exec(TDZ_ROOT.'/app studio:import "'.$f.'"');
+                exec(TDZ_ROOT.'/studio :import "'.$f.'"');
             }
         }
 
@@ -128,7 +128,7 @@ class OAuth2Cest
     {
         foreach($this->configs as $fn) {
             if(file_exists($f=TDZ_ROOT.'/data/tests/_data/'.$fn.'-after.yml')) {
-                exec(TDZ_ROOT.'/app studio:import "'.$f.'"');
+                exec(TDZ_ROOT.'/studio :import "'.$f.'"');
             }
         }
 

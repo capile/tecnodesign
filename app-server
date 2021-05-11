@@ -1,7 +1,0 @@
-#!/bin/sh
-CMD="php -S 0.0.0.0:9999 "
-PID=`pgrep -f "$CMD"`
-[ ! -z "$PID" ] && pkill -f "$CMD"
-mkdir -p "${0%/*}/data/log"
-php -S 0.0.0.0:9999 "${0%/*}/app.php" >> "${0%/*}/data/log/app.log" 2>&1 &
-pgrep -f "$CMD"

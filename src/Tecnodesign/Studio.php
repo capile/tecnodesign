@@ -125,11 +125,10 @@ class Tecnodesign_Studio
             tdz::scriptName($sn);
             tdz::cacheControl('private,must-revalidate,no-cache', 0);
             return self::_runInterface();
-        } else if(static::$cliInterface && self::$cli && TDZ_CLI && (isset($req['scheme']) && $req['scheme']===self::$cli)) {
+        } else if(static::$cliInterface && self::$cli && TDZ_CLI && substr($sn, 0, 1)==':' && isset(self::$cliApps[$sn=substr($sn,1)])) {
             // cli apps
             tdz::$variables['template'] = 'cli';
             Tecnodesign_App::response('layout', 'cli');
-            if(!isset($req['scheme'])) $sn='';
             if(isset(self::$cliApps[$sn])) {
                 list($cn, $m) = self::$cliApps[$sn];
                 return $cn::$m();

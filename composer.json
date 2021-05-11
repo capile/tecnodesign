@@ -35,8 +35,9 @@
         "codeception/module-rest": "^1.3"
     },
     "scripts": {
-        "test": "./app-server && vendor/bin/codecept run -v "
+        "test": "./studio-server && vendor/bin/codecept run -v "
     },
+    "bin": [ "studio", "studio-server" ],
     "suggest" : {
         "ext-dom": "*",
         "geshi/geshi": "Allows syntax highlight in markdown text",
