@@ -78,7 +78,7 @@ class Tecnodesign_Query_Sql
         return (string) $this->buildQuery();
     }
 
-    public static function setConnection($n='', $conn)
+    public static function setConnection($n, $conn)
     {
         $r = null;
         if(isset(static::$conn[$n])) $r = static::$conn[$n];

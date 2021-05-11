@@ -65,12 +65,9 @@
 }
 .background-alpha(@color, @alpha: 0.5)
 {
-    @alphah: dechex(round(@alpha * 255));
     background:@color;
     background:transparent;
     background: hsla(hue(@color), saturation(@color), lightness(@color), @alpha);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@{color}@{alphah}', endColorstr='@{color}@{alphah}');
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=@{color}@{alphah}, endColorstr=@{color}@{alphah})";
 }
 
 .animation(@a: animation1 0.3s ease-out)

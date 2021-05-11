@@ -1,14 +1,16 @@
 {
-    "name": "capile/Z",
-    "version": "2.4.2",
+    "name": "capile-studio",
+    "version": "2.5.0",
     "dependencies": {
         "@fortawesome/fontawesome-free": "5.*",
         "c3": "0.7.*",
         "d3": "5.*",
+        "lessc": "^1.0.2",
         "moment": "2.24.*",
         "node-ipc": "^9.1.4",
         "pell": "1.0.*",
-        "pikaday-time": "1.6.1"
+        "pikaday-time": "1.6.1",
+        "uglify-js": "*"
     },
     "license": "GPL-3.0-only"
 }

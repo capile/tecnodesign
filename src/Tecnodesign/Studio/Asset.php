@@ -103,7 +103,7 @@ class Tecnodesign_Studio_Asset
     public function build($files=null, $outputFile=null)
     {
         $shell = $optimize = $this->optimize;
-        if($optimize && (!isset(tdz::$minifier[$this->format]) || !file_exists($jar=dirname(TDZ_ROOT).'/yuicompressor/yuicompressor.jar'))) $shell = false;
+        if(!isset(tdz::$minifier[$this->format])) $shell = false;
 
         if(!$outputFile) $outputFile = $this->output;
 
@@ -123,11 +123,7 @@ class Tecnodesign_Studio_Asset
                 mkdir($cacheDir, 0777, true);
             }
             if($shell) {
-                if(isset(tdz::$minifier[$this->format])) {
-                    $cmd = sprintf(tdz::$minifier[$this->format], implode(' ',$files), $tempnam);
-                } else {
-                    $cmd = tdz::$paths['cat'].' '.implode(' ',$files).' | '.tdz::$paths['java'].' -jar '.escapeshellarg($jar).' --nomunge --type '.$this->format.' -o '.$tempnam;
-                }
+                $cmd = sprintf(tdz::$minifier[$this->format], implode(' ',$files), $tempnam);
                 exec($cmd, $cmdoutput, $ret);
             } else {
                 $Min = null;

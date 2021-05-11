@@ -2627,7 +2627,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         return Tecnodesign_Schema::validateProperty($def, $value, $name);
     }
 
-    public static function __set_state($a, $underscore=false)
+    public static function __set_state($a)
     {
         $M = new static();
         if(!is_array($a) && $a) {
@@ -2639,6 +2639,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $M->$k = $v;
             $M->_original[$k] = $v;
         }
+
         return $M;
     }
 

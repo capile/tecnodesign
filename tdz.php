@@ -147,7 +147,9 @@ class tdz
         $assetsUrl = '/_',
         $async = true,
         $variables = array(),
-        $minifier = array(),
+        $minifier = array(
+            'js'=>'node_modules/.bin/uglifyjs --compress --mangle -- %s > %s',
+        ),
         $paths=array(
             'cat'=>'/bin/cat',
             'java'=>'/usr/bin/java',
@@ -1883,7 +1885,7 @@ class tdz
     {
         $acceptPat = ($accept) ?preg_quote($accept, '/') :'';
         $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', $s);
-        $r = iconv('utf-8', 'us-ascii//TRANSLIT', $r);
+        $r = iconv('UTF-8', 'ASCII//TRANSLIT', $r);
         $r = preg_replace('/[^0-9a-z'.$acceptPat.']+/i', '-', $r);
         $r = trim($r, '-');
         return ($anycase)?($r):(strtolower($r));
@@ -2458,7 +2460,7 @@ class tdz
     public static function strtotime($date, $showtime = true)
     {
         $hour=$minute=$second=0;
-        if(preg_match('/^([0-9]{4})(-([0-9]{2})(-([0-9]{2})(\T([0-9]{2})\:([0-9]{2})(\:([0-9]{2})(\.[0-9]+)?)?(Z|([-+])([0-9]{2})\:([0-9]{2}))?)?)?)?$/', trim($date), $m)){
+        if(preg_match('/^([0-9]{4})(-([0-9]{2})(-([0-9]{2})(T([0-9]{2})\:([0-9]{2})(\:([0-9]{2})(\.[0-9]+)?)?(Z|([-+])([0-9]{2})\:([0-9]{2}))?)?)?)?$/', trim($date), $m)){
             //           [year    ] -[month   ] -[day     ]  T[hour and minute     ]  :[seconds ][mseconds]   [timezone                  ]
             $m[3] = ($m[3]=='')?(1):((int)$m[3]);
             $m[5] = ($m[5]=='')?(1):((int)$m[5]);
@@ -3124,6 +3126,14 @@ class tdz
         }
     }
 }
+
+$locale = setlocale(LC_ALL, '0');
+if(strpos($locale, '.')===false) {
+    setlocale(LC_ALL, $locale.'.UTF-8');
+} else if(strpos($locale, '_')!==false) {
+    setlocale(LC_ALL, 'en_US.UTF-8');
+}
+unset($locale);
 
 if (!defined('TDZ_CLI')) {
     define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SHELL'])));
