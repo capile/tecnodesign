@@ -8,5 +8,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN mkdir -p /var/www/app
 WORKDIR /var/www/app
 
+#USER www-data
 #COPY . /var/www/app
-#RUN composer install
+#RUN composer install --no-dev
