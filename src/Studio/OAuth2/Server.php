@@ -56,7 +56,7 @@ class Server extends \OAuth2\Server
             $S = [];
             if($storages = self::config('storages')) {
             foreach($storages as $type) {
-                if(isset(Storage::$scope[$type])) {
+                if(isset(Storage::$scopes[$type])) {
                     $S[$type] = $storage;
                 }
                 unset($type);
