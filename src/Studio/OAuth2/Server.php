@@ -40,9 +40,10 @@ class Server extends \OAuth2\Server
         'always_issue_new_refresh_token'    => false,
         'unset_refresh_token_after_use'     => true,
         'default_scope'                     => 'basic openid',
-        'supported_scopes'                  => ['basic', 'openid'],
-        'grant_types'                       => ['authorization_code', 'client_credentials', 'jwt_bearer', 'refresh_token', 'user_credentials' ],
-        'response_types'                    => ['code', 'code id_token', 'id_token', 'id_token token', 'token' ],
+        'supported_scopes'                  => [ 'basic', 'openid' ],
+        'grant_types'                       => [ 'authorization_code', 'client_credentials', 'jwt_bearer', 'refresh_token', 'user_credentials' ],
+        'response_types'                    => [ 'code', 'code id_token', 'id_token', 'id_token token', 'token' ],
+        'storages'                          => [ 'access_token', 'authorization_code', 'client_credentials', 'client', 'refresh_token', 'user_credentials', 'user_claims', 'public_key', 'jwt_bearer', 'scope' ],
     ];
 
     public static function instance()
@@ -53,10 +54,12 @@ class Server extends \OAuth2\Server
             $responseTypes = [];
 
             $S = [];
-            $avoid = ['jti'];
-            foreach(Storage::$scopes as $type=>$scope) {
-                if(!in_array($type, $avoid)) $S[$type] = $storage;
-                unset($type, $scope);
+            if($storages = self::config('storages')) {
+            foreach($storages as $type) {
+                if(isset(Storage::$scope[$type])) {
+                    $S[$type] = $storage;
+                }
+                unset($type);
             }
 
             $oidc = null;
