@@ -12,3 +12,7 @@ Studio\Model\Tokens:
     __skip_soft_delete: true
     _delete: true
     _multiple: true
+  - type: client_credentials
+    id: test-client
+    __skip_soft_delete: true
+    _delete: true
