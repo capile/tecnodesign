@@ -16,7 +16,7 @@ class ExtractValueTest extends \Codeception\Test\Unit
     }
 
     // tests
-    public function testValidUrl()
+    public function testDataExtraction()
     {
         $a = [
             'test' => 1234,
