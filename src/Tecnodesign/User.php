@@ -1068,22 +1068,31 @@ class Tecnodesign_User
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }
+
         foreach(static::$cfg['ns'] as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
                 continue;
             }
             if(isset($nso['class'])) {
-                $C = $this->getObject($ns);
-                $m = 'signIn';
+                $C = (isset($nso['static']) && $nso['static']) ?$nso['class'] :$this->getObject($ns);
             } else if(isset($nso['finder'])) {
                 $C = $nso['finder'];
-                $m = (isset($nso['sign-in-method']))?($nso['sign-in-method']):('signIn');
             } else {
                 $C = $this;
-                $m = (isset($nso['sign-in-method']))?($nso['sign-in-method']):($ns.'SignIn');
             }
-            if(!method_exists($C, $m)) {
-                if(is_a($C, 'Tecnodesign_Model', true)) {
+
+            $m = null;
+            if($C) {
+                if(isset($nso['sign-in-method']) && method_exists($C, $nso['sign-in-method'])) {
+                    $m = $nso['sign-in-method'];
+                } else if(!method_exists($C, $m=tdz::camelize($ns).'SignIn') && !method_exists($C, $m = 'signIn')) {
+                    $C = null;
+                    $m = null;
+                }
+            }
+
+            if(!$C) {
+                if($C && is_a($C, 'Tecnodesign_Model', true)) {
                     unset($C, $m);
                     $C = $this;
                     $m = 'tdzSignIn';
@@ -1092,6 +1101,7 @@ class Tecnodesign_User
                     continue;
                 }
             }
+
             $opt = $o + $nso;
             if(!isset($nso['id'])) $nso['id'] = $ns;
             $this->_ns = $nso;

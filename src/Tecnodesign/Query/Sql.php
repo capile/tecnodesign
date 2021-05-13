@@ -1155,19 +1155,29 @@ class Tecnodesign_Query_Sql
             }
 
             if($id = $this->lastInsertId($M, $conn)) {
-                $pk = $M::pk();
-                if(is_array($id)) {
-                    if(!is_array($pk)) $pk = array($pk);
-                    foreach($pk as $f) {
-                        if(isset($id[$f])) {
-                            $M->$f = $id[$f];
+                $pk = $M::pk(null, true);
+                if($pk) {
+                    foreach($pk as $i=>$fn) {
+                        if(isset($M::$schema->properties[$fn]) && (!$M::$schema->properties[$fn]->increment || isset($data[$fn]))) {
+                            unset($pk[$i]);
                         }
-                        unset($f);
                     }
-                } else {
-                    if(is_array($pk)) $pk = array_shift($pk);
-                    $M[$pk] = $id;
                 }
+
+                if($pk) {
+                    if(is_array($id)) {
+                        foreach($pk as $f) {
+                            if(isset($id[$f])) {
+                                $M->$f = $id[$f];
+                            }
+                            unset($f);
+                        }
+                    } else {
+                        $pk = array_shift($pk);
+                        $M[$pk] = $id;
+                    }
+                }
+
                 $M->isNew(false);
                 $r = $id;
             }

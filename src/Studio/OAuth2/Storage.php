@@ -26,7 +26,7 @@ use tdz as S;
 
 class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, ClientInterface, AccessTokenInterface, RefreshTokenInterface, JwtBearerInterface, UserClaimsInterface, ScopeInterface, PublicKeyInterface
 {
-
+    protected static $instance;
     public static 
         $scopes=[
             'client_credentials'=>[
@@ -88,11 +88,75 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'encryption_algorithm'=>'options.encryption_algorithm',
                 'expires'=>'expires',
             ],
+            'server_credentials'=>[
+                'issuer' => 'id',
+                'client_id' => 'token',
+                'client_secret' => 'options.client_secret',
+                'grant_type' => 'options.grant_type',
+                'authorization_endpoint'=>'options.authorization_endpoint',
+                'token_endpoint'=>'options.token_endpoint',
+                'userinfo_endpoint'=>'options.userinfo_endpoint',
+                'scope'=>'options.scope',
+                'user_create'=>'options.user_create',
+                'user_update'=>'options.user_update',
+                'user_key'=>'options.user_key',
+                'user_map'=>'options.user_map',
+                'button'=>'options.button',
+                'name'=>'options.name',
+            ],
         ];
     protected 
         $tokens = [],
         $tokenFinder='Studio\\Model\\Tokens';
 
+    public static function instance()
+    {
+        if(!static::$instance) {
+            static::$instance = new Storage();
+        }
+
+        return static::$instance;
+    }
+
+    public static function find($type, $asArray=true)
+    {
+        $Q = static::instance()->tokenFinder;
+        $L = $Q::find((is_array($type)) ?$type :['type'=>$type],null,null,false);
+        $r = [];
+
+
+        if($L) {
+            if(!$asArray) {
+                return $L;
+            } else {
+                $scope = (is_string($type) && isset(static::$scopes[$type])) ?static::$scopes[$type] :null;
+                $fn = null;
+                if(is_string($asArray) && $scope && isset($scope[$fn])) {
+                    $fn = $scope[$fn];
+                }
+
+                foreach($L as $i=>$o) {
+                    if($o && $o->expires && S::strtotime($o->expires)<TDZ_TIMESTAMP) continue;
+                    if($fn) $r[] = $o->$fn;
+                    else $r[] = $o->asArray($scope);
+                }
+            }
+        }
+
+        return $r;
+    }
+
+    public static function replace($r)
+    {
+        $Q = static::instance()->tokenFinder;
+        return $Q::replace($r);
+    }
+
+    public static function fetch($type, $id, $asArray=true)
+    {
+        $S = static::instance();
+        return $S->getObject($type, $id, $asArray);
+    }
 
     public function getObject($type, $id, $asArray=true)
     {

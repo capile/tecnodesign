@@ -613,7 +613,7 @@ class Tecnodesign_Query_Api
         return $f;
     }
 
-    public static function runStatic($q, $n='', $data=null, $method=null, $headers=null, $callback='json')
+    public static function runStatic($q, $n='', $data=null, $method=null, $headers=null, $callback='json', $disconnect=false)
     {
         $conn = static::connect($n);
         curl_setopt($conn, CURLOPT_URL, $q);
@@ -642,6 +642,7 @@ class Tecnodesign_Query_Api
             curl_setopt($conn, CURLOPT_HTTPHEADER, $headers);
         }
         $r = curl_exec($conn);
+        if($disconnect) static::disconnect($n);
         $msg = '';
         if(!$r) {
             tdz::log('[ERROR] Curl error: '.curl_error($conn));

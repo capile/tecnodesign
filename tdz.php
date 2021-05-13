@@ -523,6 +523,58 @@ class tdz
     }
 
     /**
+     * Extract values from arrays and structures
+     * 
+     * Compatible with json_path
+     */ 
+    public static function extractValue($a, $p)
+    {
+        if(!is_array($a) && !is_object($a)) return;
+        if(substr($p, 0, 2)=='$.') $p = substr($p, 2);
+        if(strpos($p, '|')!==false) {
+            foreach(preg_split('#\|+#', $p, null, PREG_SPLIT_NO_EMPTY) as $i=>$o) {
+                if(!is_null($r = self::extractValue($a, $o))) return $r;
+            }
+            return;
+        }
+        if($p==='*') {
+            return $a;
+        } else if(array_key_exists($p, $a)) {
+            return $a[$p];
+        } else if(strpos($p, '.')!==false) {
+            $pa = explode('.', $p);
+            $r = $a;
+            while($pa) {
+                $n = array_shift($pa);
+                if($n==='*') {
+                    if(is_array($r)) {
+                        if(!$pa) return $r;
+                        $r2 = [];
+                        $ps = implode('.', $pa);
+                        foreach($r as $ra) {
+                            $rr = self::extractValue($ra, $ps);
+                            if(!is_null($rr)) {
+                                if(is_array($rr)) $r2 = array_merge($r2, $rr);
+                                else $r2[] = $rr;
+                            }
+                        }
+                        return ($r2) ?$r2 :null;
+                    }
+                    $r = null;
+                    break;
+
+                } else if(isset($r[$n])) {
+                    $r = $r[$n];
+                } else {
+                    $r = null;
+                    break;
+                }
+            }
+            return $r;
+        }
+    } 
+
+    /**
      * Request method to get current script name. May act as a setter if a string is
      * passed. Also returns absolute script name (according to $_SERVER[REQUEST_URI])
      * if true is passed.
@@ -2048,7 +2100,7 @@ class tdz
         return preg_replace('#<(/?[a-z][a-z0-9\:\-]*)(\s|[a-z0-9\-\_]+\=("[^"]*"|\'[^\']*\')|[^>]*)*(/?)>#i', '<$1$2>', strip_tags($s, '<p><ul><li><ol><table><th><td><br><br/><div><strong><em><details><summary>'));
     }
 
-    public static function buildUrl($url, $parts=array())
+    public static function buildUrl($url, $parts=[], $params=[])
     {
         if (!is_array($url)) {
             $url = parse_url($url);
@@ -2079,6 +2131,12 @@ class tdz
             $s .= ':' . $url['port'];
         }
         $s .= $url['path'];
+        if($params) {
+            if(isset($url['query']) && ($a=parse_url($url['query']))) {
+                $params += $a;
+            }
+            $url['query'] = http_build_query($params);
+        }
         if (isset($url['query'])) {
             $s .= '?' . $url['query'];
         }
