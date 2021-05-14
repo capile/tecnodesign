@@ -163,6 +163,7 @@ class tdz
         $perfmon=0,
         $autoload,
         $tplDir,
+        $userClass='Tecnodesign_User',
         $translator='Tecnodesign_Translate::message',
         $markdown='Tecnodesign_Markdown',
         $database,
@@ -217,14 +218,14 @@ class tdz
     /**
      * Current user retrieval
      *
-     * @return Tecnodesign_User
+     * @return instance of $userClass, authenticated or not
      */
     public static function getUser()
     {
         static $cn;
         if(is_null($cn)) {
-            $cn = tdz::getApp()->config('user', 'className');
-            if(!$cn) $cn = 'Tecnodesign_User';
+            $cn = static::getApp()->config('user', 'className');
+            if(!$cn) $cn = static::$userClass;
         }
         return $cn::getCurrent();
     }
@@ -235,11 +236,11 @@ class tdz
     public static function user($uid=null)
     {
         if(!is_null($uid) && $uid) {
-            $cn = tdz::getApp()->config('user', 'className');
-            if(!$cn) $cn = 'Tecnodesign_User';
+            $cn = static::getApp()->config('user', 'className');
+            if(!$cn) $cn = static::$userClass;
             return $cn::find($uid);
         }
-        return tdz::getUser();
+        return static::getUser();
     }
 
     /**

@@ -11,6 +11,8 @@ all:
         method: signOutWidget
         static: true
     export:
+      tdz:
+        userClass: Studio\User
       Studio\User:
         actions:
           signin: /signin
@@ -26,13 +28,13 @@ all:
       Developer: ~
       Administrator: ~
     properties: ~
+    model: Studio\Model\Users
     ns:
       studio:
         name: Studio Sign In
         enabled: true
         cookie: z-studio
         timeout: 14400
-        finder: Studio\Model\Users
         export:
           username: username
           name: name

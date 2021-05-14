@@ -765,7 +765,7 @@ class Tecnodesign_User
         $u = false;
         if(is_null($this->_ns)) {
             foreach(static::$cfg['ns'] as $ns=>$nso) {
-                if(!isset($nso['finder']) || !$nso['finder']) {
+                if(!isset($nso['class']) && !isset($nso['class'])) {
                     continue;
                 }
                 if(!isset($nso['id'])) $nso['id'] = $ns;
@@ -779,8 +779,14 @@ class Tecnodesign_User
             }
             return false;
         }
-        if(class_exists($this->_ns['finder'])) {
-            $finder = $this->_ns['finder'];
+
+        $finder = null;
+        $U = null;
+        if(isset($this->_ns['finder']) && $this->_ns['finder']) $finder = $this->_ns['finder'];
+        else if(isset($this->_ns['class']) && $this->_ns['class']) $finder = $this->_ns['class'];
+        else $finder = static::config('model');
+
+        if($finder && class_exists($finder)) {
             $find = $user;
             if(isset($this->_ns['properties']['username'])) {
                 $find = array($this->_ns['properties']['username']=>$find);
@@ -788,9 +794,8 @@ class Tecnodesign_User
             $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
             $U = $finder::find($find,1,$scope);
             unset($finder, $find, $scope);
-        } else {
-            $U = @eval('return '.sprintf($this->_ns['finder'], '$user').';');
         }
+
         if ($U) {
             $pass = (isset($this->_ns['properties']['password']))?($this->_ns['properties']['password']):('password');
             $pass = $U->$pass;
@@ -1091,8 +1096,8 @@ class Tecnodesign_User
                 }
             }
 
-            if(!$C) {
-                if($C && is_a($C, 'Tecnodesign_Model', true)) {
+            if(!$C || is_a($C, 'Tecnodesign_User', true)) {
+                if($C) {
                     unset($C, $m);
                     $C = $this;
                     $m = 'tdzSignIn';
@@ -1103,6 +1108,7 @@ class Tecnodesign_User
             }
 
             $opt = $o + $nso;
+            if(isset($opt['app'])) unset($opt['app']);
             if(!isset($nso['id'])) $nso['id'] = $ns;
             $this->_ns = $nso;
             if(is_object($C)) $U = $C->$m($opt);
