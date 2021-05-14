@@ -8,11 +8,11 @@ all:
       all: ~
 
       # who is eligible to view the website. This directive is overriden by the next two directives
-      preview: '*'
+      preview: ~
       # only authorized users may preview unpublished content
       previewUnpublished: [ Administrator, Developer, Editor, Author ]
       # everyone may view published content
-      previewPublished: '*'
+      previewPublished: ~
 
       new: [ Developer, Editor, Author ]
       # only developers may add the "php" Content type. Note that the most specific

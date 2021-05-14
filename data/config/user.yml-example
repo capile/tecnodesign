@@ -54,18 +54,3 @@ all:
       #  options:
       #    hosts:
       #      127.0.0.1: 1
-      #fb:
-      #  name: Facebook API
-      #  enabled: false
-      #  type: facebook
-      #  cookie: tdzid
-      #  timeout: 0
-      #  options:
-      #    app_id: ~
-      #    api_key: ~
-      #    app_secret: ~
-      #    extended-permissions: 'email,user_groups'
-      #    js-options:
-      #      cookie: true
-      #      xfbml: false
-      #      status: true
