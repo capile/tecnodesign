@@ -33,7 +33,7 @@ class Client extends PublicObject
         $userinfoHeaders = [];
     protected static $cfg;
 
-    protected $issuer, $client_id, $client_secret, $grant_type, $scope, $user_create, $user_update, $user_key, $user_map, $authorization_endpoint, $authorization_params, $token_endpoint, $token_params, $userinfo_endpoint;
+    protected $id, $issuer, $client_id, $client_secret, $grant_type, $scope, $user_create, $user_update, $user_key, $user_map, $authorization_endpoint, $authorization_params, $token_endpoint, $token_params, $userinfo_endpoint;
 
     public static function config($prop=null)
     {
@@ -61,7 +61,9 @@ class Client extends PublicObject
             if($T) {
                 foreach($T as $i=>$o) {
                     $n = null;
-                    if(isset($o['name'])) {
+                    if(isset($o['id'])) {
+                        $n = $o['id'];
+                    } else if(isset($o['name'])) {
                         $n = $o['name'];
                     } else if(!is_int($i)) {
                         $n = $i;
@@ -71,6 +73,16 @@ class Client extends PublicObject
                         continue;
                     }
                     if(!isset($o['button'])) $o['button'] = S::xml(sprintf(S::t('Sign in with %s', 'user'), $n));
+
+                    if(isset($o['issuer']) && preg_match('#^https?://#', $o['issuer'])) {
+                        if(!($d=Cache::get('oauth2-metadata/'.$o['issuer']))) {
+                            $d = S::unserialize(file_get_contents($o['issuer'].'/.well-known/openid-configuration'));
+                            if(!$d) $d = ['issuer'=>$o['issuer']];
+                            Cache::set('oauth2-metadata/'.$o['issuer'], $d);
+                        }
+                        $o += $d;
+                        unset($d);
+                    }
                     static::$cfg['servers'][$n] = $o;
                 }
             }
@@ -369,6 +381,15 @@ class Client extends PublicObject
             if($this->authorization_params) {
                 $p = (is_string($this->authorization_params)) ?S::unserialize($this->authorization_params, 'json') :$this->authorization_params;
                 if($p) $args += $p;
+            }
+
+            if(isset($this->issuer)) {
+                // oidc requires scope
+                if(!$this->scope) $args['scope'] = 'openid';
+            }
+
+            if(isset($this->response_types_supported)) {
+                $args['response_type'] = 'code';
             }
 
             S::redirect(S::buildUrl($this->authorization_endpoint, [], $args));

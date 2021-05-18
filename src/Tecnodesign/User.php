@@ -1069,7 +1069,9 @@ class Tecnodesign_User
                 $o['title']=tdz::t('Sign in', 'user');                
             }
         }
-        $o['app']='';
+
+        if(!isset(tdz::$variables['data'])) tdz::$variables['data']='';
+        $o['app'] =& tdz::$variables['data'];
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }
@@ -1114,6 +1116,7 @@ class Tecnodesign_User
             if(is_object($C)) $U = $C->$m($opt);
             else $U = $C::$m($opt);
             unset($C, $m);
+
             $o['app'] .= $U;
             if($U && is_object($U) && $U->isAuthenticated()) {
                 $this->_me = $U;
@@ -1200,7 +1203,7 @@ class Tecnodesign_User
         } else {
             $url = tdz::requestUri();
         }
-        $s = (isset($o['app']))?($o['app']):('');
+        $s = '';
         $buttons = (isset($o['buttons']))?($o['buttons']):(array('submit'=>tdz::t('Sign in', 'ui')));
         if(isset($o['action'])) {
             $action = $o['action'];
@@ -1273,7 +1276,17 @@ class Tecnodesign_User
             }
             unset($p);
         }
-        $s.=$o['form']->render();
+
+        if(isset(tdz::$variables['data']) && tdz::$variables['data']) {
+            $o['form']->after .= tdz::$variables['data'];
+            $s.= $o['form']->render();
+            tdz::$variables['data'] = $s;
+            $s = '';
+        } else {
+            $s.= $o['form']->render();
+        }
+
+
         return $s;
     }
 

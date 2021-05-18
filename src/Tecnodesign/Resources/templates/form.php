@@ -26,6 +26,7 @@ foreach($fields as $fn=>$fo) {
 }
 
 if(!isset($before)) $before = '';
+if(!isset($after)) $after = '';
 if(isset($limits) && $limits) {
     if(isset($limits['error']) && $limits['error']) {
         $before .= '<p class="tdz-i-msg tdz-i-error">'.tdz::xml($limits['error']).'</p>';
@@ -114,4 +115,4 @@ foreach($buttons as $bn=>$label) {
         echo '<button class="'.$bn.'"'.$a.'>'.$label.'</button>';
     }
 }
-?></p><?php endif; ?></form>
+?></p><?php endif; echo $after; ?></form>

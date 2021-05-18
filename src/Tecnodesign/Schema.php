@@ -42,7 +42,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
             return $schemas[$cn];
         }
         $ckey = 'schema/'.$cn;
-        if(false && is_int(static::$timeout) && ($Schema=Tecnodesign_Cache::get($ckey, static::$timeout))) {
+        if(is_int(static::$timeout) && ($Schema=Tecnodesign_Cache::get($ckey, static::$timeout))) {
             return $Schema;
         }
         $src = static::loadSchemaRef($cn);

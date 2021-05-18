@@ -89,9 +89,10 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'expires'=>'expires',
             ],
             'server_credentials'=>[
-                'issuer' => 'id',
+                'id' => 'id',
                 'client_id' => 'token',
                 'client_secret' => 'options.client_secret',
+                'issuer' => 'options.issuer',
                 'grant_type' => 'options.grant_type',
                 'authorization_endpoint'=>'options.authorization_endpoint',
                 'token_endpoint'=>'options.token_endpoint',
