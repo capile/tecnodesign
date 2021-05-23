@@ -1005,6 +1005,10 @@ input,select,textarea,.z-textarea,.z-input {
   background: #fff;
   border:none;
   width: calc(~"100% - 2px");
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0.25em 0.25em hsla(hue(@colorActive), saturation(@colorActive), lightness(@colorActive), 0.2);
+  }
 
   &.z-readonly {
     background:transparent;
@@ -1680,6 +1684,7 @@ form .i-mono dd {
 .z-i--pdf:before     {content: @iconPdf;}
 .z-i--video:before   {content: @iconVideo;}
 .z-i--reload:before  {content: @iconReload;}
+.z-i--connect:before {content: @iconConnect;}
 .z-i--doc:before, .z-i--docs:before, .z-i--document:before, .z-i--:before {content: @iconDocument;}
 
 .app-enable-type-toggler input[type="file"][data-alt-type] {

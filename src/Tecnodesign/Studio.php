@@ -174,8 +174,8 @@ class Tecnodesign_Studio
             if(!(isset($_COOKIE['lang']) && ($lang=$_COOKIE['lang']) && (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))))) {
                 unset($lang);
             }
-            if (!isset($lang) && isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                $accept = preg_split('/(;q=[0-9\.]+|\,)\s*/', $_SERVER['HTTP_ACCEPT_LANGUAGE'], null, PREG_SPLIT_NO_EMPTY);
+            if (!isset($lang) && ($langs=Tecnodesign_App::request('headers', 'accept-language'))) {
+                $accept = preg_split('/(;q=[0-9\.]+|\,)\s*/', $langs, null, PREG_SPLIT_NO_EMPTY);
                 foreach ($accept as $lang) {
                     if (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))) {
                         break;
@@ -850,6 +850,10 @@ class Tecnodesign_Studio
         if($cn) {
             // translate
             return $cn::$p;
+        } else if(self::$app) {
+            if(isset(self::$app->studio[$p])) {
+                return self::$app->studio[$p];
+            }
         }
         return false;
     }

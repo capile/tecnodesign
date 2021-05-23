@@ -1,22 +1,27 @@
 {
     "title": "*Index Interfaces",
     "database": "studio",
-    "tableName": "z_index_interfaces",
-    "className": "Tecnodesign_Studio_IndexInterfaces",
+    "tableName": "studio_interfaces",
+    "className": "Studio\\Model\\Interfaces",
     "properties": {
-        "interface": { "type": "string", "required": true, "primary": true },
-        "label": { "type": "string", "required": true, "size": 200 },
-        "model": { "type": "string", "required": true, "size": 500 },
+        "id": { "type": "string", "required": true, "primary": true },
+        "title": { "type": "string", "required": true, "size": 200 },
+        "model": { "type": "string", "size": 500 },
+        "connection": { "type": "string", "size": 100 },
+        "source": { "type": "string", "size": 500 },
+        "schema_source": { "type": "string", "size": 500 },
+        "schema_data": { "type": "string", "size": 10000 },
         "credential": { "type": "string", "size": 2000 },
+        "index_interval": { "type": "int" },
         "indexed": { "type": "datetime" },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "Index": { "local": "interface", "foreign": "interface", "type": "many", "className": "Tecnodesign_Studio_Index" }
+        "Index": { "local": "id", "foreign": "interface", "type": "many", "className": "Studio\\Model\\Index" }
     },
     "scope": {
-        "string": [ "name", "value" ]
+        "string": [ "title" ]
     },
     "order": {
     },

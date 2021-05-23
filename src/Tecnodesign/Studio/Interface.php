@@ -12,6 +12,8 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
+use Studio\Model\Interfaces as Interfaces;
+
 class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 {
     public static
@@ -71,16 +73,40 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return static::$base;
     }
 
+    /*
+    public static function find($q=null, $checkAuth=true)
+    {
+        \tdz::debug(__METHOD__);
+    }
+    */
+
+    public static function configFile($s)
+    {
+        if(Tecnodesign_Studio::config('enable_interfaces') && ($I=Interfaces::find($s,1))) {
+            $r = $I->cacheFile($s);
+        } else {
+            $r = parent::configFile($s);
+        }
+
+        return $r;
+    }
+
     public static function loadInterface($a=array(), $prepare=true)
     {
         $a = parent::loadInterface($a, $prepare);
 
+        $n = (isset($a['model'])) ?preg_replace('/^(Tecnodesign_Studio_|Studio\\\Model\\\)/', '', $a['model']) :'interface';
+
+        if(!Tecnodesign_Studio::config('enable_interface_'.strtolower($n))) {
+            $a['options']['navigation'] = null;
+            $a['options']['list-parent'] = false;
+            $a['options']['priority'] = null;
+        }
         // overwrite credentials
         if($prepare && !isset($a['credential'])) {
             $min = null;
             foreach(self::$actionAlias as $aa=>$an) {
-                if((isset(self::$models[$a['interface']]) && ($m=self::$models[$a['interface']]) && !is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$m)))
-                  || (isset($a['model']) && ($m=$a['model']) && !is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$m)))) {
+                if(!is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$n))) {
                     if($c===true) {
                         $min = $c;
                         $a['actions'][$an] = true;
@@ -100,6 +126,16 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                 $a['credential'] = $min;
             }
         }
+
+        if(!isset($a['credential'])) {
+            if(!is_null($c = Tecnodesign_Studio::credential('interface'.$n))
+                || !is_null($c = Tecnodesign_Studio::credential('interface'))
+                || !is_null($c = Tecnodesign_Studio::credential('edit'))
+            ) {
+                $a['credential'] = $c;
+            }
+        }
+
         return $a;
     }
 
@@ -146,14 +182,32 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 
     public function executeMethod()
     {
-        if(method_exists($o=$this->model, $a=\tdz::camelize($this->action))) {
+        $r = null;
+        if(method_exists($o=$this->model, $a='execute'.tdz::camelize($this->action, true))) {
             if($this->id) {
                 // get object
                 $o = $this->model();
-                return $o->$a($this);
+                $r = $o->$a($this);
             } else {
-                return $o::$a($this);
+                $r = $o::$a($this);
             }
+        }
+
+        if($r) {
+            if(is_array($r)) {
+                $this->getButtons();
+                $this->text = $r + $this->text;
+            } else if(is_string($r) && !isset($this->text['preview'])) {
+                $this->getButtons();
+                $this->text['preview'] = $r;
+            }
+
+            if(!isset($this->text['summary'])) {
+                $this->text['summary'] = $this->getSummary();
+            }
+            static::status(200);
+
+            return;
         }
         return false;
     }

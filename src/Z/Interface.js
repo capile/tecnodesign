@@ -1158,6 +1158,9 @@
                 Z.delay(msg, 5000, 'msg');
             }
             var u = o.getAttribute('data-url') || o.getAttribute('href');
+            var su=window.location.pathname+window.location.search+window.location.hash;
+            if(u.indexOf('{url}')>-1) u=u.replace(/\{url\}/g, encodeURIComponent(su));
+            if(u.indexOf('{surl}')>-1) u=u.replace(/\{surl\}/g, encodeURIComponent(btoa(su)));
             if(!u) return false;
             var t=o.getAttribute('data-target') || o.getAttribute('target');
             if(t) {

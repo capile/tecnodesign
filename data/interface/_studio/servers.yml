@@ -1,0 +1,90 @@
+---
+all:
+  title: "*OAuth/API Connectors"
+  model: Studio\Model\Tokens
+  actions:
+    connect:
+      action: executeMethod
+      position: 99
+      identified: true
+      batch: false
+      query: true
+      additional-params: true
+  key: id
+  search:
+    type: server
+  options:
+    list-parent: i
+    priority: 60
+    index: true
+    scope:
+      uid:
+        - id
+      list:
+        - id
+        - updated
+      new:
+        - bind: type
+          format: hidden
+          label: ~
+          value: server
+          readonly: true
+        - scope::client
+      preview:
+        - scope::client
+        - scope::options
+        - scope::meta
+      client:
+        __default:
+          fieldset: "*OAuth2 Connector"
+          type: text
+        Id: id
+        Client ID: token
+        Client Secret:
+          bind: options.client_secret
+          format: password
+          size: 500
+        Metadata: options.metadata
+        Scope: options.scope
+        Grant Type: options.grant_type
+      options:
+        __default:
+          fieldset: "*Service Options"
+          type: text
+        Allow Sign in:
+          bind: options.sign_in
+          type: bool
+          class: i1s4
+        Create Users:
+          bind: options.user_create
+          type: bool
+          class: i1s4
+        Update Users:
+          bind: options.user_update
+          type: bool
+          class: i1s4
+        Sign In Button:
+          bind: options.button
+          class: i1s4
+        Identity Key Attribute:
+          bind: options.identity_key
+          class: i1s2
+        User Key Attribute:
+          bind: options.user_key
+          class: i1s2
+        Attribute Mapping:
+          bind: options.user_map
+          type: object
+          scope:
+            property: '*User Attribute'
+            value: '*OAuth2 Attribute'
+          multiple: true
+      meta:
+        __default:
+          fieldset: "*OAuth2 Metadata"
+          type: text
+        Issuer: options.issuer
+        Authorization Endpoint: options.authorization_endpoint
+        Token Endpoint: options.token_endpoint
+        Userinfo Endpoint: options.userinfo_endpoint
+

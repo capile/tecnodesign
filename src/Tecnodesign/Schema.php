@@ -461,6 +461,70 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         return $R;
     }
 
+    public static function import($source, &$R=[])
+    {
+        static $fetch = [];
+
+        $cache = false;
+
+        if(is_string($source)) {
+            if(!$R) {
+                $cache = 'schemaref/'.$source;
+                if($R=Tecnodesign_Cache::get($cache)) {
+                    return $R;
+                }
+            }
+
+            $hash = ($p=strpos($source, '#')) ?substr($source, $p+1) :null;
+            if($hash) $source = substr($source, 0, $p);
+
+            if(isset($fetch[$source])) $S = $fetch[$source];
+            else {
+                $s = file_get_contents($source);
+                if(!$s || !($S=tdz::unserialize($s, 'json'))) return $R;
+
+                $fetch[$source] = $S;
+            }
+
+            if($hash) {
+                $hash = trim(str_replace('/', '.', $hash), '.');
+                $S = tdz::extractValue($S, $hash);
+                if(!$S) return $R;
+            }
+
+        } else {
+            $S = $source;
+        }
+
+        if(!is_array($S)) return $R;
+
+        foreach($S as $k=>$v) {
+            if($k=='allOf') {
+                if(is_array($v)) {
+                    foreach($v as $i=>$o) {
+                        static::import($o, $R);
+                    }
+                }
+            } else if($k=='$ref') {
+                static::import($v, $R);
+            } else if($k=='properties') {
+                if(!isset($R[$k])) $R[$k] = [];
+                foreach($v as $kk=>$vv) {
+                    $R[$k][$kk] = static::import($vv);
+                }
+            } else {
+                $R[$k] = $v;
+            }
+        }
+
+        if($cache) {
+            Tecnodesign_Cache::set($cache, $R);
+        }
+
+        return $R;
+
+    }
+
     public function toJsonSchema($scope=null, &$R=array())
     {
         // available scopes might form full definitions (?)
@@ -495,7 +559,13 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         foreach($fo as $fn=>$fd) {
             $bind = (isset($fd['bind']))?($fd['bind']):($fn);
             if($p=strrpos($bind, ' ')) $bind = substr($bind, $p+1);
-            if(isset($cn::$schema['columns'][$bind])) $fd+=$cn::$schema['columns'][$bind];
+            if(isset($cn::$schema->properties[$bind])) {
+                if(is_object($cn::$schema->properties[$bind]) && $cn::$schema->properties[$bind] instanceof Tecnodesign_Schema) {
+                    $fd += (array) $cn::$schema['columns'][$bind];
+                } else {
+                    $fd += (array) $cn::$schema['columns'][$bind];
+                }
+            }
             $type = (isset($fd['type']) && isset($types[$fd['type']]))?($types[$fd['type']]):('string');
             if(isset($fd['multiple']) && $fd['multiple']) {
                 if(isset($fd['type']) && $fd['type']=='array') $type = 'array'; 

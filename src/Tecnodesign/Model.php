@@ -218,7 +218,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
      * Unless $array evals to true or there are multiple PKs this will return the
      * result as a string (array otherwise)
      */
-    public static function pk($schema=null, $array=null)
+    public static function pk($schema=null, $array=null, $skipUid=false)
     {
         $update=false;
         if(!$schema) {
@@ -228,7 +228,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
         $pk=array();
         if($schema) {
-            if(isset($schema->scope['uid'])) {
+            if(!$skipUid && isset($schema->scope['uid'])) {
                 $pk = (is_array($schema->scope['uid']))?($schema->scope['uid']):(array($schema->scope['uid']));
             } else if($schema->properties) {
                 foreach($schema->properties as $fn=>$fd) {
@@ -1889,7 +1889,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public static function find($s=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
         $q=array();
-        if(!$groupBy && ($c = static::pk(null, true))) {
+        if(!$groupBy && ($c = static::pk(null, true, true))) {
             $q['select'] = $c;
             //$q['select'] = array_merge($c, static::columns($scope, null, 3, true));
             unset($c);
@@ -2436,6 +2436,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else if(isset($fd['type']) && $fd['type']=='file' && isset($fd['accept']['inline-preview']) && $fd['accept']['inline-preview'] && ($f=Tecnodesign_Image::base64Data($this[$fn]))) {
             $v = '<img src="'.((is_array($f))?(implode('" /><img src="', $f)):($f)).'" />';
             $xmlEscape = false;
+        } else if(isset($fd['type']) && $fd['type']=='bool') {
+            $v = ($this[$fn] > 0) ?tdz::t('Yes', 'interface') :tdz::t('No', 'interface');
+        } else if(isset($fd['type']) && $fd['type']=='object') {
+            $v = $this[$fn];
+            if($v && !is_array($v)) $v = tdz::unserialize($v, (isset($fd['serialize'])) ?$fd['serialize'] :'json');
+            if($v) {
+                $v = preg_replace('/^---\n/', '', Tecnodesign_Yaml::dump($v));
+            }
         } else {
             $v = $this[$fn];
             $getRef = true;

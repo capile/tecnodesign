@@ -10,6 +10,29 @@
  * @link      https://tecnodz.com
  * @version   2.4
  */
+if(($accept=Tecnodesign_App::request('headers', 'accept')) && preg_match('#^(text|application)/json\b#', $accept)) {
+    $r = [];
+    if(!isset($error)) {
+        if(isset($title)) $error = $title;
+        else $error = null;
+    }
+    if($error) $r['error'] = $title;
+
+    if(!isset($message)) {
+        if(isset($data)) $message = $data;
+        else if(isset($content)) $message = $content;
+        else $message = null;
+    }
+
+    if($message) {
+        $r['message'] = $message;
+    }
+
+    tdz::output($r, 'json');
+    exit();
+}
+
+
 
 if((!isset($script) || !$script) && isset($variables['script'])) $script = $variables['script'];
 if((!isset($style) || !$style || (count($style)==1 && isset($style[700]))) && isset($variables['style']))  $style  = $variables['style'];

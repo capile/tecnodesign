@@ -33,7 +33,7 @@ class Client extends PublicObject
         $userinfoHeaders = [];
     protected static $cfg;
 
-    protected $id, $issuer, $client_id, $client_secret, $grant_type, $scope, $user_create, $user_update, $user_key, $user_map, $authorization_endpoint, $authorization_params, $token_endpoint, $token_params, $userinfo_endpoint;
+    protected $id, $issuer, $client_id, $client_secret, $grant_type, $scope, $sign_in, $user_create, $user_update, $user_key, $user_map, $authorization_endpoint, $authorization_params, $token_endpoint, $token_params, $userinfo_endpoint, $api_endpoint;
 
     public static function config($prop=null)
     {
@@ -57,7 +57,7 @@ class Client extends PublicObject
 
         if(!isset(static::$cfg['servers'])) {
             static::$cfg['servers'] = [];
-            $T = Storage::find('server_credentials');
+            $T = Storage::find('server');
             if($T) {
                 foreach($T as $i=>$o) {
                     $n = null;
@@ -74,11 +74,14 @@ class Client extends PublicObject
                     }
                     if(!isset($o['button'])) $o['button'] = S::xml(sprintf(S::t('Sign in with %s', 'user'), $n));
 
-                    if(isset($o['issuer']) && preg_match('#^https?://#', $o['issuer'])) {
-                        if(!($d=Cache::get('oauth2-metadata/'.$o['issuer']))) {
-                            $d = S::unserialize(file_get_contents($o['issuer'].'/.well-known/openid-configuration'));
-                            if(!$d) $d = ['issuer'=>$o['issuer']];
-                            Cache::set('oauth2-metadata/'.$o['issuer'], $d);
+                    if(!isset($o['metadata']) && isset($o['issuer']) && preg_match('#^https?://#', $o['issuer'])) {
+                        $o['metadata'] = $o['issuer'].'/.well-known/openid-configuration';
+                    }
+                    if(isset($o['metadata']) && preg_match('#^https?://#', $o['metadata'])) {
+                        if(!($d=Cache::get('oauth2-meta/'.$o['metadata']))) {
+                            $d = S::unserialize(file_get_contents($o['metadata']));
+                            if(!$d) $d = ['metadata'=>$o['metadata']];
+                            Cache::set('oauth2-meta/'.$o['metadata'], $d);
                         }
                         $o += $d;
                         unset($d);
@@ -108,7 +111,9 @@ class Client extends PublicObject
         $s = null;
         if($S=static::config('servers')) {
             foreach($S as $n=>$o) {
-                $s .= '<a class="z-i-button" href="'.S::xml(static::$signInRoute.'/'.$n).'?ref=1">'.S::xml($o['button']).'</a>';
+                if(isset($o['sign_in']) && $o['sign_in']) {
+                    $s .= '<a class="z-i-button" href="'.S::xml(static::$signInRoute.'/'.$n).'?ref=1">'.S::xml($o['button']).'</a>';
+                }
             }
         }
 
@@ -123,7 +128,7 @@ class Client extends PublicObject
     {
         $U = S::getUser();
         $Client = null;
-        if($L = Storage::find(['type'=>'authorization::'.$this->issuer,'id'=>$U->getSessionId()], false)) {
+        if($L = Storage::find(['type'=>'authorization','token'=>$this->issuer,'id'=>$U->getSessionId()], false)) {
             foreach($L as $i => $Client) {
                 if($q) {
                     $valid = true;
@@ -152,7 +157,7 @@ class Client extends PublicObject
         return $Client;
     }
 
-    public static function authorize($options=[])
+    public static function authorizeSignIn($options=[])
     {
         $S = static::config('servers');
 
@@ -166,48 +171,64 @@ class Client extends PublicObject
             $U->setAttribute('authorize-source', $ref);
         }
 
-        if($p && ($p=implode('/', $p)) && isset($S[$p])) {
+        if($p && ($p=implode('/', $p)) && isset($S[$p]) && isset($S[$p]['sign_in']) && $S[$p]['sign_in']) {
             $Server = new Client($S[$p]);
 
             $Client = $Server->currentClient(['options.access_token'=>true, 'scope'=>$Server->scope]);
             $User = null;
 
-            if($Client && ($User=$Server->requestUserinfo($Client))) {
-            } else if($code=App::request('get', 'code')) {
-                $Client = $Server->requestToken($code);
-            } else {
-                $Client = $Server->requestAuthorization();
-            }
-
-            if(!$User && $Client && $Client['options.access_token']) {
-                $User = $Server->requestUserinfo($Client);
-            }
-
-            if($User) {
-                if(!isset($U)) $U = S::getUser();
-                if($nss = $U::config('ns')) {
-                    $ns = null;
-                    foreach($nss as $ns=>$nso) {
-                        if(isset($nso['class']) && $nso['class']===get_called_class()) {
-                            break;
-                        }
-                        $ns = null;
-                        unset($nso);
-                    }
-                }
-
-                $U->setObject($ns, $User);
-                if($ref=$U->getAttribute('authorize-source')) {
-                    $U->setAttribute('authorize-source', null);
-                } else if(isset($nso) && isset($nso['redirect-success'])) {
-                    $ref = $nso['redirect-success'];
+            try {
+                if($Client && ($User=$Server->requestUserinfo($Client))) {
+                } else if($code=App::request('get', 'code')) {
+                    $Client = $Server->requestToken($code);
                 } else {
-                    $ref = S::scriptName();
+                    $Client = $Server->requestAuthorization();
                 }
-                $U->store();
 
-                return S::redirect($ref);
+                if(!$User && $Client && $Client['options.access_token']) {
+                    $User = $Server->requestUserinfo($Client);
+                }
+
+                if($User) {
+                    if(!isset($U)) $U = S::getUser();
+                    if($nss = $U::config('ns')) {
+                        $ns = null;
+                        foreach($nss as $ns=>$nso) {
+                            if(isset($nso['class']) && $nso['class']===get_called_class()) {
+                                break;
+                            }
+                            $ns = null;
+                            unset($nso);
+                        }
+                    }
+
+                    $U->setObject($ns, $User);
+                    if($ref=$U->getAttribute('authorize-source')) {
+                        $U->setAttribute('authorize-source', null);
+                    } else if(isset($nso) && isset($nso['redirect-success'])) {
+                        $ref = $nso['redirect-success'];
+                    } else {
+                        $ref = S::scriptName();
+                    }
+                    $U->store();
+
+                    return S::redirect($ref);
+                } else {
+                    $err = S::t('Could not authenticate user.', 'exception');
+                }
+            } catch(\Exception $e) {
+                $err = $e->getMessage();
+            } 
+
+            S::getUser()->setMessage('<div class="z-i-error z-i-msg">'.S::xml($err).'</div>');
+            if($ref=$U->getAttribute('authorize-source')) {
+                $U->setAttribute('authorize-source', null);
+            } else if(isset($nso) && isset($nso['redirect-error'])) {
+                $ref = $nso['redirect-error'];
+            } else {
+                $ref = S::scriptName();
             }
+            S::redirect($ref);
         }
 
         return Studio::error(404);
@@ -237,7 +258,29 @@ class Client extends PublicObject
                 $R = Api::runStatic($this->userinfo_endpoint, $this->issuer, null, 'GET', $H, 'json', true);
 
                 $User = null;
-                if($R && $this->user_key) {
+                $I = null;
+                if($R && $this->identity_key && ($idk=S::extractValue($R, $this->identity_key))) {
+                    $idk = $this->id.':'.$idk;
+                    $q = ['type'=>'identity','token'=>$this->issuer,'id'=>$idk];
+                    if(!(list($I)=Storage::find($q, false))) {
+                        $I = Storage::replace($q+['options'=>$R]);
+                    }
+                }
+
+                if(!$I) {
+                    // could not fetch identity
+                    return false;
+                }
+
+                if($I->user) {
+                    $User = S::user($I->user);
+                    if(!$User) {
+                        // registered user is not available
+                        return false;
+                    }
+                }
+
+                if(!$User && $this->user_key) {
                     $pks = (!is_array($this->user_key)) ?[$this->user_key] :$this->user_key;
                     $valid = true;
                     $q = [];
@@ -260,41 +303,41 @@ class Client extends PublicObject
                         if(S::$log) S::log('[DEBUG] find user '.S::serialize($q, 'json'));
                         if($User = S::user($q)) {
                             $User = $User->getObject();
-                        }
-
-                        if(!$User && $this->user_create) {
-                            // create user
-                            if($this->user_map) {
-                                foreach($this->user_map as $k=>$p) {
-                                    if(!is_null($v = S::extractValue($R, $p))) {
-                                        $q[$k] = $v;
-                                    }
-                                }
-                            }
-
-                            if(S::$log) S::log('[DEBUG] Creating user '.S::serialize($q, 'json'));
-                            $User = User::create($q);
-                        } else if($User && $this->user_update  && $this->user_map) {
-                            $save = false;
-                            foreach($this->user_map as $k=>$p) {
-                                if(!is_null($v = S::extractValue($R, $p)) && $User->$k!=$v) {
-                                    $User->$k = $v;
-                                    $save = true;
-                                }
-                            }
-
-                            if($save) {
-                                $User->save();
-                            }
-                        }
-
-                        if($User) {
-                            \tdz::log(__METHOD__, var_export($User, true));
-                            $Client->user = $User->getPk();
+                            $I->user = $User->getPk();
+                            $I->save();
                         }
                     }
                 }
 
+                if(!$User && $this->user_create) {
+                    // create user
+                    if($this->user_map) {
+                        foreach($this->user_map as $k=>$p) {
+                            if(!is_null($v = S::extractValue($R, $p))) {
+                                $q[$k] = $v;
+                            }
+                        }
+                    }
+
+                    if(S::$log) S::log('[DEBUG] Creating user '.S::serialize($q, 'json'));
+                    $User = User::create($q);
+                    $I->user = $User->getPk();
+                    $I->save();
+                } else if($User && $this->user_update  && $this->user_map) {
+                    $save = false;
+                    foreach($this->user_map as $k=>$p) {
+                        if(!is_null($v = S::extractValue($R, $p)) && $User->$k!=$v) {
+                            $User->$k = $v;
+                            $save = true;
+                        }
+                    }
+
+                    if($save) {
+                        $User->save();
+                    }
+                }
+
+                /*
                 if($R) {
                     $o = $Client->options;
                     if(!is_array($o)) $o = S::unserialize($o, 'json');
@@ -304,6 +347,7 @@ class Client extends PublicObject
                     $Client->options = $o;
                     $Client->save();
                 }
+                */
 
                 return $User;
             }
@@ -320,8 +364,9 @@ class Client extends PublicObject
             $state = S::salt(10);
             $url = S::buildUrl(S::scriptName(true));
             $q = [
-                'type'=>'authorization::'.$this->issuer,
+                'type'=>'authorization',
                 'id'=>$U->getSessionId(),
+                'token'=>$this->issuer,
             ];
             $state = App::request('get', 'state');
             $Client = $this->currentClient(['options.state'=>$state]);
@@ -334,6 +379,12 @@ class Client extends PublicObject
                     'state'=>$state,
                     'redirect_uri'=>$url,
                 ];
+
+                if($this->grant_type) {
+                    $data['grant_type'] = $this->grant_type;
+                } else if(isset($this->grant_types_supported)) {
+                    list($data['grant_type']) = array_values($this->grant_types_supported);
+                }
 
                 $H = static::$requestHeaders;
                 if(static::$tokenHeaders) {
@@ -365,7 +416,7 @@ class Client extends PublicObject
             $state = S::salt(10);
             $url = S::buildUrl(S::scriptName(true));
             $Client = Storage::replace([
-                'type'=>'authorization::'.$this->issuer,
+                'type'=>'authorization',
                 'id'=>$U->getSessionId(),
                 'token'=>$this->issuer,
                 'user'=>($U->isAuthenticated()) ?$U->uid() :null,
@@ -389,6 +440,9 @@ class Client extends PublicObject
             }
 
             if(isset($this->response_types_supported)) {
+                //$args['response_type'] = (in_array('code', $this->response_types_supported)) ?'code' :array_values($this->response_types_supported)[0];
+                $args['response_type'] = 'code';
+            } else {
                 $args['response_type'] = 'code';
             }
 

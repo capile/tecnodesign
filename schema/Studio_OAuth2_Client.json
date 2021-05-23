@@ -8,6 +8,8 @@
         "client_secret": { "type": "string" },
         "grant_type": { "type": "string" },
         "scope": { "type": "string" },
+        "sign_in": { "type": "bool" },
+        "identity_key": { "type": "string" },
         "user_create": { "type": "bool" },
         "user_update": { "type": "bool" },
         "user_key": { "type": "string" },

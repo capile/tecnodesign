@@ -3,6 +3,8 @@ all:
   studio:
     version: 2.3
     connection: studio
+    enable_interface_entry: true
+    enable_interface_content: true
     credential:
       # basic privilege: is overriden by role/object-specific calls
       all: ~

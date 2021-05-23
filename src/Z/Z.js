@@ -351,7 +351,7 @@ Z.cookie=function(name, value, expires, path, domain, secure) {
 
 Z.slug=function(s)
 {
-    return s.toLowerCase()
+    return String(s).toLowerCase()
       .replace(/[ąàáäâãåæă]/g, 'a')
       .replace(/[ćčĉç]/g, 'c')
       .replace(/[ęèéëê]/g, 'e')

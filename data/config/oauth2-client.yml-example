@@ -4,7 +4,7 @@ all:
     routes:
       /signin/oauth2:
         class: Studio\OAuth2\Client
-        method: authorize
+        method: authorizeSignIn
         static: true
         additional-params: true
       /signout/oauth2:
@@ -12,6 +12,10 @@ all:
         method: signOut
         static: true
         additional-params: true
+  studio:
+    enable_interfaces: true
+    enable_interface_tokens: true
+    enable_interface_interfaces: true
   user:
     model: Studio\Model\Users
     ns:
