@@ -49,6 +49,9 @@ class Tecnodesign_Studio
         $allowedExtensions=array('.html'),
         $userMessage,
         $cli='studio',      // configurable, where to load Studio command-line interface
+        $interfaces = [
+            'interfaces'=>'interfaces',
+        ],
         $cliApps=[
             'config'=>['Tecnodesign_App_Install','config'],
             'index'=>['Tecnodesign_Studio_Index','reindex'],

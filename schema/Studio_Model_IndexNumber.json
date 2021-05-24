@@ -1,0 +1,34 @@
+{
+    "title": "*Index Number Properties",
+    "database": "studio",
+    "tableName": "studio_index_number",
+    "className": "Studio\\Model\\IndexNumber",
+    "properties": {
+        "interface": { "type": "string", "required": true, "primary": true },
+        "id": { "type": "string", "required": true, "primary": true },
+        "name": { "type": "string", "required": true, "primary": true, "size": 200 },
+        "value": { "type": "decimal", "index": [ "studio_index_number__idx" ] },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Studio\\Model\\Index", "constraint": { "fk_z_index_number__index": "cascade" } }
+    },
+    "scope": {
+        "string": [ "name", "value" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

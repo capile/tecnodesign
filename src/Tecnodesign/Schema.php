@@ -469,7 +469,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
 
         if(is_string($source)) {
             if(!$R) {
-                $cache = 'schemaref/'.$source;
+                $cache = 'schemaref/'.md5($source);
                 if($R=Tecnodesign_Cache::get($cache)) {
                     return $R;
                 }

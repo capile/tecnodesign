@@ -33,6 +33,7 @@ all:
       preview:
         - scope::client
         - scope::options
+        - scope::api
         - scope::meta
       client:
         __default:
@@ -79,6 +80,18 @@ all:
             property: '*User Attribute'
             value: '*OAuth2 Attribute'
           multiple: true
+      api:
+        __default:
+          fieldset: "*API Connection"
+          type: text
+        API Endpoint: options.api_endpoint
+        API Options:
+          bind: options.api_options
+          type: object
+          scope:
+            property: '*API Attribute'
+            value: '*Value'
+
       meta:
         __default:
           fieldset: "*OAuth2 Metadata"

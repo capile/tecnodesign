@@ -2,15 +2,19 @@
 /**
  * Studio Index
  * 
- * PHP version 5.6+
+ * PHP version 7.4+
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.3
+ * @version   2.5
  */
-class Tecnodesign_Studio_IndexProperties extends Tecnodesign_Model
+namespace Studio\Model;
+
+use Studio\Model as Model;
+
+class IndexBlob extends Model
 {
     public static $schema;
     protected $interface, $id, $name, $value, $created, $updated, $Index;

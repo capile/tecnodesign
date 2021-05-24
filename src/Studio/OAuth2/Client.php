@@ -33,7 +33,7 @@ class Client extends PublicObject
         $userinfoHeaders = [];
     protected static $cfg;
 
-    protected $id, $issuer, $client_id, $client_secret, $grant_type, $scope, $sign_in, $user_create, $user_update, $user_key, $user_map, $authorization_endpoint, $authorization_params, $token_endpoint, $token_params, $userinfo_endpoint, $api_endpoint;
+    protected $id, $issuer, $client_id, $client_secret, $grant_type, $scope, $sign_in, $user_create, $user_update, $user_key, $user_map, $authorization_endpoint, $authorization_params, $token_endpoint, $token_params, $userinfo_endpoint, $api_endpoint, $api_options;
 
     public static function config($prop=null)
     {
@@ -78,10 +78,10 @@ class Client extends PublicObject
                         $o['metadata'] = $o['issuer'].'/.well-known/openid-configuration';
                     }
                     if(isset($o['metadata']) && preg_match('#^https?://#', $o['metadata'])) {
-                        if(!($d=Cache::get('oauth2-meta/'.$o['metadata']))) {
+                        if(!($d=Cache::get($ckey='oauth2-meta/'.md5($o['metadata'])))) {
                             $d = S::unserialize(file_get_contents($o['metadata']));
                             if(!$d) $d = ['metadata'=>$o['metadata']];
-                            Cache::set('oauth2-meta/'.$o['metadata'], $d);
+                            Cache::set($ckey, $d);
                         }
                         $o += $d;
                         unset($d);
@@ -128,7 +128,7 @@ class Client extends PublicObject
     {
         $U = S::getUser();
         $Client = null;
-        if($L = Storage::find(['type'=>'authorization','token'=>$this->issuer,'id'=>$U->getSessionId()], false)) {
+        if($L = Storage::find(['type'=>'authorization','token'=>$this->id,'id'=>$U->getSessionId()], false)) {
             foreach($L as $i => $Client) {
                 if($q) {
                     $valid = true;
@@ -155,6 +155,28 @@ class Client extends PublicObject
         }
 
         return $Client;
+    }
+
+    public function connectApi($conn=null, $n=null)
+    {
+        $token = null;
+        // fetch the correct token (check scope, issuer and client_id)
+        if($A=Storage::find(['type'=>'authorization', 'token'=>$this->id])) {
+            foreach($A as $i=>$o) {
+                if(!isset($o['options'])) continue;
+                $d = (is_array($o['options'])) ?$o['options'] :S::unserialize($o['options'], 'json');
+                if($d && isset($d['access_token'])) {
+                    $token = ((isset($o['token_type'])) ?$o['token_type'] :'Bearer').' '.$d['access_token'];
+                    // @TODO: check expiration, refresh token
+                    break;
+                }
+            }
+        }
+        if($token && $conn) {
+            curl_setopt($conn, CURLOPT_HTTPHEADER, ['authorization: '.$token]);
+        }
+
+        return $conn;
     }
 
     public static function authorizeSignIn($options=[])
@@ -366,7 +388,7 @@ class Client extends PublicObject
             $q = [
                 'type'=>'authorization',
                 'id'=>$U->getSessionId(),
-                'token'=>$this->issuer,
+                'token'=>$this->id,
             ];
             $state = App::request('get', 'state');
             $Client = $this->currentClient(['options.state'=>$state]);
@@ -418,7 +440,7 @@ class Client extends PublicObject
             $Client = Storage::replace([
                 'type'=>'authorization',
                 'id'=>$U->getSessionId(),
-                'token'=>$this->issuer,
+                'token'=>$this->id,
                 'user'=>($U->isAuthenticated()) ?$U->uid() :null,
                 'options'=>[
                     'state'=>$state,

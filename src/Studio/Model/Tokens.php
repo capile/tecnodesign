@@ -69,10 +69,10 @@ class Tokens extends Model
             $o['metadata'] = $o['issuer'].'/.well-known/openid-configuration';
         }
         if(isset($o['metadata']) && preg_match('#^https?://#', $o['metadata'])) {
-            if(!($d=Cache::get('oauth2-meta/'.$o['metadata']))) {
+            if(!($d=Cache::get($ckey='oauth2-meta/'.md5($o['metadata'])))) {
                 $d = S::unserialize(file_get_contents($o['metadata']));
                 if(!$d) $d = ['metadata'=>$o['metadata']];
-                Cache::set('oauth2-meta/'.$o['metadata'], $d);
+                Cache::set($ckey, $d);
             }
             $o += $d;
             unset($d);

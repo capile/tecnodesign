@@ -21,7 +21,8 @@
         "Index": { "local": "id", "foreign": "interface", "type": "many", "className": "Studio\\Model\\Index" }
     },
     "scope": {
-        "string": [ "title" ]
+        "string": [ "title" ],
+        "interface": { "interface": "id", "title": "title", "model": "model", "credential": "credential" }
     },
     "order": {
     },

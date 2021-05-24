@@ -142,8 +142,16 @@ class Tecnodesign_Query_Api
             curl_setopt(self::$C[$n], CURLOPT_COOKIEFILE, static::$cookieJar);
             curl_setopt(self::$C[$n], CURLOPT_COOKIEJAR, static::$cookieJar);
         }
+
+        $callback = null;
         if(static::$connectionCallback) {
-            self::$C[$n] = call_user_func(static::$connectionCallback, self::$C[$n], $n);
+            $callback = static::$connectionCallback;
+        } else if(isset(tdz::$database[$n]['options']['connectionCallback'])) {
+            $callback = tdz::$database[$n]['options']['connectionCallback'];
+        }
+
+        if($callback) {
+            self::$C[$n] = call_user_func($callback, self::$C[$n], $n);
         }
 
         if(!self::$C[$n]) {

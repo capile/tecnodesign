@@ -1,0 +1,39 @@
+{
+    "title": "*Studio Database",
+    "database": "studio",
+    "tableName": "studio_index",
+    "className": "Studio\\Model\\Index",
+    "properties": {
+        "interface": { "type": "string", "required": true, "primary": true },
+        "id": { "type": "string", "required": true, "primary": true },
+        "summary": { "type": "string", "size": 2000 },
+        "indexed": { "type": "datetime", "required": true, "index": [ "studio_index__indexed_idx" ] },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "Interfaces": { "local": "interface", "foreign": "interface", "type": "one", "className": "Studio\\Model\\Interfaces", "constraint": { "fk_z_index__interfaces": "cascade" } },
+        "IndexText": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexText" },
+        "IndexDate": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexDate" },
+        "IndexBool": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexBool" },
+        "IndexNumber": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexNumber" },
+        "IndexBlob": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexBlob" }
+    },
+    "scope": {
+        "string": [ "summary", "indexed" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

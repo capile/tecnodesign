@@ -13,6 +13,8 @@
  * @version   2.3
  */
 use Studio\Model\Interfaces as Interfaces;
+use Tecnodesign_Studio as Studio;
+use tdz as S;
 
 class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 {
@@ -73,12 +75,34 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return static::$base;
     }
 
-    /*
     public static function find($q=null, $checkAuth=true)
     {
-        \tdz::debug(__METHOD__);
+        $Is = parent::find($q, $checkAuth);
+        if(!Studio::config('enable_interfaces')) {
+            return $Is;
+        }
+
+        if($L = Interfaces::find($q,null,null,false)) {
+            $n = (isset(Studio::$interfaces['interfaces'])) ?Studio::$interfaces['interfaces'] :'interfaces';
+            if(isset($Is[$n])) {
+                $base['options'] = ['list-parent'=>$n];
+            }
+
+            foreach($L as $i=>$o) {
+                $a = $o->asArray('interface');
+                if(isset($Is[$o->id])) {
+                    $Is[$o->id] = $a + $Is[$o->id];
+                } else {
+                    $a += $base;
+                    $a['options']['priority'] = $i;
+                    $a['options']['index'] = ($o->index_interval > 0);
+                    $Is[$o->id] = $a;
+                }
+            }
+        }
+
+        return $Is;
     }
-    */
 
     public static function configFile($s)
     {
