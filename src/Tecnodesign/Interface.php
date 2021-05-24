@@ -2526,9 +2526,15 @@ class Tecnodesign_Interface implements ArrayAccess
         }
 
         $qs = null;
-        if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
-            $qs = '?'.static::REQ_ENVELOPE.'='.var_export((bool)self::$envelope, true);
+        $envelope=Tecnodesign_App::request('get', static::REQ_ENVELOPE);
+        if($envelope) $envelope = ($envelope==='false') ?false :(bool)$envelope;
+
+        if(!is_null($envelope)) {
+            $qs = '?'.static::REQ_ENVELOPE.'='.var_export($envelope, true);
+        } else {
+            $envelope = self::$envelope;
         }
+        self::$envelope = false;
 
         // move this to a Tecnodesign_Schema::dump($scope, $properties=array($id, title) ) method
         // available scopes might form full definitions (?)
@@ -2544,7 +2550,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         $S['type']='object';
 
-        if(static::$envelope) {
+        if($envelope) {
             $S['properties']=array(
                 'status'=>array('type'=>'string'),
                 'status-code'=>array('type'=>'number'),
