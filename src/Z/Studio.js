@@ -138,7 +138,7 @@ function getInterface(u)
 
 function searchInterface(s)
 {
-    var d, u=_Studio+'/e/q';
+    var d, u=_Studio+'/i/q';
     if(typeof(s)=='object') {
         d = JSON.stringify({q:s});
     } else {

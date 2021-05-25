@@ -952,6 +952,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public function getStudioLink()
     {
+        if($this->id && strpos($this->id, '-')!==false) {
+            // grouped folder
+            $url = (isset($this->_studio_link)) ?$this->_studio_link :$this->link;
+            return ['_studio_link' => Tecnodesign_Studio::$home.'/i/q?url='.urlencode($url)];
+        }
+
+
         if(!isset($this->type)) {
             $this->refresh(['type']);
         }
@@ -959,6 +966,22 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if($this->type) {
             return Tecnodesign_Studio::$home.'/'.static::$typeInterfaces[$this->type];
         }
+    }
+
+    public function previewStudioLink()
+    {
+        $url = (isset($this->_studio_link)) ?$this->_studio_link :$this->link;
+        $html = (Tecnodesign_Studio_Interface::format()=='html');
+
+        $url = '/'.basename($url);
+
+        if($this->id && strpos($this->id, '-')!==false) {
+            // grouped folder
+        }
+
+
+        return ($html) ?\tdz::xml($url) :$url;
+
     }
 
     public function previewType()
@@ -1035,6 +1058,75 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     public function previewSummary()
     {
         return tdz::markdown($this->summary);
+    }
+
+    public static function executeList($Interface, $req=[])
+    {
+        $A = $Interface['text'];
+
+        $A['listLimit'] = 100;
+        $A['listOffset'] = 0;
+        $p=Tecnodesign_App::request('get', $Interface::REQ_OFFSET);
+        if($p!==null && is_numeric($p)) {
+            $p = (int) $p;
+            if($p < 0) {
+                $p = $p*-1;
+                if($p > $count) $p = $p % $count;
+                if($p) $p = $count - $p;
+            }
+            $A['listOffset'] = $p;
+        } else if(($pag=Tecnodesign_App::request('get', $Interface::REQ_PAGE)) && is_numeric($pag)) {
+            if(!$pag) $pag=1;
+            $A['listOffset'] = (($pag -1)*$A['listLimit']);
+            if($A['listOffset']>$count) $A['listOffset'] = $count;
+            $Interface::$headers['offset'] = $A['listOffset'];
+        } else if(isset($Interface::$headers['limit'])) {
+            $Interface::$headers['offset'] = $A['listOffset'];
+        }
+
+        $q = $Interface['search'];
+
+        if(!is_array($q)) $q = [];
+
+        $url = null;
+        if(isset($q[0])) {
+            $q += $q[0];
+            unset($q[0]);
+        }
+
+        $url0 = null;
+        if(isset($q['link'])) {
+            $url = $q['link'];
+            unset($q['link']);
+            $Interface['search'] = $q;
+            if($url) {
+                if(substr($url, 0, 1)!='/') $url = '/'.$url;
+                if(strlen($url)>1 && substr($url, -1)!=='/') {
+                    $url0 = $url;
+                    $url .= '/';
+                }
+            }
+        } else {
+            $url = '/';
+        }
+        $q['type'] = static::$previewEntryType;
+        if($url0) {
+            $q[] = [
+              '|left(`link`,'.(strlen($url)).')'=>$url,
+              '|link'=>$url0,
+            ];
+        } else {
+            $q['left(`link`,'.(strlen($url)).')']=$url;
+        }
+
+        // $q['published<']=TDZ_TIMESTAMP;
+        $link = 'substring_index(`link`, \'/\', '.(substr_count($url, '/')+1).')';
+
+        $scope = static::$schema->scope['list'];
+        $scope['*Link'] = $link.' _studio_link';
+        $A['list'] = static::find($q,null,$scope, true, [$link=>'asc'], [$link]);
+        $A['count'] = ($A['list']) ?$A['list']->count() :0;
+        $Interface['text'] = $A;
     }
 
 }

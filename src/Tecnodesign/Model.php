@@ -2166,8 +2166,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else {
             $checkbox = false;
         }
+
+        $uid = null;
         if(isset($o['link-generator']) && method_exists($this, $o['link-generator'])) {
             $link = $this->{$o['link-generator']}();
+            $uid = $this->getPk();
+            $replace = false;
         } else if(isset($o['link'])) {
             $link = $o['link'];
         } else {
@@ -2179,7 +2183,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $max = (isset($o['hits']))?($o['hits']):(20);
 
         $sf = null;
-        if(isset(tdz::$variables['Interface']) && is_object(tdz::$variables['Interface'])) {
+        if(!is_array($link) && isset(tdz::$variables['Interface']) && is_object(tdz::$variables['Interface'])) {
             $I = tdz::$variables['Interface'];
             $sf = Tecnodesign_App::request('get', $I::REQ_ORDER);
             if(strpos($sf, ',')) $sf = substr($sf, 0, strpos($sf, ','));
@@ -2358,6 +2362,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             $value = $this->renderField($fn, $fd, true);
 
+            $fullurl = null;
             if(is_array($link)) {
                 if(isset($link[$fn])) {
                     if(!isset($replace)) {
@@ -2368,21 +2373,24 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                             }
                         }
                     }
-                    $uid = tdz::xml(str_replace(array_keys($replace), array_values($replace), $link[$fn]));
-                    $url = null;
+                    $fullurl = ($replace) ?str_replace(array_keys($replace), array_values($replace), $link[$fn]) :$link[$fn];
                 } else {
                     $uid = false;
                     $url = false;
                 }
+            } else if($uid!==false && $url!==false) {
+                $fullurl = $url.$uid.$ext.$qs;
             }
+
             if(substr($fn, 0, 1)=='_') $fn = substr($fn,1);
             $lattrs = null;
-            if($url!==false && isset($o['link-class'])) $lattrs = ' class="'.\tdz::xml($o['link-class']).'"';
+            if($fullurl && isset($o['link-class'])) $lattrs = ' class="'.\tdz::xml($o['link-class']).'"';
 
             $s .= '<td class="f-'.$fn.' '.(($uid!==false && $checkbox)?(' tdz-check'):('')).'">'
                 . (($uid!==false && $checkbox)?('<input type="'.$checkbox.'" id="uid-'.tdz::xml($this->getPk()).'" name="uid'.(($checkbox==='checkbox')?('[]'):('')).'" value="'.$uid.'" />'):(''))
-                . (($uid!==false && $url!==false)?('<a href="'.$url.$uid.$ext.$qs.'"'.$lattrs.'>'.$value.'</a>'):($value))
+                . (($fullurl)?('<a href="'.tdz::xml($fullurl).'"'.$lattrs.'>'.$value.'</a>'):($value))
                 .'</td>';
+
             if($uid!==false) $uid=false;
             unset($label, $fn);
         }

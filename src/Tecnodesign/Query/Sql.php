@@ -279,7 +279,7 @@ class Tecnodesign_Query_Sql
             if(!is_string($count)) {
                 $cc = '';
                 if($this->_groupBy) {
-                    if(strpos($this->_groupBy, ',')!==false) {
+                    if(strpos($this->_groupBy, ',')!==false && strpos($this->_groupBy, '(')===false) {
                         $cc = $this->concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),'');
                     } else {
                         $cc = trim($this->_groupBy);

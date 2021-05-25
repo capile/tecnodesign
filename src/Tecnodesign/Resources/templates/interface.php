@@ -63,6 +63,7 @@ if($Interface::$navigation) {
         ?>><?php
 
         // .z-i-actions
+        if(!isset($buttons)) $buttons = null;
         if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
             /*if(count($Interface::$urls)>1): ?><a class="tdz-i-a z-i--close" href="<?php echo tdz::xmlEscape(array_shift(array_keys($Interface::$urls))) ?>"></a><?php endif;*/
             ?><input type="checkbox" id="tdz-i-b-<?php echo $id; ?>" class="tdz-i-switch z-i-actions" /><label for="tdz-i-b-<?php echo $id; ?>"><?php
@@ -157,6 +158,7 @@ if($Interface::$navigation) {
                         $listRenderer = (isset($options['list-renderer']) && $options['list-renderer']) ?$options['list-renderer'] :'renderUi';
                         $sn = tdz::scriptName(true);
                         tdz::scriptName($Interface->link());
+                        if(!is_object($list)) $list = new Tecnodesign_Collection($list, $Interface->getModel());
                         echo $list->paginate($listLimit, $listRenderer, array('options'=>$options), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
                         tdz::scriptName($sn);
                         unset($sn);

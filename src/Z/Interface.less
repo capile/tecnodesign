@@ -1003,6 +1003,9 @@ input,select,textarea,.z-textarea,.z-input {
   background: #fff;
   border:none;
   width: calc(~"100% - 2px");
+  &:focus {
+    outline: 0.1em solid @colorActive;
+  }
 
   &.z-readonly {
     background:transparent;
