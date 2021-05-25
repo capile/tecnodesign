@@ -627,7 +627,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         if(isset($fd['type']) && isset($format[$fd['type']])) $R['format'] = $format[$fd['type']];
     }
 
-    protected static function _jsonSchemaArray($fd, &$R=array())
+    protected function _jsonSchemaArray($fd, &$R=array())
     {
         if(isset($fd['scope'])) {
             $R['items'] = $this->toJsonSchema($fd['scope'], $R);
@@ -640,7 +640,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         // contains
     }
 
-    protected static function _jsonSchemaObject($fd, &$R=array())
+    protected function _jsonSchemaObject($fd, &$R=array())
     {
         if(isset($fd['scope'])) {
             $R = $this->toJsonSchema($fd['scope'], $R);
