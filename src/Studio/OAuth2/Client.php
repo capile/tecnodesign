@@ -184,6 +184,7 @@ class Client extends PublicObject
                 $ttl = $this->config('ttl');
                 if($ttl) $ttl = 7200;
                 if($expired || $expires_in < $ttl) {
+                    S::log('[INFO] Refreshing token for '.$this->id);
                     if(isset($d['refresh_token'])) {
                         $token = $this->refreshToken($d['refresh_token'], Storage::fetch('authorization', $o['id'], false));
                         if($token) {

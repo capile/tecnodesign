@@ -235,8 +235,6 @@ class Index extends Model
                 if(S::$log > 0 && $count > $offset) S::log('[INFO] Ongoing index offset for '.$cn.': '.$offset);
             }
             unset($R, $L);
-        } else {
-            \tdz::debug('???? not found???');
         }
 
         if(method_exists($cn, 'studioIndex')) {
