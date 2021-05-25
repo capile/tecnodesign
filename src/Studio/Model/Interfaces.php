@@ -135,6 +135,8 @@ class Interfaces extends Model
             if(!isset($a['model'])) {
                 $a['model'] = 'Studio\\Model\\Index';
                 $a['search'] = ['interface'=>$this->id];
+                $a['key'] = 'id';
+                $a['options']['scope']['uid'] = ['id'];
             }
 
             if(!S::save($f, S::serialize(['all'=>$a], 'yaml'), true)) {

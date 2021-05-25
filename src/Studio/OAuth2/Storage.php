@@ -99,7 +99,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'token_endpoint'=>'options.token_endpoint',
                 'userinfo_endpoint'=>'options.userinfo_endpoint',
                 'api_endpoint'=>'options.api_endpoint',
-                'api_options'=>'options.api_endpoint',
+                'api_options'=>'options.api_options',
                 'scope'=>'options.scope',
                 'sign_in'=>'options.sign_in',
                 'identity_key'=>'options.identity_key',

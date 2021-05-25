@@ -131,6 +131,7 @@ class Index extends Model
             $II->save();
         }
 
+        $q = ($q) ?['where'=>$q] :[];
         $scope = null;
         if(isset($a['options']['scope'])) {
             $cn::$schema->scope += $a['options']['scope'];
@@ -139,9 +140,10 @@ class Index extends Model
         if(isset($cn::$schema->scope['index'])) $scope = 'index';
         else if(isset($cn::$schema->scope['preview'])) $scope = 'preview';
 
-        $groupBy = null;
+        if($scope) $q['scope'] = $scope;
+
         if(isset($a['options']['group-by'])) {
-            $groupBy = $a['options']['group-by'];
+            $q['groupBy'] = $a['options']['group-by'];
         }
 
         if($scope && is_string($scope)) {
@@ -149,8 +151,12 @@ class Index extends Model
         } else {
             $pscope = $scope;
         }
-        if(($R=$cn::find($q, null, $scope, true, false, $groupBy)) && $R->count()>0) {
-            $count = $R->count();
+
+        $count = null;
+        $R = $cn::query($q);
+        if($R) {
+            $countable = (method_exists($R, 'config')) ?$R->config('countable') :true;
+            $count = ($countable) ?$R->count() :10000;
             $limit = $cn::$queryBatchLimit;
             $offset = 0;
             $fn_created = $fn_updated = null;
@@ -160,9 +166,9 @@ class Index extends Model
                 $fn_created = ($fn_updated) ?array_diff($cn::$schema->actAs['before-insert']['timestampable'], $fn_updated) :$cn::$schema->actAs['before-insert']['timestampable'];
             }
 
-            if(!$limit) $limit = 500;
+            if(!$limit) $limit = 100;
             while($count > $offset) {
-                $L = $R->getItem($offset, $limit);
+                $L = $R->fetch($offset, $limit);
                 if(!$L) break;
 
                 foreach($L as $i=>$o) {
@@ -229,20 +235,22 @@ class Index extends Model
                 if(S::$log > 0 && $count > $offset) S::log('[INFO] Ongoing index offset for '.$cn.': '.$offset);
             }
             unset($R, $L);
+        } else {
+            \tdz::debug('???? not found???');
         }
 
         if(method_exists($cn, 'studioIndex')) {
             $cn::studioIndex($a, $icn, $pscope, $keyFormat, $valueFormat, $serialize);
         }
 
-        $total = $count;
+        $total = $offset;
 
-        if($lmod && ($R=static::find(['interface'=>$id, 'indexed<'=>preg_replace('/\.[0-9]+$/', '', TDZ_TIMESTAMP)])) && $R->count()>0) {
+        if($total && $lmod && ($R=static::find(['interface'=>$id, 'indexed<'=>preg_replace('/\.[0-9]+$/', '', TDZ_TIMESTAMP)])) && $R->count()>0) {
             $count = $R->count();
             $total += $count;
             if(!isset($limit)) $limit = $cn::$queryBatchLimit;
-            $offset = 0;
             if(!$limit) $limit = 500;
+            $offset = 0;
             while($count > $offset) {
                 $L = $R->getItem($offset, $limit);
                 if(!$L) break;

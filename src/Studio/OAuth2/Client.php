@@ -165,9 +165,36 @@ class Client extends PublicObject
             foreach($A as $i=>$o) {
                 if(!isset($o['options'])) continue;
                 $d = (is_array($o['options'])) ?$o['options'] :S::unserialize($o['options'], 'json');
+                if(!$d) continue;
+                $expired = null;
+                $expires_in = null;
+                $t = null;
+                if(isset($d['expires_at'])) {
+                    $t= $d['expires_at'];
+                    if(!is_numeric($t)) $t=S::strtotime($t);
+
+                } else if(isset($d['expires_in'])) {
+                    $t = (int)$d['expires_in'] + S::strtotime($this->updated);
+                }
+                if($t) {
+                   if($t<TDZ_TIME) $expired = true;
+                    $expires_in = TDZ_TIME - $t;
+                }
+
+                $ttl = $this->config('ttl');
+                if($ttl) $ttl = 7200;
+                if($expired || $expires_in < $ttl) {
+                    if(isset($d['refresh_token'])) {
+                        $token = $this->refreshToken($d['refresh_token'], Storage::fetch('authorization', $o['id'], false));
+                        if($token) {
+                             $token = ((isset($o['token_type'])) ?$o['token_type'] :'Bearer').' '.$token;
+                        }
+                        break;
+                    }
+                }
+
                 if($d && isset($d['access_token'])) {
                     $token = ((isset($o['token_type'])) ?$o['token_type'] :'Bearer').' '.$d['access_token'];
-                    // @TODO: check expiration, refresh token
                     break;
                 }
             }
@@ -377,6 +404,36 @@ class Client extends PublicObject
 
     }
 
+    public function refreshToken($refreshToken, $Client=null)
+    {
+        $token = null;
+        if($this->token_endpoint) {
+
+            $url = S::buildUrl(S::scriptName(true));
+            $data = [
+                'client_id'=>$this->client_id,
+                'client_secret'=>$this->client_secret,
+                'grant_type'=>'refresh_token',
+                'refresh_token'=>$refreshToken,
+            ];
+
+            $H = static::$requestHeaders;
+            $R = Api::runStatic($this->token_endpoint, $this->issuer, $data, 'POST', $H, 'json', true);
+
+            if($R) {
+                if($Client) {
+                    $o = $R;
+                    if($this->scope) $o['scope'] = $this->scope;
+                    $Client->options = $o;
+                    $Client->save();
+                }
+                $token = $R['access_token'];
+            }
+        }
+
+        return $token;
+    }
+
     public function requestToken($code=null, $User=null)
     {
         $Client = null;
@@ -416,10 +473,10 @@ class Client extends PublicObject
 
                 if($R) {
                     $o = $Client->options;
-                    if($this->scope) $o['scope'] = $this->scope;
                     if(!is_array($o)) $o = S::unserialize($o, 'json');
                     if(!$o) $o = [];
                     else if(isset($o['state'])) unset($o['state']);
+                    if($this->scope) $o['scope'] = $this->scope;
                     $o = $R + $o;
                     $Client->options = $o;
                     $Client->save();

@@ -91,6 +91,7 @@ all:
           scope:
             property: '*API Attribute'
             value: '*Value'
+          multiple: true
 
       meta:
         __default:
