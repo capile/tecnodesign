@@ -1075,7 +1075,6 @@ class Tecnodesign_User
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }
-
         foreach(static::$cfg['ns'] as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
                 continue;
@@ -1093,8 +1092,12 @@ class Tecnodesign_User
                 if(isset($nso['sign-in-method']) && method_exists($C, $nso['sign-in-method'])) {
                     $m = $nso['sign-in-method'];
                 } else if(!method_exists($C, $m=tdz::camelize($ns).'SignIn') && !method_exists($C, $m = 'signIn')) {
-                    $C = null;
-                    $m = null;
+                    if($C!=$this) {
+                        $C=$this;
+                    } else {
+                        $C = null;
+                        $m = null;
+                    }
                 }
             }
 

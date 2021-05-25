@@ -124,7 +124,9 @@ class Tecnodesign_Studio_Asset
             }
             if($shell) {
                 $cmd = sprintf(tdz::$minifier[$this->format], implode(' ',$files), $tempnam);
+                if(!preg_match('#^(/|[A-Z]:)#i', $cmd)) $cmd = TDZ_PROJECT_ROOT.'/'.$cmd;
                 exec($cmd, $cmdoutput, $ret);
+                if($ret>0) @unlink($tempnam);
             } else {
                 $Min = null;
                 $add = '';

@@ -119,13 +119,18 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
     {
         $a = parent::loadInterface($a, $prepare);
 
-        $n = (isset($a['model'])) ?preg_replace('/^(Tecnodesign_Studio_|Studio\\\Model\\\)/', '', $a['model']) :'interface';
-
-        if(!Tecnodesign_Studio::config('enable_interface_'.strtolower($n))) {
-            $a['options']['navigation'] = null;
-            $a['options']['list-parent'] = false;
-            $a['options']['priority'] = null;
+        $re = '/^(Tecnodesign_Studio_|Studio\\\Model\\\)/';
+        if(isset($a['model']) && preg_match($re, $a['model'])) {
+            $n = preg_replace($re, '', $a['model']);
+            if(!Tecnodesign_Studio::config('enable_interface_'.strtolower($n))) {
+                $a['options']['navigation'] = null;
+                $a['options']['list-parent'] = false;
+                $a['options']['priority'] = null;
+            }
+        } else {
+            $n = tdz::camelize($a['interface'], true);
         }
+
         // overwrite credentials
         if($prepare && !isset($a['credential'])) {
             $min = null;

@@ -3194,18 +3194,24 @@ if(strpos($locale, '.')===false) {
 }
 unset($locale);
 
-if (!defined('TDZ_CLI')) {
+define('STUDIO_VERSION', "2.5.0");
+if(!defined('TDZ_CLI')) {
     define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SHELL'])));
 }
+if(!defined('S_CLI')) define('S_CLI', TDZ_CLI);
+
 define('TDZ_TIME', microtime(true));
+define('S_TIME', TDZ_TIME);
 list($u, $t) = explode('.', (string) TDZ_TIME);
 define('TDZ_TIMESTAMP', date('Y-m-d\TH:i:s.', (int)$u).substr($t.'000000',0,6));
+define('S_TIMESTAMP', TDZ_TIMESTAMP);
 unset($u, $t);
 
 if (!defined('TDZ_ROOT')) {
     define('TDZ_ROOT', str_replace('\\', '/', dirname(__FILE__)));
     set_include_path(get_include_path().PATH_SEPARATOR.TDZ_ROOT.'/src');
 }
+if(!defined('S_ROOT')) define('S_ROOT', TDZ_ROOT);
 if (!defined('TDZ_APP_ROOT')) {
     if(isset($_SERVER['APP_ROOT']) && is_dir($_SERVER['APP_ROOT'])) {
         define('TDZ_APP_ROOT', realpath($_SERVER['APP_ROOT']));
@@ -3215,6 +3221,7 @@ if (!defined('TDZ_APP_ROOT')) {
         define('TDZ_APP_ROOT', TDZ_ROOT);
     }
 }
+if(!defined('S_APP_ROOT')) define('S_APP_ROOT', TDZ_APP_ROOT);
 if (!defined('TDZ_VAR')) {
     if(is_dir($d='./data/Tecnodesign')
         || is_dir($d='./data')
@@ -3227,6 +3234,7 @@ if (!defined('TDZ_VAR')) {
     }
     unset($d);
 }
+if(!defined('S_VAR')) define('S_VAR', TDZ_VAR);
 if (!defined('TDZ_DOCUMENT_ROOT')) {
     if(is_dir($d=TDZ_APP_ROOT.'/../htdocs')
         || is_dir($d=TDZ_APP_ROOT.'/../www')
@@ -3241,10 +3249,12 @@ if (!defined('TDZ_DOCUMENT_ROOT')) {
     }
     unset($d);
 }
+if(!defined('S_DOCUMENT_ROOT')) define('S_DOCUMENT_ROOT', TDZ_DOCUMENT_ROOT);
 
 if(!defined('TDZ_PROJECT_ROOT')) {
     define('TDZ_PROJECT_ROOT', file_exists(TDZ_APP_ROOT.'/composer.json') ?TDZ_APP_ROOT :dirname(TDZ_APP_ROOT));
 }
+if(!defined('S_PROJECT_ROOT')) define('S_PROJECT_ROOT', TDZ_PROJECT_ROOT);
 
 spl_autoload_register('tdz::autoload', true, true);
 if(is_null(tdz::$lib)) {
