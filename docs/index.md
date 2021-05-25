@@ -6,13 +6,13 @@ title: Tecnodesign Studio Documentation
 Tecnodesign Studio 
 ==================
 
-This is a framework developed by Tecnodesign to build web applications and websites. It comes with a powerful MVC structure and several additional modules.
+Studio is both a product and a development framework built by Tecnodesign to produce web applications. It's simple, secure and self-contained.
 
 ## Installation
 
-To ensure all dependencies are properly loaded, the installation must be done using composer.
+To ensure all dependencies are properly loaded, the installation should be done using composer.
 
-You can quickly startup the web interface using PHP built-in web server by running `./app-server` and accessing on <http://localhost:9999/>
+You can quickly install and startup a new project using the built-in web server (`studio-server`) which can be accessed at <http://localhost:9999/>
 
 ## Configuration
 
@@ -20,18 +20,18 @@ There's an installation script that will configure the core modules and dependen
 
 ```
 composer require capile/tecnodesign
-vendor/capile/tecnodesign/app studio:config [project]
+vendor/bin/studio :config [project]
 ```
 
 You can also use the installer for some specific components installation, for example:
 
 - **Database**   
   To configure only module database connection into your [apps-dir]:  
-  `vendor/capile/tecnodesign/app studio:config database [project]`
+  `vendor/bin/studio :config database [project]`
 
 - **Studio**   
   To install Studio CMS modules:   
-  `vendor/capile/tecnodesign/app studio:config studio [project]`
+  `vendor/bin/studio :config studio [project]`
 
 Dependencies need to be required on your main `composer.json` file.
 

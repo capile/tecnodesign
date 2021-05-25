@@ -1,0 +1,23 @@
+{
+    "className": "Studio\\OAuth2\\Client",
+    "type": "object",
+    "patternProperties": "/.*/",
+    "properties": {
+        "issuer": { "type": "string" },
+        "client_id": { "type": "string" },
+        "client_secret": { "type": "string" },
+        "grant_type": { "type": "string" },
+        "scope": { "type": "string" },
+        "sign_in": { "type": "bool" },
+        "identity_key": { "type": "string" },
+        "user_create": { "type": "bool" },
+        "user_update": { "type": "bool" },
+        "user_key": { "type": "string" },
+        "user_map": { "type": "object", "serialize": "json" },
+        "authorization_endpoint": { "type": "string" },
+        "authorization_params": { "type": "object", "serialize": "json" },
+        "token_endpoint": { "type": "string" },
+        "userinfo_endpoint": { "type": "string" },
+        "button": { "type": "string" }
+    }
+}

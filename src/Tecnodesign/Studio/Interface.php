@@ -12,6 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
+use Studio\Model\Interfaces as Interfaces;
+use Tecnodesign_Studio as Studio;
+use tdz as S;
+
 class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 {
     public static
@@ -27,7 +31,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrPreviewClass   = 'tdz-i-preview',
         $attrParamClass     = 'tdz-i-param',
         $attrTermClass      = 'tdz-i-term',
-        $attrErrorClass     = 'tdz-err tdz-msg',
+        $attrErrorClass     = 'z-i-msg z-i-error',
         $attrCounterClass   = 'tdz-counter',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
@@ -71,16 +75,62 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return static::$base;
     }
 
+    public static function find($q=null, $checkAuth=true)
+    {
+        $Is = parent::find($q, $checkAuth);
+        if(!Studio::config('enable_interfaces')) {
+            return $Is;
+        }
+
+        if($L = Interfaces::find($q,null,null,false)) {
+            $n = (isset(Studio::$interfaces['interfaces'])) ?Studio::$interfaces['interfaces'] :'interfaces';
+            if(isset($Is[$n])) {
+                $base['options'] = ['list-parent'=>$n];
+            }
+
+            foreach($L as $i=>$o) {
+                $a = $o->asArray('interface');
+                if(isset($Is[$o->id])) {
+                    $Is[$o->id] = $a + $Is[$o->id];
+                } else {
+                    $a += $base;
+                    $a['options']['priority'] = $i;
+                    $a['options']['index'] = ($o->index_interval > 0);
+                    $Is[$o->id] = $a;
+                }
+            }
+        }
+
+        return $Is;
+    }
+
+    public static function configFile($s)
+    {
+        if(Tecnodesign_Studio::config('enable_interfaces') && ($I=Interfaces::find($s,1))) {
+            $r = $I->cacheFile($s);
+        } else {
+            $r = parent::configFile($s);
+        }
+
+        return $r;
+    }
+
     public static function loadInterface($a=array(), $prepare=true)
     {
         $a = parent::loadInterface($a, $prepare);
 
+        $n = (isset($a['model'])) ?preg_replace('/^(Tecnodesign_Studio_|Studio\\\Model\\\)/', '', $a['model']) :'interface';
+
+        if(!Tecnodesign_Studio::config('enable_interface_'.strtolower($n))) {
+            $a['options']['navigation'] = null;
+            $a['options']['list-parent'] = false;
+            $a['options']['priority'] = null;
+        }
         // overwrite credentials
         if($prepare && !isset($a['credential'])) {
             $min = null;
             foreach(self::$actionAlias as $aa=>$an) {
-                if((isset(self::$models[$a['interface']]) && ($m=self::$models[$a['interface']]) && !is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$m)))
-                  || (isset($a['model']) && ($m=$a['model']) && !is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$m)))) {
+                if(!is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$n))) {
                     if($c===true) {
                         $min = $c;
                         $a['actions'][$an] = true;
@@ -100,6 +150,16 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                 $a['credential'] = $min;
             }
         }
+
+        if(!isset($a['credential'])) {
+            if(!is_null($c = Tecnodesign_Studio::credential('interface'.$n))
+                || !is_null($c = Tecnodesign_Studio::credential('interface'))
+                || !is_null($c = Tecnodesign_Studio::credential('edit'))
+            ) {
+                $a['credential'] = $c;
+            }
+        }
+
         return $a;
     }
 
@@ -212,6 +272,13 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
             } else {
                 $r = $o::$a($this, $req);
             }
+
+            if(!isset($this->text['summary'])) {
+                $this->text['summary'] = $this->getSummary();
+            }
+            static::status(200);
+
+            return;
         }
 
         if(!isset($this->text['buttons'])) {

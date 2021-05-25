@@ -101,6 +101,7 @@ class tdz
             'woff' => 'font/woff',
             'woff2'=> 'font/woff2',
             'eot'  => 'font/vnd.ms-fontobject',
+            'ico'  => 'image/x-icon',
         ),
         $browsers = array(
             'webtv'=>'Web TV',
@@ -146,7 +147,9 @@ class tdz
         $assetsUrl = '/_',
         $async = true,
         $variables = array(),
-        $minifier = array(),
+        $minifier = array(
+            'js'=>'node_modules/.bin/uglifyjs --compress --mangle -- %s > %s',
+        ),
         $paths=array(
             'cat'=>'/bin/cat',
             'java'=>'/usr/bin/java',
@@ -160,6 +163,7 @@ class tdz
         $perfmon=0,
         $autoload,
         $tplDir,
+        $userClass='Tecnodesign_User',
         $translator='Tecnodesign_Translate::message',
         $markdown='Tecnodesign_Markdown',
         $database,
@@ -214,14 +218,14 @@ class tdz
     /**
      * Current user retrieval
      *
-     * @return Tecnodesign_User
+     * @return instance of $userClass, authenticated or not
      */
     public static function getUser()
     {
         static $cn;
         if(is_null($cn)) {
-            $cn = tdz::getApp()->config('user', 'className');
-            if(!$cn) $cn = 'Tecnodesign_User';
+            $cn = static::getApp()->config('user', 'className');
+            if(!$cn) $cn = static::$userClass;
         }
         return $cn::getCurrent();
     }
@@ -231,10 +235,12 @@ class tdz
      */
     public static function user($uid=null)
     {
-        if(!is_null($uid)) {
-
+        if(!is_null($uid) && $uid) {
+            $cn = static::getApp()->config('user', 'className');
+            if(!$cn) $cn = static::$userClass;
+            return $cn::find($uid);
         }
-        return tdz::getUser();
+        return static::getUser();
     }
 
     /**
@@ -516,6 +522,58 @@ class tdz
         }
         return $s;
     }
+
+    /**
+     * Extract values from arrays and structures
+     * 
+     * Compatible with json_path
+     */ 
+    public static function extractValue($a, $p)
+    {
+        if(!is_array($a) && !is_object($a)) return;
+        if(substr($p, 0, 2)=='$.') $p = substr($p, 2);
+        if(strpos($p, '|')!==false) {
+            foreach(preg_split('#\|+#', $p, null, PREG_SPLIT_NO_EMPTY) as $i=>$o) {
+                if(!is_null($r = self::extractValue($a, $o))) return $r;
+            }
+            return;
+        }
+        if($p==='*') {
+            return $a;
+        } else if(array_key_exists($p, $a)) {
+            return $a[$p];
+        } else if(strpos($p, '.')!==false) {
+            $pa = explode('.', $p);
+            $r = $a;
+            while($pa) {
+                $n = array_shift($pa);
+                if($n==='*') {
+                    if(is_array($r)) {
+                        if(!$pa) return $r;
+                        $r2 = [];
+                        $ps = implode('.', $pa);
+                        foreach($r as $ra) {
+                            $rr = self::extractValue($ra, $ps);
+                            if(!is_null($rr)) {
+                                if(is_array($rr)) $r2 = array_merge($r2, $rr);
+                                else $r2[] = $rr;
+                            }
+                        }
+                        return ($r2) ?$r2 :null;
+                    }
+                    $r = null;
+                    break;
+
+                } else if(isset($r[$n])) {
+                    $r = $r[$n];
+                } else {
+                    $r = null;
+                    break;
+                }
+            }
+            return $r;
+        }
+    } 
 
     /**
      * Request method to get current script name. May act as a setter if a string is
@@ -1469,7 +1527,7 @@ class tdz
         return $cacheControl;
     }
 
-    public static function download($file, $format=null, $fname=null, $speed=0, $attachment=false, $nocache=false, $exit=true)
+    public static function download($file, $format=null, $fname=null, $speed=0, $attachment=null, $nocache=false, $exit=true)
     {
         if (connection_status() != 0 || !$file)
             return(false);
@@ -1666,7 +1724,7 @@ class tdz
                     if(!isset($res[$k])) {
                         $res[$k] = $v;
                     } else if(is_array($res[$k]) && is_array($v)) {
-                        $res[$k] = tdz::mergeRecursive($v, $res[$k]);
+                        $res[$k] = tdz::mergeRecursive($res[$k], $v);
                     }
                 }
             }
@@ -1880,7 +1938,7 @@ class tdz
     {
         $acceptPat = ($accept) ?preg_quote($accept, '/') :'';
         $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', $s);
-        $r = iconv('utf-8', 'us-ascii//TRANSLIT', $r);
+        $r = iconv('UTF-8', 'ASCII//TRANSLIT', $r);
         $r = preg_replace('/[^0-9a-z'.$acceptPat.']+/i', '-', $r);
         $r = trim($r, '-');
         return ($anycase)?($r):(strtolower($r));
@@ -2043,7 +2101,7 @@ class tdz
         return preg_replace('#<(/?[a-z][a-z0-9\:\-]*)(\s|[a-z0-9\-\_]+\=("[^"]*"|\'[^\']*\')|[^>]*)*(/?)>#i', '<$1$2>', strip_tags($s, '<p><ul><li><ol><table><th><td><br><br/><div><strong><em><details><summary>'));
     }
 
-    public static function buildUrl($url, $parts=array())
+    public static function buildUrl($url, $parts=[], $params=[])
     {
         if (!is_array($url)) {
             $url = parse_url($url);
@@ -2074,6 +2132,12 @@ class tdz
             $s .= ':' . $url['port'];
         }
         $s .= $url['path'];
+        if($params) {
+            if(isset($url['query']) && ($a=parse_url($url['query']))) {
+                $params += $a;
+            }
+            $url['query'] = http_build_query($params);
+        }
         if (isset($url['query'])) {
             $s .= '?' . $url['query'];
         }
@@ -2455,7 +2519,7 @@ class tdz
     public static function strtotime($date, $showtime = true)
     {
         $hour=$minute=$second=0;
-        if(preg_match('/^([0-9]{4})(-([0-9]{2})(-([0-9]{2})(\T([0-9]{2})\:([0-9]{2})(\:([0-9]{2})(\.[0-9]+)?)?(Z|([-+])([0-9]{2})\:([0-9]{2}))?)?)?)?$/', trim($date), $m)){
+        if(preg_match('/^([0-9]{4})(-([0-9]{2})(-([0-9]{2})(T([0-9]{2})\:([0-9]{2})(\:([0-9]{2})(\.[0-9]+)?)?(Z|([-+])([0-9]{2})\:([0-9]{2}))?)?)?)?$/', trim($date), $m)){
             //           [year    ] -[month   ] -[day     ]  T[hour and minute     ]  :[seconds ][mseconds]   [timezone                  ]
             $m[3] = ($m[3]=='')?(1):((int)$m[3]);
             $m[5] = ($m[5]=='')?(1):((int)$m[5]);
@@ -3120,13 +3184,18 @@ class tdz
             if(tdz::$log) tdz::log($s." ({$mem}M)");
         }
     }
-
 }
 
-
+$locale = setlocale(LC_ALL, '0');
+if(strpos($locale, '.')===false) {
+    setlocale(LC_ALL, $locale.'.UTF-8');
+} else if(strpos($locale, '_')!==false) {
+    setlocale(LC_ALL, 'en_US.UTF-8');
+}
+unset($locale);
 
 if (!defined('TDZ_CLI')) {
-    define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && basename($_SERVER['argv'][0], '.php')=='tdz'));
+    define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SHELL'])));
 }
 define('TDZ_TIME', microtime(true));
 list($u, $t) = explode('.', (string) TDZ_TIME);

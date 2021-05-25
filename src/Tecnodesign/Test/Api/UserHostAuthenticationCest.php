@@ -27,10 +27,10 @@ class UserHostAuthenticationCest
         file_put_contents(TDZ_ROOT . '/.appkey', 'app-host-auth');
         touch(TDZ_ROOT . '/app.yml');
 
-        $I->sendGET('/_me?new');
+        $I->sendGET('/_me');
         $I->seeResponseCodeIs(200);
         $I->seeResponseIsJson();
-        $I->seeResponseContains('{"username":"admin","credentials":["Administrator"]');
+        $I->seeResponseContainsJson(['username'=>'test-user']);
 
         unlink(TDZ_ROOT . '/data/config/user-host-admin.yml');
         unlink(TDZ_ROOT . '/.appkey');

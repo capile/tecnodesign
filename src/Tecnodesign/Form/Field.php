@@ -1652,6 +1652,121 @@ class Tecnodesign_Form_Field implements ArrayAccess
         return tdz::exec($run);
     }
 
+    public function renderObject(&$arg)
+    {
+        $input = '<input type="hidden" id="'.tdz::xml($arg['id']).'" name="'.tdz::xml($arg['name']).'" />';
+        $jsinput = '';
+        $prefix ='';
+        /*
+        // @TODO: link custom schemas for the object
+        $bind = $this->bind;
+        $schema=$this->getSchema();
+        */
+
+        $fo = [
+            'fields'=>[
+                'property'=>['type'=>'text', 'required'=>true, 'label'=>'*Property', 'class'=>'i1s2'],
+                'value'=>['type'=>'text', 'label'=>'*Value', 'class'=>'i1s2'],
+            ],
+        ];
+
+        if($this->scope) {
+            foreach($fo['fields'] as $fn=>$fd) {
+                if(isset($this->scope[$fn])) {
+                    $o = $this->scope[$fn];
+                    if(!is_array($o)) $o = ['label'=>$o];
+                    $fo['fields'][$fn] = $o+$fd;
+                }
+            }
+        }
+
+        if($this->multiple) $this->multiple = false;
+        $prefix = $this->getName();
+        $fo['id'] = $prefix.'[§]';
+        $form = Tecnodesign_Form::instance($fo['id'], $fo);
+        $form->setLimits(false);
+        $jsinput = '<div class="item">';
+        foreach($form->fields as $fn=>$f) {
+            $jsinput .= $f->render();
+            unset($fn, $f);
+        }
+        $jsinput .= '</div>';
+
+        $value = $this->getValue();
+
+        if(!is_array($value)) {
+            $value = tdz::unserialize($value, $this->serialize);
+        }
+
+        // loop for each entry and add to $input
+        $i = 0;
+        if(is_array($value) && $value) {
+            foreach($value as $k=>$v) {
+                $fo['id'] = $prefix.'['.$i.']';
+                $form = Tecnodesign_Form::instance($fo['id'], $fo);
+                $form->setLimits(false);
+                $input .= '<div class="item '.(($i%2)?('even'):('odd')).'">';
+                foreach($form->fields as $fn=>$f) {
+                    $f->setValue(($fn=='property') ?$k :$v);
+                    $input .= $f->render();
+                }
+                $input .= '</div>';
+                $i++;
+            }
+        }
+
+        if (!isset($arg['template'])) {
+            $arg['template'] = 'subform';
+        }
+        $class = '';
+        if($jsinput) {
+            //$jsinput = ' data-template="'.tdz::xml($jsinput).'" data-prefix="'.$prefix.'"';
+            $jsinput = ' data-template="'.htmlspecialchars($jsinput, ENT_QUOTES, 'UTF-8', true).'" data-prefix="'.$prefix.'"';
+            if($this->multiple) {
+                $class .= ' multiple';
+            }
+            if($this->min_size) {
+                $jsinput .= ' data-min="'.$this->min_size.'"';
+            }
+            if($this->size) {
+                $jsinput .= ' data-max="'.$this->size.'"';
+            }
+        }
+        $a=array('class'=>'subform items');
+        if($this->attributes){
+            $a+=$this->attributes;
+            if(isset($this->attributes['class'])) {
+                $a['class'].=' '.$this->attributes['class'];
+            }
+        }
+        if($input || $jsinput) {
+            $attr=$jsinput;
+            foreach($a as $k=>$v) {
+                $attr.=' '.$k.'="'.$v.'"';
+            }
+            $input = '<div'.$attr.'>'.$input.'</div>';
+        }
+
+        return $input;
+    }
+
+    public function checkObject($value, $message='')
+    {
+        $r = null;
+        if($value && is_array($value)) {
+            $r = [];
+            foreach($value as $i=>$o) {
+                if(is_array($o) && isset($o['property'])) {
+                    $v = (isset($o['value'])) ?$o['value'] :null;
+                    $r[$o['property']] = $v;
+                }
+            }
+        }
+
+        return $r;
+    }
+
+
     public function renderForm(&$arg)
     {
         $input = '<input type="hidden" id="'.tdz::xml($arg['id']).'" name="'.tdz::xml($arg['name']).'" />';

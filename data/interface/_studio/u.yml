@@ -1,7 +1,12 @@
 ---
 all:
-  model: Tecnodesign_Studio_User
+  model: Studio\Model\Users
   options:
     list-parent: i
     priority: 40
     index: true
+    scope:
+      list:
+        - username
+        - name
+        - updated

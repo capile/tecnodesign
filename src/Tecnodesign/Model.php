@@ -218,7 +218,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
      * Unless $array evals to true or there are multiple PKs this will return the
      * result as a string (array otherwise)
      */
-    public static function pk($schema=null, $array=null)
+    public static function pk($schema=null, $array=null, $skipUid=false)
     {
         $update=false;
         if(!$schema) {
@@ -228,7 +228,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
         $pk=array();
         if($schema) {
-            if(isset($schema->scope['uid'])) {
+            if(!$skipUid && isset($schema->scope['uid'])) {
                 $pk = (is_array($schema->scope['uid']))?($schema->scope['uid']):(array($schema->scope['uid']));
             } else if($schema->properties) {
                 foreach($schema->properties as $fn=>$fd) {
@@ -782,6 +782,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if(count($w)>0) {
                 $sfn .= ':'.implode(',',array_keys($w));
             }
+            $sfn = $cn.'.'.$sfn;
             if(isset($cn::$increment[$sfn])) {
                 $cn::$increment[$sfn]++;
             } else {
@@ -791,8 +792,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 if(count($w)==0 && $mssql) {
                     $sql = "select ident_current('{$schema->tableName}') as next";
                 } else {
-                    $ifnull = ($mssql)?('isnull'):('ifnull');
-                    $sql = "select {$ifnull}(max({$fn}),0)+1 as next from {$schema->tableName}";
+                    $sql = "select coalesce(max({$fn}),0)+1 as next from {$schema->tableName}";
                     if(count($w)>0) {
                         $sql .= ' where '.implode(' and ', $w);
                     }
@@ -915,7 +915,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
      */
     public function softDeleteTrigger($fields, $conn=null)
     {
-        if($this->_delete) {
+        if($this->_delete && !(isset($this->__skip_soft_delete) && $this->__skip_soft_delete)) {
             $tstamp = date('Y-m-d H:i:s');
             if($fields && !is_array($fields)) {
                 $fields = array($fields);
@@ -1696,9 +1696,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
 
             // Run dependencies
-            if($relations) {
+            if($relations && $cn::$schema->relations) {
                 $relations--;
-                foreach ($cn::$schema['relations'] as $rcn=>$rd) {
+                foreach ($cn::$schema->relations as $rcn=>$rd) {
                     $rc=(isset($rd['className']))?($rd['className']):($rcn);
                     if(!tdz::classFile($rc) || !isset($rc::$schema) || (isset($rc::$schema['type']) && $rc::$schema['type']=='view')) {
                         continue;
@@ -1889,7 +1889,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public static function find($s=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
         $q=array();
-        if(!$groupBy && ($c = static::pk(null, true))) {
+        if(!$groupBy && ($c = static::pk(null, true, true))) {
             $q['select'] = $c;
             //$q['select'] = array_merge($c, static::columns($scope, null, 3, true));
             unset($c);
@@ -2444,6 +2444,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else if(isset($fd['type']) && $fd['type']=='file' && isset($fd['accept']['inline-preview']) && $fd['accept']['inline-preview'] && ($f=Tecnodesign_Image::base64Data($this[$fn]))) {
             $v = '<img src="'.((is_array($f))?(implode('" /><img src="', $f)):($f)).'" />';
             $xmlEscape = false;
+        } else if(isset($fd['type']) && $fd['type']=='bool') {
+            $v = ($this[$fn] > 0) ?tdz::t('Yes', 'interface') :tdz::t('No', 'interface');
+        } else if(isset($fd['type']) && $fd['type']=='object') {
+            $v = $this[$fn];
+            if($v && !is_array($v)) $v = tdz::unserialize($v, (isset($fd['serialize'])) ?$fd['serialize'] :'json');
+            if($v) {
+                $v = preg_replace('/^---\n/', '', Tecnodesign_Yaml::dump($v));
+            }
         } else {
             $v = $this[$fn];
             $getRef = true;
@@ -2635,7 +2643,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         return Tecnodesign_Schema::validateProperty($def, $value, $name);
     }
 
-    public static function __set_state($a, $underscore=false)
+    public static function __set_state($a)
     {
         $M = new static();
         if(!is_array($a) && $a) {
@@ -2647,6 +2655,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $M->$k = $v;
             $M->_original[$k] = $v;
         }
+
         return $M;
     }
 
@@ -2830,9 +2839,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public function safeSet($name, $value, $skipValidation=false)
     {
         if($name=='ROWSTAT') return $this;
-        $mn=tdz::camelize($name, true);
         if(substr($name,0, 1)=='`' && substr($name, -1)=='`') $name = substr($name, 1, strlen($name)-2);
-        if(isset(static::$schema['columns'][$name]) && !array_key_exists($name, $this->_original)) {
+        if(isset(static::$schema->properties[$name]) && ($a=static::$schema->properties[$name]->alias)) {
+            $name = $a;
+            unset($a);
+        }
+        $mn=tdz::camelize($name, true);
+
+        if(isset(static::$schema->properties[$name]) && !array_key_exists($name, $this->_original)) {
             $this->_original[$name] = $this->$name;
         }
         if (strpos($name, '.') !== false) {
@@ -2844,27 +2858,27 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
         if (method_exists($this, $m='set'.$mn)) {
             $this->$m($value);
-        } else if(isset(static::$schema['columns'][$name])) {
+        } else if(isset(static::$schema->properties[$name])) {
             if(!$skipValidation) {
-                $value = $this->validate(static::$schema['columns'][$name], $value, $name);
+                $value = $this->validate(static::$schema->properties[$name], $value, $name);
             }
             $this->$name=$value;
-        } else if(isset(static::$schema['relations'][$name])) {
+        } else if(isset(static::$schema->relations[$name])) {
             $this->setRelation($name, $value);
         } else if($firstName && $ref && method_exists($this, $m='set'.tdz::camelize($firstName, true))) {
             $this->$m(array($ref=>$value));
         // add other options for dotted.names?
-        } else if($firstName && $ref && (isset($this->$firstName) || isset(static::$schema['columns'][$firstName]))) {
-            if(!isset(static::$schema['columns'][$firstName]['serialize'])) {
+        } else if($firstName && $ref && (isset($this->$firstName) || isset(static::$schema->properties[$firstName]))) {
+            if(!isset(static::$schema->properties[$firstName]['serialize'])) {
                 if(is_array($this->$firstName) || is_object($this->$firstName)) {
                     $this->{$firstName}[$ref] = $value;
                 }
             } else {
-                if(isset(static::$schema['columns'][$firstName]) && !array_key_exists($firstName, $this->_original)) {
+                if(isset(static::$schema->properties[$firstName]) && !array_key_exists($firstName, $this->_original)) {
                     $this->_original[$firstName] = $this->$firstName;
                 }
                 $a0 = $this->$firstName;
-                if(is_string($a0) && isset(static::$schema['columns'][$firstName]['serialize'])) {
+                if(is_string($a0) && isset(static::$schema->properties[$firstName]['serialize'])) {
                     $a0 = tdz::unserialize($a0, static::$schema['columns'][$firstName]['serialize']);
                 }
                 if(!$a0) {

@@ -41,10 +41,6 @@ class Tecnodesign_Translate
             $to = tdz::$lang;
         }
 
-        if(self::$forceTranslation!==true && $to==self::$sourceLanguage) {
-            return $message;
-        }
-        
         if(!isset(self::$_t[$to])) {
             if(is_null(self::$_t)) {
                 self::$_t = [];
@@ -93,11 +89,15 @@ class Tecnodesign_Translate
                     (($yml=TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml') && false)
                 ) {
 
+                } else if(self::$forceTranslation) {
+                    if(!tdz::save($yml, '--- automatic translation index, please update', true)) {
+                        $yml = null;
+                    }
                 } else {
-                    tdz::save($yml, '--- automatic translation index, please update', true);
+                    $yml = null;
                 }
             }
-            if(!isset($this->_table[$table])) {
+            if($yml && !isset($this->_table[$table])) {
                 $this->_table[$table] = Tecnodesign_Yaml::load($yml);
                 if(isset($this->_table[$table]['all']) && count($this->_table[$table])===1) {
                     $this->_table[$table] = $this->_table[$table]['all'];
@@ -106,14 +106,14 @@ class Tecnodesign_Translate
             }
             if(!isset($this->_table[$table][$message])) {
                 $text = $message;
-                $w = self::$writeUntranslated;
-                if(self::$forceTranslation && $this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){
+                $w = ($yml && self::$writeUntranslated);
+                if($w && self::$forceTranslation && $this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){
                     $m = self::$method.'Translate';
                     try{
                         $text = self::$m($this->_from, $this->_lang, $text);
-                        $w = true;
                     } catch(Exception $e) {
                         tdz::log($e->getMessage());
+                        $w = false;
                     }
                 }
                 $this->_table[$table][$message]=$text;

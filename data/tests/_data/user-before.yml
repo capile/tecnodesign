@@ -1,0 +1,20 @@
+---
+Studio\Model\Users!:
+  - __key: [ username ]
+    __set:
+      USERID: id
+    username: test-user
+    password: test-password
+    name: Example User
+    email: test@capile.net
+Studio\Model\Groups!:
+  - __key: [ name ]
+    __set:
+      GROUPID: id
+    name: Administrator
+    priority: 1
+Studio\Model\Credentials!:
+  - __key: [ userid, groupid ]
+    userid: $USERID
+    groupid: $GROUPID
+

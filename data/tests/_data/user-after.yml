@@ -1,0 +1,17 @@
+---
+Studio\Model\Credentials!:
+  - __key: [ Users.username ]
+    Users.username: test-user
+    __skip_soft_delete: true
+    _delete: true
+    _multiple: true
+Studio\Model\Users!:
+  - __key: [ username ]
+    username: test-user
+    __skip_soft_delete: true
+    _delete: true
+Studio\Model\Groups!:
+  - __key: [ name ]
+    name: Administrator
+    __skip_soft_delete: true
+    _delete: true

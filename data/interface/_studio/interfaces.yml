@@ -1,0 +1,48 @@
+---
+all:
+  title: "*Interfaces"
+  model: Studio\Model\Interfaces
+  #actions:
+  #  connect:
+  #    action: executeMethod
+  #    position: 99
+  #    identified: true
+  #    batch: false
+  #    query: true
+  #    additional-params: true
+  key: id
+  #search:
+  #  type: server
+  options:
+    list-parent: i
+    priority: 61
+    index: true
+    scope:
+      uid:
+        - id
+      list:
+        - id
+        - title
+        - indexed
+      preview:
+        - scope::m
+        - scope::s
+      m:
+        __default:
+          type: text
+          fieldset: Interface Definition
+        "*Title": title
+        "*Class Model": model
+        "*Connection": connection
+        "*Endpoint (Table/API base)": source
+        "*Indexing Interval": index_interval
+      s:
+        __default:
+          type: text
+          fieldset: Schema
+        "*Source": schema_source
+        "*Schema (overlay)":
+          bind: schema_data
+          format: textarea
+          class: i1h10
+

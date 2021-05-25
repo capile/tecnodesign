@@ -1,0 +1,8 @@
+{
+    "ref": "Tecnodesign_Studio_Group",
+    "className": "Studio\\Model\\Groups",
+    "tableName": "studio_groups",
+    "relations": {
+        "Credentials": { "local": "id", "foreign": "groupid", "type": "many", "className": "Studio\\Model\\Credentials" }
+    }
+}

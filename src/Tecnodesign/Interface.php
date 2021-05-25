@@ -78,7 +78,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $attrParamClass     = 'tdz-i-param',
         $attrTermClass      = 'tdz-i-term',
         $attrFooterClass    = 'tdz-i-footer',
-        $attrErrorClass     = 'tdz-err tdz-msg',
+        $attrErrorClass     = 'z-i-msg z-i-error',
         $attrSearchClass    = 'tdz-i-search',
         $attrSearchFormClass= 'tdz-search',
         $attrCounterClass   = 'tdz-counter',
@@ -2364,7 +2364,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $cn = $this->getModel();
         if(!$o) $o = $this->model();
         if(!$scope) {
-            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema['scope'][$rs])) && !isset(static::$actionsAvailable[$rs])) {
+            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema->scope[$rs])) && !isset(static::$actionsAvailable[$rs])) {
                 $scope = $rs;
                 unset($rs);
             } else if(isset($this->options['update-scope-property']) && ($n=$this->options['update-scope-property']) && ($rs=tdz::slug($o->$n)) && isset($cn::$schema->scope[$rs])) {
@@ -2501,12 +2501,12 @@ class Tecnodesign_Interface implements ArrayAccess
 
     public function renderSchema($o=null, $scope=null)
     {
+        $qs = null;
         if(!$scope) {
-            if(($o=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$o]) && !isset(static::$actionsAvailable[$o]) && substr($o, 0, 1)!='_') {
-                $scope = $this->scope($o, false, false, true);
-                unset($rs);
-            } else if($o && isset($this->options['scope'][$o]) && substr($o, 0, 1)!='_') {
-                $scope = $this->scope($o);
+            if(($o=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$o]) && substr($o, 0, 1)!='_') {
+                $qs = '?'.static::REQ_SCOPE.'='.$o;
+                $scope = (!isset(static::$actionsAvailable[$o])) ?$this->scope($o, false, false, true) :$scope = $this->scope($o);
+                unset($o);
             } else if(isset($this->options['scope'][$this->action])) {
                 $scope = $this->scope($this->action);
                 $o = $this->action;
@@ -2525,10 +2525,15 @@ class Tecnodesign_Interface implements ArrayAccess
             $identified = static::$actionsAvailable[$a]['identified'];
         }
 
-        $qs = null;
-        if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
-            $qs = '?'.static::REQ_ENVELOPE.'='.var_export((bool)self::$envelope, true);
+        $envelope=Tecnodesign_App::request('get', static::REQ_ENVELOPE);
+        if($envelope) $envelope = ($envelope==='false') ?false :(bool)$envelope;
+
+        if(!is_null($envelope)) {
+            $qs = (($qs) ?'&' :'?').static::REQ_ENVELOPE.'='.var_export($envelope, true);
+        } else {
+            $envelope = self::$envelope;
         }
+        self::$envelope = false;
 
         // move this to a Tecnodesign_Schema::dump($scope, $properties=array($id, title) ) method
         // available scopes might form full definitions (?)
@@ -2544,7 +2549,7 @@ class Tecnodesign_Interface implements ArrayAccess
         }
         $S['type']='object';
 
-        if(static::$envelope) {
+        if($envelope) {
             $S['properties']=array(
                 'status'=>array('type'=>'string'),
                 'status-code'=>array('type'=>'number'),

@@ -860,21 +860,21 @@
     {
         var S=(!I || !Z.isNode(I))?(document.querySelector('.tdz-i-active .tdz-i-summary')):(I.querySelector('.tdz-i-summary'));
         if(!S) return;
-        var i=_msgs.length, now=(new Date()).getTime(), next=0, L=S.querySelectorAll(':scope > .tdz-msg[data-created],:scope > .tdz-i-msg'), timeout=5000, last=(L.length>0)?(L[L.length-1]):(null), el;
+        var i=_msgs.length, now=(new Date()).getTime(), next=0, L=S.querySelectorAll(':scope > .z-i-msg[data-created],:scope > .z-i-msg'), timeout=5000, last=(L.length>0)?(L[L.length-1]):(null), el;
         while(i--) {
             if(_msgs[i].e < now || !_msgs[i].n.parentNode) {
                 if(_msgs[i].n) {
                     el = _msgs[i].n;
-                    if(el.parentNode && el.parentNode.className=='tdz-msg') el=el.parentNode;
+                    if(el.parentNode && el.parentNode.className=='z-i-msg') el=el.parentNode;
                     Z.deleteNode(el);
                 }
                 _msgs[i].n=null;
                 _msgs.splice(i, 1);
             } else if(Z.parentNode(_msgs[i].n, '.tdz-i-summary')!=S) {
                 if(last) {
-                    last = Z.element({e:'div',p:{className:'tdz-msg'},c:[_msgs[i].n]}, null, last);
+                    last = Z.element({e:'div',p:{className:'z-i-msg'},c:[_msgs[i].n]}, null, last);
                 } else {
-                    last = Z.element.call(S, {e:'div',p:{className:'tdz-msg'},c:[_msgs[i].n]});
+                    last = Z.element.call(S, {e:'div',p:{className:'z-i-msg'},c:[_msgs[i].n]});
                 }
                 if(!next || next>_msgs[i].e) next=_msgs[i].e;
             }
@@ -1158,6 +1158,9 @@
                 Z.delay(msg, 5000, 'msg');
             }
             var u = o.getAttribute('data-url') || o.getAttribute('href');
+            var su=window.location.pathname+window.location.search+window.location.hash;
+            if(u.indexOf('{url}')>-1) u=u.replace(/\{url\}/g, encodeURIComponent(su));
+            if(u.indexOf('{surl}')>-1) u=u.replace(/\{surl\}/g, encodeURIComponent(btoa(su)));
             if(!u) return false;
             var t=o.getAttribute('data-target') || o.getAttribute('target');
             if(t) {

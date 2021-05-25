@@ -83,22 +83,17 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
 
     public static function expandSchemaRefs(&$src)
     {
-        foreach($src as $i=>$o) {
-            if(is_array($o) && isset($o['ref'])) {
-                if(class_exists($o['ref']) && is_subclass_of($o['ref'], 'Tecnodesign_Schema')) {
-                    $cn = $o['ref'];
-                    $src[$i] = $cn::loadSchema($cn, $o);
-                } else if($ref=static::loadSchemaRef($o['ref'])) {
-                    $src[$i] += $ref;
-                    $src[$i]['refid'] = $o['ref'];
-                    unset($src[$i]['ref']);
-                }
+        if(isset($src['ref'])) {
+            if(class_exists($src['ref']) && is_subclass_of($src['ref'], 'Tecnodesign_Schema')) {
+                $cn = $src['ref'];
+                $src = $cn::loadSchema($cn, $src);
+            } else if($ref=static::loadSchemaRef($src['ref'])) {
+                $src = tdz::mergeRecursive($src, $ref);
+                $src['refid'] = $src['ref'];
+                unset($src['ref']);
             }
-            if(is_array($o)) {
-                $src[$i] = static::expandSchemaRefs($src[$i]);
-            }
-            unset($i, $o);
         }
+
         return $src;
     }
 
@@ -112,7 +107,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 static::$schemaDir = array(static::$schemaDir);
             }
         }
-        if(substr($ref, 0, 12)=='Tecnodesign_' && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) array_unshift(static::$schemaDir, TDZ_ROOT.'/schema');
+        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) array_unshift(static::$schemaDir, TDZ_ROOT.'/schema');
 
         $src = array();
         $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);
@@ -466,6 +461,70 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         return $R;
     }
 
+    public static function import($source, &$R=[])
+    {
+        static $fetch = [];
+
+        $cache = false;
+
+        if(is_string($source)) {
+            if(!$R) {
+                $cache = 'schemaref/'.md5($source);
+                if($R=Tecnodesign_Cache::get($cache)) {
+                    return $R;
+                }
+            }
+
+            $hash = ($p=strpos($source, '#')) ?substr($source, $p+1) :null;
+            if($hash) $source = substr($source, 0, $p);
+
+            if(isset($fetch[$source])) $S = $fetch[$source];
+            else {
+                $s = file_get_contents($source);
+                if(!$s || !($S=tdz::unserialize($s, 'json'))) return $R;
+
+                $fetch[$source] = $S;
+            }
+
+            if($hash) {
+                $hash = trim(str_replace('/', '.', $hash), '.');
+                $S = tdz::extractValue($S, $hash);
+                if(!$S) return $R;
+            }
+
+        } else {
+            $S = $source;
+        }
+
+        if(!is_array($S)) return $R;
+
+        foreach($S as $k=>$v) {
+            if($k=='allOf') {
+                if(is_array($v)) {
+                    foreach($v as $i=>$o) {
+                        static::import($o, $R);
+                    }
+                }
+            } else if($k=='$ref') {
+                static::import($v, $R);
+            } else if($k=='properties') {
+                if(!isset($R[$k])) $R[$k] = [];
+                foreach($v as $kk=>$vv) {
+                    $R[$k][$kk] = static::import($vv);
+                }
+            } else {
+                $R[$k] = $v;
+            }
+        }
+
+        if($cache) {
+            Tecnodesign_Cache::set($cache, $R);
+        }
+
+        return $R;
+
+    }
+
     public function toJsonSchema($scope=null, &$R=array())
     {
         // available scopes might form full definitions (?)
@@ -500,7 +559,13 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         foreach($fo as $fn=>$fd) {
             $bind = (isset($fd['bind']))?($fd['bind']):($fn);
             if($p=strrpos($bind, ' ')) $bind = substr($bind, $p+1);
-            if(isset($cn::$schema['columns'][$bind])) $fd+=$cn::$schema['columns'][$bind];
+            if(isset($cn::$schema->properties[$bind])) {
+                if(is_object($cn::$schema->properties[$bind]) && $cn::$schema->properties[$bind] instanceof Tecnodesign_Schema) {
+                    $fd += (array) $cn::$schema['columns'][$bind];
+                } else {
+                    $fd += (array) $cn::$schema['columns'][$bind];
+                }
+            }
             $type = (isset($fd['type']) && isset($types[$fd['type']]))?($types[$fd['type']]):('string');
             if(isset($fd['multiple']) && $fd['multiple']) {
                 if(isset($fd['type']) && $fd['type']=='array') $type = 'array'; 
@@ -562,7 +627,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         if(isset($fd['type']) && isset($format[$fd['type']])) $R['format'] = $format[$fd['type']];
     }
 
-    protected static function _jsonSchemaArray($fd, &$R=array())
+    protected function _jsonSchemaArray($fd, &$R=array())
     {
         if(isset($fd['scope'])) {
             $R['items'] = $this->toJsonSchema($fd['scope'], $R);
@@ -575,7 +640,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         // contains
     }
 
-    protected static function _jsonSchemaObject($fd, &$R=array())
+    protected function _jsonSchemaObject($fd, &$R=array())
     {
         if(isset($fd['scope'])) {
             $R = $this->toJsonSchema($fd['scope'], $R);

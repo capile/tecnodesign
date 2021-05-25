@@ -15,4 +15,7 @@ all:
       static: true
       additional-params: true
       layout: layout
+      params:
+        style:
+          site: [ /_/css/site.less ]
     default-route: run

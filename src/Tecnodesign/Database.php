@@ -101,8 +101,17 @@ class Tecnodesign_Database
     }
     
     
-    public static function import($data)
+    public static function import($data=null)
     {
+        if(!$data && TDZ_CLI && ($data=Tecnodesign_App::request('argv'))) {
+            if(count($data)==1) $data = array_shift($data);
+            else {
+                foreach($data as $f) {
+                    self::import($data);
+                }
+                return;
+            }
+        }
         if(!is_array($data)) {
             if(strpos($data, "\n")===false && file_exists($data)) {
                 $data = file_get_contents($data);
@@ -115,10 +124,23 @@ class Tecnodesign_Database
         try {
             $replace = array();
             foreach($data as $cn=>$records) {
+                $create = null;
+                if(substr($cn, -1)=='!') {
+                    $cn = substr($cn, 0, strlen($cn)-1);
+                    $create = true;
+                }
                 if(!class_exists($cn)) continue;
                 $sc = $cn::$schema;
+
+                if($create) {
+                    $Q = $cn::queryHandler();
+                    $tns = $Q->getTables($sc->database);
+                    if(!$tns || !in_array($sc->tableName, $tns)) {
+                        $Q->create($sc);
+                    }
+                }
                 foreach($records as $k=>$r) {
-                    $o=null;
+                    $L=null;
                     $q=null;
                     $set = null;
                     $r = tdz::expandVariables($r);
@@ -140,28 +162,43 @@ class Tecnodesign_Database
                         }
                     }
                     if($q) {
-                        $o=$cn::find($q,1);
+                        if(isset($r['__multiple']) && $r['__multiple']) {
+                            $L = $cn::find($q, null, null, false);
+                        } else if($o=$cn::find($q,1)) {
+                            $L = [$o];
+                            unset($o);
+                        }
                     }
-                    if(!$o) {
-                        $o = new $cn;
+                    if(isset($r['__multiple'])) {
+                        unset($r['__multiple']);
                     }
-                    $rel = array();
-                    foreach($r as $fn=>$fv) {
-                        if (isset($sc->properties[$fn])) {
-                            if(!$fv) {
-                                $fv = false;
+                    if(!$L) {
+                        $L = (isset($r['_delete']) && $r['_delete']) ?[] :[ new $cn ];
+                    }
+                    foreach($L as $i=>$o) {
+                        $rel = array();
+                        foreach($r as $fn=>$fv) {
+                            if (isset($sc->properties[$fn]) || substr($fn, 0, 1)=='_') {
+                                if(!$fv) {
+                                    $fv = false;
+                                }
+                                $o->$fn = $fv;
+                            } else if(isset($sc['relations'][$fn])) {
+                                $o->setRelation($fn, $fv);
                             }
-                            $o->$fn = $fv;
-                        } else if(isset($sc['relations'][$fn])) {
-                            $o->setRelation($fn, $fv);
+                            unset($fn, $fv);
                         }
-                    }
-                    $o->save();
 
-                    if($set) {
-                        foreach($set as $sk=>$sv) {
-                            if(!defined($sk)) define($sk, $o->$sv);
+                        if($d=$o->asArray()) {
+                            $o->save();
                         }
+
+                        if($set) {
+                            foreach($set as $sk=>$sv) {
+                                if(!defined($sk)) define($sk, $o->$sv);
+                            }
+                        }
+                        unset($L[$i], $o, $i);
                     }
                 }
             }

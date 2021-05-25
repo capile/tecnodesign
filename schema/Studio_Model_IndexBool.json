@@ -1,0 +1,34 @@
+{
+    "title": "*Index Bool Properties",
+    "database": "studio",
+    "tableName": "studio_index_bool",
+    "className": "Studio\\Model\\IndexBool",
+    "properties": {
+        "interface": { "type": "string", "required": true, "primary": true },
+        "id": { "type": "string", "required": true, "primary": true },
+        "name": { "type": "string", "required": true, "primary": true, "size": 200 },
+        "value": { "type": "bool" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Studio\\Model\\Index", "constraint": { "fk_z_index_bool__index": "cascade" } }
+    },
+    "scope": {
+        "string": [ "name", "value" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

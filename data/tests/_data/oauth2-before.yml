@@ -1,0 +1,17 @@
+---
+Studio\Model\Users!:
+  - __key: [ username ]
+    __set:
+      USERID: id
+    username: test-user
+    password: test-password
+    name: Example User
+    email: test@capile.net
+Studio\Model\Tokens!:
+  - type: client_credentials
+    id: test-client
+    user: $USERID
+    options:
+      client_secret: test-secret
+      redirect_uri: 'http://127.0.0.1:9999/_me'
+      scope: openid

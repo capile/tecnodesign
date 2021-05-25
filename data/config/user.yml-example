@@ -3,12 +3,24 @@ all:
   tecnodesign:
     routes:
       /signin:
-        class: Tecnodesign_User
+        class: Studio\User
         method: signInWidget
         static: true
+      /signout:
+        class: Studio\User
+        method: signOutWidget
+        static: true
+    export:
+      tdz:
+        userClass: Studio\User
+      Studio\User:
+        actions:
+          signin: /signin
+          signout: /signout
+          signedout: /
   user:
     super-admin: Administrator
-    icons: /_assets/img/connect.png
+    icons: /_/img/connect.png
     model: ~
     credentials:
       Author: ~
@@ -16,27 +28,29 @@ all:
       Developer: ~
       Administrator: ~
     properties: ~
+    model: Studio\Model\Users
     ns:
-      host:
-        name: Host-based authentication
-        enabled: false
-        type: host
-        cookie: ~
-        options:
-          hosts:
-            127.0.0.1: 1
-      fb:
-        name: Facebook API
-        enabled: false
-        type: facebook
-        cookie: tdzid
-        timeout: 0
-        options:
-          app_id: ~
-          api_key: ~
-          app_secret: ~
-          extended-permissions: 'email,user_groups'
-          js-options:
-            cookie: true
-            xfbml: false
-            status: true
+      studio:
+        name: Studio Sign In
+        enabled: true
+        cookie: z-studio
+        timeout: 14400
+        export:
+          username: username
+          name: name
+        properties:
+          id: id
+          name: name
+          username: login
+          password: password
+          email: email
+          lastAccess: accessed
+          credentials: Credentials
+      #host:
+      #  name: Host-based authentication
+      #  enabled: false
+      #  type: host
+      #  cookie: ~
+      #  options:
+      #    hosts:
+      #      127.0.0.1: 1

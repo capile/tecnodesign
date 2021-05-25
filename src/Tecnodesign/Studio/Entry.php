@@ -387,7 +387,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 }
             }
         }
-        if(substr($this->format, -4)!='html') tdz::download($file,($this->format)?($this->format):(tdz::fileFormat($file)),$fname);
+        if(substr($this->format, -4)!='html') tdz::download($file,($this->format)?($this->format):(tdz::fileFormat($file)));
         return $file;
     }
     public function renderFile()
@@ -403,7 +403,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             return false;
         }
         $file = $this->filePreview();
-        tdz::download($file,$this->format,basename($this->link));
+        tdz::download($file,$this->format);
     }
 
     public function renderEntry($template=false, $args=array())

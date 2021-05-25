@@ -1,22 +1,21 @@
 {
-    "title": "*Studio",
+    "title": "*Index Number Properties",
     "database": "studio",
-    "tableName": "z_index",
-    "className": "Tecnodesign_Studio_Index",
+    "tableName": "studio_index_number",
+    "className": "Studio\\Model\\IndexNumber",
     "properties": {
         "interface": { "type": "string", "required": true, "primary": true },
         "id": { "type": "string", "required": true, "primary": true },
-        "summary": { "type": "string", "size": 2000 },
-        "indexed": { "type": "datetime", "required": true, "index": [ "z_index__indexed_idx" ] },
+        "name": { "type": "string", "required": true, "primary": true, "size": 200 },
+        "value": { "type": "decimal", "index": [ "studio_index_number__idx" ] },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "IndexInterfaces": { "local": "interface", "foreign": "interface", "type": "one", "className": "Tecnodesign_Studio_IndexInterfaces", "constraint": { "fk_z_index__interfaces": "cascade" } },
-        "IndexProperties": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Tecnodesign_Studio_IndexProperties" }
+        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Studio\\Model\\Index", "constraint": { "fk_z_index_number__index": "cascade" } }
     },
     "scope": {
-        "string": [ "summary", "indexed" ]
+        "string": [ "name", "value" ]
     },
     "order": {
     },

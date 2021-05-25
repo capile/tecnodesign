@@ -24,7 +24,7 @@ class Tecnodesign_Studio
         $webInterface,
         $webButton,
         $webInteractive,
-        $cliInterface,      // enable command-line interface
+        $cliInterface=true, // enable command-line interface
         $checkOrigin=1,     // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $allowOrigin=[],
         $private=[],        // updated at runtime, indicates when a cache-control: private,nocache should be sent
@@ -49,7 +49,14 @@ class Tecnodesign_Studio
         $allowedExtensions=array('.html'),
         $userMessage,
         $cli='studio',      // configurable, where to load Studio command-line interface
-        $cliApps=['config'=>['Tecnodesign_App_Install','config'],'index'=>['Tecnodesign_Studio_Index','reindex']];
+        $interfaces = [
+            'interfaces'=>'interfaces',
+        ],
+        $cliApps=[
+            'config'=>['Tecnodesign_App_Install','config'],
+            'index'=>['Tecnodesign_Studio_Index','reindex'],
+            'import'=>['Tecnodesign_Database','import'],
+        ];
     const VERSION = 2.3;    // should match the development branch 
 
     /**
@@ -121,11 +128,10 @@ class Tecnodesign_Studio
             tdz::scriptName($sn);
             tdz::cacheControl('private,must-revalidate,no-cache', 0);
             return self::_runInterface();
-        } else if(static::$cliInterface && self::$cli && TDZ_CLI && (isset($req['scheme']) && $req['scheme']===self::$cli)) {
+        } else if(static::$cliInterface && self::$cli && TDZ_CLI && substr($sn, 0, 1)==':' && isset(self::$cliApps[$sn=substr($sn,1)])) {
             // cli apps
             tdz::$variables['template'] = 'cli';
             Tecnodesign_App::response('layout', 'cli');
-            if(!isset($req['scheme'])) $sn='';
             if(isset(self::$cliApps[$sn])) {
                 list($cn, $m) = self::$cliApps[$sn];
                 return $cn::$m();
@@ -171,8 +177,8 @@ class Tecnodesign_Studio
             if(!(isset($_COOKIE['lang']) && ($lang=$_COOKIE['lang']) && (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))))) {
                 unset($lang);
             }
-            if (!isset($lang) && isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                $accept = preg_split('/(;q=[0-9\.]+|\,)\s*/', $_SERVER['HTTP_ACCEPT_LANGUAGE'], null, PREG_SPLIT_NO_EMPTY);
+            if (!isset($lang) && ($langs=Tecnodesign_App::request('headers', 'accept-language'))) {
+                $accept = preg_split('/(;q=[0-9\.]+|\,)\s*/', $langs, null, PREG_SPLIT_NO_EMPTY);
                 foreach ($accept as $lang) {
                     if (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))) {
                         break;
@@ -847,6 +853,10 @@ class Tecnodesign_Studio
         if($cn) {
             // translate
             return $cn::$p;
+        } else if(self::$app) {
+            if(isset(self::$app->studio[$p])) {
+                return self::$app->studio[$p];
+            }
         }
         return false;
     }
@@ -866,11 +876,9 @@ class Tecnodesign_Studio
 
     public static function translate($s, $table=null, $to=null, $from=null)
     {
-        if($to && $to==$from)  {
+        if($to && !Tecnodesign_Studio_Interface::$translate && $to==$from)  {
             return $s;
         } else {
-            $r = self::t($s, null, $table);
-            return $r;
             return self::t($s, null, $table);
         }
     }

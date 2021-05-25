@@ -1,0 +1,25 @@
+---
+all:
+  tecnodesign:
+    lib-dir: [ vendor, data/examples/oauth2 ]
+    routes:
+      /examples/oauth2:
+        class: Studio\OAuth2\Server
+        method: app
+        static: true
+        additional-params: true
+    export:
+      tdz:
+        log: 2
+  user:
+    model: Studio\Model\Users
+    ns:
+      oauth2:
+        name: OAuth2
+        enabled: true
+        cookie: false
+        class: Studio\OAuth2\User
+        export:
+          username: username
+          name: name
+

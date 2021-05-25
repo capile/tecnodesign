@@ -18,7 +18,7 @@ class Tecnodesign_User
         $timeout=0,             // session timeout in seconds
         $cfg, 
         $hashType='ssha256',    // hashing method
-        $hashTypes=['sha256' ],  // alternative hash methods
+        $hashTypes=['sha256' ], // alternative hash methods
         $usePhpSession=false,   // load/destroy user based on PHP session
         $enableNegCredential=true,   // enables the negative checking of credentials (!credential)
         $setLastAccess,         // property to use when setting last access, set to false to disable
@@ -67,12 +67,25 @@ class Tecnodesign_User
      */
     public function __construct()
     {
-        if(is_null(static::$cfg)) {
-            static::$cfg = tdz::getApp()->user;
-            if(!static::$cfg) static::$cfg = array();
-        }
+        static::config();
         Tecnodesign_User::$_current = $this;
         $this->initialize();
+    }
+
+    public static function config($key=null, $value=false)
+    {
+        if(is_null(static::$cfg)) {
+            static::$cfg = tdz::getApp()->user;
+            if(!static::$cfg) static::$cfg = [];
+        }
+
+        if($key) {
+            if($value!==false) self::$cfg[$key] = $value;
+
+            return (isset(static::$cfg[$key])) ?static::$cfg[$key] :null;
+        }
+
+        return static::$cfg;
     }
 
     /**
@@ -91,7 +104,7 @@ class Tecnodesign_User
             return $this->_me;
         }
         $this->_me = false;
-        if (!isset(static::$cfg['ns']) || count(static::$cfg['ns'])==0) {
+        if (!static::config('ns')) {
             return true;
         }
         
@@ -101,7 +114,7 @@ class Tecnodesign_User
         }
         $cookies=array();
         $cookie = false;
-        foreach (static::$cfg['ns'] as $ns=>$nso) {
+        foreach (static::config('ns') as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
                 continue;
             }
@@ -145,7 +158,7 @@ class Tecnodesign_User
                         }
                         if(class_exists($nso['finder'])) {
                             $finder = $nso['finder'];
-                            $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
+                            $scope = static::config('scope');
                             $this->_me = $finder::find($pk,1,$scope);
                             unset($finder,$scope);
                         } else {
@@ -349,9 +362,9 @@ class Tecnodesign_User
         }
         if(!isset($this->_o[$ns])) {
             $nso = static::$cfg['ns'][$ns];
-            if(isset($nso['type']) && class_exists($cn='Tecnodesign_User_'.tdz::camelize($nso['type'], true))) {
-            } else if(isset($nso['class'])){
+            if(isset($nso['class'])) {
                 $cn = $nso['class'];
+            } else if(isset($nso['type']) && class_exists($cn='Tecnodesign_User_'.tdz::camelize($nso['type'], true))) {
             } else if(isset($nso['finder'])) {
                 $cn = $nso['finder'];
             } else {
@@ -382,7 +395,51 @@ class Tecnodesign_User
         
     }
     
-    
+    public static function find($q, $ns=null)
+    {
+        if(!$ns) {
+            if(!($nss=static::config('ns'))) return false;
+
+            foreach($nss as $ns=>$nso) {
+                $R = static::find($q, $ns);
+                if($R) break;
+            }
+
+            return ($R) ?$R :false;
+        }
+
+        static::config();
+
+        if(is_array($ns)) $nso = $ns;
+        else if(isset(static::$cfg['ns'][$ns])) $nso = static::$cfg['ns'][$ns];
+        else return;
+
+        if(isset(static::$cfg['model'])) {
+            $cn = static::$cfg['model'];
+        } else if(isset($nso['type']) && class_exists($cn='Tecnodesign_User_'.tdz::camelize($nso['type'], true))) {
+        } else if(isset($nso['class'])){
+            $cn = $nso['class'];
+        } else if(isset($nso['finder'])) {
+            $cn = $nso['finder'];
+        } else {
+            return false;
+        }
+
+        $nsoptions = (isset($nso['options']))?($nso['options']):(array());
+
+        if(method_exists($cn, 'find')) {
+            $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
+            $R = $cn::find($q,1,$scope);
+            $c = get_called_class();
+            if($R) {
+                $U = (new ReflectionClass(get_called_class()))->newInstanceWithoutConstructor();
+                $U->_uid = $R->getPk();
+                $U->_me = $R;
+                $U->_ns = $nso;
+                return $U;
+            }
+        }
+    }
 
     /**
      * Initialization method to retrieve current open sessions, or to create a new one
@@ -457,13 +514,13 @@ class Tecnodesign_User
             ksort($msgs);
         }
         foreach($msgs as $t=>$s) {
-            if($s) $msg .= '<div class="tdz-msg" data-created="'.date('Y-m-d\TH:i:s Z', $t).'">'.$s.'</div>';
+            if($s) $msg .= '<div class="z-i-msg" data-created="'.date('Y-m-d\TH:i:s Z', $t).'">'.$s.'</div>';
             unset($msgs[$t], $t,$s);
         }
         if(!is_null($cookie)) {
             $cookies = self::getCookies($cookie);
             foreach($cookies as $s) {
-                if($s) $msg .= '<div class="tdz-msg" data-created="'.date('Y-m-d\TH:i:s Z').'">'.strip_tags(urldecode($s)).'</div>';
+                if($s) $msg .= '<div class="z-i-msg" data-created="'.date('Y-m-d\TH:i:s Z').'">'.strip_tags(urldecode($s)).'</div>';
                 unset($s);
             }
             if($delete && count($cookies)>0) {
@@ -582,7 +639,7 @@ class Tecnodesign_User
     {
         if(!static::$setCookie) return true;
         $n = $this->getSessionName();
-        if(isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
+        if(!$n || isset(static::$_cookiesSent[$n.'/'.$this->_cid])) return true;
 
         if(static::$cookieSecure && !Tecnodesign_App::request('https')) {
             static::$cookieSecure = false;
@@ -708,7 +765,7 @@ class Tecnodesign_User
         $u = false;
         if(is_null($this->_ns)) {
             foreach(static::$cfg['ns'] as $ns=>$nso) {
-                if(!isset($nso['finder']) || !$nso['finder']) {
+                if(!isset($nso['class']) && !isset($nso['class'])) {
                     continue;
                 }
                 if(!isset($nso['id'])) $nso['id'] = $ns;
@@ -722,8 +779,14 @@ class Tecnodesign_User
             }
             return false;
         }
-        if(class_exists($this->_ns['finder'])) {
-            $finder = $this->_ns['finder'];
+
+        $finder = null;
+        $U = null;
+        if(isset($this->_ns['finder']) && $this->_ns['finder']) $finder = $this->_ns['finder'];
+        else if(isset($this->_ns['class']) && $this->_ns['class']) $finder = $this->_ns['class'];
+        else $finder = static::config('model');
+
+        if($finder && class_exists($finder)) {
             $find = $user;
             if(isset($this->_ns['properties']['username'])) {
                 $find = array($this->_ns['properties']['username']=>$find);
@@ -731,9 +794,8 @@ class Tecnodesign_User
             $scope = (isset(static::$cfg['scope']))?(static::$cfg['scope']):(null);
             $U = $finder::find($find,1,$scope);
             unset($finder, $find, $scope);
-        } else {
-            $U = @eval('return '.sprintf($this->_ns['finder'], '$user').';');
         }
+
         if ($U) {
             $pass = (isset($this->_ns['properties']['password']))?($this->_ns['properties']['password']):('password');
             $pass = $U->$pass;
@@ -955,11 +1017,20 @@ class Tecnodesign_User
         $user = tdz::getUser();
         if(!$user->isAuthenticated()) {
             $s = $user->signIn();
-        }
-        if($user->isAuthenticated()) {
+        } else if($user->isAuthenticated()) {
             $s = $user->preview();
         }
         return $s;
+    }
+
+    public static function signOutWidget()
+    {
+        $user = tdz::getUser();
+        $url = (isset(static::$actions['signedout'])) ?static::$actions['signedout'] :'/';
+        if($user->isAuthenticated()) {
+            $user->destroy();
+        }
+        tdz::redirect($url);
     }
 
     /**
@@ -973,7 +1044,11 @@ class Tecnodesign_User
             if(method_exists($this->_me, 'preview')) {
                 return $this->_me->preview();
             } else {
-                return "<p>{$this->_me}</p>";
+                return '<p>'
+                  . tdz::t('You\'re currently signed in as:', 'user')
+                  . ' <strong>'.\tdz::xml((string)$this->_me).'</strong></p>'
+                  . ((isset(static::$actions['signout'])) ?'<p class="ui-buttons"><a href="'.\tdz::xml(static::$actions['signout']).'" class="button">'.tdz::t('Sign Out', 'user').'</a></p>' :'')
+                  ;
             }
         }
     }
@@ -982,9 +1057,6 @@ class Tecnodesign_User
     public function signIn($o=array(), $app=false)
     {
         if(!isset(static::$cfg['ns'])) return;
-        if(!isset($this)) {
-            return self::signInWidget($o);
-        }
         if(!is_array($o)) {
             $o = array();
         }
@@ -997,26 +1069,37 @@ class Tecnodesign_User
                 $o['title']=tdz::t('Sign in', 'user');                
             }
         }
-        $o['app']='';
+
+        if(!isset(tdz::$variables['data'])) tdz::$variables['data']='';
+        $o['app'] =& tdz::$variables['data'];
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }
+
         foreach(static::$cfg['ns'] as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
                 continue;
             }
             if(isset($nso['class'])) {
-                $C = $this->getObject($ns);
-                $m = 'signIn';
+                $C = (isset($nso['static']) && $nso['static']) ?$nso['class'] :$this->getObject($ns);
             } else if(isset($nso['finder'])) {
                 $C = $nso['finder'];
-                $m = (isset($nso['sign-in-method']))?($nso['sign-in-method']):('signIn');
             } else {
                 $C = $this;
-                $m = (isset($nso['sign-in-method']))?($nso['sign-in-method']):($ns.'SignIn');
             }
-            if(!method_exists($C, $m)) {
-                if(is_a($C, 'Tecnodesign_Model', true)) {
+
+            $m = null;
+            if($C) {
+                if(isset($nso['sign-in-method']) && method_exists($C, $nso['sign-in-method'])) {
+                    $m = $nso['sign-in-method'];
+                } else if(!method_exists($C, $m=tdz::camelize($ns).'SignIn') && !method_exists($C, $m = 'signIn')) {
+                    $C = null;
+                    $m = null;
+                }
+            }
+
+            if(!$C || is_a($C, 'Tecnodesign_User', true)) {
+                if($C) {
                     unset($C, $m);
                     $C = $this;
                     $m = 'tdzSignIn';
@@ -1025,12 +1108,15 @@ class Tecnodesign_User
                     continue;
                 }
             }
+
             $opt = $o + $nso;
+            if(isset($opt['app'])) unset($opt['app']);
             if(!isset($nso['id'])) $nso['id'] = $ns;
             $this->_ns = $nso;
             if(is_object($C)) $U = $C->$m($opt);
             else $U = $C::$m($opt);
             unset($C, $m);
+
             $o['app'] .= $U;
             if($U && is_object($U) && $U->isAuthenticated()) {
                 $this->_me = $U;
@@ -1117,7 +1203,7 @@ class Tecnodesign_User
         } else {
             $url = tdz::requestUri();
         }
-        $s = (isset($o['app']))?($o['app']):('');
+        $s = '';
         $buttons = (isset($o['buttons']))?($o['buttons']):(array('submit'=>tdz::t('Sign in', 'ui')));
         if(isset($o['action'])) {
             $action = $o['action'];
@@ -1131,6 +1217,7 @@ class Tecnodesign_User
             'method'=>'post',
             'action'=>$action,
             'buttons'=>$buttons,
+            'class'=>'z-form z-signin',
             'fields'=>array(
                 static::FORM_USER=>(isset($o['email-username']) && $o['email-username'])
                     ?(array('type'=>'email', 'required'=>true, 'label'=>tdz::t('E-mail', 'ui'), 'placeholder'=>tdz::t('E-mail', 'ui')))
@@ -1189,7 +1276,17 @@ class Tecnodesign_User
             }
             unset($p);
         }
-        $s.=$o['form']->render();
+
+        if(isset(tdz::$variables['data']) && tdz::$variables['data']) {
+            $o['form']->after .= tdz::$variables['data'];
+            $s.= $o['form']->render();
+            tdz::$variables['data'] = $s;
+            $s = '';
+        } else {
+            $s.= $o['form']->render();
+        }
+
+
         return $s;
     }
 

@@ -10,8 +10,6 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-class Tecnodesign_Studio_IndexInterfaces extends Tecnodesign_Model
+class Tecnodesign_Studio_IndexInterfaces extends \Studio\Model\Interfaces
 {
-    public static $schema;
-    protected $interface, $label, $model, $credential, $indexed, $created, $updated, $Index;
 }

@@ -1,19 +1,18 @@
 {
-    "title": "*Index Interfaces",
+    "title": "*Index Blob Properties",
     "database": "studio",
-    "tableName": "z_index_interfaces",
-    "className": "Tecnodesign_Studio_IndexInterfaces",
+    "tableName": "studio_index_blob",
+    "className": "Studio\\Model\\IndexBlob",
     "properties": {
         "interface": { "type": "string", "required": true, "primary": true },
-        "label": { "type": "string", "required": true, "size": 200 },
-        "model": { "type": "string", "required": true, "size": 500 },
-        "credential": { "type": "string", "size": 2000 },
-        "indexed": { "type": "datetime" },
+        "id": { "type": "string", "required": true, "primary": true },
+        "name": { "type": "string", "required": true, "primary": true, "size": 200 },
+        "value": { "type": "text" },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "Index": { "local": "interface", "foreign": "interface", "type": "many", "className": "Tecnodesign_Studio_Index" }
+        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Studio\\Model\\Index", "constraint": { "fk_z_index_blob__index": "cascade" } }
     },
     "scope": {
         "string": [ "name", "value" ]

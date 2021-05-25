@@ -1,0 +1,36 @@
+{
+    "title": "Authentication Tokens",
+    "database": "studio",
+    "tableName": "studio_tokens",
+    "className": "Studio\\Model\\Tokens",
+    "properties": {
+        "type": { "type": "string", "size": 100, "primary": true, "required": true },
+        "id": { "type": "string", "size": 100, "primary": true, "required": true },
+        "token": { "type": "string", "size": 100, "index": [ "idx__studio_tokens__token" ] },
+        "user": { "type": "string", "size": 100, "index": [ "idx__studio_tokens__user" ] },
+        "options": { "type": "string", "serialize": "json", "size": 5000  },
+        "created": { "type": "datetime", "required": true, "index": [ "idx__studio_tokens__created" ] },
+        "updated": { "type": "datetime", "required": true },
+        "expires": { "type": "datetime", "index": [ "idx__studio_tokens__expires" ] }
+    },
+    "relations": {
+    },
+    "scope": {
+        "string": [ "type", "id" ]
+    },
+    "order": {
+        "created": "desc"
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "title": "*Index Interfaces",
+    "database": "studio",
+    "tableName": "studio_interfaces",
+    "className": "Studio\\Model\\Interfaces",
+    "properties": {
+        "id": { "type": "string", "required": true, "primary": true },
+        "title": { "type": "string", "required": true, "size": 200 },
+        "model": { "type": "string", "size": 500 },
+        "connection": { "type": "string", "size": 100 },
+        "source": { "type": "string", "size": 500 },
+        "schema_source": { "type": "string", "size": 500 },
+        "schema_data": { "type": "string", "size": 10000 },
+        "credential": { "type": "string", "size": 2000 },
+        "index_interval": { "type": "int" },
+        "indexed": { "type": "datetime" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "Index": { "local": "id", "foreign": "interface", "type": "many", "className": "Studio\\Model\\Index" }
+    },
+    "scope": {
+        "string": [ "title" ],
+        "interface": { "interface": "id", "title": "title", "model": "model", "credential": "credential" }
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

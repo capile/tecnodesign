@@ -79,7 +79,7 @@ class Tecnodesign_Query_Soap
     }
 
     // move this to curl requests?
-    public static function disconnect($n='')
+    public function disconnect($n='')
     {
         if(isset(self::$C[$n])) {
             self::$C[$n]=null;

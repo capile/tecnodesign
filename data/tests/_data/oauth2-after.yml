@@ -1,0 +1,18 @@
+---
+Studio\Model\Users:
+  - __key: [ username ]
+    __set:
+      USERID: id
+    username: test-user
+    __skip_soft_delete: true
+    _delete: true
+Studio\Model\Tokens:
+  - __key: [ user ]
+    user: $USERID
+    __skip_soft_delete: true
+    _delete: true
+    _multiple: true
+  - type: client_credentials
+    id: test-client
+    __skip_soft_delete: true
+    _delete: true

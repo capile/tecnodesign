@@ -310,6 +310,44 @@ p.date{color:#002244;text-decoration:none;border:none;}
 .smaller{font-size:0.8em;}
 .bigger{font-size:1.25em;}
 
+
+.z-form {
+    &.z-signin {
+        margin: 3em auto;
+        max-width: 25em;
+        width:90%;
+        border-radius: 2em;
+        padding: 1.5em;
+        border: 0.1em solid @ciano;
+        .background-alpha(@chumbo, 0.1);
+
+        .field .label {display:none;}
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: calc(~"100% - 1em");
+            padding: 0.25em;
+            font-size: 1em;
+        } 
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    button, .z-i-button {
+        background: @chumbo;
+        color: @ciano;
+        border:none;
+        font-size: 1em;
+        padding: 0.5em 1em;
+        margin-right: 1em;
+        &:hover, &:active {
+            background: @ciano;
+            color: #fff;
+        }
+    }
+
+}
+
 /* transitions */
 
 @media screen and (min-width: 891px) {
@@ -341,7 +379,6 @@ p.date{color:#002244;text-decoration:none;border:none;}
   box-shadow: @arguments;
   -webkit-box-shadow: @arguments;
   -moz-box-shadow: @arguments;
-  behavior: url(/_/js/PIE.htc);
 }
 
 .box-shadow-ie(@d: 4, @color: #000000, @a: 135) {
@@ -373,12 +410,9 @@ p.date{color:#002244;text-decoration:none;border:none;}
 
 .background-alpha(@color, @alpha: 0.5)
 {
-    @alphah: dechex(round(@alpha * 255));
     background:@color;
     background:transparent;
     background: hsla(hue(@color), saturation(@color), lightness(@color), @alpha);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@{color}@{alphah}', endColorstr='@{color}@{alphah}');
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=@{color}@{alphah}, endColorstr=@{color}@{alphah})";
 }
 
 .opacity(@alpha)
