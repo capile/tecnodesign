@@ -50,6 +50,15 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     
     protected $dynamic=false, $wrapper, $modified, $credential;
 
+    public function studioId($prefix=null)
+    {
+        if(!$prefix) {
+            $prefix = (isset(static::$typeInterfaces[$this->type])) ?static::$typeInterfaces[$this->type] :'e';
+        }
+
+        return Tecnodesign_Studio::interfaceId($this, $prefix);
+    }
+
     public function render()
     {
         if(Tecnodesign_Studio::$private) {
@@ -259,11 +268,14 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             if($first) $layout .= "''";
             $layout .= ';';
         }
+
+        $sid = $this->studioId();
+
         foreach($slots as $slotname=>$slot) {
             if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
-                $layout .= "\n\${$slotname} = '<{$slotname}><div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></{$slotname}>{$addbr}';";
+                $layout .= "\n\${$slotname} = '<{$slotname}><div id=\"{$slotname}\" data-studio=\"{$sid}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div></{$slotname}>{$addbr}';";
             } else if($slotname!='meta' && $slotname!='title') {
-                $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio-s=\"{$slotname}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
+                $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio=\"{$sid}\">'\n    . tdz::get('before-{$slotname}').\${$slotname}.tdz::get('{$slotname}').tdz::get('after-{$slotname}')\n    . '</div>{$addbr}';";
             }
         }
         $layout .= "\n\$meta.=tdz::meta();";
@@ -925,7 +937,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             $E = (isset(tdz::$variables['entry'])) ?tdz::$variables['entry'] :null;
             tdz::$variables['entry'] = $this;
             foreach($L as $i=>$o) {
-                $r .= '<div class="z-ellipsis-multiline ih5 z-item"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/c/v/'.$o->id.'" class="z-i-link z-i--preview"></a></span><div class="z-inner-block">'.$o->render().'</div></div>';
+                $r .= '<div class="z-ellipsis-multiline ih5 z-item"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/c/v/'.$o->id.'" class="z-i-link z-i--preview"></a></span><div class="z-inner-block">'.$o->previewContent().'</div></div>';
             }
             tdz::$variables['entry'] = $E;
             unset($E);

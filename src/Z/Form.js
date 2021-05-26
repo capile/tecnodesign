@@ -1640,6 +1640,10 @@ function Form(o)
 //window.ZModules['*[data-datalist-api],*[data-datalist]'] = Datalist;
 
 // default modules loaded into Z
+window.Z_Form = Form;
+window.Z_Form_CheckLabel = initCheckLabel;
+window.Z_Form_AutoSubmit = initAutoSubmit;
+window.Z_Form_Reload = formReload;
 window['Z.Form.Form'] = Form;
 window['Z.Form.CheckLabel']=initCheckLabel;
 window['Z.Form.AutoSubmit']=initAutoSubmit;

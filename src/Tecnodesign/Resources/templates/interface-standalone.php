@@ -19,7 +19,7 @@ if($title) Tecnodesign_App::response('title', $title);
 if(!isset($action)) $action = $Interface['action'];
 
 // .tdz-i
-?><div class="tdz-i tdz-i-standalone" data-base-url="<?php echo $Interface->getUrl(); ?>" data-url="<?php echo $url ?>"<?php 
+?><div class="tdz-i-standalone" data-base-url="<?php echo $Interface->getUrl(); ?>" data-url="<?php echo $url ?>"<?php 
     if($qs) echo ' data-qs="',str_replace(',', '%2C', tdz::xmlEscape($qs)),'"';
     if($Interface['id']) echo ' data-id="',tdz::xmlEscape($Interface['id']),'"';
     ?>><?php

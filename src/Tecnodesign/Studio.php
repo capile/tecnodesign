@@ -21,6 +21,7 @@ class Tecnodesign_Studio
     public static 
         $app,               // updated at runtime, this is the main application alias, used internally (also by other classes)
         $automatedInstall,  // deprecated
+        $internal,
         $webInterface,
         $webButton,
         $webInteractive,
@@ -125,6 +126,7 @@ class Tecnodesign_Studio
 
         // try the interface
         if(static::$webInterface && ($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0)) {
+            static::$internal = true;
             tdz::scriptName($sn);
             tdz::cacheControl('private,must-revalidate,no-cache', 0);
             return self::_runInterface();
@@ -209,8 +211,8 @@ class Tecnodesign_Studio
             }
         } else {
             static $methods = array(
-                '/p'=>'listProperties',
-                '/q'=>'listInterfaces',
+                '/s'=>'listInterfaces',
+                //'/q'=>'listInterfaces',
             );
             if(!($U=tdz::getUser()) || !$U->isAuthenticated() || !($U->isSuperAdmin() || ($c=self::credential(array('studio','edit','previewUnpublished'))) && $U->hasCredential($c, false))) {
                 return self::error(403);
@@ -243,50 +245,24 @@ class Tecnodesign_Studio
                 return Tecnodesign_Studio_Interface::run();
             }
         }
-
         self::error(404);
     }
 
     public static function listInterfaces()
     {
         $R = array();
-        $p = Tecnodesign_App::request('post', 'q');
-        if(!$p) $p = Tecnodesign_App::request('get', 'q');
+        $p = Tecnodesign_App::request('post');
 
-        if(!$p) {
-            tdz::output($R, 'json', false);
-            self::$app->end();
-            return true;
-        }
-
-        if(is_string($p)) {
-            if(strpos($p, ':')) {
-                try {
-                    $P = Tecnodesign_Yaml::load($p);
-                    if(!$P) $P = null;
-                } catch(Exception $e) {
-                    tdz::log('[ERROR] Error while loading YAML '.$p.': '.$e);
-                    $P = null;
+        if($p && is_array($p)) {
+            foreach($p as $i=>$o) {
+                if($r=static::interfaceAddress($o)) {
+                    $R[] = $r;
                 }
             }
-        } else {
-            $P = $p;
-        }
-        if(!isset($P)) $P = array($p);
-        foreach($P as $a=>$q) {
-            if(is_string($a) && ($I=new Tecnodesign_Studio_Interface($a))) {
-                $I->setSearch($q);
-                $R['interface'] = $I->render();
-            }
         }
 
-
-        if(Tecnodesign_App::request('headers', 'z-action')=='Studio') {
-            Tecnodesign_Studio_Interface::headers();
-            Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
-            //exit($s);
-        }
-        return $s;        
+        Tecnodesign_Studio_Interface::headers();
+        Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
     }
 
     public static function listProperties()
@@ -929,6 +905,19 @@ class Tecnodesign_Studio
         }
         if(!isset(tdz::$variables['variables'])) tdz::$variables['variables']=array();
         tdz::$variables['variables'] += $a;
+    }
+
+    public static function interfaceId($M, $prefix=null)
+    {
+        $s = (is_string($M)) ?$M :implode('-', $M->getPk(true));
+        if($prefix) $s = $prefix.'/'.$s;
+
+        return tdz::encrypt($s, null, 'uuid');
+    }
+
+    public static function interfaceAddress($s)
+    {
+        return tdz::decrypt($s, null, 'uuid');
     }
 }
 

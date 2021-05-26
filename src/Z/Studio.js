@@ -3,12 +3,12 @@
 
 "use strict";
 
-var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'z-action':'Interface'}, _Studio='/_studio';
+var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'z-action':'Interface'}, _Studio='/_studio', _title;
 
 // load authentication info
 function startup()
 {
-    if(!('Z' in window) || !('Z.Interface.startup' in window)) {
+    if(!('Z' in window) || !('Z_Interface' in window)) {
         return setTimeout(startup, 500);
     }
 
@@ -16,6 +16,8 @@ function startup()
     if(!('studio' in Z.plugins)) {
         Z.plugins.studio={home:'/_studio', options:{}, load:[] };
     }
+    if(!('events' in Z)) Z.events={};
+    Z.events.unloadInterface = [checkInterfaces];
 
     if(!('modules' in Z)) Z.modules = {};
     if(('home' in Z.plugins.studio) && Z.plugins.studio.home!=_Studio) {
@@ -24,20 +26,8 @@ function startup()
     _P = {c:[],s:[]};
 
     if(('options' in Z.plugins.studio) && ('interactive' in Z.plugins.studio.options) && Z.plugins.studio.options.interactive) {
-        var l=document.querySelectorAll('[data-studio-s]'),L,j,i,id,d=[];
-        for (i=0;i<l.length;i++) {
-            Z.addEvent(l[i], 'dblclick', doubleClick);
-            id=l[i].getAttribute('data-studio-s');
-            _P.s.push(id);
-            d.push({e:'div',a:{'class':'s-section s-hidden','data-id':'s/'+id}});
-            L=l[i].querySelectorAll('[data-studio-c]');
-            for(j=0;j<L.length;j++) {
-                id=L[j].getAttribute('data-studio-c');
-                Z.addEvent(L[j], 'dblclick', doubleClick);
-                _P.c.push(id);
-                d.push({e:'div',a:{'class':'s-content s-hidden','data-id':'c/'+id}});
-            }
-        }
+        //
+        Z.bind(window, 'click', activateStudio);
     }
 
     if(('options' in Z.plugins.studio) && ('button' in Z.plugins.studio.options) && Z.plugins.studio.options.button) {
@@ -68,31 +58,22 @@ function startup()
         }
         Z.bind(_Z, 'click', trigger);
     }
-    /*
-    while(i-->0) {
-        if(id=l[i].getAttribute('data-studio-c')) {
-            _P.c.push(id);
-        } else if(id=l[i].getAttribute('data-studio-s')) {
-            _P.s.push(id);
-        }
-        Z.addEvent(l[i], 'dblclick', doubleClick);
-    }
-    */
 }
 
-function doubleClick(e)
+function activateStudio(e)
 {
-    e.preventDefault();
-    e.stopPropagation();
-    var id=this.getAttribute('data-studio-c');
-    if(id) {
-        getInterface(_Studio+'/c/v/'+id);
-        return false;
+    if(!e || e.detail !== 3) {
+        return;
     }
-    id=this.getAttribute('data-studio-s');
-    if(id) {
-        getInterface(_Studio+'/c/n/'+id);
-        return false;
+
+    var L=[], i, T=e.target;
+    if(T.getAttribute('data-studio')) L.push(T.getAttribute('data-studio'));
+    while(T.parentNode && (T=Z.parentNode(T.parentNode,'*[data-studio]'))) {
+        L.push(T.getAttribute('data-studio'));
+    }
+
+    if(L.length>0) {
+       Z.ajax(_Studio+'/s', JSON.stringify(L), setStudio, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
     }
 }
 
@@ -102,143 +83,80 @@ function getViewport()
     var b=_V.querySelector('.tdz-i-header');
     if(!b) {
         Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header'}});
-        b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body'}});
+        b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body','data-nav':1}});
+        _title = document.title;
     }
 
     if(!('loadInterface' in Z)) {
-        // startup Z.Interface.startup
-        window['Z.Interface.startup']();
+        // startup Z.Interface
+        Z.loadInterface = window.Z_Interface;
     }
     return _V;
 }
-
 
 /*!getinterface*/
 function getInterface(u)
 {
     if(!_V) getViewport();
 
-    /*
-    var t=_V.querySelector('.tdz-i[data-url="'+u+'"]');
-    if(!t) {
-        var b=_V.querySelector('.tdz-i-header');
-        if(!b) {
-            Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header'}});
-            b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body'}});
-        }
-        //t=Z.element.call(b,{e:'div',a:{'class':'tdz-i','data-url':u } } );
-        t=Z.element.call(b,{e:'div',a:{'class':'tdz-i','data-url':u } } );
-        //Z.ajax(u, null, Z.loadInterface, Z.errorInterface, 'html', t, _ih);
-    }
-    */
     //Z.loadInterface.call(t, u);
     trigger(null, true);
     Z.loadInterface.call(_V, u);
 }
 
-function searchInterface(s)
+function addInterface(u)
 {
-    var d, u=_Studio+'/i/q';
-    if(typeof(s)=='object') {
-        d = JSON.stringify({q:s});
-    } else {
-        u+='?q='+escape(s);
-    }
+    if(!_V) getViewport();
+    var p =(u.indexOf(/\?/)>-1) ?u.substr(0, u.indexOf(/\?/)) :u, 
+        qs=(u.indexOf(/\?/)>-1) ?u.substr(u.indexOf(/\?/)+1) :'',
+        add={
+        '.tdz-i-body':'tdz-i',
+        '.tdz-i-header':'tdz-i-title'
+        }, n,
+        P, I,el={e:'div',a:{'class':'tdz-i', 'data-url':p, 'data-qs':qs, 'data-nav':'1'}};
 
-    loadInterface(u);
-    //Z.ajax(u, d, listResults, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
+    for(n in add) {
+        I=_Z.querySelector('.tdz-i-box '+n+' .'+add[n]+'[data-url="'+encodeURIComponent(p)+'"]');
+        if(!I) {
+            P=_Z.querySelector('.tdz-i-box '+n);
+            el.a.class = add[n];
+            I=Z.element.call(P, el);
+        }
+    }
+    return I;
 }
 
 function loadInterface(u)
 {
-    var p =(u.indexOf(/\?/)>-1) ?u.substr(0, u.indexOf(/\?/)) :u, 
-        qs=(u.indexOf(/\?/)>-1) ?u.substr(u.indexOf(/\?/)+1) :'',
-        P;
-    if(!_Z.querySelector('.tdz-i-box .tdz-i[data-url="'+encodeURIComponent(p)+'"]')) {
-        if(!(P=_Z.querySelector('.tdz-i-body'))) P=_Z.querySelector('.tdz-i-box');
-        Z.element.call(P, {e:'div',a:{'class':'tdz-i', 'data-url':p, 'data-qs':qs, 'data-nav':'1'}});
-    }
-    Z.init(_Z);
+    if(!_V) getViewport();
+    if(u) addInterface(u);
+    Z.loadInterface.call(_V, u);
 }
 
-function listResults(d)
+function setStudio(d)
 {
-    if(typeof(d)=='object' && ('status' in d) && d.status=='OK' && ('data' in d)) {
-        if('interface' in d.data) {
-            if(!_V) getViewport();
-            Z.setInterface(d.data['interface']);
+    if(d && ('data' in d) && ('length' in d.data) && d.data.length>0) {
+        if(!_V) getViewport();
+        var L=[], b;
+        for(var i=0;i<d.data.length;i++) {
+            b=_Studio+'/'+d.data[i];
+            L.push(b);
+            addInterface(b);
         }
-    } 
-    console.log('listResults!', d);
-}
-
-function errorInterface(d)
-{
-    console.log('errorInterface', d, this);
-}
-
-function keyPress()
-{
-    if(!_Q) _Q=this;
-    if(_Qt) clearTimeout(_Qt);
-    _Qt = setTimeout(search, 500);
-}
-
-function search()
-{
-    if(_Qt) {
-        clearTimeout(_Qt);
-        _Qt=0;
+        window.location.hash='!'+L.join(',');
+        Z.loadInterface.call(_V, L);
+        setTimeout(initStudio, 100);
     }
-    if(_Q.value==_Qq) return false;
-    _Qq=_Q.value;
-    console.log('search for '+_Qq);
 }
 
-function getProperties(id)
+function initStudio()
 {
-    if(arguments.length>0) {
-        if(id in _P) {
-            return _P[id];
-        } else if(id.substr(0,1)=='c/') _P.c.push(id.substr(2));
-        else if(id.substr(0,1)=='s/') _P.s.push(id.substr(2));
-        else return;
-    }
-
-    // fetch new properties
-    var d={c:_P.c,s:_P.s};
-    Z.ajax(_Studio+'/p', JSON.stringify(d), setProperties, null, 'json', _Z, {'z-action':'Studio','Content-Type':'application/json'});
-}
-
-var _prop={};
-function setProperties(d)
-{
-    if(!d) return;
-    _prop = d;
-    return;
+    toggle.call(_Z, null, true);
     /*
-    var n, t, id, E, c, p, P={'new':null,'update':null,'delete':null};
-    if(!_L) _L=document.getElementById('studio-list');
-    for(n in d) {
-        if(!(n in _P) && d[n]) {
-            E = _L.querySelector('.s-hidden[data-id="'+n+'"]');
-            if(E) {
-                if(E.className.search(/\bs-hidden\b/)>-1) E.className = E.className.replace(/\s*\bs-hidden\b/g, '');
-                c=[];
-                if('id' in d[n]) c.push({e:'span',p:{className:'s-title'},c:d[n].id});
-                for(p in P) {
-                    if((p in d[n]) && d[n][p]) c.push({e:'a',p:{className:'s-button studio-i-'+p},t:{click:trigger}});
-                }
-                Z.element.call(E, c);
-            }
-        }
-    }
+    var T=_V.querySelector('.tdz-i-header .tdz-i-title[data-url]'), h = (T) ?T.getAttribute('data-url') :null, qs = (T) ?T.getAttribute('data-qs') :null;
+    if(qs) h+= '?'+qs;
+    Z.loadInterface.call(_V, h);
     */
-}
-
-function triggerFloatingMenu(e)
-{
-    console.log('trigger floating menu at', this);
 }
 
 function trigger(e, active)
@@ -263,6 +181,20 @@ function trigger(e, active)
     */
 }
 
+function searchInterface(s)
+{
+    var d, u=_Studio+'/i/q';
+    if(typeof(s)=='object') {
+        d = JSON.stringify({q:s});
+    } else {
+        u+='?q='+escape(s);
+    }
+
+    loadInterface(u);
+}
+
+
+
 function toggle(e, active)
 {
     var on,h=document.querySelector('html');
@@ -285,10 +217,17 @@ function toggle(e, active)
         if(h.className.search(/\bstudio-lock\b/)>-1) {
             h.className=h.className.replace(/\s*\bstudio-lock\b/, '').trim();
         }
+        if(_title && document.title!=_title) document.title=_title;
     }
     h=null;
 }
 
+function checkInterfaces()
+{
+    if(!document.querySelector('.tdz-i-body .tdz-i')) {
+        toggle.call(_Z, null, false);
+    }
+}
 
 function setContent(c)
 {

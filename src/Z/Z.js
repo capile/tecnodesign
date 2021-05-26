@@ -646,6 +646,18 @@ Z.click=function(c)
     return Z.fire(c, 'click');
 };
 
+Z.events={};
+Z.event=function(c, ev)
+{
+    if(ev in Z.events) {
+        var L=Z.events[ev], i;;
+        if(typeof(L)=='function') Z.events[ev].call(c);
+        else {
+            for(i=0;i<L.length;i++) Z.events[ev][i].call(c);
+        }
+    }
+}
+
 Z.fire=function(c, ev)
 {
     if('createEvent' in document) {

@@ -224,7 +224,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
     public function previewContent()
     {
-        return '<div class="z-inner-block">'.$this->render().'</div>';        
+        $c = tdz::xml($this->content);
+        return '<div class="z-inner-block">'.$c.'</div>';
     }
 
     public function getContent($p=null)
@@ -259,15 +260,6 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         }
 
         return $a;
-    }
-
-    public function xrenderContentFormField(&$arg, $F)
-    {
-
-
-
-
-
     }
 
     public function render($display=true)

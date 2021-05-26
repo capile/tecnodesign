@@ -1056,6 +1056,7 @@ class Tecnodesign_User
     
     public function signIn($o=array(), $app=false)
     {
+        static $count=1;
         if(!isset(static::$cfg['ns'])) return;
         if(!is_array($o)) {
             $o = array();
@@ -1070,8 +1071,10 @@ class Tecnodesign_User
             }
         }
 
-        if(!isset(tdz::$variables['data'])) tdz::$variables['data']='';
-        $o['app'] =& tdz::$variables['data'];
+        if($app) {
+            if(!isset(tdz::$variables['data'])) tdz::$variables['data']='';
+            $o['app'] =& tdz::$variables['data'];
+        }
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }
