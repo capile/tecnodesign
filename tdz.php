@@ -325,6 +325,8 @@ class tdz
     public static function t($message, $table=null, $to=null, $from=null)
     {
         list($cn, $m) = explode('::', tdz::$translator);
+        //$r = $cn::$m($message, $table, $to, $from);
+        //if($r==$message && substr($table, 0, 5)!='model') \tdz::debug(__METHOD__, func_get_args(), $cn::$m($message, $table, $to, $from));
         return $cn::$m($message, $table, $to, $from);
     }
 

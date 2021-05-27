@@ -1000,6 +1000,9 @@
                 while(i-- > 0) if(!L[i].getAttribute('target') && !L[i].getAttribute('download')) Z.bind(L[i], 'click', loadInterface);
                 L=null;
                 Z.initToggleActive(mv);
+                L=mv.querySelectorAll('.z-toggle-active');
+                i=L.length;
+                while(i-- > 0) Z.initToggleActive(L[i]);
                 mv=f.querySelector('.tdz-i-header .z-spacer');
                 if(mv) {
                     B=box.querySelector('.tdz-i-header');
