@@ -8,12 +8,12 @@ var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl,
     Copy:'a.z-copy[data-target]',
     DisplaySwitch:'*[data-display-switch]',
     ToggleActive:'.z-toggle-active',
-    'Form.Form': 'form.z-form',
-    'Form.AutoSubmit': 'form.z-auto-submit',
-    'Form.CheckLabel':'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
-    'Interface.startup': '.tdz-i[data-url]',
-    'Interface.AutoRemove': '.z-auto-remove',
-    'Graph.Graph': '.z-graph',
+    Z_Form: 'form.z-form',
+    Z_Form_AutoSubmit: 'form.z-auto-submit',
+    Z_Form_CheckLabel:'.i-check-label input[type=radio],.i-check-label input[type=checkbox]',
+    Z_Interface: '.tdz-i[data-url]',
+    Z_Interface_AutoRemove: '.z-auto-remove',
+    Z_Graph: '.z-graph',
     Recaptcha: '.z-recaptcha'
   }, _zTimestamp='';
 
@@ -42,6 +42,12 @@ function initZ(d)
         else if((e=document.querySelector('script[src*=".js"]'))) _assetUrl = e.getAttribute('src').replace(/\/[^\/]+\.js.*/, '/');
         else _assetUrl = '/';
         if(_assetUrl.search(/^[a-z0-9]*?\:\/\//)>-1) Z.host=_assetUrl.replace(/^([a-z0-9]*?\:\/\/[^\/]+).*/, '$1');
+        // defining assets
+        var L=document.querySelectorAll('script[src^="'+_assetUrl+'/z-.+\.js"]'), i=L.length;
+        while(i--) {
+            Z.debug('asset '+L[i].getAttribute('src').replace(/\.js.*/, ''));
+            _assets[L[i].getAttribute('src').replace(/\.js.*/, '')]=true;
+        }
     }
 
     var store=true;
@@ -157,19 +163,21 @@ Z.init=function(o)
         c=document;
         n=true;
     }
-    for(var i in Z.modules){
+    for(var i in Z.modules) {
         var ifn='init'+i;
         if(!Z.modules[i]) continue;
         var L=c.querySelectorAll(Z.modules[i]), j=L.length;
 
-        if(!(ifn in Z) && j && i.search(/\./)>-1) {
+        if(!(ifn in Z) && j && i.search(/_/)>-1) {
             // must load component, then initialize the object
-            var p='Z.'+i, a=i.split(/\./);
-            if(p in window) {
-                if(typeof(window[p])=='function') {
-                    ifn=Z.addPlugin(i, window[p], Z.modules[i]);    
-                    window[p]=null;
-                    delete(window[p]);
+            var a=i.replace(/^Z_/, '').split(/_/);
+            //Z.debug('initializing module: '+i);
+            if(i.substr(0,2)=='Z_' && (i in window)) {
+                if(typeof(window[i])=='function') {
+                    //Z.debug('adding plugin: '+i, window[i], Z.modules[i]);
+                    ifn=Z.addPlugin(i, window[i], Z.modules[i]);    
+                    window[i]=null;
+                    delete(window[i]);
                 }
             } else {
                 var u='z-'+Z.slug(a[0]);
@@ -193,6 +201,7 @@ Z.init=function(o)
 var _delayed={};
 function loadAsset(f, fn, args, ctx)
 {
+    //Z.debug('loadAsset: '+f);
     var T, o, r, s=((Z.env=='dev' && Z.timestamp) ?'?'+(new Date().getTime()) :_zTimestamp);
     if(f in _assets) return;
     _assets[f]=true;
@@ -1131,21 +1140,22 @@ Z.error=function(msg)
     }
 };
 
-
-
 Z.loggr=null;
 Z.log=function()
 {
     var i=0;
-    while(i < arguments.length) {
-        if(Z.loggr) {
+    if(Z.loggr) {
+        while(i < arguments.length) {
             Z.element.call(Z.loggr, {e:'p',p:{className:'msg log'},c:''+arguments[i]});
         }
-        console.log(arguments[i]);
         i++;
     }
+    console.log.apply(this, arguments);
 };
-
+Z.debug=function()
+{
+    if(Z.env!='prod') Z.log.apply(this, arguments);
+}
 
 Z.backwardsCompatible=function()
 {

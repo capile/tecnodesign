@@ -509,8 +509,7 @@ class Tecnodesign_Interface implements ArrayAccess
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($s);
         }
-        $base = ($this::$base && $this::P_REAL_BASE)?($this::$base):($this->link(''));
-        $s = '<div class="tdz-i-box" base-url="'.$base.'">'.$s.'</div>';
+        $s = '<div class="tdz-i-box" base-url="'.$this::$base.'">'.$s.'</div>';
 
         if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
             Tecnodesign_App::end($s);

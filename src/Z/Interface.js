@@ -8,11 +8,9 @@
     {
         /*jshint validthis: true */
         if(!('Z' in window)) {
-            if('tdz' in window) window.Z=window.tdz;
-            else {
-                return setTimeout(startup, 100);
-            }
+            return setTimeout(startup, 100);
         }
+        //Z.debug('Interface.startup', I);
         if(!('loadInterface' in Z)) {
             Z.loadInterface = loadInterface;
             Z.setInterface = setInterface;
@@ -260,11 +258,10 @@
             U[h]=i;
         }
 
-        /*
-        console.log('hashes found: ', U);
-        console.log('interfaces found: ', L);
+        //Z.debug('hashChange: hashes found: ', U);
+        //Z.debug('hashChange: interfaces found: ', L);
          // why this shortcut?
-        */
+
         if(_H.length<=1 && L.length<=1) {
             if(_H.length==1 && L.length==1 && L[0].getAttribute('data-url')!=_H[0]) {
                 // continue
@@ -293,6 +290,7 @@
             }
         }
         for(h in U) {
+            //if(_base && h.substr(0,_base.length+1)==_base+'/') h=h.substr(_base.length+1);
             loadInterface(h, true);
         }
         // checks if active interface is correct
@@ -328,6 +326,7 @@
             if(_load==0) _noH = false;
             else return;
         }
+        //Z.debug('setHash', h);
         // remove h from _H
         if(h) {
             if(h.indexOf(',')>-1) h=h.replace(/,/g, '%2C');
@@ -368,6 +367,7 @@
     function reHash()
     {
         if(!_reHash) return;
+        //Z.debug('reHash');
         var l=document.querySelectorAll('.tdz-i-header .tdz-i-title[data-url]'), i=0,a,h,I, qs;
         _H=[];
         for(i=0;i<l.length;i++) {
@@ -388,6 +388,7 @@
     function setHashLink()
     {
         var i=_H.length, o, hr;
+        //Z.debug('setHashLink');
         while(i-- > 0) {
             var pu=_H[i].replace(/\?.*/, '');
             if(pu.substr(0,1)!='/') pu=_base+'/'+pu;
@@ -402,6 +403,7 @@
 
     function unloadInterface(I, rehash, rI)
     {
+        //Z.debug('unloadInterface', I);
         var u=I.getAttribute('data-url'),
             b=Z.parentNode(I, '.tdz-i-box');
         if(!b) b=document;
@@ -435,7 +437,7 @@
     function loadInterface(e, delayed)
     {
         /*jshint validthis: true */
-        //Z.trace('loadInterface');
+        //Z.debug('loadInterface', e);
         _init = true;
         var I, m=false, t, q, urls=[], l, i,u,data,h={'z-action':'Interface'}, ft, method='get',nav=false;
         if(Object.prototype.toString.call(e)=='[object Array]') {
@@ -605,6 +607,7 @@
 
     function loadToLoad()
     {
+        //Z.debug('loadToLoad', _toLoad);
         if(_toLoadTimeout) clearTimeout(_toLoadTimeout);
         while(_toLoad.length>0) {
             loadInterface(_toLoad.shift());
@@ -790,10 +793,12 @@
             // get u from hash?
             return false;
         } else if(!I) {
+            //Z.debug('activeInterface: '+u);
             loadInterface((qs)?(u+'?'+qs):(u));
             return false;
         } else if(!_reStandalone.test(I.className)) {
             if(!Z.isNode(Z.parentNode(I, '.tdz-i-body'))) {
+                //Z.debug('activeInterface(2): '+u);
                 loadInterface((qs)?(u+'?'+qs):(u));
                 return false;
             }
@@ -1392,12 +1397,18 @@
         return false;
     }
 
+    function init()
+    {
+        /*jshint validthis: true */
+        if(!('Z' in window)) {
+            return setTimeout(init, 100);
+        }
+        Z.loadInterface = loadInterface;
+        Z.setInterface = setInterface;
+    }
 
     window.Z_Interface = startup;
-    Z.loadInterface = loadInterface;
-    Z.setInterface = setInterface;
-    window.Z_AutoRemove = initAutoRemove;
-    window['Z.Interface.startup']=startup;
-    window['Z.Interface.AutoRemove']=initAutoRemove;
+    window.Z_Interface_AutoRemove = initAutoRemove;
+    init();
 
 })();

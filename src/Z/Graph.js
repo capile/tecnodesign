@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Graph v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Graph v2.5 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -98,6 +98,6 @@ function graphInterface(d, el)
 }
 
 // default modules loaded into Z
-window['Z.Graph.Graph'] = Graph;
+window.Z_Graph = Graph
 
 })();

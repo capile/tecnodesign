@@ -1644,10 +1644,6 @@ window.Z_Form = Form;
 window.Z_Form_CheckLabel = initCheckLabel;
 window.Z_Form_AutoSubmit = initAutoSubmit;
 window.Z_Form_Reload = formReload;
-window['Z.Form.Form'] = Form;
-window['Z.Form.CheckLabel']=initCheckLabel;
-window['Z.Form.AutoSubmit']=initAutoSubmit;
-window['Z.Form.Reload']=formReload;
 
 if('Z.z-form' in window) {
     var i=window['Z.z-form'].length;
