@@ -910,7 +910,7 @@ class Tecnodesign_Studio
     public static function interfaceId($M, $prefix=null)
     {
         $s = (is_string($M)) ?$M :implode('-', $M->getPk(true));
-        if($prefix) $s = $prefix.'/'.$s;
+        if($prefix) $s = $prefix.'/v/'.$s;
 
         return tdz::encrypt($s, null, 'uuid');
     }

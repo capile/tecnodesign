@@ -1570,7 +1570,7 @@ function initHtmlEditor()
 function initChoicesJs()
 {
     if(!('Choices' in window)) return;
-    console.log('choices.js to ', this);
+    Z.debug('choices.js to ', this);
     if(this.getAttribute('data-choices-js')) return;
     this.setAttribute('data-choices-js',1);
     new Choices(this, {
