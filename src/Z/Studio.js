@@ -143,7 +143,7 @@ function setStudio(d)
             L.push(b);
             addInterface(b);
         }
-        window.location.hash='!'+L.join(',');
+        window.location.hash='!'+d.data.join(',');
         Z.loadInterface.call(_V, L);
         setTimeout(initStudio, 100);
     }

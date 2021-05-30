@@ -1471,6 +1471,7 @@ function toggleType(e)
 
 function initHtmlEditor()
 {
+    Z.debug('initHtmlEditor: ', this);
     if(this.getAttribute('data-html-editor')) return;
     var a=(this.getAttribute('data-editor')), Editor, elcontainer;
 
@@ -1611,7 +1612,8 @@ function initChoicesJs()
 
 function Form(o)
 {
-    var q='Form.Form';
+    Z.debug('Form', o);
+    var q='Z_Form';
     if(!('initDatePicker' in Z)) Z.initDatepicker = initDatepicker;
     if(q in Z.modules) {
         delete(Z.modules[q]);
