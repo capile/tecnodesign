@@ -70,7 +70,7 @@
         // bind links to Interface actions
         l=I.querySelectorAll('a[href^="'+base+'"],.z-i-a,.z-i-link');
         i=l.length;
-        while(i-- > 0) if(!l[i].getAttribute('target') && !l[i].getAttribute('download')) Z.bind(l[i], 'click', loadInterface);
+        while(i-- > 0) if(!l[i].getAttribute('target') && !l[i].getAttribute('download')) Z.bind(l[i], 'click', (l[i].getAttribute('data-inline-action'))?loadAction :loadInterface);
         l=null;
 
         // bind forms
@@ -103,8 +103,18 @@
                 if(M[j].nodeName.toLowerCase()=='button') {
                     M[j].setAttribute('data-url', u+'?scope='+bu+iurl);
                     M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'z-i--close';
-                    Z.bind(M[j], 'click', loadAction);
-                    bt = M[j].form.parentNode;
+                    if(('form' in M[j])) {
+                        Z.bind(M[j], 'click', loadAction);
+                        if(M[j].form) {
+                            bt = M[j].form.parentNode;
+                        } else if(bt=Z.parentNode(M[j], 'form')) {
+                            bt = bt.parentNode;
+                        } else {
+                            continue;
+                        }
+                    } else {
+                        continue;
+                    }
                 } else {
                     bt= M[j];
                 }
@@ -167,7 +177,7 @@
         i=l.length;
         /*
         while(i-- > 0) {
-            console.log('removing off: ', l[i]);
+            Z.debug('removing off: ', l[i]);
             l[i].parentNode.removeChild(l[i]);
         }
         */
@@ -523,6 +533,12 @@
                     if(ih) {
                         _reload[ih.getAttribute('data-url')]=true;
                     }
+                    // set z-interface header to the tab interface
+                    if(ib=Z.parentNode(this, '.tdz-i[data-url]')) {
+                        iu = ib.getAttribute('data-url');
+                        if(ib.getAttribute('data-qs')) iu += '?'+ib.getAttribute('data-qs');
+                        h['z-interface'] = iu;
+                    }
                 } else {
                     t = t.replace(/\?(.*)$/, '')+'?'+Z.formData(this, false);
                 }
@@ -644,6 +660,16 @@
                         h['Content-Type'] = enc;
                     }
                     if(!data) data = Z.formData(this);
+
+                    var pI=Z.parentNode(this, '.tdz-i[data-url]'), pu;
+                    if(pI) {
+                        pu=pI.getAttribute('data-url');
+                        if(pI.getAttribute('data-qs')) pu+='?'+pI.getAttribute('data-qs');
+                        h['z-interface'] = pu;
+                        pu=null;
+                        pI=null;
+                    }
+
                 } else {
                     u = u.replace(/\?(.*)$/, '')+'?'+Z.formData(this, false);
                 }
@@ -939,7 +965,7 @@
     {
         var h=req.getAllResponseHeaders(), c=h.match(/content-type: [^\;]+;\s*charset=([^\s\n]+)/i);
         if(c && c.length>1 && c[1].search(/^utf-?(8|16)$/i)<0) {
-            //console.log('decode from '+c[1], d, escape(d));
+            //Z.debug('decode from '+c[1], d, escape(d));
             d =  decodeURIComponent(escape(d));
         }
         return d;

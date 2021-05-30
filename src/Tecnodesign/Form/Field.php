@@ -1562,6 +1562,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public function render($arg=array())
     {
+        $M = ($this->bind && !isset($arg['no-render-model'])) ?$this->getModel() :null;
+
+        if($M && method_exists($M, $m=tdz::camelize('prepare-'.$this->id).'FormField')) {
+            $M->$m($arg, $this);
+        }
+
         $base = array('id', 'name', 'value', 'error', 'label', 'class');
         foreach ($base as $k) {
             if (!isset($arg[$k])) {
@@ -1592,7 +1598,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
             'variables' => $arg,
         );
         $input=false;
-        $M = ($this->bind && !isset($arg['no-render-model'])) ?$this->getModel() :null;
 
         if($M && $this->attributes) {
             foreach($this->attributes as $k=>$v) {
@@ -2005,7 +2010,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $columns[$fn] = $fd;
         }
         if(!$columns) return null;
-
         $fo = array(
             'fields'=>$columns,
             'prefix'=>$this->prefix.$this->id,

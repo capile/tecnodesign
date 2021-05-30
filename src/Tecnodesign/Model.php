@@ -1979,19 +1979,23 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $hs = []; // headings for $excludeEmpty
         $fsn='';
         foreach($scope as $label=>$fn) {
+            $fd = null;
+            $overlay = false;
+            if(!is_array($fn)) {
+                $fd = static::column($fn, true, true);
+                $overlay = true;
+            }
             if(is_array($fn)) {
                 $fd = $fn;
-                if(isset($fd['label']) && substr($fd['label'], 0, 1)=='*')  {
-                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
-                    $label = $fd['label'] = tdz::t(substr($fd['label'], 1), $translate);
-                }
+                if(isset($fd['bind'])) $fn=$fd['bind'];
+                else $fn='';
+            }
+            if($fd) {
                 if(isset($fd['fieldset']) && substr($fd['fieldset'], 0, 1)=='*')  {
                     if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
                     $fd['fieldset'] = tdz::t(substr($fd['fieldset'], 1), $translate);
                 }
 
-                if(isset($fd['bind'])) $fn=$fd['bind'];
-                else $fn='';
                 if(isset($fd['label']) && is_int($label)) $label = $fd['label'];
                 if(isset($fd['fieldset'])) {
                     $fsn = $fd['fieldset'];
@@ -2002,8 +2006,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 }
             }
 
+            if(is_integer($label)) $label = ($fn) ?static::fieldLabel($fn, false) :'';
+            if(substr($label, 0, 1)=='*') {
+                if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
+                $label = tdz::t(substr($label, 1), $translate);
+            }
+
             // headings
-            if(substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
+            if(!$fd && substr($fn, 0, 2)=='--' && substr($fn, -2)=='--') {
                 $class = (!is_int($label))?($label):('');
                 $label = substr($fn, 2, strlen($fn)-4);
                 $fsn = $label;
@@ -2013,16 +2023,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             } else {
                 if($fsn && !isset($fs[$fsn]) && $fsn!=$flabel) {
                     $flabel = $fsn;
-                    $class = (!is_int($label))?(tdz::slug($label)):('');
+                    $class = tdz::slug($label);
+                    if(strlen($class)>20) preg_replace('/(.{20}[^\-]+)\-.*/', '$1', $class);
                     $h[$fsn] = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($fsn, $fn, $fsn, $class, ''), $sep);
                 }
 
                 $class='';
-                if(is_integer($label)) $label = static::fieldLabel($fn, false);
-                else if(substr($label, 0, 1)=='*') {
-                    if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
-                    $label = tdz::t(substr($label, 1), $translate);
-                }
                 $ftext = null;
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
@@ -2055,11 +2061,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     continue;
                 } else {
                     if($p=strrpos($fn, ' ')) $fn = substr($fn, $p+1);
-                    if(isset($fd)) {
+                    if($fd && $fn && !$overlay) {
                         $fd1 = static::column($fn,true,true);
                         if($fd1) $fd += $fd1;
                         unset($fd1);
-                    } else {
+                    } else if(!$fd && $fn) {
                         $fd=static::column($fn,true,true);
                     }
                     if(isset($fd['on']) && !isset($fd['className']) && !$this->checkObjectProperties($fd['on'])) {

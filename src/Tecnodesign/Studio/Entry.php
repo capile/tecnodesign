@@ -937,7 +937,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             $E = (isset(tdz::$variables['entry'])) ?tdz::$variables['entry'] :null;
             tdz::$variables['entry'] = $this;
             foreach($L as $i=>$o) {
-                $r .= '<div class="z-ellipsis-multiline ih5 z-item"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/c/v/'.$o->id.'" class="z-i-link z-i--preview"></a></span><div class="z-inner-block">'.$o->previewContent().'</div></div>';
+                $ct = ($o->content_type) ?$o->content_type :'text';
+                $r .= '<div class="z-ellipsis-multiline ih5 z-item z-inner-block"><div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.Tecnodesign_Studio::$home.'/e/v/'.$o->entry.'"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/c/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="z-i-button z-i--update" data-inline-action="update"></a></span>'.$o->previewContent().'</div></div>';
             }
             tdz::$variables['entry'] = $E;
             unset($E);

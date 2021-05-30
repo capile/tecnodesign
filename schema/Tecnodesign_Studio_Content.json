@@ -28,7 +28,13 @@
         "string": [ "id", "slot", "Entry.title _title" ],
         "update": [ "content_type", "slot" ],
         "studio-content": [ "content_type", "slot",  "_title", "_subtitle", "_html", "_img", "_entry", "_master", "_limit", "_hpp", "_options", "_script", "_pi", "_src", "_format", "_href", "_txt" ] ,
-        "review": { "*Id": "id", "*Page": "entry", "*Content Type": "content_type", "*Last Modified": "updated" }
+        "review": { "*Id": "id", "*Page": "entry", "*Content Type": "content_type", "*Last Modified": "updated" },
+        "u-html":  ["content.title","content.subtitle","content.html","content.img"], 
+        "u-php": ["content.script","content.pi"],
+        "u-feed":["content.entry","content.content.master", "content.limit", "content.hpp"],
+        "u-media":["content.src","content.title","content.alt","content.format","content.id","content.href"],
+        "u-text":["content.txt"],
+        "u-widget":["content.app"]
     },
     "order": {
         "updated": "desc"
@@ -45,22 +51,22 @@
     "overlay": {
         "content_type": { "fieldset": "*Content", "bind": "content_type", "label": "*Content Type", "type": "select", "class": "i1s2", "attributes": { "data-query-filter": ".studio-content-type-$", "data-query-filtered": ".studio-content" } },
         "slot": { "fieldset": "*Content", "bind": "slot", "label": "*Slot", "type": "select", "class": "i1s2", "choices": "choicesSlot" },
-        "content": { "bind": "content", "type": "textarea", "class": "studio-field-content" },
-        "_title": { "fieldset": "*Content", "label":"*Title","bind":"content.title","class":"studio-content studio-content-type-html studio-content-type-media"},
-        "_subtitle":{"fieldset": "*Content", "label":"*Subtitle","bind":"content.subtitle","class":"studio-content studio-content-type-html"},
-        "_html":{"fieldset": "*Content", "label":"*Content","bind":"content.html","format":"html","class":"studio-content ih10 studio-content-type-html"},
-        "_img":{"fieldset": "*Content", "label":"*Image","bind":"content.img","class":"studio-content studio-content-type-html"},
-        "_entry":{"fieldset": "*Content", "label":"*Feed","bind":"content.entry","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":["feed","page"]},"class":"studio-content i1s2 studio-content-type-feed"},
-        "_master":{"fieldset": "*Content", "label":"*Template","bind":"content.master","class":"studio-content i1s2 studio-content-type-feed"},
-        "_limit":{"fieldset": "*Content", "label":"*Number of items","bind":"content.limit","class":"studio-content i1s2 studio-content-type-feed"},
-        "_hpp":{"fieldset": "*Content", "label":"*Items per page","bind":"content.hpp","class":"studio-content i1s2 studio-content-type-feed"},
-        "_options":{"fieldset": "*Content", "label":"*Options","bind":"content.options","type":"checkbox","multiple":true,"class":"studio-content i-vlabel studio-content-type-feed","choices":{"related":"*Related","linkhome":"*Include link to page","preview":"*Preview","filter":"*Enable search","nometa":"*Disable page metadata"}},
-        "_script":{"fieldset": "*Content", "label":"*Script","bind":"content.script","class":"studio-content studio-content-type-php"},
-        "_pi":{"fieldset": "*Content", "label":"*Script Code","bind":"content.pi","format":"textarea","class":"studio-content ih10 studio-content-type-php"},
-        "_src":{"fieldset": "*Content", "label":"*Source","bind":"content.src","class":"studio-content studio-content-type-media"},
-        "_format":{"fieldset": "*Content", "label":"*Media Format","bind":"content.format","class":"studio-content studio-content-type-media"},
-        "_href":{"fieldset": "*Content", "label":"*Link Target","bind":"content.href","class":"studio-content studio-content-type-media"},
-        "_txt":{"fieldset": "*Content", "label":"*Markdown Text","bind":"content.txt","format":"textarea","class":"studio-content ih10 studio-content-type-text studio-content-type-md"}
+        "content": { "bind": "content", "format": "form", "class": "studio-field-content" },
+        "content.title": { "label":"*Title"},
+        "content.subtitle":{"label":"*Subtitle"},
+        "content.html":{"label":"*Content","format":"html","class":"ih10"},
+        "content.img":{"label":"*Image"},
+        "content.entry":{"label":"*Feed","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":["feed","page"]}},
+        "content.master":{"label":"*Template"},
+        "content.limit":{"label":"*Number of items","class":"i1s2"},
+        "content.hpp":{"label":"*Items per page","class":"i1s2"},
+        "content.options":{"label":"*Options","type":"checkbox","multiple":true,"class":"i-vlabel","choices":{"related":"*Related","linkhome":"*Include link to page","preview":"*Preview","filter":"*Enable search","nometa":"*Disable page metadata"}},
+        "content.script":{"label":"*Script"},
+        "content.pi":{"label":"*Script Code","format":"textarea","class":"ih10"},
+        "content.src":{"label":"*Source"},
+        "content.format":{"label":"*Media Format"},
+        "content.href":{"label":"*Link Target"},
+        "content.txt":{"label":"*Markdown Text","format":"textarea","class":"ih10"}
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },

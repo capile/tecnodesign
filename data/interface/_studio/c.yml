@@ -75,10 +75,3 @@ all:
         'Content':
           bind: content
           class: ih10
-      u.html:
-        __default:
-          fieldset: '*Content'
-        '*Title': _title
-        '*Subtitle': _subtitle
-        '*HTML': _html
-        '*Image': _img

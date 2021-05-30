@@ -2400,31 +2400,37 @@ class Tecnodesign_Interface implements ArrayAccess
                     $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), $this->getTitle());
                     $msg = '<div class="tdz-i-msg tdz-i-success">'.$this->text['success'].'</div>';
 
-                    $next = null;
-                    if(isset($this->options['next'])) {
-                        if(is_array($this->options['next'])) {
-                            if(isset($this->options['next'][$this->action])) {
-                                $next = $this->options['next'][$this->action];
+                    $next = $url = null;
+                    if(!($url=Tecnodesign_App::request('headers', 'z-interface')) || substr($url, 0, strlen(static::$base)+1)!=static::$base.'/') {
+                        if(isset($this->options['next'])) {
+                            if(is_array($this->options['next'])) {
+                                if(isset($this->options['next'][$this->action])) {
+                                    $next = $this->options['next'][$this->action];
+                                }
+                            } else {
+                                $next = $this->options['next'];
                             }
-                        } else {
-                            $next = $this->options['next'];
+                        }
+                        if(!$next && isset($this->actions[$this->action]['next'])) {
+                            $next = $this->actions[$this->action]['next'];
+                        }
+                        if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
+                            if(!isset($this->actions[$next])) $next = null;
+                        }
+
+                        if($newpk!=$pk) {
+                            $this->id = $newpk;
+                            if(!$next) $next = $this->action;
+                        }
+                        if($next) {
+                            $this->action = $next;
+                            $url = $this->link();
                         }
                     }
-                    if(!$next && isset($this->actions[$this->action]['next'])) {
-                        $next = $this->actions[$this->action]['next'];
-                    }
-                    if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
-                        if(!isset($this->actions[$next])) $next = null;
-                    }
 
-                    if($newpk!=$pk) {
-                        $this->id = $newpk;
-                        if(!$next) $next = $this->action;
-                    }
-                    if($next) {
-                        $this->action = $next;
+                    if($url) {
                         $this->message($msg);
-                        $this->redirect($this->link(), $oldurl);
+                        $this->redirect($url, $oldurl);
                     }
                 }
                 $this->text['summary'] .= $msg;

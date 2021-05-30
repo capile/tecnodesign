@@ -224,8 +224,23 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
     public function previewContent()
     {
-        $c = tdz::xml($this->content);
-        return '<div class="z-inner-block">'.$c.'</div>';
+        //$c = tdz::xml($this->content);
+        if(!isset($this->content_type) && $this->id) $this->refresh(['content_type']);
+        $scope = null;
+        if($this->content_type) {
+            $scope = 'u-'.$this->content_type;
+            if(!isset(static::$schema->scope[$scope])) {
+                $scope = null;
+            }
+        }
+
+        if(!$scope) {
+            $c = '<div class="z-inner-block">'.tdz::xml($this->content).'</div>';
+        } else {
+            $c = $this->renderScope($scope);
+        }
+
+        return $c;
     }
 
     public function getContent($p=null)
@@ -251,12 +266,17 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
     public static function prepareContentTypes($a)
     {
-        if(($p=tdz::urlParams()) && count($p)>=2 && $p[0]==='u' && is_numeric($p[1]) && ($E=self::find(['id'=>$p[1]],1,['content_type']))) {
-            if(isset($a['options']['scope']['u.'.$E->content_type])) {
-                $a['options']['scope']['c'] = $a['options']['scope']['u.'.$E->content_type];
+        static $methods = ['u','v'];
+        if(($p=tdz::urlParams()) && count($p)>=2 && in_array($p[0], $methods) && is_numeric($p[1]) && ($E=self::find(['id'=>$p[1]],1,['content_type']))) {
+            $s = 'u-'.$E->content_type;
+            if(isset(static::$schema->scope[$s])) {
+                $scope = static::$schema->scope[$s];
+            } else if(isset($a['options']['scope'][$s])) {
+                static::$schema->scope[$s] = $scope = $a['options']['scope'][$s];
             } else {
-                \tdz::log('[ERROR] Please prepare the scope: Tecnodesign_Studio_Content::$schema->scope[u.'.$E->content_type.']', $E->getContent());
+                \tdz::log('[ERROR] Please prepare the scope: Tecnodesign_Studio_Content::$schema->scope['.$s.']', $E->getContent());
             }
+            $a['options']['scope'][$s] = $a['options']['scope']['c'] = $scope;
         }
 
         return $a;
