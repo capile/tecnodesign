@@ -1526,7 +1526,7 @@ function initHtmlEditor()
     } else if (a=='Quill') {
         var toolbarOptions = [
           ['bold', 'italic', 'underline', 'strike',        // toggled buttons
-          'blockquote', 'code-block'],
+          'blockquote', 'code-block', 'link'],
 
           [{ 'list': 'ordered'}, { 'list': 'bullet' }],
           [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
@@ -1547,7 +1547,7 @@ function initHtmlEditor()
             modules: {
                 toolbar: toolbarOptions
             },
-            placeholder: 'Compose an epic...',
+            //placeholder: 'Compose an epic...',
             theme: 'snow'
         };
 
@@ -1555,14 +1555,14 @@ function initHtmlEditor()
 
         Editor.container.firstChild.innerHTML = this.value;
         Editor.on('text-change', function(delta, oldDelta, source) {
-          if (source == 'user') {
-            selfel.value = Editor.root.innerHTML;
-            if (selfel.type == 'textarea') {
-                selfel.innerText = Editor.root.innerHTML;
-            } else {
+            if (source == 'user') {
                 selfel.value = Editor.root.innerHTML;
+                if (selfel.type == 'textarea') {
+                    selfel.innerText = Editor.root.innerHTML;
+                } else {
+                    selfel.value = Editor.root.innerHTML;
+                }
             }
-          }
         });
     }
 }
