@@ -1,7 +1,7 @@
 ---
 all:
   studio:
-    version: 2.3
+    version: 2.5
     connection: studio
     enable_interface_entry: true
     enable_interface_content: true
@@ -49,7 +49,7 @@ all:
         cliInterface: true
         webInterface: true
         connection: studio
-        index: studio-index
+        index: studio
       tdz:
         log: 2
         database:
@@ -61,3 +61,10 @@ all:
       additional-params: true
       layout: layout
     default-route: run
+    #routes:
+    #  /_studio:
+    #    class: Tecnodesign_Studio
+    #    method: run
+    #    static: true
+    #    layout: layout
+    #    additional-params: true

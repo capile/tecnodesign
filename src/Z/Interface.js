@@ -633,7 +633,7 @@
 
     function loading(url, add)
     {
-        var t=(new Date()).getTime(), u=url.replace(/\?.*$/, '');
+        var t=(new Date()).getTime(), u=(url) ?url.replace(/\?.*$/, '') :null;
         if(arguments.length==0) {
             for(var u in _loading) {
                 if(t-_loading[u]>_loadingTimeout) {

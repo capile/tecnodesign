@@ -3690,7 +3690,7 @@ class Tecnodesign_Interface implements ArrayAccess
         return $Is;
     }
 
-    public static function configFile($s)
+    public static function configFile($s, $enableStudio=null)
     {
         static $dd;
         if(is_null($dd)) $dd = tdz::getApp()->tecnodesign['data-dir'];
@@ -3702,6 +3702,9 @@ class Tecnodesign_Interface implements ArrayAccess
                 return $f;
             }
             unset($d, $f);
+        }
+        if($enableStudio && substr($s, 0, 8)=='_studio/' && file_exists($f=TDZ_ROOT.'/data/interface/'.$s.'.yml')) {
+            return $f;
         }
         unset($s);
     }
@@ -3719,9 +3722,10 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             if(isset($a['base'])) {
                 $i=3;
-                while(isset($a['base']) && ($f=static::configFile($a['base']))) {
+                while(isset($a['base']) && ($f=static::configFile($a['base'], true))) {
                     unset($a['base']);
-                    $a += tdz::config($f, tdz::env());
+                    $na = tdz::config($f, tdz::env());
+                    if($na) $a = tdz::mergeRecursive($a, $na);
                     if($i-- <=0) break;
                 }
             }

@@ -558,6 +558,7 @@ class Tecnodesign_Query_Sql
 
         $found=false;
         if(!$cn) $cn = $sc->className;
+        $quote = static::QUOTE;
 
         if (isset($sc->properties[$fn])) {
             $found = $sc->properties[$fn];
@@ -567,31 +568,34 @@ class Tecnodesign_Query_Sql
                 } else if(strpos($found['alias'], '`')!==false) {
                     $fn = $this->getAlias($found['alias'], $ref, true).((!$noalias)?(' '.tdz::sql($fn)):(''));
                 } else {
-                    $fn = $ta.'.'.$found['alias'].((!$noalias)?(' '.tdz::sql($fn)):(''));
+                    $qfn = ($quote && strpos($found['alias'], ' ')!==false) ?"{$quote[0]}{$found['alias']}{$quote[1]}" :$found['alias'];
+                    $fn = $ta.'.'.$qfn.((!$noalias)?(' '.tdz::sql($fn)):(''));
                 }
             } else {
+                $qfn = ($quote) ?"{$quote[0]}{$fn}{$quote[1]}" :$fn;
                 if(!$noalias && isset($found['type']) && $found['type']=='string' && isset($found['size']) && $this::$textToVarchar && $this::$textToVarchar<=$found['size']) {
                     if(!$this->_selectDistinct) $this->_selectDistinct=array();
                     $scn = $sc['className'];
-                    $this->_selectDistinct[$ta.'.'.$fn] = 'cast('.$ta.'.'.$fn.' as varchar(max)) '.((!property_exists($scn, $fn) && !$scn::$allowNewProperties) ?'_' :'' ).$fn;
+                    $this->_selectDistinct[$ta.'.'.$qfn] = 'cast('.$ta.'.'.$qfn.' as varchar(max)) '.((!property_exists($scn, $fn) && !$scn::$allowNewProperties) ?'_' :'' ).$fn;
                 }
-                $fn = $ta.'.'.$fn;
+                $fn = $ta.'.'.$qfn;
             }
         } else if(isset($sc->overlay[$fn]['bind']) && $sc->overlay[$fn]['bind']!=$fn) {
             $fn = $this->getAlias($sc->overlay[$fn]['bind'], $ref, $noalias);
             if(!$fn) return;
         } else {
             $rnf = (string)$ref;
-            $quote = static::QUOTE;
             if(strpos($fn, '.')) {
                 @list($rn, $ofn) = explode('.', $fn,2);
                 $rnf .= ($rnf) ?('.'.$rn) :($rn);
                 if(isset($sc->properties[$rn]['serialize'])) {
                     $found = $sc->properties[$rn];
                     if(isset($found['alias']) && $found['alias']) {
-                        $fn = $ta.'.'.$found['alias'].((!$noalias)?(' '.tdz::sql($ofn)):(''));
+                        $qfn = ($quote && strpos($found['alias'], ' ')!==false) ?"{$quote[0]}{$found['alias']}{$quote[1]}" :$found['alias'];
+                        $fn = $ta.'.'.$qfn.((!$noalias)?(' '.tdz::sql($ofn)):(''));
                     } else {
-                        $fn = $ta.'.'.$rn;
+                        $qfn = ($quote) ?"{$quote[0]}{$rn}{$quote[1]}" :$rn;
+                        $fn = $ta.'.'.$qfn;
                     }
                 } else if(isset($sc->relations[$rn])) {
                     $rel = $sc->relations[$rn];
@@ -679,10 +683,16 @@ class Tecnodesign_Query_Sql
                 // ignore
                 return;
             } else if(isset($sc->properties[$fn])) {
-                if($sc->properties[$fn]->alias)  $fn = $ta.'.'.$sc->properties[$fn]->alias.((!$noalias)?(' '.tdz::sql($fn)):(''));
-                else $fn = $ta.'.'.$fn;
+                if($sc->properties[$fn]->alias) {
+                    $qfn = ($quote) ?"{$quote[0]}{$sc->properties[$fn]->alias}{$quote[1]}" :$sc->properties[$fn]->alias;
+                    $fn = $ta.'.'.$qfn.((!$noalias)?(' '.tdz::sql($fn)):(''));
+                } else {
+                    $qfn = ($quote) ?"{$quote[0]}{$fn}{$quote[1]}" :$fn;
+                    $fn = $ta.'.'.$qfn;
+                }
             } else if (strpos($fn, '.')===false && ($cn::$allowNewProperties || property_exists($cn, $fn))) {
-                $fn = $ta.'.'.$fn;
+                $qfn = ($quote) ?"{$quote[0]}{$fn}{$quote[1]}" :$fn;
+                $fn = $ta.'.'.$qfn;
             } else {
                 tdz::log("[WARNING] Cannot find by [{$fn}] at [{$this->schema('className')}.$ref]");
                 throw new Exception("Cannot find by [{$fn}] at [{$this->schema('className')}.$ref]");

@@ -110,10 +110,23 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'button'=>'options.button',
                 'name'=>'options.name',
             ],
-        ];
+        ],
+        $defaultTokenFinder='Studio\\Model\\Tokens';
     protected 
         $tokens = [],
-        $tokenFinder='Studio\\Model\\Tokens';
+        $tokenFinder;
+
+    public function __construct($tokenFinder=null)
+    {
+        if(is_null($tokenFinder)) {
+            $tokenFinder = static::$defaultTokenFinder;
+        } 
+        $this->tokenFinder = $tokenFinder;
+
+        if(!static::$instance) {
+            static::$instance = $this;
+        }
+    }
 
     public static function instance()
     {
