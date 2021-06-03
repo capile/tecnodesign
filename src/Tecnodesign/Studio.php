@@ -55,10 +55,11 @@ class Tecnodesign_Studio
         ],
         $cliApps=[
             'config'=>['Tecnodesign_App_Install','config'],
+            'check'=>['Tecnodesign_Studio_Index', 'checkConnection'],
             'index'=>['Tecnodesign_Studio_Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
         ];
-    const VERSION = 2.3;    // should match the development branch 
+    const VERSION = 2.5;    // should match the development branch 
 
     /**
      * This is a Tecnodesign_App, the constructor is loaded once and then cached (until configuration changes)
@@ -78,6 +79,15 @@ class Tecnodesign_Studio
         return $root;
     }
 
+    public static function app()
+    {
+        if(!self::$app) {
+            self::$app = tdz::getApp();
+        }
+
+        return self::$app;
+    }
+
     /**
      * General purpose action, will trigger the relevant action based on the URL called
      *
@@ -85,7 +95,7 @@ class Tecnodesign_Studio
      */
     public static function run()
     {
-        self::$app = tdz::getApp();
+        self::app();
         $req = Tecnodesign_App::request();
 
         if($req['shell']) {
@@ -575,9 +585,10 @@ class Tecnodesign_Studio
         static $scope = array('id','title','type','link','source','master','format','updated','published','version');
         self::$private = array();
         if(static::$response) static::addResponse(static::$response);
+        $connEnabled = (self::$connection && self::config('enable_interface_entry'));
         if(is_null($published)) {
             // get information from user credentials
-            if(self::$connection && ($U=tdz::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
+            if($connEnabled && ($U=tdz::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
                 $published = false;
                 self::$private = (is_array($c))?($c):(array($c));
                 // replace tdzEntry by tdzEntryVersion and probe for latest version (?)
@@ -605,7 +616,7 @@ class Tecnodesign_Studio
             $f['published<'] = date('Y-m-d\TH:i:s');
         }
         $E=null;
-        if(self::$connection && ($E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
+        if($connEnabled && ($E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
             if($meta = $E::loadMeta($E->link)) {
                 foreach($meta as $fn=>$v) {
                     if(property_exists($E, $fn)) {
@@ -631,7 +642,7 @@ class Tecnodesign_Studio
             while(strlen($u)>1) {
                 $u = preg_replace('#/[^/]+$#', '', $u);
                 $f['link'] = $u;
-                if(self::$connection && ($E=tdzEntry::find($f,1,$scope,false,array('type'=>'desc')))) {
+                if($connEnabled && ($E=tdzEntry::find($f,1,$scope,false,array('type'=>'desc')))) {
                     unset($f, $published);
                     break;
                 } else if($u && ($E=tdzEntry::findPage($u, true))) {
@@ -779,7 +790,8 @@ class Tecnodesign_Studio
             if(!self::$credentials && self::$cacheTimeout) self::$credentials = Tecnodesign_Cache::get('studio/credentials', self::$cacheTimeout);
             if(!self::$credentials || !is_array(self::$credentials)) {
                 self::$credentials=array();
-                if(self::$connection) {
+                $connEnabled = (self::$connection && self::config('enable_interface_credential'));
+                if($connEnabled) {
                     $ps = tdzPermission::find(array('entry'=>''),0,array('role','credentials'),false,array('updated'=>'desc'));
                     if($ps) {
                         foreach($ps as $i=>$P) {
@@ -829,7 +841,7 @@ class Tecnodesign_Studio
         if($cn) {
             // translate
             return $cn::$p;
-        } else if(self::$app) {
+        } else if(self::app()) {
             if(isset(self::$app->studio[$p])) {
                 return self::$app->studio[$p];
             }

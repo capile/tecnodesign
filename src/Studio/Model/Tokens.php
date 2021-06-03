@@ -99,7 +99,8 @@ class Tokens extends Model
             $U->setAttribute('authorize-source', $ref);
             $Client = $Server->requestAuthorization();
         } else {
-            return '<a data-action="redirect" data-url="'.S::xml($base.'?url={surl}').'"></a>';
+            $msg = '<a data-action="redirect" data-url="'.S::xml($base.'?url={surl}').'"></a>';
+            S::output($msg, 'text/html; charset=utf8', true);
         }
     }
 

@@ -1607,6 +1607,101 @@ class Tecnodesign_Interface implements ArrayAccess
         unset($m, $cn);
     }
 
+    public function executeMethod()
+    {
+        static::$currentAction = $this->action;
+        if(!isset($this->text)) $this->text = array();
+        $this->text['count'] = $this->count();
+        $req = Tecnodesign_App::request('post') + Tecnodesign_App::request('get');
+        if(isset($req['ajax'])) unset($req['ajax']);
+        if($req) {
+            $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS, static::REQ_ORDER, static::REQ_PAGE);
+            foreach($noreq as $k) {
+                if(isset($req[$k])) unset($req[$k]);
+            }
+        }
+        if(!$req) {
+            if(isset($this->options[$this->action.'-filter'])) {
+                $req = $this->options[$this->action.'-filter'];
+            } else if(!$this->search && isset($this->options['default-filter'])) {
+                $req = $this->options['default-filter'];
+            }
+        }
+
+        if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
+            static::$envelope = (bool)tdz::raw($p);
+        }
+        if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
+            static::$pretty = (bool)tdz::raw($p);
+        }
+        unset($p);
+
+        $cn = $this->getModel();
+        if(isset($this->options['scope']) && is_array($this->options['scope'])) {
+            $cn::$schema->scope = $this->options['scope'] + $cn::$schema->scope;
+        }
+        if($rs=$this->requestScope()) {
+            $scope = array('scope::'.$rs);
+            unset($rs);
+        } else if(isset($cn::$schema->scope[$this->action])) {
+            $scope = $cn::$schema->scope[$this->action];
+        } else {
+            $scope = 'list';
+        }
+        $this->options['scope'] = $this->scope($scope);
+
+        if(isset($this->options['messages'])) {
+            foreach($this->options['messages'] as $n=>$m) {
+                if(property_exists($this, $n)) $this::$$n = $m;
+            }
+        }
+
+        if(($this->action=='list' || !isset($this->id)) && static::$displaySearch &&
+            (
+                (isset($this->options['search']) && $this->options['search'])
+                || (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])
+            )) {
+            $this->searchForm($req);
+        }
+
+        if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
+
+        $r = null;
+        if(method_exists($o=$this->model, $a='execute'.\tdz::camelize($this->action, true))) {
+            if($this->id) {
+                // get object
+                $o = $this->model();
+                $r = $o->$a($this, $req);
+            } else {
+                $r = $o::$a($this, $req);
+            }
+
+            if(!isset($this->text['summary'])) {
+                $this->text['summary'] = $this->getSummary();
+            }
+            static::status(200);
+
+            return;
+        }
+
+        if(!isset($this->text['buttons'])) {
+            $this->getButtons();
+        }
+
+        if(!isset($this->text['summary'])) {
+            $this->text['summary'] = $this->getSummary();
+        }
+
+        if(is_string($r)) {
+            $this->text['preview'] = $r;
+        }
+
+        static::status(200);
+
+        unset($req);
+        unset($m, $cn, $r);
+    }
+
     public function executeInterface()
     {
         return $this->execute();

@@ -1899,8 +1899,10 @@ class tdz
                 else
                     $s .= $v . "\n";
             }
-            if (!$proc && is_object($o))
-                $s .= $id . (string) $o;
+            if (!$proc && is_object($o)) {
+                if(method_exists($o, '__toString')) $s .= $id . (string) $o;
+                else $s .= $id . get_class($o);
+            }
         }
         else
             $s .= $id . $o;

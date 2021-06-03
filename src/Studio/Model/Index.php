@@ -264,10 +264,34 @@ class Index extends Model
 
     public static function checkConnection($conn=null)
     {
+        static $cfg = [
+            'content'=>[
+                'Tecnodesign_Studio_Entry',
+                'Tecnodesign_Studio_Content',
+                'Tecnodesign_Studio_ContentDisplay',
+                'Tecnodesign_Studio_Relation',
+                'Tecnodesign_Studio_Tag',
+            ],
+            'credential'=>[
+                'Studio\\Model\\Users',
+                'Studio\\Model\\Groups',
+                'Studio\\Model\\Credentials',
+            ],
+            'index'=>[
+                'Studio\\Model\\Interfaces',
+                'Studio\\Model\\Tokens',
+                'Studio\\Model\\Index',
+                'Studio\\Model\\IndexBlob',
+                'Studio\\Model\\IndexBool',
+                'Studio\\Model\\IndexDate',
+                'Studio\\Model\\IndexNumber',
+                'Studio\\Model\\IndexText',
+            ],
+        ];
+
         if(!$conn) {
             $conn = static::$schema->database;
         }
-
         if(!($db=Query::database($conn))) {
             if(is_string(Studio::$index) && ($db=Query::database(Studio::$index))) {
                 S::$database[$conn] = $db;
@@ -277,11 +301,11 @@ class Index extends Model
             }
         }
         // check studio and index database, and create tables if required
-        $check = [
-            get_called_class(),
-        ];
-        foreach(static::$schema->relations as $rn=>$rd) {
-            $check[] = (isset($rd['className'])) ?$rd['className'] :$rn;
+        $check = [];
+        foreach($cfg as $n=>$cns) {
+            if(Studio::config('enable_interface_'.$n)) {
+                $check = array_merge($check, $cns);
+            }
         }
 
         $H = [];
@@ -299,7 +323,11 @@ class Index extends Model
             }
             if(!isset($T[$dbn][$cn::$schema->tableName])) {
                 if(S::$log>0) S::log('[INFO] Creating table '.$dbn.'.'.$cn::$schema->tableName);
-                $H[$dbn]->create($cn::$schema);
+                try {
+                    $H[$dbn]->create($cn::$schema);
+                } catch(\Exception $e) {
+                    S::log('[WARNING] Error while creating table: '.$e->getMessage(), $H[$dbn]->lastQuery());
+                }
             }
         }
 

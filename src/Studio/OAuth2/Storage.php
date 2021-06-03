@@ -24,7 +24,7 @@ use OAuth2\Storage\PublicKeyInterface;
 use InvalidArgumentException;
 use tdz as S;
 
-class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, ClientInterface, AccessTokenInterface, RefreshTokenInterface, JwtBearerInterface, UserClaimsInterface, ScopeInterface, PublicKeyInterface
+class Storage implements ClientCredentialsInterface, UserCredentialsInterface, AuthorizationCodeInterface, AccessTokenInterface, RefreshTokenInterface, JwtBearerInterface, UserClaimsInterface, ScopeInterface, PublicKeyInterface
 {
     protected static $instance;
     public static 

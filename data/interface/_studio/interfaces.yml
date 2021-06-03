@@ -27,6 +27,19 @@ all:
       preview:
         - scope::m
         - scope::s
+      new:
+        - scope::n
+        - scope::s
+      n:
+        __default:
+          type: text
+          fieldset: Interface Definition
+        "*ID": id
+        "*Title": title
+        "*Class Model": model
+        "*Connection": connection
+        "*Endpoint (Table/API base)": source
+        "*Indexing Interval": index_interval
       m:
         __default:
           type: text
