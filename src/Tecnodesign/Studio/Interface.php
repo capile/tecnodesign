@@ -104,12 +104,12 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return $Is;
     }
 
-    public static function configFile($s)
+    public static function configFile($s, $enableStudio=null)
     {
         if(Tecnodesign_Studio::config('enable_interfaces') && ($I=Interfaces::find($s,1))) {
             $r = $I->cacheFile($s);
         } else {
-            $r = parent::configFile($s);
+            $r = parent::configFile($s, $enableStudio);
         }
 
         return $r;
