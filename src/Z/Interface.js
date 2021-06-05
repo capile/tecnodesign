@@ -1017,15 +1017,9 @@
                 }
             }
 
-            var r = f.querySelectorAll('a[data-action]'), i=r.length, ra, mv, L;
-            while(i-- > 0) {
-                ra = r[i].getAttribute('data-action');
-                if(ra && (ra in _A)) {
-                    _A[ra].call(this, r[i]);
-                }
-                if(r[i].parentNode) r[i].parentNode.removeChild(r[i]);
-            }
-            r=null;
+            runActions(f);
+            var r, i, mv, L;
+
             if(!I) I = f.querySelector('.tdz-i');
             if(I && box && !box.querySelector('.tdz-i-body') && f.querySelector('.tdz-i-body')) {
                 // replace entire box and startup
@@ -1178,7 +1172,10 @@
             if(ra && (ra in _A)) {
                 _A[ra].call(this, r[i]);
             }
-            if(r[i].parentNode) r[i].parentNode.removeChild(r[i]);
+            if(r[i].parentNode) {
+                if(r[i].parentNode.className.search(/\bz-i-msg\b/)>-1 && r[i].parentNode.children.length==1) r[i].parentNode.parentNode.removeChild(r[i].parentNode);
+                else r[i].parentNode.removeChild(r[i]);
+            }
         }
     }
 
@@ -1407,7 +1404,7 @@
         if(!this.querySelector('.z-i--close')) {
             var el=Z.element.call(this, {e:'i',p:{className:'z-i--close z-i-a z-round'},t:{click:autoRemove}});
             if(el.previousSibling.nodeName.toLowerCase()=='a' && !el.previousSibling.getAttribute('href')) Z.bind(el.previousSibling, 'click', autoRemove);
-            var P=Z.parentNode(this,'.field,.z-i-field,.tdz-i-field');
+            var P=Z.parentNode(this,'.z-i-field,.field');
             if(P) P.className+=' has-auto-remove';
         }
     }

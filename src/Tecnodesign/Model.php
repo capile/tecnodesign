@@ -2509,6 +2509,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                         $df = ($fd['format']=='datetime')?(tdz::$dateFormat.' '.tdz::$timeFormat):(tdz::$dateFormat);
                         $v = date($df, $t);
                     }
+                } else if(isset($fd['format']) && $fd['format']=='html' && isset($fd['html_labels']) && $fd['html_labels']) {
+                    $xmlEscape = false;
+                    $v = tdz::safeHtml($v);
                 } else if(substr($fd['type'], 0, 3)=='int') {
                     if(is_numeric($v)) $v = (int)$v;
                 } else if($fd['type']=='number') {

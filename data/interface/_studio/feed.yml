@@ -1,10 +1,10 @@
 ---
 all:
-  title: '*Files'
+  title: '*Feeds'
   model: Tecnodesign_Studio_Entry
   search:
-    type: file
+    type: feed
   options:
-    list-parent: i
-    priority: 2
+    list-parent: site
+    priority: 1003
     index: true

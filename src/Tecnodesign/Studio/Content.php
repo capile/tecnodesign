@@ -103,6 +103,8 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             $C = Tecnodesign_Studio::content(Tecnodesign_Studio_Entry::file($page), false);
             if($limit==1) return $C;
             else return array($C);
+        //} else if(is_array($q) && isset($q['source']) && count($q)==1) {
+        //    $C = Tecnodesign_Studio::content(TDZ_VAR.'/'.$q['source'], false, false, false);
         }
         if(!Tecnodesign_Studio::$connection) {
             return false;
@@ -124,20 +126,26 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return false;
     }
 
-    public function getContents()
+    public static function parseContent($r)
     {
-        if(substr($this->content, 0,1)=='{') {
-            $r = json_decode($this->content, true);
-        } else if(preg_match('#^\n*(---[^\n]*\n)?[a-z0-9\- ]+\:#i', $this->content)) {
-            $r = str_replace(array('\r\n', "\\r\n"), "\n", Tecnodesign_Yaml::load($this->content));
-            //$r = Tecnodesign_Yaml::load($this->content);
-        } else {
-            $r = $this->content;
+        $r = trim(str_replace(["\r", '\\r'], '', $r));
+        if($r && is_string($r)) {
+            if(substr($r, 0,1)=='{') {
+                $r = tdz::unserialize($r, 'json');
+            } else if(preg_match('#^\n*(---[^\n]*\n)?[a-z0-9\- ]+\:#i', $r)) {
+                $r = tdz::unserialize($r, 'yaml');
+            }
         }
         if(!is_array($r)) {
             $r = array($r);
         }
         return $r;
+
+    }
+
+    public function getContents()
+    {
+        return self::parseContent($this->content);
     }
 
     public static function entry($page)
@@ -250,8 +258,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         }
         if($this->content) {
             if(is_string($this->content)) {
-                if(strpos($this->content, "\r")) $this->content = str_replace("\r", '', $this->content);
-                $this->content = tdz::unserialize($this->content, 'yaml');
+                $this->content = self::parseContent($this->content);
             }
             if($p) {
                 if(isset($this->content[$p])) {
@@ -293,7 +300,10 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $code = $this->getContents();
         $code['slot']=$this->slot;
         $type = $this->content_type;
-        $attr = array('id'=>'c'.$id, 'data-studio-c'=>$this->id);
+        $attr = array('id'=>'c'.$id);
+        if(Tecnodesign_Studio::$webInterface) {
+            $attr['data-studio'] = Tecnodesign_Studio::interfaceId('content/v/'.$this->id);
+        }
         if($a=$this['attributes.attributes']) {
             $attr += $a;
         }

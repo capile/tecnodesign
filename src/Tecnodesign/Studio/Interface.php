@@ -36,7 +36,6 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
         $dir                = [ 'interface' ],
-        $indexFile          = 'i',
         $headingTemplate    = '<h2>$LABEL</h2><hr />',
         $actionAlias        = [
             'n'=>'new',

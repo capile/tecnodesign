@@ -32,12 +32,6 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             'entry'=>'*Article',
             'file'=>'*Uploaded file',
         ),
-        $typeInterfaces = [
-            'page'=>'e',
-            'feed'=>'l',
-            'entry'=>'a',
-            'file'=>'f',
-        ],
         $pageDir='web',                                // where pages are stored (relative to TDZ_VAR)
         $uploadDir,                                    // deprecated, use tdz::uploadDir
         $indexFile='index',                            // filename to use for directory reads
@@ -53,7 +47,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     public function studioId($prefix=null)
     {
         if(!$prefix) {
-            $prefix = (isset(static::$typeInterfaces[$this->type])) ?static::$typeInterfaces[$this->type] :'e';
+            $prefix = ($this->type) ?$this->type :'site';
         }
 
         return Tecnodesign_Studio::interfaceId($this, $prefix);
@@ -938,7 +932,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             tdz::$variables['entry'] = $this;
             foreach($L as $i=>$o) {
                 $ct = ($o->content_type) ?$o->content_type :'text';
-                $r .= '<div class="z-ellipsis-multiline ih5 z-item z-inner-block"><div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.Tecnodesign_Studio::$home.'/e/v/'.$o->entry.'"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/c/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="z-i-button z-i--update" data-inline-action="update"></a></span>'.$o->previewContent().'</div></div>';
+                $r .= '<div class="z-ellipsis-multiline ih5 z-item z-inner-block"><div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.tdz::scriptName(true).'"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="z-i-button z-i--update" data-inline-action="update"></a></span>'.$o->previewContent().'</div></div>';
             }
             tdz::$variables['entry'] = $E;
             unset($E);
@@ -977,7 +971,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         }
 
         if($this->type) {
-            return Tecnodesign_Studio::$home.'/'.static::$typeInterfaces[$this->type];
+            return Tecnodesign_Studio::$home.'/'.$this->type.'/q';
         }
     }
 

@@ -54,7 +54,7 @@
         "content": { "bind": "content", "format": "form", "class": "studio-field-content" },
         "content.title": { "label":"*Title"},
         "content.subtitle":{"label":"*Subtitle"},
-        "content.html":{"label":"*Content","format":"html","class":"ih10"},
+        "content.html":{"label":"*Content","format":"html","class":"ih10","html_labels":true},
         "content.img":{"label":"*Image"},
         "content.entry":{"label":"*Feed","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":["feed","page"]}},
         "content.master":{"label":"*Template"},

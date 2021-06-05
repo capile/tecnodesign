@@ -2,11 +2,9 @@
 all:
   title: '*Pages'
   model: Tecnodesign_Studio_Entry
-  search:
-    type: page
   options:
-    list-parent: i
-    priority: 1
+    priority: 1001
+    list-parent: site
     index: true
     group-by: id
     order:
@@ -14,7 +12,7 @@ all:
     scope:
       review:
         '*Title': title
-        '*Link': link
+        URL: link
         '*Summary': summary
         '*Last Modified': 'greatest(`updated`,`Contents.updated`) updated'
       search:
@@ -22,10 +20,11 @@ all:
           - title
           - summary
           - link
-        '*URL': link
+        URL: link
         '*Last modified': 
           bind: 'greatest(`updated`,`Contents.updated`)'
           format: datetime
+        '*Type': "substring_index(`type`,'/',1)"
       preview:
         - 'scope::meta'
         - 'scope::_meta'

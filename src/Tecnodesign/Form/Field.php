@@ -22,6 +22,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
             'sha1'=>'sha1_file($dest)',
             'none'=>'$name',
         ),
+        $propertyAsClassName=[
+            'required',
+            'readonly',
+            'disabled',
+            'mandatory',
+            'error',
+        ],
         $dateInputType='date',
         $dateInputFormat,
         $datetimeInputType='datetime-local',
@@ -1382,6 +1389,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         if($this->disabled) {
             $cn .= ' disabled';
+        }
+        foreach(self::$propertyAsClassName as $n) {
+            if(isset($this->$n) && $this->$n) {
+                $cn .= ' p-'.$n;
+            }
         }
         return trim($cn);
     }

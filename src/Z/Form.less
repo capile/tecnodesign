@@ -1,4 +1,6 @@
-/*! Tecnodesign Z.Form v2.3 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.5 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
+@charset "utf8";
+@import "interface-vars-default.less";
 @import "interface-vars.less";
 .z-no-button {
   input[type="button"],input[type="submit"],button {
@@ -11,9 +13,20 @@
   p, p.field, .input, .label {margin:0;padding:0;}
 }
 
-.z-disabled-input {
+.z-disabled-input, .z-i-field.p-disabled {
   opacity: 0.4 !important;
   cursor: not-allowed !important;
+}
+.z-i-field.p-disable {
+  opacity:0.5;
+}
+.z-i-field.p-required {
+  .input, dt:first-child {
+    &:after {
+      content: '*';
+      color: @error;
+    }
+  }
 }
 
 .z-html-editor {

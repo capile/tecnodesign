@@ -7,8 +7,8 @@ all:
     publish: false
   index: true
   options:
-    list-parent: i
-    priority: 10
+    list-parent: site
+    priority: 1010
     scope:
       search:
         - id

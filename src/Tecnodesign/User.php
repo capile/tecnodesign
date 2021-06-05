@@ -514,13 +514,13 @@ class Tecnodesign_User
             ksort($msgs);
         }
         foreach($msgs as $t=>$s) {
-            if($s) $msg .= '<div class="z-i-msg" data-created="'.date('Y-m-d\TH:i:s Z', $t).'">'.$s.'</div>';
+            if($s) $msg .= self::msgTimestamp($s, $t);
             unset($msgs[$t], $t,$s);
         }
         if(!is_null($cookie)) {
             $cookies = self::getCookies($cookie);
             foreach($cookies as $s) {
-                if($s) $msg .= '<div class="z-i-msg" data-created="'.date('Y-m-d\TH:i:s Z').'">'.strip_tags(urldecode($s)).'</div>';
+                if($s) $msg .= self::msgTimestamp(strip_tags(urldecode($s)), $t);
                 unset($s);
             }
             if($delete && count($cookies)>0) {
@@ -529,6 +529,16 @@ class Tecnodesign_User
             unset($cookies);
         }
         if($delete) $this->deleteMessage($storage);
+        return $msg;
+    }
+
+    protected static function msgTimestamp($s, $t=null)
+    {
+        if(preg_match('#<div class="z-i-msg([^"]+)?"( data-created="[^"]+")?>(.*)</div>#', $s, $m)) {
+            $msg = ($m[3]) ?'<div class="z-i-msg'.$m[1].'" data-created="'.date('c', $t).'">'.$m[3].'</div>' :null;
+        } else if($s) {
+            $msg = '<div class="z-i-msg" data-created="'.date('c', $t).'">'.$s.'</div>';
+        }
         return $msg;
     }
     

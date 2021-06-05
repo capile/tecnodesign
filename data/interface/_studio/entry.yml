@@ -1,10 +1,10 @@
 ---
 all:
-  title: '*Feeds'
+  title: '*Articles'
   model: Tecnodesign_Studio_Entry
   search:
-    type: feed
+    type: entry
   options:
-    list-parent: i
-    priority: 3
+    list-parent: site
+    priority: 1003
     index: true

@@ -826,7 +826,7 @@ function displayField(on)
     var reset=(this.className.search(/\bz-a-filters\b/)<0);
     if(reset) this.className += ' z-a-filters';
 
-    var b0='.field,.tdz-i-field,.z-i-field',b=this.getAttribute('data-query-filtered');
+    var b0='.z-i-field,.field',b=this.getAttribute('data-query-filtered');
     var c = ':scope > '+b.replace(/,/g, ', :scope > ');
     var P=(b) ?Z.parentNode(this, b) :null;
     if(!P) P=Z.parentNode(this, b0);
@@ -1026,7 +1026,7 @@ function initSubform(o)
         L=o.querySelectorAll('#'+id+'>.item');
         i=L.length;
     }
-    Z.parentNode(o, '.field,.tdz-i-field').setAttribute('data-count', i);
+    Z.parentNode(o, '.z-i-field,.field').setAttribute('data-count', i);
 
     // buttons: add, add(contextual), remove(contextual)
     if(!fmax || fmax!=i || fmax!=fmin) {
@@ -1076,7 +1076,7 @@ function subformAdd(e)
         Z.stopEvent(e);
         Z.tg = this;
 
-        if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
+        if(el = Z.parentNode(this, '.z-i-field,.field')) {
             o = el.querySelector('.items[data-template]');
             el = Z.parentNode(this, '.item');
             if(el && Z.parentNode(el, '.items[data-template]')!=o) el=null;
@@ -1142,7 +1142,7 @@ function subformDel(e)
     var el, o;
 
     /*
-    if(el = Z.parentNode(this, '.tdz-i-field,.field')) {
+    if(el = Z.parentNode(this, '.z-i-field,.field')) {
         o = el.querySelector('.items[data-template]');
         el = null;
     }
@@ -1161,7 +1161,7 @@ function subformDel(e)
         el.parentNode.removeChild(el);
         i--;
     }
-    Z.parentNode(o, '.field,.tdz-i-field').setAttribute('data-count', i);
+    Z.parentNode(o, '.z-i-field,.field').setAttribute('data-count', i);
 
 
     //Z.subform(o);
@@ -1444,7 +1444,7 @@ function initTypeToggler()
 {
     if(!this.getAttribute('data-toggler')) {
         this.setAttribute('data-toggler',1);
-        var T=Z.parentNode(this, '.tdz-i-field, .z-i-field, .field');
+        var T=Z.parentNode(this, '.z-i-field, .field');
         if(T) T=T.querySelector('.label, dt, label');
         if(!T) T=this.parentNode;
         Z.element.call(T, {e:'a',a:{'class':'z-type-toggler z-i--toggle','data-toggler-option':'0','data-toggler':'#'+this.id+'[data-alt-type]'},t:{click:toggleType},c:[{e:'i',p:{className:'z-i--'+this.getAttribute('type')+' i-toggler-0'}},{e:'i',p:{className:'z-i--'+this.getAttribute('data-alt-type')+' i-toggler-1'}}]});

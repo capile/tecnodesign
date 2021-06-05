@@ -1,0 +1,7 @@
+{
+    "ref": "Tecnodesign_Studio_Entry",
+    "className": "Studio\\Model\\EntryImage",
+    "events": {
+        "active-records": "`expired` is null and `type`='file' and `format` like 'image/%'"
+    }
+}

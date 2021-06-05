@@ -211,7 +211,7 @@ class Tecnodesign_Studio
     private static function _runInterface($url=null)
     {
         if(!$url) $url = substr(tdz::scriptName(), strlen(self::$home));
-        if(strpos($url, '.')!==false && !preg_match('#^/('.implode('|', Tecnodesign_Studio_Entry::$typeInterfaces).')/#', $url)) {
+        if(strpos($url, '.')!==false && !strpos($url, '/')) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
             if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Z', true) 

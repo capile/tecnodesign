@@ -183,7 +183,7 @@ function trigger(e, active)
 
 function searchInterface(s)
 {
-    var d, u=_Studio+'/i/q';
+    var d, u=_Studio+'/site/q';
     if(typeof(s)=='object') {
         d = JSON.stringify({q:s});
     } else {
