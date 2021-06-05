@@ -184,8 +184,8 @@ class Client extends PublicObject
                 $ttl = $this->config('ttl');
                 if($ttl) $ttl = 7200;
                 if($expired || $expires_in < $ttl) {
-                    S::log('[INFO] Refreshing token for '.$this->id);
                     if(isset($d['refresh_token'])) {
+                        S::log('[INFO] Refreshing token for '.$this->id, $d);
                         $token = $this->refreshToken($d['refresh_token'], Storage::fetch('authorization', $o['id'], false));
                         if($token) {
                              $token = ((isset($o['token_type'])) ?$o['token_type'] :'Bearer').' '.$token;
@@ -194,14 +194,18 @@ class Client extends PublicObject
                     }
                 }
 
-                if($d && isset($d['access_token'])) {
+                if(!$token && $d && isset($d['access_token'])) {
                     $token = ((isset($o['token_type'])) ?$o['token_type'] :'Bearer').' '.$d['access_token'];
                     break;
                 }
             }
+        } else {
+            S::log('[INFO] Could not find authorization token for '.$this->id.'. Maybe try to reconnect?');
         }
         if($token && $conn) {
             curl_setopt($conn, CURLOPT_HTTPHEADER, ['authorization: '.$token]);
+        } else if($token) {
+            return $token;
         }
 
         return $conn;

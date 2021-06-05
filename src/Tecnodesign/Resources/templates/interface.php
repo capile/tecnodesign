@@ -170,7 +170,7 @@ if($Interface::$navigation) {
             if(isset($preview)): 
                 ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php
                     $next = null;
-                    if($Interface['action']!='delete' && $Interface['action']!='text' && !$Interface::$standalone) {
+                    if(in_array($Interface['action'], ['update', 'preview', 'new']) && !$Interface::$standalone) {
                         $next = ($Interface['action']=='update')?('preview'):('update');
                         if(!isset($Interface['actions'][$next]) || (isset($Interface['actions'][$next]['auth']) && !$Interface::checkAuth($Interface['actions'][$next]['auth']))) {
                             $next = null;

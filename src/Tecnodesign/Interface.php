@@ -2688,7 +2688,7 @@ class Tecnodesign_Interface implements ArrayAccess
         Tecnodesign_App::end();
     }
 
-    protected function getForm($o, $scope=null)
+    protected function getForm($o=null, $scope=null)
     {
         if(!$o || !($o instanceof Tecnodesign_Model)) {
             $o = $this->model();
@@ -2697,10 +2697,14 @@ class Tecnodesign_Interface implements ArrayAccess
                 return $this->redirect($this->link(false, false));
             }
         }
+        if(is_null($scope) && $this->action) {
+            $scope = $this->action;
+        }
         if(!tdz::isempty($this->id)) {
             if(is_string($scope)) $ss=$scope;
             else if(count($scope)==1 && isset($scope[0]) && substr($scope[0], 0, 7)=='scope::') $ss=substr($scope[0], 7);
         }
+
         $cn = get_class($o);
         $d = $cn::columns($scope);
         if(!$d) $d = array_keys($cn::$schema['columns']);

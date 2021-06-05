@@ -10,6 +10,16 @@ all:
       batch: false
       query: true
       additional-params: true
+    run-api:
+      action: executeMethod
+      label: Run
+      position: ~
+      identified: true
+      batch: false
+      query: true
+      icon: connect
+      next: false
+      additional-params: true
   key: id
   search:
     type: server
@@ -101,4 +111,34 @@ all:
         Authorization Endpoint: options.authorization_endpoint
         Token Endpoint: options.token_endpoint
         Userinfo Endpoint: options.userinfo_endpoint
+      run-api:
+        __default:
+          fieldset: "*API Request"
+          type: text
+        response:
+          label: "*Response"
+          bind: _run_api_response
+          format: hidden
+        method:
+          label: "*Method"
+          bind: _run_api_method
+          format: select
+          choices: { get: GET, post: POST, put: PUT, options: OPTIONS }
+          class: i1s4
+          value: get
+        server:
+          label: "*Server"
+          bind: options.api_endpoint
+          readonly: true
+          class: i1s4
+        url:
+          label: "*URL"
+          bind: _run_api_url
+          format: text
+          class: i1s2
+        data:
+          label: "*Data"
+          bind: _run_api_data
+          format: textarea
+          class: ih5
 

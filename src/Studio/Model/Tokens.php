@@ -17,6 +17,8 @@ use Studio\OAuth2\Storage as Storage;
 use Tecnodesign_Studio as Studio;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_App as App;
+use Tecnodesign_Query_Api as Api;
+use Tecnodesign_Interface as SInterface;
 use tdz as S;
 
 class Tokens extends Model
@@ -25,7 +27,7 @@ class Tokens extends Model
     protected $id, $type, $token, $user, $options, $created, $updated, $expires;
 
     public static $types=[
-        'server'=>'OAuth2 Connector',
+        'server'=>'Connection',
     ];
 
 
@@ -102,6 +104,63 @@ class Tokens extends Model
             $msg = '<a data-action="redirect" data-url="'.S::xml($base.'?url={surl}').'"></a>';
             S::output($msg, 'text/html; charset=utf8', true);
         }
+    }
+
+    public function previewOptionsApiEndpoint()
+    {
+        if($url=$this['options.api_endpoint']) {
+            if(SInterface::format()=='html' && ($I=SInterface::current())) {
+                return S::xml($url).' <a class="z-i-a z-i-button z-i--run-api" href="'.S::xml($I->link('run-api', null, false, false)).'">'.S::xml($I::t('Run API')).'</a>';
+            }
+            return $url;
+        }
+    }
+
+    public function executeRunApi($Interface=null)
+    {
+        if(!($p=S::urlParams()) && ($route = App::response('route'))) {
+            S::scriptName($route['url']);
+            $p = S::urlParams();
+        }
+
+        $F = $Interface['form'];
+        if(($post=App::request('post')) && $F->validate($post)) {
+            $conn = 'server:'.$this->id;
+            $d = $F->getData();
+
+            $scope = Storage::$scopes['server'];
+            $this->refresh($scope);
+            $server = $this->asArray($scope);
+            $Server = new Client($server);
+            $H = ['accept: application/json'];
+            $method = (isset($d[$prefix.'method'])) ?strtoupper($d[$prefix.'method']) :'GET';
+            if($method!='GET') $H[] = 'content-type: application/json';
+            if($token = $Server->connectApi()) {
+                $H[] = 'authorization: '.$token;
+            }
+
+            $prefix = '_run_api_';
+            $url = $d[$prefix.'url'];
+            if(substr($url, 0, 1)!='/') $url = '/'.$url;
+            $url = $server['api_endpoint'].$url;
+            $R = Api::runStatic($url, $conn, $d[$prefix.'data'], $method, $H);
+            $Interface::$pretty = true;
+            $Interface::$envelope = false;
+            foreach($F->fields as $k=>$fd) {
+                $fd->fieldset = 'Response';
+                $fd->format = 'textarea';
+                $fd->readonly = true;
+                $fd->class = 'ih15';
+                $fd->value = $Interface::toJson($R);
+                break;
+            }
+        }
+        $s = (string)$F;
+
+        $r = $Interface['text'];
+        $r['preview'] = $s;
+        $r['next'] = false;
+        $Interface['text'] = $r;
     }
 
     public function previewOptionsClientSecret()
