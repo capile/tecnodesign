@@ -234,22 +234,6 @@ function setContent(c)
     this.innerHTML = c;
 }
 
-/*
-Z.contentType = function()
-{
-    var F = Z.parentNode(this, 'form,.item'), L=F.querySelectorAll('*[data-content-type]'), i=L.length,v=Z.val(this);
-    console.log('ContentType: '+v, L);
-    while(i--) {
-        var el=Z.parentNode(L[i], '.tdz-i-field');
-        if(v && String(','+L[i].getAttribute('data-content-type')+',').indexOf(','+v+',')>-1) {
-            el.className = el.className.replace(/\s*\bi-hidden\b/g, '');
-        } else if(el.className.search(/\bi-hidden\b/)<0) {
-            el.className+=' i-hidden';
-        }
-    }
-};
-*/
-
 startup();
 
 })();
