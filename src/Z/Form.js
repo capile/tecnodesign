@@ -283,7 +283,7 @@ function datalistQuery(e)
         datalistClear.apply(o);
     }
 
-    var u=o.getAttribute('data-datalist-api'), api=(u!=''), h;
+    var u=o.getAttribute('data-datalist-api'), api=(u!=''), h={accept:'application/json'};
     if(u) {
         var m=u.match(/\$[a-z0-9\-\_]+/ig), i=(m)?(m.length):(0), n;
         if(u.substr(0,1)!='/' && u.substr(0,4)!='http') {
@@ -299,7 +299,9 @@ function datalistQuery(e)
         //if(('form' in o) && (o.form.getAttribute('method')+'').toLowerCase()=='get') u=o.form.action;
         if('form' in o) u=o.form.action;
         else u=window.location.href;
-        h = {'z-action':'choices', 'z-target': encodeURIComponent(x), 'z-term': encodeURIComponent(v)};
+        h['z-action']='choices';
+        h['z-target']=encodeURIComponent(x);
+        h['z-term']=encodeURIComponent(v);
     }
     if(u===false || u===true) u=window.location.href;
     if(u.search(/\#/)>-1) u=u.replace(/\#.+$/, '');
@@ -381,9 +383,12 @@ function datalistRender(d)
             } else if('label' in d[n]) {
                 if('value' in d[n]) p.a['data-value'] = d[n].value;
                 if('group' in d[n]) {
-                    p.c = [ {e:'strong', c: d[n].group }, ' '+d[n].label ];
+                    p.c = [ {e:'em', c: d[n].group }, {e:'span',c:' '+d[n].label}];
                 } else {
-                    p.c=d[n].label;
+                    p.c=[{e:'span',c:d[n].label}];
+                }
+                if(('className' in d[n]) && d[n].className) {
+                    p.p.className += ' '+d[n].className;
                 }
             } else {
                 p.c=[];
@@ -462,7 +467,7 @@ function datalistOption()
                 }
             }
             for(n in p) {
-                if(p[n].hasOwnProperty) {
+                if(p[n]!=null && p[n].hasOwnProperty) {
                     if(!s) {
                         s=true;
                         o.setAttribute('data-datalist-q', p[n]);

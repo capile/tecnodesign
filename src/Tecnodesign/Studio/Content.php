@@ -22,8 +22,9 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         ),
         $widgets = array(
         ),
-        $multiviewContentType=array('widget','php','md'), // which entry types can be previewed
+        $multiviewContentType=array('widget','php','md'), // which entry types can be previewed within multiple urls
         $disableExtensions=array(),                  // disable the preview of selected extensions
+        $previewContentType=['html', 'md', 'feed', 'media'],
         $allowMarkdownExtensions=true;
 
     public static $schema;
@@ -242,7 +243,9 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             }
         }
 
-        if(!$scope) {
+        if($this->content_type && in_array($this->content_type, static::$previewContentType)) {
+            $c = $this->render(true);
+        } else if(!$scope) {
             $c = '<div class="z-inner-block">'.tdz::xml($this->content).'</div>';
         } else {
             $c = $this->renderScope($scope);
@@ -303,6 +306,9 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         $attr = array('id'=>'c'.$id);
         if(Tecnodesign_Studio::$webInterface) {
             $attr['data-studio'] = Tecnodesign_Studio::interfaceId('content/v/'.$this->id);
+        }
+        if($p=Tecnodesign_Studio::config('content_class_name')) {
+            $attr['class'] = $p;            
         }
         if($a=$this['attributes.attributes']) {
             $attr += $a;

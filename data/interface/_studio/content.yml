@@ -7,7 +7,7 @@ all:
     publish: false
   index: true
   options:
-    list-parent: site
+    list-parent: ~
     priority: 1010
     scope:
       search:

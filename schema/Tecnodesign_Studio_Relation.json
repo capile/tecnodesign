@@ -30,7 +30,7 @@
         "after-delete": [ "actAs" ]
     },
     "overlay": {
-        "parent": { "bind": "parent", "format": "search", "choices": "Tecnodesign_Studio_Entry" },
+        "parent": { "bind": "parent", "format": "select", "choices": "Tecnodesign_Studio_Entry" },
         "position": { "bind": "position", "format": "int" }
     },
     "actAs": {

@@ -1084,7 +1084,10 @@ class Tecnodesign_User
         if($app) {
             if(!isset(tdz::$variables['data'])) tdz::$variables['data']='';
             $o['app'] =& tdz::$variables['data'];
+        } else if(!isset($o['app'])) {
+            $o['app'] = '';
         }
+
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }

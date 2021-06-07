@@ -8,3 +8,73 @@ all:
     list-parent: site
     priority: 1003
     index: true
+    group-by: id
+    order:
+      coalesce(`published`, `updated`): desc
+      title: asc
+    scope:
+      review:
+        '*Title': title
+        '*Tag': _tags
+        URL: link
+        '*Newsfeed': Related
+        '*Published': published
+      title:
+        value: id
+        label: title
+      search:
+        q:
+          '*Title': title
+          '*Summary': summary
+          URL: link
+          '*Tag': Tag.slug
+        URL: link
+        '*Newsfeed':
+          bind: Related.parent
+          type: select
+          attributes:
+            data-datalist-api: /_studio/feed/q?envelope=false&scope=title
+          
+        '*Last modified': updated
+        '*Published': published
+        '*Tag': Tag.slug
+      new:
+        - scope::entry
+        - format: hidden
+          bind: type
+          value: entry
+          label: ~
+      preview:
+        - 'scope::entry'
+        - 'scope::_meta'
+      entry:
+        __default:
+          fieldset: '*Article'
+        '*Title': title
+        '*Link': link
+        '*Summary':
+          bind: summary
+          format: html
+          class: ih10
+        '*Newsfeed':
+          bind: Related
+          format: form
+          scope:
+            parent:
+              label: ~
+              bind: parent
+              format: select
+              choices: Tecnodesign_Studio_Feed
+        '*Published':
+          bind: published
+          class: i1s2
+        '*Tag': 
+          bind: _tags
+          class: i1s2
+      _meta:
+        __default:
+          class: i1s4
+        '*Created': created
+        '*Updated': updated
+        '*Version': version
+        '*Source': source

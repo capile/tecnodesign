@@ -2,6 +2,16 @@
 all:
   title: '*Pages'
   model: Tecnodesign_Studio_Entry
+  search:
+    type: page
+  actions:
+    sitemap:
+      position: ~
+      identified: false
+      batch: false
+      query: true
+      additional-params: true
+      action: executeMethod
   options:
     priority: 1001
     list-parent: site
@@ -17,22 +27,33 @@ all:
         '*Last Modified': 'greatest(`updated`,`Contents.updated`) updated'
       search:
         q:
-          - title
-          - summary
-          - link
+          '*Title': title
+          '*Summary': summary
+          URL: link
+          '*Tag': Tag.slug
         URL: link
         '*Last modified': 
           bind: 'greatest(`updated`,`Contents.updated`)'
           format: datetime
         '*Type': "substring_index(`type`,'/',1)"
+        '*Tag': Tag.slug
       preview:
-        - 'scope::meta'
-        - 'scope::_meta'
-        - 'scope::_content'
+        - scope::page
+        - scope::_meta
+        - scope::_content
+        - scope::credentials
       choices:
         label: title
         value: id
-      meta:
+      credentials:
+        '*Credentials':
+          bind: Permission
+          format: form
+          fieldset: '*Page Credentials'
+          scope:
+            '*Role': role
+            '*Credentials': credentials
+      page:
         __default:
           fieldset: '*Properties'
           class: i1s2
@@ -44,7 +65,21 @@ all:
         '*Published': published
         '*Tag': _tags
         '*Template': master
-        '*Sitemap': _parent
+        '*Sitemap':
+          bind: Related
+          format: form
+          scope:
+            parent:
+              label: ~
+              bind: parent
+              format: select
+              choices: Tecnodesign_Studio_Page
+              attributes:
+                data-datalist-api: /_studio/page/sitemap?envelope=false
+                data-datalist-target: position
+            position:
+              label: ~
+              format: hidden
       _meta:
         __default:
           class: i1s4

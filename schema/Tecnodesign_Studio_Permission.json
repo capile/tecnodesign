@@ -7,7 +7,7 @@
         "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
         "entry": { "type": "int", "index": [ "z_permission__entry_idx" ] },
         "role": { "type": "string", "size": 100, "required": true },
-        "credentials": { "type": "string", "size": 1000, "serialize": "json" },
+        "credentials": { "type": "string", "size": 1000 },
         "version": { "type": "int" },
         "created": { "format": "datetime", "type": "string", "required": true },
         "updated": { "format": "datetime", "type": "string", "required": true },
@@ -26,7 +26,10 @@
         "after-update": [ "actAs" ],
         "after-delete": [ "actAs" ]
     },
-    "overlay": [],
+    "overlay": {
+        "role": { "bind": "role", "format": "select", "class": "i1s2", "choices": "choicesRoles" },
+        "credentials": { "bind": "credentials", "format": "select", "class": "i1s2", "choices": "choicesCredentials", "multiple": true }
+    },
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ], "auto-increment": [ "id" ] },
         "before-update": { "timestampable": [ "created", "updated" ] },

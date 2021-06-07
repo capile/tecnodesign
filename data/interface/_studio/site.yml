@@ -8,18 +8,28 @@ all:
     group-by: id
     order:
       'greatest(`updated`,`Contents.updated`)': desc
+    link-generator: interfaceLink
+    redirect-by-property:
+      type:
+        feed: feed
+        entry: entry
+        file: file
+        page: page
+
     scope:
       review:
         '*Type': type
-        '*Title': title
+        '*Title': title _title_tags
         URL: link
         '*Last Modified': 'greatest(`updated`,`Contents.updated`) updated'
       search:
         q:
-          - title
-          - summary
-          - link
+          '*Title': title
+          '*Summary': summary
+          URL: link
+          '*Tag': Tag.slug
         URL: link
+        '*Tag': Tag.slug
         '*Last modified': 
           bind: 'greatest(`updated`,`Contents.updated`)'
           format: datetime

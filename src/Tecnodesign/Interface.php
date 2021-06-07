@@ -145,6 +145,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $expires,
         $errorModule,
         $className='Tecnodesign_Interface',
+        $removeQueryString=['ajax'=>null,'_uid'=>null],
         $ui;
 
 
@@ -1523,8 +1524,7 @@ class Tecnodesign_Interface implements ArrayAccess
         static::$currentAction = $this->action;
         if(!isset($this->text)) $this->text = array();
         $this->text['count'] = $this->count();
-        $req = Tecnodesign_App::request('post') + Tecnodesign_App::request('get');
-        if(isset($req['ajax'])) unset($req['ajax']);
+        $req = Tecnodesign_App::request('post') + $this->qs(true);
         if($req) {
             $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS, static::REQ_ORDER, static::REQ_PAGE);
             foreach($noreq as $k) {
@@ -1587,10 +1587,54 @@ class Tecnodesign_Interface implements ArrayAccess
 
         if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
 
-        if($this->isOne() && method_exists($cn, $m=static::$modelRenderPrefix.tdz::camelize($this->action, true))) {
+        $one = $this->isOne();
+        $o = null;
+        if($one && isset($this->options['redirect-by-property'])) {
+            $redirect = null;
+            $o = $this->model();
+            $o->refresh(array_keys($this->options['redirect-by-property']));
+            foreach($this->options['redirect-by-property'] as $fn=>$target) {
+                $v = $o->$fn;
+                if(isset($target[$v])) {
+                    if(is_array($target[$v])) {
+                        if(isset($target[$v]['action'])) {
+                            $ta = $target[$v]['action'];
+                            if(!is_array($ta)) $ta = [$ta];
+                            if(in_array($this->action, $ta)) {
+                                if(isset($target[$v]['interface'])) {
+                                    $redirect = $target[$v]['interface'];
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        $redirect = (string)$target[$v];
+                        break;
+                    }
+                }
+            }
+
+            if($redirect) {
+                $redirect = static::$base
+                   . '/'
+                   . $redirect
+                   . '/'
+                   . ((static::$actionAlias && ($aa=array_search($this->action, static::$actionAlias))) ?$aa :$this->action)
+                   . '/'
+                   .  implode('-', $o->getPk(true))
+                   ;
+
+                $curr = $this->link();
+                if($curr!=$redirect) {
+                    $this->redirect($redirect, $this->link());
+                }
+            }
+        }
+
+        if($one && method_exists($cn, $m=static::$modelRenderPrefix.tdz::camelize($this->action, true))) {
             $this->getButtons();
             $this->scope((isset($cn::$schema->scope[$this->action]))?($this->action):('preview'));
-            $o = $this->model();
+            if(!$o) $o = $this->model();
             $this->text['preview'] = $o->$m($this);
             unset($o);
         } else if(method_exists($this, $m='render'.tdz::camelize($this->action, true))) {
@@ -1612,8 +1656,7 @@ class Tecnodesign_Interface implements ArrayAccess
         static::$currentAction = $this->action;
         if(!isset($this->text)) $this->text = array();
         $this->text['count'] = $this->count();
-        $req = Tecnodesign_App::request('post') + Tecnodesign_App::request('get');
-        if(isset($req['ajax'])) unset($req['ajax']);
+        $req = Tecnodesign_App::request('post') + $this->qs(true);
         if($req) {
             $noreq = array(static::REQ_LIMIT, static::REQ_OFFSET, static::REQ_ENVELOPE, static::REQ_PRETTY, static::REQ_CALLBACK, static::REQ_SCOPE, static::REQ_FIELDS, static::REQ_ORDER, static::REQ_PAGE);
             foreach($noreq as $k) {
@@ -3032,15 +3075,14 @@ class Tecnodesign_Interface implements ArrayAccess
         unset($s, $sn);
     }
 
-    public function qs()
+    public function qs($asArray=false)
     {
-        if($this->action!='list') {
-            $rm = 'ajax';
-        } else {
-            $rm = 'ajax|_uid';
+        static $qs;
+        if(is_null($qs)) {
+            $qs = array_diff_key(Tecnodesign_App::request('get'), static::$removeQueryString);
         }
-        return preg_replace('/\&?\b('.$rm.')(=[^\&]*)?/', '', Tecnodesign_App::request('query-string'));
-        return $qs;
+
+        return ($asArray) ?$qs :http_build_query($qs);
     }
 
     public function getList($req=array())

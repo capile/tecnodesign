@@ -8,3 +8,51 @@ all:
     list-parent: site
     priority: 1002
     index: true
+    group-by: id
+    order:
+      updated: desc
+    scope:
+      review:
+        '*Title': title
+        URL: link
+        '*Summary': summary
+        '*Last Modified': 'greatest(`updated`,`Contents.updated`) updated'
+      search:
+        q:
+          '*Title': title
+          '*Summary': summary
+          URL: link
+          '*Tag': Tag.slug
+        URL: link
+        '*Last modified': 
+          bind: 'greatest(`updated`,`Contents.updated`)'
+          format: datetime
+        '*Type': "substring_index(`type`,'/',1)"
+        '*Tag': Tag.slug
+      new:
+        - scope::file
+        - format: hidden
+          bind: type
+          value: file
+          label: ~
+      preview:
+        - 'scope::file'
+        - 'scope::_meta'
+      file:
+        __default:
+          fieldset: '*Uploaded File'
+          class: i1s2
+        '*Title': title
+        '*Link': link
+        '*Upload':
+          bind: source
+          class: ~
+        '*Published': published
+        '*Tag': _tags
+      _meta:
+        __default:
+          class: i1s4
+        '*Created': created
+        '*Updated': updated
+        '*Version': version
+        '*Format': format

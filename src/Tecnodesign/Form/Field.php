@@ -1665,7 +1665,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $run['variables']['before']=$this->before;
         $run['variables']['after']=$this->after;
 
-
         return tdz::exec($run);
     }
 
@@ -2124,7 +2123,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
         }
         if(isset($arg['required'])) unset($arg['required']);
-        $h = ($hi) ?$this->renderHidden($arg) :'';
+        $ha = $arg;
+        $h = ($hi) ?$this->renderHidden($ha) :'';
         $this->attributes = $a0;
         unset($a0);
         $a = [];

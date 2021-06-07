@@ -44,10 +44,12 @@ class Tecnodesign_Studio
         $assetsOptimizeUrl,
         $status,
         $templateRoot='web',
+        $contentClassName,
         $languages=array(),
         $ignore=array('.meta', '.less', '.md', '.yml'),
         $indexIgnore=array('js', 'css', 'font', 'json', 'studio'),
         $allowedExtensions=array('.html'),
+        $breadcrumbSeparator=' » ',
         $userMessage,
         $cli='studio',      // configurable, where to load Studio command-line interface
         $interfaces = [
@@ -844,6 +846,8 @@ class Tecnodesign_Studio
         } else if(self::app()) {
             if(isset(self::$app->studio[$p])) {
                 return self::$app->studio[$p];
+            } else if(property_exists(get_called_class(), $p=tdz::camelize($p))) {
+                return self::$$p;
             }
         }
         return false;

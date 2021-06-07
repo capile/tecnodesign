@@ -55,6 +55,7 @@
         "contents": { "bind": "Contents", "format": "form" },
         "master": { "bind": "master", "format":"select", "choices": "choicesMaster" },
         "_tags": { "bind": "_tags", "multiple": true },
+        "source": { "bind": "source", "format": "file", "accept": {"uploader":true},"class":"app-file-preview"},
         "_parent_wip": { "bind": "Related", "multiple": true, "format": "form", "scope": "parent" }
     },
     "actAs": {
