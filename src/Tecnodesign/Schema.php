@@ -107,7 +107,9 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 static::$schemaDir = array(static::$schemaDir);
             }
         }
-        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) array_unshift(static::$schemaDir, TDZ_ROOT.'/schema');
+        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) {
+            static::$schemaDir[] = TDZ_ROOT.'/schema';
+        }
 
         $src = array();
         $fname = tdz::slug(str_replace('\\', '_', $ref), '_', true);

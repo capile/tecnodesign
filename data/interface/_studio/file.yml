@@ -27,7 +27,7 @@ all:
         '*Last modified': 
           bind: 'greatest(`updated`,`Contents.updated`)'
           format: datetime
-        '*Type': "substring_index(`type`,'/',1)"
+        #'*Type': "substring_index(`type`,'/',1)"
         '*Tag': Tag.slug
       new:
         - scope::file

@@ -26,6 +26,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $listPagesOnBottom  = true,
         $translate          = true,
         $headerOverflow     = true,
+        $newFromQueryString = true,
         $hitsPerPage        = 25,
         $attrListClass      = 'tdz-i-list',
         $attrPreviewClass   = 'tdz-i-preview',
@@ -42,6 +43,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
             'v'=>'preview',
             'u'=>'update',
             'q'=>'list',
+            'd'=>'delete',
         ];
 
     protected static

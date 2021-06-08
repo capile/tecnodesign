@@ -581,7 +581,13 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         $search['published<']=TDZ_TIMESTAMP;
         $search['Related.parent'] = $this->id;
         if(!isset($search['type'])) $search['type'] = 'page';
-        if(!$orderBy) $orderBy = ['Related.position'=>'asc'];
+        if(!$orderBy) {
+            if($this->type=='feed') {
+                $orderBy = ['published'=>'desc', 'title'=>'asc'];
+            } else {
+                $orderBy = ['Related.position'=>'asc', 'title'=>'asc'];
+            }
+        }
         if($limit==1) {
             $r = static::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
             if($r) $r=[$r];
@@ -887,7 +893,22 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                     $l = substr($l, 0, strrpos($l, '/'));
                 }
             }
-            $r = tdzContent::find($f,0,null,false);
+            $r = Tecnodesign_Studio_Content::find($f,null,null,false);
+            if($r) {
+                $updated = false;
+                foreach($r as $i=>$o) {
+                    if($o->entry!=$this->id) {
+                        // confirm matching ContentDisplay
+                        if(!$o->showAt($this->link)) {
+                            $updated = true;
+                            unset($r[$i]);
+                        }
+                    }
+                    unset($i, $o);
+                }
+                if($updated && $r) $r = array_values($r);
+
+            }
         } else {
             $r = null;
         }
@@ -1049,19 +1070,46 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
     public function previewContents()
     {
-        if($L=$this->getContents([], 'content', false, ['position'=>'desc', 'id'=>'desc'])) {
-            $r = '<div class="z-items">';
+        $tpl = '<div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.tdz::scriptName(true).'">'
+           .     '<a href="'.Tecnodesign_Studio::$home.'/content/n?entry='.$this->id.'&amp;position={position}&amp;slot={slot}&amp;scope=entry-content&amp;next=preview" class="tdz-i-button z-align-bottom z-i--new" data-inline-action="new"></a>'
+           . '</div>';
+        $r = str_replace(['{position}', '{slot}'], [1, static::$slot], $tpl);
+        $slots = [];
+
+        if($L=$this->getContents([], 'content', false, ['position'=>'asc', 'id'=>'desc'])) {
             $E = (isset(tdz::$variables['entry'])) ?tdz::$variables['entry'] :null;
             tdz::$variables['entry'] = $this;
             foreach($L as $i=>$o) {
                 $ct = ($o->content_type) ?$o->content_type :'text';
-                $r .= '<div class="z-ellipsis-multiline ih5 z-item z-inner-block"><div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.tdz::scriptName(true).'"><span class="z-i-actions z-index"><a href="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="z-i-button z-i--update" data-inline-action="update"></a></span>'.$o->previewContent().'</div></div>';
+                $slot = ($o->slot) ?$o->slot :static::$slot;
+                if(!isset($slots[$slot])) $slots[$slot] = '';
+                $slots[$slot] .= '<div class="z-ellipsis-multiline ih5 z-item z-inner-block">'
+                    .   '<div class="tdz-i-scope-block" data-action-expects-url="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'" data-action-schema="preview" data-action-url="'.tdz::scriptName(true).'">'
+                    .     '<a href="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
+                    .     '<a href="'.Tecnodesign_Studio::$home.'/content/d/'.$o->id.'?scope=u-'.$ct.'&amp;next='.tdz::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
+                    . (($o->content_type && in_array($o->content_type, $o::$previewContentType))
+                        ?'<div class="z-t-center"><span class="z-t-inline z-t-left">'.$o->previewContent().'</span></div>'
+                        :$o->previewContent()
+                      )
+                    .   '</div>'
+                    .  '<dl class="i1s2"><dt>'.tdz::t('Content Type', 'model-tdz_contents').'</dt><dd>'.$o->previewContentType().'</dd></dl>'
+                    .  '<dl class="i1s2"><dt>'.tdz::t('Position', 'model-tdz_contents').'</dt><dd>'.tdz::xml($o->position).'</dd></dl>'
+                    . '</div>'
+                    . str_replace(['{position}', '{slot}'], [$o->position+1, $slot], $tpl);
             }
             tdz::$variables['entry'] = $E;
             unset($E);
-            $r .= '</div>';
-            return $r;
         }
+
+        foreach(static::$slots as $slot=>$c) {
+            if(isset($slots[$slot])) {
+                $r .= '<h2>'.$slot.'</h2>'.str_replace(['{position}', '{slot}'], [1, $slot], $tpl);
+                $r .= '<div class="z-items">'.$slots[$slot].'</div>';
+                unset($slots[$slot]);
+            }
+        }
+
+        return $r;
     }
 
     public function previewContentsInline()

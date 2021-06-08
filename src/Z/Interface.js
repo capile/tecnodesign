@@ -727,10 +727,12 @@
             Z.ajax(u, data, loadAction, interfaceError, 'html', t, h);
         } else {
             //Z.trace('loadAction: ajax response start');
-            var f = document.createElement('div'), pI=Z.parentNode(this, '.tdz-i'), S, i, expects=this.getAttribute('data-action-expects');
+            var f = document.createElement('div'), pI=Z.parentNode(this, '.tdz-i'), S, i, expects=this.getAttribute('data-action-expects'), expectsUrl=this.getAttribute('data-action-expects-url');
             f.innerHTML = e;
 
             if(expects && !f.querySelector(expects)) {
+                return setInterface.apply(pI, arguments);
+            } else if(expectsUrl && !f.querySelector('.tdz-i[data-url="'+expectsUrl+'"]')) {
                 return setInterface.apply(pI, arguments);
             }
 
@@ -775,6 +777,7 @@
                         i++;
                     }
                 }
+                if(expectsUrl) t.setAttribute('data-action-expects-url', expectsUrl);
             }
 
             S=f.querySelectorAll('.z-i-summary .z-i-msg,.z-i-summary .tdz-i-msg');

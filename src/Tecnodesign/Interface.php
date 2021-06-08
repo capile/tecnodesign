@@ -72,6 +72,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $translate          = true,
         $standalone         = false,
         $headerOverflow     = false,
+        $newFromQueryString = false,  
         $hitsPerPage        = 25,
         $attrListClass      = 'tdz-i-list',
         $attrPreviewClass   = 'tdz-i-preview',
@@ -1328,6 +1329,7 @@ class Tecnodesign_Interface implements ArrayAccess
             }
             if(!$w) $w = ($this->search) ?$this->search :$this->id;
             $r = $cn::find($w,null,'string',false,null,$this->groupBy);
+            $s = null;
             if($r) {
                 if(method_exists($cn, 'renderTitle')) {
                     $s = '';
@@ -1336,26 +1338,39 @@ class Tecnodesign_Interface implements ArrayAccess
                             . $o->renderTitle();
                         unset($r[$i], $i, $o);
                     }
-                    return $s;
                 } else if($this->action && !in_array($this->action, static::$actionsDefault)) {
                     $l = $this->action;
-                    if(isset($this->actions[$l]['label'])) return tdz::xml($this->actions[$l]['label'].': '.implode(', ', $r));
-                    else return tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)).': '.implode(', ', $r));
+                    if(isset($this->actions[$l]['label'])) {
+                        $s = tdz::xml($this->actions[$l]['label'].': '.implode(', ', $r));
+                    } else {
+                        $s = tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)).': '.implode(', ', $r));
+                    }
                 } else {
-                    return tdz::xml(implode(', ', $r));
+                    $s = tdz::xml(implode(', ', $r));
                 }
             }
         } else if($this->action && !in_array($this->action, static::$actionsDefault)) {
             $l = $this->action;
-            if(isset($this->actions[$l]['label'])) return tdz::xml($this->actions[$l]['label']);
-            else return tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)));
+            if(isset($this->actions[$l]['label'])) {
+                $s = tdz::xml($this->actions[$l]['label']);
+            } else {
+                $s = tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)));
+            }
+        } else {
+            if(!isset($this->text['title'])) {
+                $s = tdz::xml($cn::label());
+            } else if(substr($this->text['title'], 0, 1)=='*') {
+                $s = tdz::xml(static::t(substr($this->text['title'],1)));
+            } else {
+                $s = $this->text['title'];
+            }
         }
-        if(!isset($this->text['title'])) {
-            return tdz::xml($cn::label());
-        } else if(substr($this->text['title'], 0, 1)=='*') {
-            return tdz::xml(static::t(substr($this->text['title'],1)));
+
+        if(!$s) {
+            $s = static::t('Untitled');
         }
-        return $this->text['title'];
+
+        return $s;
     }
 
     public function setTitle($title)
@@ -1591,37 +1606,46 @@ class Tecnodesign_Interface implements ArrayAccess
         $o = null;
         if($one && isset($this->options['redirect-by-property'])) {
             $redirect = null;
+            $redirectKey = null;
             $o = $this->model();
-            $o->refresh(array_keys($this->options['redirect-by-property']));
-            foreach($this->options['redirect-by-property'] as $fn=>$target) {
-                $v = $o->$fn;
-                if(isset($target[$v])) {
-                    if(is_array($target[$v])) {
-                        if(isset($target[$v]['action'])) {
-                            $ta = $target[$v]['action'];
-                            if(!is_array($ta)) $ta = [$ta];
-                            if(in_array($this->action, $ta)) {
-                                if(isset($target[$v]['interface'])) {
-                                    $redirect = $target[$v]['interface'];
-                                    break;
+            if(!$o) {
+                $one = false;
+            } else {
+                $o->refresh(array_keys($this->options['redirect-by-property']));
+                foreach($this->options['redirect-by-property'] as $fn=>$target) {
+                    $v = $o->$fn;
+                    if(isset($target[$v]) || ($v && isset($target[$v = '*']))) {
+                        if(is_array($target[$v])) {
+                            if(isset($target[$v]['action'])) {
+                                $ta = $target[$v]['action'];
+                                if(!is_array($ta)) $ta = [$ta];
+                                if(in_array($this->action, $ta)) {
+                                    if(isset($target[$v]['interface'])) {
+                                        $redirect = $target[$v]['interface'];
+                                        if(isset($target[$v]['key'])) {
+                                            $redirectKey = $o[$target[$v]['key']];
+                                        }
+                                        break;
+                                    }
                                 }
                             }
+                        } else {
+                            $redirect = (string)$target[$v];
+                            break;
                         }
-                    } else {
-                        $redirect = (string)$target[$v];
-                        break;
                     }
                 }
             }
 
             if($redirect) {
+                if(!$redirectKey) $redirectKey = implode('-', $o->getPk(true));
                 $redirect = static::$base
                    . '/'
                    . $redirect
                    . '/'
                    . ((static::$actionAlias && ($aa=array_search($this->action, static::$actionAlias))) ?$aa :$this->action)
                    . '/'
-                   .  implode('-', $o->getPk(true))
+                   .  urlencode($redirectKey)
                    ;
 
                 $curr = $this->link();
@@ -2223,6 +2247,16 @@ class Tecnodesign_Interface implements ArrayAccess
         //$scope = $this->scope($scope);
         $this->options['scope'] = $this->scope($scope);
         $a=($this->source)?($this->source):(array());
+        if(static::$newFromQueryString && ($req=Tecnodesign_App::request('get'))) {
+            foreach($req as $fn=>$v) {
+                if(!isset($a[$fn]) && !tdz::isempty($v) && ($cn::$allowNewProperties || property_exists($cn, $fn))) {
+                    $a[$fn] = $v;
+                }
+                unset($req[$fn], $fn, $v);
+            }
+            unset($req);
+        }
+
         if(!$o) $o = new $cn($a, true, false);
         $fo = $this->getForm($o, $scope);
         //$fo['c_s_r_f'] = new Tecnodesign_form_Field(array('id'=>'c_s_r_f', 'type'=>'hidden', 'value'=>1234));
@@ -2610,16 +2644,23 @@ class Tecnodesign_Interface implements ArrayAccess
                         $next = $this->options['next'];
                     }
                 }
+                if(!$next) {
+                    $next=Tecnodesign_App::request('get','next');
+                }
                 if(!$next && isset($this->actions[$this->action]['next'])) {
                     $next = $this->actions[$this->action]['next'];
                 }
-                if(!$next && ($next=Tecnodesign_App::request('get','next'))) {
-                    if(!isset($this->actions[$next])) $next = null;
-                }
-                if($next) {
+                if($next && !isset($this->actions[$next])) {
                     if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
                         // remove record preview, if  it exists
-                        $this->message('<a data-action="unload" data-url="'.tdz::xmlEscape($this->link('preview', true)).'"></a>');
+                        $this->message('<a data-action="unload" data-url="'.tdz::xml($this->link('preview', true)).'"></a>');
+                    }
+                    $this->message($msg);
+                    $this->redirect($next, $oldurl);
+                } else if($next) {
+                    if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
+                        // remove record preview, if  it exists
+                        $this->message('<a data-action="unload" data-url="'.tdz::xml($this->link('preview', true)).'"></a>');
                     }
                     $this->action = $next;
                     $this->message($msg);
@@ -2964,6 +3005,8 @@ class Tecnodesign_Interface implements ArrayAccess
            . (($this->id) ?'<span class="z-i-label-uid"><span class="z-i-label-key">'.$cn::fieldLabel($this->key).'</span><span class="z-i-label-id">'.tdz::xml($this->id).'</span></span>' :'')
            . '<span class="z-i-label-title">'.tdz::xml($title).'</span>'
            . '</p>';
+
+        if(isset($this->options['summary']) && $this->options['summary']) $s .= tdz::markdown($this->options['summary']);
         unset($cn);
         return $s;
 

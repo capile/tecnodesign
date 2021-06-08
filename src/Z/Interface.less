@@ -18,8 +18,9 @@
 .z-inner-block {
   position: relative;
   background: @colorBody;
-  opacity: 0.8;
-  border: 1px solid @colorHeaderBorder;
+  .background-alpha(@colorBody, 0.4);
+  border-top: 1px solid @colorHeaderBorder;
+  border-bottom: 1px solid @colorHeaderBorder;
   margin-bottom: 2em;
   overflow: hidden;
   overflow-x: hidden;
@@ -74,6 +75,31 @@
   right:0;
   bottom:0;
   left:0;
+}
+
+.z-nopad {
+  padding:0 !important;
+}
+.z-t-inline {
+  display: inline-block;
+}
+.z-t-center {
+  text-align: center;
+}
+.z-t-left {
+  text-align: left;
+}
+.z-t-right {
+  text-align: right;
+}
+.z-t-reset {
+  text-align: inherit;
+}
+.z-align-bottom {
+  position: absolute !important;
+  bottom:0;
+  top: inherit !important;
+  display:block;
 }
 
 .z-tag {
@@ -813,6 +839,7 @@ input.tdz-i-switch{
   }
   form {
     background: rgba(0,0,0,0.05);
+    margin-bottom: 1.5em;
   }
   fieldset {
     font-size:1em;
@@ -845,6 +872,9 @@ input.tdz-i-switch{
       height:1.5em;
       width:1.5em;
       text-align:center;
+    }
+    & ~.z-i-button, & ~ .tdz-i-button {
+      top: 1.5em;
     }
   }
   h2 {

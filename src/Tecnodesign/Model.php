@@ -568,12 +568,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     public static function column($s, $applyForm=false, $relation=false)
     {
         $cn = get_called_class();
-        while(strpos($s, '.')!==false) {
-            list($rn,$s)=explode('.', $s, 2);
-            if(isset($cn::$schema->relations[$rn])) {
-                $cn = (isset($cn::$schema->relations[$rn]['className']))?($cn::$schema->relations[$rn]['className']):($rn);
-            } else {
-                return false;
+        if(strpos($s, '.')!==false && !($applyForm && isset($cn::$schema->overlay[$s]))) {
+            while(strpos($s, '.')!==false) {
+                list($rn,$s)=explode('.', $s, 2);
+                if(isset($cn::$schema->relations[$rn])) {
+                    $cn = (isset($cn::$schema->relations[$rn]['className']))?($cn::$schema->relations[$rn]['className']):($rn);
+                } else {
+                    return false;
+                }
             }
         }
         if(strpos($s, ' ')) $s = substr($s, 0, strpos($s, ' '));
@@ -591,8 +593,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         } else if(property_exists($cn, $s)) {
             $d = array('bind'=>$s);
         }
-        if($d && $applyForm && isset($cn::$schema->overlay[$s])) {
-            $d = array_merge($d, $cn::$schema->overlay[$s]);
+        if($applyForm && isset($cn::$schema->overlay[$s])) {
+            if($d) $d = array_merge($d, $cn::$schema->overlay[$s]);
+            else $d = $cn::$schema->overlay[$s];
         }
         if($d && isset($d['label']) && substr($d['label'], 0, 1)=='*')  {
             if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
@@ -2028,7 +2031,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $h[$fsn] = str_replace(array('$LABEL', '$ID', '$INPUT', '$CLASS', '$ERROR'), array($fsn, $fn, $fsn, $class, ''), $sep);
                 }
 
-                $class='';
+                $class = '';
                 $ftext = null;
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
@@ -2052,7 +2055,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                             array($label, $fn, $input, $class, '', ''),
                             $box);
 
-                        unset($class, $input);
+                        $class = null;
+                        unset($input);
                     } else {
                         $ftext = '';
                     }

@@ -853,6 +853,30 @@ class Tecnodesign_Studio
         return false;
     }
 
+    public static function templateFiles($type)
+    {
+        static $r;
+
+        if(is_null($r)) {
+            if(!in_array($d=TDZ_ROOT.'/src/Tecnodesign/Resources/templates', tdz::templateDir())) {
+                tdz::$tplDir[] = $d;
+            }
+            $r = [];
+            $shift = strlen('tdz_'.$type);
+            foreach(tdz::$tplDir as $d) {
+                $found = glob($d.'/tdz_'.$type.'*.php');
+                foreach($found as $f) {
+                    $k = basename($f, '.php');
+                    $n = ucfirst(str_replace(['-', '_'], ' ', trim(substr($k, $shift), '-_')));
+                    $r[$k] = $n;
+                }
+            }
+        }
+
+        return $r;
+
+    }
+
     /**
      * Find current template file location, or false if none are found, accepts multiple arguments, processed in order.
      * example: $template = Tecnodesign_App_Studio::templateFile($mytemplate, 'tdz_entry');

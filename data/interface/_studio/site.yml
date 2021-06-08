@@ -34,6 +34,12 @@ all:
           bind: 'greatest(`updated`,`Contents.updated`)'
           format: datetime
         '*Type': "substring_index(`type`,'/',1)"
+      new:
+        '*Type':
+          bind: type
+          fieldset: '*New Resource'
+      update:
+        - 'scope::meta'
       preview:
         - 'scope::meta'
         - 'scope::_meta'

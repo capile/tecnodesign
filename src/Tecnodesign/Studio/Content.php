@@ -15,7 +15,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
     public static 
         $contentType = array(
             'html'=>'HTML',
-            'md'=>'Markdown',
+            'text'=>'Markdown',
             'feed'=>'Feed',
             'media'=>'Media file',
             'php'=>'PHP script',
@@ -24,7 +24,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         ),
         $multiviewContentType=array('widget','php','md'), // which entry types can be previewed within multiple urls
         $disableExtensions=array(),                  // disable the preview of selected extensions
-        $previewContentType=['html', 'md', 'feed', 'media'],
+        $previewContentType=['html', 'md', 'media'],
         $allowMarkdownExtensions=true;
 
     public static $schema;
@@ -243,15 +243,25 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             }
         }
 
+
+
         if($this->content_type && in_array($this->content_type, static::$previewContentType)) {
             $c = $this->render(true);
         } else if(!$scope) {
             $c = '<div class="z-inner-block">'.tdz::xml($this->content).'</div>';
         } else {
-            $c = $this->renderScope($scope);
+            if(is_string($scope)) $scope = static::columns($scope, null, true);
+            $c = $this->renderScope($scope, true, null, '<dl class="$CLASS"><dt>$LABEL</dt><dd>$INPUT</dd></dl>');
         }
 
         return $c;
+    }
+
+    public function previewContentEntry()
+    {
+        if($e=$this['content.entry']) {
+            return tdz::xml((string) Tecnodesign_Studio_Entry::find(['id'=>$e],1,'string'));
+        }
     }
 
     public function getContent($p=null)
@@ -404,7 +414,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         if(is_array($code)) {
             $code = isset($code['txt'])?($code['txt']):(array_shift($code));
         }
-        return $code;
+        return tdz::markdown($code);
     }
 
     public static function renderMd($code=null)
@@ -456,6 +466,23 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
                     return array('export'=>'call_user_func('.var_export($call, true).', '.var_export($e, true).')');
                 }
             }
+        }
+    }
+
+    public function choicesMaster()
+    {
+        if(!$this->content_type && $this->id) $this->refresh(['content_type']); 
+        return Tecnodesign_Studio::templateFiles($this->content_type);
+    }
+
+    public function previewContentMaster()
+    {
+        if($k=$this['content.master']) {
+            if(!$this->content_type && $this->id) $this->refresh(['content_type']);
+            $p = 'tdz_'.$this->content_type;
+            $shift = strlen($p);
+            if(substr($k, 0, $shift)==$p) $k = substr($k, $shift);
+            return ucfirst(str_replace(['-', '_'], ' ', trim($k, '-_')));
         }
     }
 
@@ -549,6 +576,24 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
         return $s;
 
+    }
+
+    public function showAt($url)
+    {
+        $r = false;
+        if($C = $this->getRelation('ContentDisplay', null, ['link', 'display'], false)) {
+            foreach($C as $i=>$o) {
+                if($o->matchUrl($url)) {
+                    if($o->display>0) {
+                        $r = true;
+                    } else {
+                        $r = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return $r;
     }
 
     public static function studioIndex($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
