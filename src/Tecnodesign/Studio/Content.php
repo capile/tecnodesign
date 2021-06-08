@@ -14,11 +14,11 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 {
     public static 
         $contentType = array(
-            'html'=>'HTML',
-            'text'=>'Markdown',
-            'feed'=>'Feed',
-            'media'=>'Media file',
-            'php'=>'PHP script',
+            'html'=>'*HTML',
+            'text'=>'*Markdown',
+            'feed'=>'*Feed',
+            'media'=>'*Media file',
+            'php'=>'*PHP script',
         ),
         $widgets = array(
         ),
@@ -48,16 +48,26 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return $s;
     }
 
-    public static function choicesContentType()
+    public static function choicesContentType($choice=null)
     {
+        static $checked;
+        if(!$checked) {
+            $checked = true;
+            static::$contentType = tdz::checkTranslation(static::$contentType, 'model-tdz_contents');
+            asort(static::$contentType);
+        }
+        if($choice) {
+            return (isset(static::$contentType[$choice])) ?static::$contentType[$choice] :null;
+        }
         return static::$contentType;
     }
 
     public function previewContentType()
     {
-        if(isset(static::$contentType[$this->content_type])) {
-            return static::$contentType[$this->content_type];
+        if($this->content_type && ($r=$this->choicesContentType($this->content_type))) {
+            return $r;
         }
+
         return $this->content_type;
     }
 

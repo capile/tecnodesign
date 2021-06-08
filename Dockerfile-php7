@@ -1,4 +1,4 @@
-FROM php:fpm
+FROM php:7-fpm
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs libpng-dev libjpeg-dev libwebp-dev libfreetype6-dev zlib1g-dev libzip-dev libonig-dev libxml2-dev zip
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp

@@ -106,7 +106,7 @@ class Tecnodesign_Interface implements ArrayAccess
         $share              = null,
         $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
         $breadcrumbTemplate = '<div class="z-breadcrumbs">$LABEL</div>',
-        $headingTemplate    = '<hr /><h3>$LABEL</h3>',
+        $headingTemplate    = '<hr /><h3 class="z-title">$LABEL</h3>',
         $previewTemplate    = '<dl class="if--$ID z-i-field $CLASS"><dt>$LABEL</dt><dd data-action-item="$ID">$INPUT$ERROR</dd></dl>',
         $updateTemplate,
         $newTemplate,

@@ -330,6 +330,21 @@ class tdz
         return $cn::$m($message, $table, $to, $from);
     }
 
+    public static function checkTranslation($message, $table=null, $to=null, $from=null)
+    {
+        if(is_array($message)) {
+            foreach($message as $k=>$v) {
+                $m = static::checkTranslation($v, $table, $to, $from);
+                if($m!=$v) $message[$k] = $v;
+                unset($m);
+            }
+        } else if(is_string($message) && substr($message, 0, 1)=='*') {
+            $message = tdz::t($message, $table, $to, $from);
+        }
+
+        return $message;
+    }
+
     /**
      * Shortcut for SQL Queries
      *

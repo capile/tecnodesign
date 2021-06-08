@@ -1088,12 +1088,10 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                     .     '<a href="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
                     .     '<a href="'.Tecnodesign_Studio::$home.'/content/d/'.$o->id.'?scope=u-'.$ct.'&amp;next='.tdz::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
                     . (($o->content_type && in_array($o->content_type, $o::$previewContentType))
-                        ?'<div class="z-t-center"><span class="z-t-inline z-t-left">'.$o->previewContent().'</span></div>'
+                        ?'<div class="z-t-center z-app-image"><span class="z-t-inline z-t-left">'.$o->previewContent().'</span></div>'
                         :$o->previewContent()
                       )
                     .   '</div>'
-                    .  '<dl class="i1s2"><dt>'.tdz::t('Content Type', 'model-tdz_contents').'</dt><dd>'.$o->previewContentType().'</dd></dl>'
-                    .  '<dl class="i1s2"><dt>'.tdz::t('Position', 'model-tdz_contents').'</dt><dd>'.tdz::xml($o->position).'</dd></dl>'
                     . '</div>'
                     . str_replace(['{position}', '{slot}'], [$o->position+1, $slot], $tpl);
             }
@@ -1103,7 +1101,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         foreach(static::$slots as $slot=>$c) {
             if(isset($slots[$slot])) {
-                $r .= '<h2>'.$slot.'</h2>'.str_replace(['{position}', '{slot}'], [1, $slot], $tpl);
+                $r .= '<h2 class="z-title">'.$slot.'</h2>'.str_replace(['{position}', '{slot}'], [1, $slot], $tpl);
                 $r .= '<div class="z-items">'.$slots[$slot].'</div>';
                 unset($slots[$slot]);
             }

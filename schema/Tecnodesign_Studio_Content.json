@@ -29,12 +29,12 @@
         "update": [ "content_type", "slot" ],
         "studio-content": [ "content_type", "slot",  "_title", "_subtitle", "_html", "_img", "_entry", "_master", "_limit", "_hpp", "_options", "_script", "_pi", "_src", "_format", "_href", "_txt" ] ,
         "review": { "*Id": "id", "*Page": "entry", "*Content Type": "content_type", "*Last Modified": "updated" },
-        "u-html":  ["content.title","content.subtitle","content.html","content.img"], 
-        "u-php": ["content.script","content.pi"],
-        "u-feed":["content.entry","content.master", "content.limit", "content.hpp"],
-        "u-media":["content.src","content.title","content.alt","content.format","content.id","content.href"],
-        "u-text":["content.txt"],
-        "u-widget":["content.app"]
+        "u-html":  ["content.title","content.subtitle","content.html","content.img","slot","position"], 
+        "u-php": ["content.script","content.pi","slot","position"],
+        "u-feed":["content.entry","content.master", "content.limit", "content.hpp","slot","position"],
+        "u-media":["content.src","content.title","content.alt","content.format","content.id","content.href","slot","position"],
+        "u-text":["content.txt","slot","position"],
+        "u-widget":["content.app","slot","position"]
     },
     "order": {
         "updated": "desc"
@@ -49,9 +49,9 @@
         "active-records": "`expired` is null"
     },
     "overlay": {
-        "content_type": { "fieldset": "*Content", "bind": "content_type", "label": "*Content Type", "type": "select", "class": "i1s2", "attributes": { "data-query-filter": ".studio-content-type-$", "data-query-filtered": ".studio-content" } },
-        "slot": { "fieldset": "*Content", "bind": "slot", "label": "*Slot", "type": "select", "class": "i1s2", "choices": "choicesSlot" },
-        "content": { "bind": "content", "format": "form", "class": "studio-field-content" },
+        "content_type": {"bind": "content_type","label":"*Content Type","format": "select", "class": "i1s2","required":true},
+        "slot": {"bind": "slot", "label": "*Slot", "type": "select", "class": "i1s2", "choices": "choicesSlot" },
+        "content": {"bind": "content", "format": "form", "class": "studio-field-content" },
         "content.title": { "label":"*Title"},
         "content.subtitle":{"label":"*Subtitle"},
         "content.html":{"label":"*Content","format":"html","class":"ih10","html_labels":true},
@@ -66,7 +66,8 @@
         "content.src":{"label":"*Source"},
         "content.format":{"label":"*Media Format"},
         "content.href":{"label":"*Link Target"},
-        "content.txt":{"label":"*Markdown Text","format":"textarea","class":"ih10"}
+        "content.txt":{"label":"*Markdown Text","format":"textarea","class":"ih10"},
+        "position":{"label":"*Position","class":"i1s2","format":"int"}
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
