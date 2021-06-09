@@ -15,7 +15,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
     public static 
         $contentType = array(
             'html'=>'*HTML',
-            'text'=>'*Markdown',
+            'md'=>'*Markdown',
             'feed'=>'*Feed',
             'media'=>'*Media file',
             'php'=>'*PHP script',

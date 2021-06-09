@@ -12,6 +12,9 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
+
+use Tecnodesign_Studio_Entry as Entry;
+
 class Tecnodesign_Studio
 {
     /**
@@ -76,7 +79,7 @@ class Tecnodesign_Studio
     {
         static $root;
         if(is_null($root)) {
-            $root = preg_replace('#/+$#', '', TDZ_VAR.'/'.tdzEntry::$pageDir);
+            $root = preg_replace('#/+$#', '', TDZ_VAR.'/'.Entry::$pageDir);
         }
         return $root;
     }
@@ -319,7 +322,7 @@ class Tecnodesign_Studio
                     }
                 }
                 $R[$k]['type'] = $o->content_type;
-                if($o->source && tdzEntry::file($o->source)) $R[$k]['id'] = $o->source;
+                if($o->source && Entry::file($o->source)) $R[$k]['id'] = $o->source;
                 unset($d[$i], $id, $k, $o);
             }
         }
@@ -340,7 +343,7 @@ class Tecnodesign_Studio
         static $root;
         if(is_null($root)) $root = Tecnodesign_Studio::documentRoot();
         if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot) || !file_exists($page)) return;
-        $slotname = tdzEntry::$slot;
+        $slotname = Entry::$slot;
         $pos = '00000';
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
@@ -377,7 +380,7 @@ class Tecnodesign_Studio
         $p = file_get_contents($page);
         if(!$p) return false;
         $meta = null;
-        if($m = tdzEntry::meta($p)) {
+        if($m = Entry::meta($p)) {
             $meta = Tecnodesign_Yaml::load($m);
             if(isset($meta['credential'])) {
                 if(!($U=tdz::getUser()) || !$U->hasCredential($meta['credential'], false)) {
@@ -581,7 +584,7 @@ class Tecnodesign_Studio
 
         $f=array(
             'link'=>$url,
-            'type'=>tdzEntry::$previewEntryType,
+            'type'=>Entry::$previewEntryType,
             'expired'=>'',
         );
         static $scope = array('id','title','type','link','source','master','format','updated','published','version');
@@ -593,10 +596,10 @@ class Tecnodesign_Studio
             if($connEnabled && ($U=tdz::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
                 $published = false;
                 self::$private = (is_array($c))?($c):(array($c));
-                // replace tdzEntry by tdzEntryVersion and probe for latest version (?)
+                // replace Entry by tdzEntryVersion and probe for latest version (?)
                 if(isset(self::$params['!rev'])) {
                     $f['version'] = self::$params['!rev'];
-                    if(substr(tdzEntry::$schema['table_name'], -8)!='_version') tdzEntry::$schema['table_name'] .= '_version';
+                    if(substr(Entry::$schema['table_name'], -8)!='_version') Entry::$schema['table_name'] .= '_version';
                     if(substr(tdzContent::$schema['table_name'], -8)!='_version') tdzContent::$schema['table_name'] .= '_version';
                     self::$cacheTimeout = false;
                 }
@@ -618,7 +621,7 @@ class Tecnodesign_Studio
             $f['published<'] = date('Y-m-d\TH:i:s');
         }
         $E=null;
-        if($connEnabled && ($E=tdzEntry::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
+        if($connEnabled && ($E=Entry::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
             if($meta = $E::loadMeta($E->link)) {
                 foreach($meta as $fn=>$v) {
                     if(property_exists($E, $fn)) {
@@ -632,9 +635,9 @@ class Tecnodesign_Studio
             unset($f, $published);
             return $E;
         }
-        if(!$E && ($E=tdzEntry::findPage($url, false, true))) {
+        if(!$E && ($E=Entry::findPage($url, false, true))) {
             unset($f, $published);
-        } else if(preg_match('/('.str_replace('.', '\.', implode('|',self::$allowedExtensions)).')$/', $url, $m) && ($E=tdzEntry::findPage(substr($url,0,strlen($url)-strlen($m[1])), false, true))) {
+        } else if(preg_match('/('.str_replace('.', '\.', implode('|',self::$allowedExtensions)).')$/', $url, $m) && ($E=Entry::findPage(substr($url,0,strlen($url)-strlen($m[1])), false, true))) {
             $url = substr($url,0,strlen($url)-strlen($m[1]));
             unset($f, $published);
         }
@@ -644,10 +647,10 @@ class Tecnodesign_Studio
             while(strlen($u)>1) {
                 $u = preg_replace('#/[^/]+$#', '', $u);
                 $f['link'] = $u;
-                if($connEnabled && ($E=tdzEntry::find($f,1,$scope,false,array('type'=>'desc')))) {
+                if($connEnabled && ($E=Entry::find($f,1,$scope,false,array('type'=>'desc')))) {
                     unset($f, $published);
                     break;
-                } else if($u && ($E=tdzEntry::findPage($u, true))) {
+                } else if($u && ($E=Entry::findPage($u, true))) {
                     unset($f, $published);
                     break;
                 }
@@ -668,7 +671,7 @@ class Tecnodesign_Studio
 
     public static function template($url=null)
     {
-        $E = new tdzEntry(array('link'=>$url),false, false);
+        $E = new Entry(array('link'=>$url),false, false);
         $C = $E->getRelatedContent();
         unset($E);
         $tpl = array();
@@ -711,11 +714,11 @@ class Tecnodesign_Studio
         if(isset(tdz::$variables['route']['layout'])  && tdz::$variables['route']['layout']) {
             $layout = tdz::$variables['route']['layout'];
         } else {
-            $layout = self::templateFile(tdzEntry::$layout, 'layout');
+            $layout = self::templateFile(Entry::$layout, 'layout');
         }
         static::$status = $code;
         self::template('/error'.$code);
-        tdzEntry::loadMeta('/error'.$code);
+        Entry::loadMeta('/error'.$code);
 
         return Tecnodesign_Studio::$app->runError($code, $layout);
     }
@@ -836,7 +839,7 @@ class Tecnodesign_Studio
     {
         $cn=null;
         if(substr($p, 0, 5)=='entry'){
-            $cn = 'tdzEntry';
+            $cn = 'Tecnodesign_Studio_Entry';
             $p = substr($p, 5);
             if(!property_exists($cn, $p)) $cn=null;
         }
@@ -918,7 +921,7 @@ class Tecnodesign_Studio
                 $c = ($e->id==self::$page)?(' class="current"'):('');
                 $s .= '<li'.$c.'>'
                     . (($e['link'])?('<a'.$c.' href="'.tdz::xmlEscape($e['link']).'">'.tdz::xmlEscape($e['title']).'</a>'):(tdz::xmlEscape($e['title'])))
-                    .  (($e instanceof tdzEntry)?(self::li($e->getChildren())):(''))
+                    .  (($e instanceof Entry)?(self::li($e->getChildren())):(''))
                     . '</li>';
             }
             if($s) {

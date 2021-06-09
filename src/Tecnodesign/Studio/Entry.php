@@ -440,7 +440,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     {
         $entry=false;
         if(isset($o['entry'])) {
-            $entry = (is_object($o['entry']))?($o['entry']):(tdzEntry::latest($o['entry']));
+            $entry = (is_object($o['entry']))?($o['entry']):(static::latest($o['entry']));
         }
         if($entry && !Tecnodesign_Studio::getPermission('previewEntry', $entry)) {
             $entry=false;
@@ -671,7 +671,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(substr(basename($url),0,1)=='.') return;
         $P=null;
         if(!$multiview) {
-            $f = tdzEntry::file(str_replace('.', '[-.]', $url), false);
+            $f = static::file(str_replace('.', '[-.]', $url), false);
             if(substr($f, -1)=='/') {
                 $f.=static::$indexFile;
             } else if(is_dir($f)) {
@@ -695,9 +695,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 }
             }
         } else if($url) {
-            if(in_array('php', tdzContent::$multiviewContentType) && is_file($f=tdzEntry::file($url.'.php')))
+            if(in_array('php', tdzContent::$multiviewContentType) && is_file($f=static::file($url.'.php')))
                 $P=self::_checkPage($f, $url, $multiview);
-            if(in_array('md', tdzContent::$multiviewContentType) && is_file($f=tdzEntry::file($url.'.md')))
+            if(in_array('md', tdzContent::$multiviewContentType) && is_file($f=static::file($url.'.md')))
                 $P=self::_checkPage($f, $url, $multiview);
         }
         return $P;
@@ -794,7 +794,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         $id = substr($page, strlen(Tecnodesign_Studio::documentRoot()));
         $t = date('Y-m-d\TH:i:s', filemtime($page));
-        $P = new tdzEntry(array(
+        $P = new Tecnodesign_Studio_Entry(array(
             //'id'=>tdz::hash($id, null, 'uuid'),
             'source'=>$id,
             'link'=>$url,
