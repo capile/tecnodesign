@@ -246,6 +246,16 @@ class Tecnodesign_Mail
         return $r;
     }
 
+    public function replaceContent($arr)
+    {
+        if(isset($this->contents['text/html']['content'])) {
+            strtr($this->contents['text/html']['content'], $arr);
+        }
+        if(isset($this->contents['text/plain']['content'])) {
+            strtr($this->contents['text/plain']['content'], $arr);
+        }
+    }
+
     /**
      * Add a sender
      * @param string $email sender valid e-mail

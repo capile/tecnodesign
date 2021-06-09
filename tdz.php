@@ -1957,7 +1957,7 @@ class tdz
     {
         $acceptPat = ($accept) ?preg_quote($accept, '/') :'';
         $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', $s);
-        $r = iconv('UTF-8', 'ASCII//TRANSLIT', $r);
+        $r = @iconv('UTF-8', 'ASCII//TRANSLIT', $r);
         $r = preg_replace('/[^0-9a-z'.$acceptPat.']+/i', '-', $r);
         $r = trim($r, '-');
         return ($anycase)?($r):(strtolower($r));

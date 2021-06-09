@@ -12,7 +12,7 @@
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "Interfaces": { "local": "interface", "foreign": "id", "type": "one", "className": "Studio\\Model\\Interfaces", "constraint": { "fk_z_index__interfaces": "cascade" } },
+        "Interfaces": { "local": "interface", "foreign": "id", "type": "one", "className": "Studio\\Model\\Interfaces", "constraint": { "fk_studio_index__interfaces": "cascade" } },
         "IndexText": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexText" },
         "IndexDate": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexDate" },
         "IndexBool": { "local": [ "interface", "id" ], "foreign": [ "interface", "id" ], "type": "many", "className": "Studio\\Model\\IndexBool" },

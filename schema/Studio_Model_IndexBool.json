@@ -12,7 +12,7 @@
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Studio\\Model\\Index", "constraint": { "fk_z_index_bool__index": "cascade" } }
+        "Index": { "local": [ "interface", "id"], "foreign": [ "interface", "id"], "type": "one", "className": "Studio\\Model\\Index", "constraint": { "fk_studio_index_bool__index": "cascade" } }
     },
     "scope": {
         "string": [ "name", "value" ]
