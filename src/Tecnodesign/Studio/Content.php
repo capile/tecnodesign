@@ -421,15 +421,15 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
     public static function renderText($code=null)
     {
-        if(is_array($code)) {
-            $code = isset($code['txt'])?($code['txt']):(array_shift($code));
-        }
-        return tdz::markdown($code);
+        return self::renderMd($code);
     }
 
     public static function renderMd($code=null)
     {
-        return tdz::markdown(static::renderText($code), !static::$allowMarkdownExtensions);
+        if(is_array($code)) {
+            $code = isset($code['txt'])?($code['txt']):(array_shift($code));
+        }
+        return tdz::markdown($code, !static::$allowMarkdownExtensions);
     }
 
     public static function renderPhp($code=null, $e=null)
