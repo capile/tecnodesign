@@ -1218,7 +1218,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         return $r;
     }
 
-    public static function choicesMaster()
+    public function choicesMaster()
     {
         static $master;
 

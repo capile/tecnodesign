@@ -1,3 +1,7 @@
+## tecnodesign/studio:php7-v1.0
+#
+# docker build -f Dockerfile-php7  . -t tecnodesign/studio:php7-v1.0
+# docker push tecnodesign/studio:php7-v1.0
 FROM php:7-fpm
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs libpng-dev libjpeg-dev libwebp-dev libfreetype6-dev zlib1g-dev libzip-dev libonig-dev libxml2-dev zip
@@ -32,6 +36,9 @@ RUN sed -e 's/^listen = .*/listen = 9000/' \
         -i /usr/local/etc/php-fpm.d/www.conf
 RUN sed -e 's/^error_log.*/error_log = \/dev\/stderr/' \
         -i /usr/local/etc/php-fpm.conf
+
+## foxy compatibility issues with composer 2.1 (open)
+RUN composer self-update 2.0.14
 
 #USER www-data
 #COPY . /var/www/app

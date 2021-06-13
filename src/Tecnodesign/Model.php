@@ -2485,8 +2485,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                             $v=array($pk=>$v);
                         }
                         return $this->renderRelation($choices::find($v,$multiple,'choices',false), $choices, $fd, $xmlEscape);
-                    } else {
+                    } else if(method_exists($this, $choices)) {
+                        $choices = $this->$choices();
+                    } else if(tdz::$enableEval) {
                         $choices = @eval('return '.$choices.';');
+                    } else {
+                        tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$cn.'->'.$fn.': '.$choices);
+                        $choices = [];
                     }
                 }
                 if(is_array($choices)) {

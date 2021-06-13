@@ -178,7 +178,7 @@ class Tecnodesign_Studio
     /**
      * Sets user language according to browser preferences
      */
-    public function language($l=array())
+    public static function language($l=array())
     {
         if(!is_array($l)) {
             $lang = $l;

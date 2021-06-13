@@ -146,6 +146,7 @@ class tdz
         $timeout = 0,
         $assetsUrl = '/_',
         $async = true,
+        $enableEval = false,
         $variables = array(),
         $minifier = array(
             'js'=>'node_modules/.bin/uglifyjs --compress --mangle -- %s > %s',

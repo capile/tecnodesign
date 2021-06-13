@@ -1476,8 +1476,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     if(method_exists($M, $this->choices)) {
                         $m = $this->choices;
                         $this->choices = $M->$m();
-                    } else {
+                    } else if(tdz::$enableEval) {
                         $this->choices = @eval('return '.$this->choices.';');
+                    } else {
+                        tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$M.'->'.$this->id.': '.$this->choices);
+                        $this->choices = [];
                     }
                     unset($M, $m);
                 }
