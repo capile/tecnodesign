@@ -6,6 +6,8 @@ title: Tecnodesign Studio Documentation
 Tecnodesign Studio 
 ==================
 
+![Build status](https://api.travis-ci.com/capile/tecnodesign.svg?branch=master)
+
 Studio is both a product and a development framework built by Tecnodesign to produce web applications. It's simple, secure and self-contained.
 
 ## Installation
