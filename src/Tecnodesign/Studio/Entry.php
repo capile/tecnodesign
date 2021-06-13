@@ -44,6 +44,12 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     
     protected $dynamic=false, $wrapper, $modified, $credential;
 
+    public function __toString()
+    {
+        return $this->title
+            . ' ('.(($this->type) ?$this->choicesTypes($this->type) :'').'#'.$this->id.')';
+    }
+
     public function studioId($prefix=null)
     {
         if(!$prefix) {
@@ -580,7 +586,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if(!is_array($search)) $search = [];
         $search['published<']=TDZ_TIMESTAMP;
         $search['Related.parent'] = $this->id;
-        if(!isset($search['type'])) $search['type'] = 'page';
+        if(!isset($search['type'])) {
+            $search['type'] = ['page','entry'];
+        }
         if(!$orderBy) {
             if($this->type=='feed') {
                 $orderBy = ['published'=>'desc', 'title'=>'asc'];
@@ -589,11 +597,11 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
             }
         }
         if($limit==1) {
-            $r = static::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
+            $r = Tecnodesign_Studio_Entry::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
             if($r) $r=[$r];
             return $r;
         }
-        return static::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
+        return Tecnodesign_Studio_Entry::find($search,$limit,$scope,$asCollection,$orderBy,$groupBy);
     }
 
     public function getTags($search=array(), $scope='link', $asCollection=false, $orderBy=null, $groupBy=null)
@@ -615,14 +623,15 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if($v) {
             if(!is_array($v)) $v = preg_split('/\s*\,\s*/', $v, null, PREG_SPLIT_NO_EMPTY);
             $tags = $this->getTags();
+            if(!$tags) $tags = [];
             foreach($v as $o) {
                 $o = trim($o);
                 if(!$o) continue;
                 $k = tdz::slug($o);
-                if(isset($tag[$k])) {
-                    if($tag[$k]->tag!=$o) $tag[$k]->tag = $o;
-                    $rel[] = $tag[$k];
-                    unset($tag[$k]);
+                if(isset($tags[$k])) {
+                    if($tags[$k]->tag!=$o) $tags[$k]->tag = $o;
+                    $rel[] = $tags[$k];
+                    unset($tags[$k]);
                 } else {
                     $rel[] = ['entry'=>$this->id, 'tag'=>$o, 'slug'=>tdz::slug($o)];
                 }
@@ -1083,7 +1092,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 $ct = ($o->content_type) ?$o->content_type :'text';
                 $slot = ($o->slot) ?$o->slot :static::$slot;
                 if(!isset($slots[$slot])) $slots[$slot] = '';
-                $slots[$slot] .= '<div class="z-ellipsis-multiline ih5 z-item z-inner-block">'
+                $slots[$slot] .= '<div class="ih5 z-item z-inner-block">'
                     .   '<div class="tdz-i-scope-block" data-action-expects-url="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'" data-action-schema="preview" data-action-url="'.tdz::scriptName(true).'">'
                     .     '<a href="'.Tecnodesign_Studio::$home.'/content/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
                     .     '<a href="'.Tecnodesign_Studio::$home.'/content/d/'.$o->id.'?scope=u-'.$ct.'&amp;next='.tdz::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
@@ -1091,6 +1100,8 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                         ?'<div class="z-t-center z-app-image"><span class="z-t-inline z-t-left">'.$o->previewContent().'</span></div>'
                         :$o->previewContent()
                       )
+                    .    '<dl class="z-i-field i1s2"><dt>'.tdz::t('Content Type', 'model-tdz_contents').'</dt><dd>'.$o->previewContentType().'</dd></dl>'
+                    .    '<dl class="z-i-field i1s2"><dt>'.tdz::t('Position', 'model-tdz_contents').'</dt><dd>'.tdz::xml($o->position).'</dd></dl>'
                     .   '</div>'
                     . '</div>'
                     . str_replace(['{position}', '{slot}'], [$o->position+1, $slot], $tpl);

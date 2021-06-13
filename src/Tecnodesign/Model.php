@@ -880,7 +880,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
     {
         $cn = get_class($this);
         $schema = $cn::$schema;
-        $scope = (isset($schema['scope']['sortable']))?($schema['scope']['sortable']):(array());
+        $scope = (isset($schema->scope['sortable']))?($schema->scope['sortable']):([]);
         $w = $ik = array();
         $fn='';
         foreach($scope as $sn) {
@@ -902,8 +902,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                 if(count($w)>0) {
                     $sql .= ' where '.implode(' and ', $w);
                 }
-                $next = tdz::query($sql, $conn);
-                if($next) {
+                if($next = static::queryHandler()->query($sql)) {
                     $cn::$increment[$fn.'-'.$ik]=$next[0]['next'];
                 }
             }

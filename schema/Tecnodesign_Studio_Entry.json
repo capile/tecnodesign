@@ -14,7 +14,7 @@
         "language": { "type": "string", "size": 10 },
         "type": { "type": "string", "size": 100, "index": [ "z_entry__type_idx" ] },
         "master": { "type": "string", "size": 100 },
-        "version": { "type": "int" },
+        "version": { "type": "int", "default": "1" },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true },
         "expired": { "type": "datetime", "index": [ "z_entry__expired_idx" ] }
@@ -30,7 +30,7 @@
         "Children": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" }
     },
     "scope": {
-        "string": [ "title" ],
+        "string": [ "title", "type", "id" ],
         "link": [ "id", "link", "title" ],
         "studio-new": [ "type", "title", "link", "summary", "published" ],
         "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ],
@@ -44,6 +44,9 @@
         "before-insert": [ "actAs" ],
         "before-update": [ "actAs" ],
         "before-delete": [ "actAs" ],
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ],
         "active-records": "`expired` is null"
     },
     "overlay": {
@@ -60,7 +63,10 @@
     },
     "actAs": {
         "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
-        "before-update": { "auto-increment": [ "version" ], "timestampable": [ "updated" ] },
-        "before-delete": { "auto-increment": [ "version" ], "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
     }
 }

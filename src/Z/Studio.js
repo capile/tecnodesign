@@ -82,7 +82,7 @@ function getViewport()
     if(!_V) _V = document.getElementById('studio-viewport');
     var b=_V.querySelector('.tdz-i-header');
     if(!b) {
-        Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header'}});
+        Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header z-overflow','data-overflow':1}});
         b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body','data-nav':1}});
         _title = document.title;
     }

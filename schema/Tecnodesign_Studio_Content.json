@@ -34,6 +34,7 @@
         "u-feed":["content.entry","content.master", "content.limit", "content.hpp","slot","position"],
         "u-media":["content.src","content.title","content.alt","content.format","content.id","content.href","slot","position"],
         "u-text":["content.txt","slot","position"],
+        "u-txt":["content.txt","slot","position"],
         "u-widget":["content.app","slot","position"]
     },
     "order": {
@@ -56,7 +57,7 @@
         "content.subtitle":{"label":"*Subtitle"},
         "content.html":{"label":"*Content","format":"html","class":"ih10","html_labels":true},
         "content.img":{"label":"*Image","attributes":{"data-datalist-api":"/_studio/file/q?tipo=image&fields=URL&envelope=false"}},
-        "content.entry":{"label":"*Feed","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":"feed"}},
+        "content.entry":{"label":"*Feed","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":["feed", "page"]}},
         "content.master":{"label":"*Template","format":"select","choices":"choicesMaster","class":"i1s2"},
         "content.limit":{"label":"*Number of items","class":"i1s4"},
         "content.hpp":{"label":"*Items per page","class":"i1s4"},
@@ -66,7 +67,7 @@
         "content.src":{"label":"*Source"},
         "content.format":{"label":"*Media Format"},
         "content.href":{"label":"*Link Target"},
-        "content.txt":{"label":"*Markdown Text","format":"textarea","class":"ih10"},
+        "content.txt":{"label":"*Text","format":"textarea","class":"ih10"},
         "position":{"label":"*Position","class":"i1s2","format":"int"}
     },
     "actAs": {

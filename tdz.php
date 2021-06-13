@@ -335,11 +335,11 @@ class tdz
         if(is_array($message)) {
             foreach($message as $k=>$v) {
                 $m = static::checkTranslation($v, $table, $to, $from);
-                if($m!=$v) $message[$k] = $v;
+                if($m!=$v) $message[$k] = $m;
                 unset($m);
             }
         } else if(is_string($message) && substr($message, 0, 1)=='*') {
-            $message = tdz::t($message, $table, $to, $from);
+            $message = tdz::t(substr($message, 1), $table, $to, $from);
         }
 
         return $message;

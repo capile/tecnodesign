@@ -22,9 +22,6 @@
   border-top: 1px solid @colorHeaderBorder;
   border-bottom: 1px solid @colorHeaderBorder;
   margin-bottom: 2em;
-  overflow: hidden;
-  overflow-x: hidden;
-  overflow-y: hidden; 
   min-height: 5em;
   &:hover, &:active {
     opacity: 1;
@@ -832,6 +829,15 @@ input.tdz-i-switch{
     margin: 0 -0.5em 0.5em -0.5em;
     .tdz-i-scope-block {
       margin:0;
+    }
+    &:after {
+      content:' ';
+      height:1px;
+      clear:both;
+      display:block;
+      position:relative;
+      margin:0;
+      padding:0;
     }
   }
   .tdz-i-block {

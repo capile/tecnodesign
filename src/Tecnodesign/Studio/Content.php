@@ -14,11 +14,12 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 {
     public static 
         $contentType = array(
+            'feed'=>'*Feed',
             'html'=>'*HTML',
             'md'=>'*Markdown',
-            'feed'=>'*Feed',
             'media'=>'*Media file',
             'php'=>'*PHP script',
+            'txt'=>'*Plain text',
         ),
         $widgets = array(
         ),
@@ -253,14 +254,16 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             }
         }
 
-
-
         if($this->content_type && in_array($this->content_type, static::$previewContentType)) {
             $c = $this->render(true);
         } else if(!$scope) {
             $c = '<div class="z-inner-block">'.tdz::xml($this->content).'</div>';
         } else {
             if(is_string($scope)) $scope = static::columns($scope, null, true);
+            if(count($scope)>2) {
+                array_pop($scope);
+                array_pop($scope);
+            }
             $c = $this->renderScope($scope, true, null, '<dl class="$CLASS"><dt>$LABEL</dt><dd>$INPUT</dd></dl>');
         }
 
@@ -269,8 +272,15 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
     public function previewContentEntry()
     {
-        if($e=$this['content.entry']) {
-            return tdz::xml((string) Tecnodesign_Studio_Entry::find(['id'=>$e],1,'string'));
+        if(($e=$this['content.entry']) && ($E=Tecnodesign_Studio_Entry::find(['id'=>$e],1,'string'))) {
+            if(Tecnodesign_Interface::format()=='html') {
+                return tdz::xml((string)$E)
+                        . ' <a class="z-i-a z-i-link z-i--list" href="'.Tecnodesign_Studio::$home.'/entry/q?'.tdz::slug(tdz::t('Newsfeed', 'model-tdz_entries')).'='.$E->id.'"></a>'
+                        . ' <a class="z-i-a z-i-link z-i--new" href="'.Tecnodesign_Studio::$home.'/entry/n?'.tdz::slug(tdz::t('Newsfeed', 'model-tdz_entries')).'='.$E->id.'"></a>'
+                        ;
+            } else {
+                return (string) $E;
+            }
         }
     }
 
@@ -419,9 +429,17 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return trim($code);
     }
 
+    public static function renderTxt($code=null)
+    {
+        if(is_array($code)) {
+            $code = isset($code['txt'])?($code['txt']):(array_shift($code));
+        }
+        return $code;
+    }
+
     public static function renderText($code=null)
     {
-        return self::renderMd($code);
+        return self::renderTxt($code);
     }
 
     public static function renderMd($code=null)
@@ -479,15 +497,58 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         }
     }
 
-    public function choicesMaster()
+    public static function choicesMaster($check=null)
     {
-        if(!$this->content_type && $this->id) $this->refresh(['content_type']); 
-        return Tecnodesign_Studio::templateFiles($this->content_type);
+        static $master;
+
+        if(!$master && Tecnodesign_Studio::$indexTimeout) {
+            $master = Tecnodesign_Cache::get('studio/content/master', Tecnodesign_Studio::$indexTimeout);
+        }
+
+        if(!$master) {
+            $master = [];
+            $g = Tecnodesign_Studio::templateDir();
+            while($g) {
+                $d = array_shift($g);
+                if(is_dir($d) && ($nd=glob($d.'/*'))) {
+                    $g = array_merge($g, $nd);
+                } else if(is_file($d) && substr($d, -4)=='.php') {
+                    $n = $l = basename($d, '.php');
+                    if(!isset($master[$n])) {
+                        $c = file_get_contents($d);
+                        if(strpos($c, '<html')===false) {
+                            if(preg_match('#^\<\?php\s*\n/\*\*?\s*\n\s*\*?([^\n]+)#s', $c, $m)) {
+                                $l = trim($m[1]).' ('.$n.')';
+                            }
+                            $master[$n] = $l;
+                        }
+                        unset($c);
+                    }
+                    unset($n, $l);
+                }
+                unset($d, $nd);
+            }
+            if($master && Tecnodesign_Studio::$indexTimeout) {
+                Tecnodesign_Cache::set('studio/content/master', $master, Tecnodesign_Studio::$indexTimeout);
+            }
+        }
+
+        if($check) {
+            return (isset($master[$check])) ?$master[$check] :false;
+        }
+
+        return $master;
+
+        //if(!$this->content_type && $this->id) $this->refresh(['content_type']); 
+        //return Tecnodesign_Studio::templateFiles($this->content_type);
     }
 
     public function previewContentMaster()
     {
         if($k=$this['content.master']) {
+
+            if($r = $this->choicesMaster($k)) return $r;
+
             if(!$this->content_type && $this->id) $this->refresh(['content_type']);
             $p = 'tdz_'.$this->content_type;
             $shift = strlen($p);
