@@ -21,6 +21,7 @@ use Tecnodesign_Query_Api as Api;
 use Tecnodesign_Studio as Studio;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_PublicObject as PublicObject;
+use Tecnodesign_Exception as SException;
 use tdz as S;
 
 class Client extends PublicObject
@@ -233,14 +234,18 @@ class Client extends PublicObject
 
             try {
                 if($Client && ($User=$Server->requestUserinfo($Client))) {
+                    if(S::$log>0) S::log('[INFO] Userinfo: '.$User);
                 } else if($code=App::request('get', 'code')) {
                     $Client = $Server->requestToken($code);
+                    if(S::$log>0) S::log('[INFO] Client Token: '.$Client);
                 } else {
                     $Client = $Server->requestAuthorization();
+                    if(S::$log>0) S::log('[INFO] Authorization: '.$Client);
                 }
 
                 if(!$User && $Client && $Client['options.access_token']) {
                     $User = $Server->requestUserinfo($Client);
+                    if(S::$log>0) S::log('[INFO] Userinfo (end): '.var_Export($User, true));
                 }
 
                 if($User) {
@@ -272,9 +277,10 @@ class Client extends PublicObject
                 }
             } catch(\Exception $e) {
                 $err = $e->getMessage();
-            } 
+            }
 
-            S::getUser()->setMessage('<div class="z-i-error z-i-msg">'.S::xml($err).'</div>');
+            if(!isset($U)) $U = S::getUser();
+            $U->setMessage('<div class="z-i-msg z-i-error">'.S::xml($err).'</div>');
             if($ref=$U->getAttribute('authorize-source')) {
                 $U->setAttribute('authorize-source', null);
             } else if(isset($nso) && isset($nso['redirect-error'])) {
@@ -476,7 +482,11 @@ class Client extends PublicObject
                 }
                 $R = Api::runStatic($this->token_endpoint, $this->issuer, $data, 'POST', $H, 'json', true);
 
-                if($R) {
+                if(!$R || isset($R['error'])) {
+                    if(S::$log>0) S::log('[INFO] Failed OAuth2 authentication at '.$this->id, $R);
+                    $msg = (isset($R['error_description'])) ?$R['error_description'] :'We could not authenticate your request';
+                    throw new SException(S::t($msg, 'exception'));
+                } else {
                     $o = $Client->options;
                     if(!is_array($o)) $o = S::unserialize($o, 'json');
                     if(!$o) $o = [];
