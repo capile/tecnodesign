@@ -75,6 +75,8 @@ class Server extends \OAuth2\Server
             }
 
             $cfg = self::config();
+            $meta = static::metadata();
+            if(isset($meta['issuer'])) $cfg['issuer'] = $meta['issuer'];
 
             if($r=self::config('grant_types')) {
                 foreach($r as $i=>$o) {
@@ -82,7 +84,7 @@ class Server extends \OAuth2\Server
                         $grantTypes[$o] = new $cn($storage);
                     } else if(class_exists($cn = 'OAuth2\\GrantType\\'.S::camelize($o, true))) {
                         if($o=='jwt_bearer') {
-                            $grantTypes[$o] = new $cn($storage, static::metadata()['issuer']);
+                            $grantTypes[$o] = new $cn($storage, $meta['issuer']);
                         } else {
                             $grantTypes[$o] = new $cn($storage);
                         }
@@ -106,7 +108,7 @@ class Server extends \OAuth2\Server
                 $cn = get_called_class();
                 static::$instance = new $cn($S, $cfg, $grantTypes, $responseTypes, $tokenType, $Scope);
             } catch(\Exception $e) {
-                S::debug(__METHOD__, var_export($e, true));
+                S::log(__METHOD__, var_export($e, true));
             }
         }
 
@@ -236,7 +238,7 @@ class Server extends \OAuth2\Server
             $request = Request::createFromGlobals();
             $R = $this->handleTokenRequest($request);
         } catch(\Exception $e) {
-            S::debug(__METHOD__, var_export($e, true));
+            S::log(__METHOD__, var_export($e, true));
         }
         $R->send();
         exit();
@@ -262,33 +264,49 @@ class Server extends \OAuth2\Server
 
     public function executeAuthorize()
     {
-        $request = Request::createFromGlobals();
-        $response = new Response();
+        try {
+            $request = Request::createFromGlobals();
+            $response = new Response();
 
-        // validate the authorize request
-        if (!$this->validateAuthorizeRequest($request, $response)) {
-            $response->send();
-            die;
+            // validate the authorize request
+            if (!$this->validateAuthorizeRequest($request, $response)) {
+                $response->send();
+                die;
+            }
+        } catch(\Exception $e) {
+            S::log('[ERROR] Could not run user authorization: '.$e->getMessage()."\n{$e}");
         }
+
+        // require an authenticated user
+        $U = S::getUser();
+        if(!$U->isAuthenticated()) {
+            if(($url=S::getApp()->config('user', 'route')) && $U->getSessionId(true)) {
+                $U->setAttribute('redirect-authenticated', S::requestUri());
+                S::redirect($url);
+            }
+            // show error 400 with proper response
+        }
+
+        // check if client requires authorization (new scopes)
+
         // display an authorization form
-        if (empty($_POST)) {
-          exit('
-        <form method="post">
-          <label>Do You Authorize TestClient?</label><br />
-          <input type="submit" name="authorized" value="yes">
-          <input type="submit" name="authorized" value="no">
-        </form>');
-        }
+        /*
+            if (empty($_POST)) {
+              exit('
+            <form method="post">
+              <label>Do You Authorize TestClient?</label><br />
+              <input type="submit" name="authorized" value="yes">
+              <input type="submit" name="authorized" value="no">
+            </form>');
+            }
 
-        // print the authorization code if the user has authorized your client
-        $is_authorized = ($_POST['authorized'] === 'yes');
-        $this->handleAuthorizeRequest($request, $response, $is_authorized);
-        if ($is_authorized) {
-          // this is only here so that you get to see your code in the cURL request. Otherwise, we'd redirect back to the client
-          $code = substr($response->getHttpHeader('Location'), strpos($response->getHttpHeader('Location'), 'code=')+5, 40);
-          exit("SUCCESS! Authorization Code: $code");
+            // print the authorization code if the user has authorized your client
+            $is_authorized = ($_POST['authorized'] === 'yes');
         }
+        */
+
+        $is_authorized = true;
+        $this->handleAuthorizeRequest($request, $response, $is_authorized, $U->uid());
         $response->send();
-
     }
 }

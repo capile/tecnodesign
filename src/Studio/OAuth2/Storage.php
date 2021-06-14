@@ -45,7 +45,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
                 'id_token'=>'options.id_token',
             ],
             'authorization_code'=>[
-                'client_id'=>'options.client_id',
+                'client_id'=>'token',
                 'user_id'=>'user',
                 'expires'=>'expires',
                 'redirect_uri'=>'options.redirect_uri',
@@ -354,8 +354,6 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        // convert expires to datestring
-        $expires = date('Y-m-d H:i:s', $expires);
         $r = [
             'id'=>$code,
             'type'=>'authorization_code',
@@ -364,7 +362,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
             'options' => [
                 'redirect_uri'=>$redirect_uri,
             ],
-            'expires' => date('Y-m-d H:i:s', $expires),
+            'expires' => (is_int($expires)) ?date('Y-m-d H:i:s', $expires) :$expires,
         ];
 
         if($scope) $r['options']['scope'] = $scope;
@@ -690,17 +688,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     private function setAuthorizationCodeWithIdToken($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
     {
-        // convert expires to datestring
-        $expires = date('Y-m-d H:i:s', $expires);
-
-        // if it exists, update it.
-        if ($this->getAuthorizationCode($code)) {
-            $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET client_id=:client_id, user_id=:user_id, redirect_uri=:redirect_uri, expires=:expires, scope=:scope, id_token =:id_token where authorization_code=:code', $this->config['code_table']));
-        } else {
-            $stmt = $this->db->prepare(sprintf('INSERT INTO %s (authorization_code, client_id, user_id, redirect_uri, expires, scope, id_token) VALUES (:code, :client_id, :user_id, :redirect_uri, :expires, :scope, :id_token)', $this->config['code_table']));
-        }
-
-        return $stmt->execute(compact('code', 'client_id', 'user_id', 'redirect_uri', 'expires', 'scope', 'id_token'));
+        return $this->setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope, $id_token);
     }
 
     /*
@@ -996,7 +984,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getPublicKey($client_id = null)
     {
-        return $this->getObject('public_key', ['client_id'=>$client_id], 'public_key');
+        return str_replace('\\n', "\n", $this->getObject('public_key', ['client_id'=>$client_id], 'public_key'));
     }
 
     /**
@@ -1005,7 +993,7 @@ class Storage implements ClientCredentialsInterface, UserCredentialsInterface, A
      */
     public function getPrivateKey($client_id = null)
     {
-        return $this->getObject('public_key', ['client_id'=>$client_id], 'private_key');
+        return str_replace('\\n', "\n", $this->getObject('public_key', ['client_id'=>$client_id], 'private_key'));
     }
 
     /**

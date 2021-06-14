@@ -194,6 +194,10 @@ class Tecnodesign_User
         if($this->_me) {
             if(!isset($timeout) || !$timeout) $timeout = static::$timeout;
             $this->setObject($nso, $this->_me, isset($store), $timeout);
+            if($go=$this->getAttribute('redirect-authenticated')) {
+                $this->setAttribute('redirect-authenticated', null);
+                tdz::redirect($go);
+            }
         } else {
             $this->log();
         }
@@ -1366,9 +1370,10 @@ class Tecnodesign_User
         if($this->_me) {
             if(is_null($scope)) {
                 if(isset($this->_ns['export'])) $scope = $this->_ns['export'];
+                else if(isset($this->_ns['properties'])) $scope = $this->_ns['properties'];
             }
             if($this->_me instanceof Tecnodesign_Model) {
-                return $this->_me->asArray($scope);
+                return $this->_me->asArray($scope)+['test'=>date('c')];
             } else if($this->_me instanceof ArrayAccess) {
                 $d = (array) $this->_me;
                 if(is_array($scope)) {
