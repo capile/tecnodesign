@@ -10,7 +10,7 @@
         "connection": { "type": "string", "size": 100 },
         "source": { "type": "string", "size": 500 },
         "schema_source": { "type": "string", "size": 500 },
-        "schema_data": { "type": "string", "size": 10000 },
+        "schema_data": { "type": "string", "size": 8000 },
         "credential": { "type": "string", "size": 2000 },
         "index_interval": { "type": "int" },
         "indexed": { "type": "datetime" },

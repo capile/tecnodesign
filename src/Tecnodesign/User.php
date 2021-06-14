@@ -1091,6 +1091,8 @@ class Tecnodesign_User
         if(isset($o['intro'])) {
             $o['app'] .= $o['intro'];
         }
+
+        $methods = ['tdzSignIn'];
         foreach(static::$cfg['ns'] as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
                 continue;
@@ -1118,10 +1120,10 @@ class Tecnodesign_User
             }
 
             if(!$C || is_a($C, 'Tecnodesign_User', true)) {
-                if($C) {
+                if($C && $methods && isset($nso['cookie']) && $nso['cookie']) {
                     unset($C, $m);
                     $C = $this;
-                    $m = 'tdzSignIn';
+                    $m = array_shift($methods);
                 } else {
                     unset($C, $m);
                     continue;
@@ -1144,6 +1146,8 @@ class Tecnodesign_User
             }
             $this->_ns = null;
         }
+
+
 
         if($app) {
             if(!isset(tdz::$variables)) {

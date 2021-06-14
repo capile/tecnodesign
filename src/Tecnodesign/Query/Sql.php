@@ -15,7 +15,9 @@ class Tecnodesign_Query_Sql
     const TYPE='sql', DRIVER='sql', QUOTE='``', PDO_AUTOCOMMIT=1, PDO_TRANSACTION=1;
     public static 
         $microseconds=6,
+        $datetimeSize=6,
         $enableOffset=true,
+        $typeMap=['float'=>'decimal', 'number'=>'decimal'],
         $textToVarchar,
         $logSlowQuery,
         $queryCallback,
@@ -1296,23 +1298,24 @@ class Tecnodesign_Query_Sql
         }
         $tn = $schema->tableName;
         $q = '';
+        $q0 = static::QUOTE[0];
+        $q1 = static::QUOTE[1];
         $pk = [];
         $idx = [];
-        $map = ['float'=>'decimal', 'number'=>'decimal'];
         $formats = ['date', 'datetime', 'int', 'decimal' ];
         foreach($schema->properties as $fn=>$fd) {
             if($fd->alias) continue;
             $q .= (($q)?(",\n "):("\n "))
-                . '`'.$fn.'` ';
+                . $q0.$fn.$q1.' ';
 
             $type = ($fd->format) ?$fd->format :$fd->type;
-            if(isset($map[$type])) {
-                $type = $map[$type];
+            if(isset(static::$typeMap[$type])) {
+                $type = static::$typeMap[$type];
             }
             if(in_array($type, $formats)) {
                 $q .= $type;
                 if($type=='datetime') {
-                    $q .= '(6)';
+                    if(static::$datetimeSize) $q .= '('.static::$datetimeSize.')';
                 } else if($type=='decimal') {
                     $d = [10,2];
                     if($fd->decimal) $d[1] = $fd->decimal;
@@ -1344,7 +1347,7 @@ class Tecnodesign_Query_Sql
         }
         if($pk) {
             $q .= (($q)?(",\n "):("\n "))
-                . 'primary key(`'.implode('`,`', $pk).'`)';
+                . 'primary key('.$q0.implode($q1.','.$q0, $pk).$q1.')';
         }
         $fks = [];
         $actions = ['cascade', 'no action', 'set null'];
@@ -1356,8 +1359,8 @@ class Tecnodesign_Query_Sql
                         $rn = (isset($rel['className'])) ?$rel['className'] :$rel;
                         $action = (in_array(strtolower($action), $actions) ?$action :'no action');
                         $q .= (($q)?(",\n "):("\n "))
-                            . 'constraint `'.$fk.'` foreign key(`'.((is_array($rel['local'])) ?implode('`,`', $rel['local']) :$rel['local']).'`)'
-                            . ' references `'.$rn::$schema->tableName.'` (`'.((is_array($rel['foreign'])) ?implode('`,`', $rel['foreign']) :$rel['foreign']).'`)'
+                            . 'constraint '.$q0.$fk.$q1.' foreign key('.$q0.((is_array($rel['local'])) ?implode($q1.','.$q0, $rel['local']) :$rel['local']).$q1.')'
+                            . ' references '.$q0.$rn::$schema->tableName.$q1.' ('.$q0.((is_array($rel['foreign'])) ?implode($q1.','.$q0, $rel['foreign']) :$rel['foreign']).$q1.')'
                             . ' on delete '.$action
                             . ' on update '.$action
                             ;
@@ -1365,7 +1368,7 @@ class Tecnodesign_Query_Sql
                 }
             }
         }
-        $q = 'create table `'.$tn.'` ('.$q."\n)".static::$tableDefault;
+        $q = 'create table '.$q0.$tn.$q1.' ('.$q."\n)".static::$tableDefault;
         if(!$conn) {
             $conn = self::connect($schema->database);
         }
@@ -1376,7 +1379,7 @@ class Tecnodesign_Query_Sql
         }
         if($idx) {
             foreach($idx as $in=>$fn) {
-                $q = "create index `{$in}` on `{$tn}`(`".implode('`, `', $fn).'`);';
+                $q = "create index {$q0}{$in}{$q1} on {$q0}{$tn}{$q1}({$q0}".implode($q1.','.$q0, $fn).$q1.');';
                 if(!$this->exec($q, $conn) && $conn->errorCode()!=='00000') {
                     tdz::log('[WARNING] Could not create index '.$in.' on '.$tn.': '.$q);
                 }

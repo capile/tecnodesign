@@ -55,6 +55,8 @@ class Tecnodesign_Studio
         $breadcrumbSeparator=' » ',
         $userMessage,
         $cli='studio',      // configurable, where to load Studio command-line interface
+        $cliSkipScriptName=[],
+        $interfaceClass='Tecnodesign_Studio_Interface',
         $interfaces = [
             'interfaces'=>'interfaces',
         ],
@@ -102,9 +104,14 @@ class Tecnodesign_Studio
     {
         self::app();
         $req = Tecnodesign_App::request();
+        $sn = $req['script-name'];
 
         if($req['shell']) {
-            tdz::scriptName($req['script-name']);
+            while(isset(self::$cliSkipScriptName[0]) && $sn==self::$cliSkipScriptName[0] && $req['argv']) {
+                array_shift(self::$cliSkipScriptName);
+                $sn = array_shift($req['argv']);
+            }
+            tdz::scriptName($sn);
             self::$cacheTimeout = false;
             self::$staticCache  = false;
             chdir(TDZ_APP_ROOT);
@@ -113,8 +120,6 @@ class Tecnodesign_Studio
             Tecnodesign_App::$assets[] = '!Z.Interface';
             Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
         }
-
-        $sn = $req['script-name'];
 
         if(!self::$languages && isset(self::$app->tecnodesign['languages'])) self::$languages=self::$app->tecnodesign['languages'];
 
@@ -233,6 +238,7 @@ class Tecnodesign_Studio
                 return self::error(403);
             }
 
+            $In=self::$interfaceClass;
             if(Tecnodesign_App::request('headers', 'z-action')=='Interface') {
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
@@ -240,7 +246,7 @@ class Tecnodesign_Studio
                 tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
                 //Tecnodesign_App::response('style', array('/studio.less'));
-                return Tecnodesign_Studio_Interface::run();
+                return $In::run();
             } else if(isset($methods[$url])) {
                 $m = $methods[$url];
                 return self::$m();
@@ -257,7 +263,7 @@ class Tecnodesign_Studio
                 //tdz::$assetsUrl = self::$home;
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
                 //Tecnodesign_App::response('style', array('/studio.less'));
-                return Tecnodesign_Studio_Interface::run();
+                return $In::run();
             }
         }
         self::error(404);
@@ -276,8 +282,9 @@ class Tecnodesign_Studio
             }
         }
 
-        Tecnodesign_Studio_Interface::headers();
-        Tecnodesign_App::end(Tecnodesign_Studio_Interface::toJson($R));
+        $In=self::$interfaceClass;
+        $In::headers();
+        Tecnodesign_App::end($In::toJson($R));
     }
 
     public static function listProperties()
@@ -895,7 +902,8 @@ class Tecnodesign_Studio
 
     public static function translate($s, $table=null, $to=null, $from=null)
     {
-        if($to && !Tecnodesign_Studio_Interface::$translate && $to==$from)  {
+        $In=self::$interfaceClass;
+        if($to && !$In::$translate && $to==$from)  {
             return $s;
         } else {
             return self::t($s, null, $table);

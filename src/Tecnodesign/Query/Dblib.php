@@ -17,6 +17,8 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
     public static 
         $textToVarchar=2147483647,
         $microseconds=3,
+        $datetimeSize=null,
+        $typeMap=['float'=>'decimal', 'number'=>'decimal','bool'=>'bit'],
         $options=array(
             'command'=>'SET CONCAT_NULL_YIELDS_NULL ON;SET QUOTED_IDENTIFIER ON;'
         );
