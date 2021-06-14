@@ -322,7 +322,7 @@ class Tecnodesign_User
                 $this->_map = $this->_ns['properties'];
             }
             $pk = (isset($this->_ns['properties']['id']))?($this->_ns['properties']['id']):('id');
-            $this->_uid = $this->_me[$pk];
+            $this->_uid = $this->_me->$pk;
             if(isset($this->_ns['cookie']) && $this->_ns['cookie']) {
                 if(!isset($timeout) || !$timeout) $timeout = static::$timeout;
                 $last = $this->getAttribute(static::LASTCOOKIE_ATTR);
@@ -1092,6 +1092,8 @@ class Tecnodesign_User
             $o['app'] .= $o['intro'];
         }
 
+        $o['app'] .= $this->getMessage(null, true);
+
         $methods = ['tdzSignIn'];
         foreach(static::$cfg['ns'] as $ns=>$nso) {
             if(!isset($nso['enabled']) || !$nso['enabled']) {
@@ -1292,7 +1294,7 @@ class Tecnodesign_User
                         }
                     }
                 } else {
-                    $o['form']->before = '<div class="tdz-i-msg tdz-i-error">'
+                    $o['form']->before = '<div class="z-i-msg z-i-error">'
                         . ((isset($o['message-failure']))?($o['message-failure']):('<h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p>'))
                         . '</div>';
                 }
@@ -1352,7 +1354,7 @@ class Tecnodesign_User
                         tdz::redirect($url);
                     }
                 } else {
-                    $s .= '<div class="tdz-i-msg tdz-i-error"><h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p></div>';
+                    $s .= '<div class="z-i-msg z-i-error"><h3>'.tdz::t('Authentication failed', 'ui').'</h3><p>'.tdz::t('Either the account or the password provided is incorrect. Please try again.', 'ui').'</p></div>';
                 }
             }
             unset($p);
