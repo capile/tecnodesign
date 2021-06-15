@@ -14,8 +14,7 @@ all:
   #search:
   #  type: server
   options:
-    list-parent: i
-    priority: 61
+    priority: 1009
     index: true
     scope:
       uid:
