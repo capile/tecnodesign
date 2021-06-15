@@ -240,6 +240,7 @@ class Server extends \OAuth2\Server
         } catch(\Exception $e) {
             S::log(__METHOD__, var_export($e, true));
         }
+        if(S::$log > 1)S::log('[DEBUG] OAuth2 token request: '.S::requestUri(), "\n{$R}");
         $R->send();
         exit();
     }
@@ -258,7 +259,9 @@ class Server extends \OAuth2\Server
     public function executeUserInfo()
     {
         $request = Request::createFromGlobals();
-        $this->handleUserInfoRequest($request)->send();
+        $R = $this->handleUserInfoRequest($request);
+        if(S::$log > 1) S::log('[DEBUG] OAuth2 Userinfo request: '.S::requestUri()."\n{$R}");
+        $R->send();
         exit();
     }
 
@@ -307,6 +310,7 @@ class Server extends \OAuth2\Server
 
         $is_authorized = true;
         $this->handleAuthorizeRequest($request, $response, $is_authorized, $U->uid());
+        if(S::$log > 1) S::log('[DEBUG] OAuth2 Authorize request: '.S::requestUri()."\n{$response}");
         $response->send();
     }
 }
