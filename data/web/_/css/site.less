@@ -20,7 +20,6 @@ body {
     padding:0;
 }
 
-
 #header {
     position:relative;
     height: 132px;
@@ -120,8 +119,6 @@ body {
         }
     }
 }
-
-
 
 h1{
     font-size:2em;
@@ -455,19 +452,19 @@ p.date{color:#002244;text-decoration:none;border:none;}
 }
 
 .keyframes(@name, @from, @to) {
-    @-webkit-keyframes @{name} {
+    @-webkit-keyframes "@{name}" {
         from { -webkit-transform: @from;}
         to   { -webkit-transform: @to;}
     }
-    @-moz-keyframes @{name} {
+    @-moz-keyframes "@{name}" {
         from { -moz-transform: @from; }
         to   { -moz-transform: @to; }
     }
-    @-o-keyframes @{name} {
+    @-o-keyframes "@{name}" {
         from { -o-transform: @from; }
         to   { -o-transform: @to; }
     }
-    @keyframes @{name} {
+    @keyframes "@{name}" {
         from { transform: @from; }
         to   { transform: @to; }
     }

@@ -150,6 +150,8 @@ class tdz
         $variables = array(),
         $minifier = array(
             'js'=>'node_modules/.bin/uglifyjs --compress --mangle -- %s > %s',
+            'less'=>'node_modules/.bin/lessc --clean-css --sass2less %s %s',
+            'scss'=>'node_modules/.bin/lessc --clean-css --sass2less %s %s',
         ),
         $paths=array(
             'cat'=>'/bin/cat',

@@ -414,9 +414,14 @@ class Tecnodesign_User
 
         static::config();
 
-        if(is_array($ns)) $nso = $ns;
-        else if(isset(static::$cfg['ns'][$ns])) $nso = static::$cfg['ns'][$ns];
-        else return;
+        if(is_array($ns)) {
+            $nso = $ns;
+        } else if(isset(static::$cfg['ns'][$ns])) {
+            if(!isset(static::$cfg['ns'][$ns]['id'])) static::$cfg['ns'][$ns]['id'] = $ns;
+            $nso = static::$cfg['ns'][$ns];
+        } else {
+            return;
+        }
 
         if(isset(static::$cfg['model'])) {
             $cn = static::$cfg['model'];
@@ -1005,6 +1010,7 @@ class Tecnodesign_User
                 }
             }
             if($this->_me) {
+                if(!isset($this->_ns['id'])) $this->_ns['id'] = '';
                 $id = $this->_ns['id'].':'.$this->_uid;
                 if($id && isset(static::$cfg['credentials'])) {
                     foreach(static::$cfg['credentials'] as $cn=>$users) {

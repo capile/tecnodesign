@@ -212,7 +212,50 @@ class Tecnodesign_Studio_Asset
 
     public function parseLess($fs, $outputFile)
     {
-        static $compiler='lessc';
+        static $compiler='lessc', $format='less';
+
+        $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
+        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) $importDir[] = $d;
+        if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root.'/';
+
+        if(!is_array($fs)) $fs = [$fs];
+        foreach($fs as $i=>$o) {
+            if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d.'/';
+            unset($d, $i, $o);
+        }
+
+        if(isset(tdz::$minifier[$format])) {
+            $s = '';
+            foreach($fs as $i=>$o) {
+                $s .= escapeshellarg($o).' ';
+                unset($i, $o);
+            }
+
+            $cmd = sprintf(tdz::$minifier[$format], $s, $outputFile);
+
+            if(preg_match('/^(node_modules\/.bin\/)?lessc /', $cmd)) {
+                // additional arguments
+                $args = [
+                    '--global-var='.escapeshellarg('assets-url='.tdz::$assetsUrl),
+                    '--global-var='.escapeshellarg('studio-url='.Tecnodesign_Studio::$home)
+                ];
+                foreach(static::$assetVariables as $k=>$v) {
+                    $args[] = '--global-var='.escapeshellarg($k.'='.$v);
+                }
+
+                $args[] = '--include-path='.escapeshellarg(implode(';', $importDir));
+                if($this->root) {
+                    $args[] = '--rootpath='.escapeshellarg($this->root);
+                }
+
+                $cmd = preg_replace('/^(node_modules\/.bin\/)?lessc /', '$1lessc '.implode(' ', $args), $cmd);
+            }
+
+            if(!preg_match('#^(/|[A-Z]:)#i', $cmd)) $cmd = TDZ_PROJECT_ROOT.'/'.$cmd;
+            return tdz::exec(['shell'=>$cmd]);
+        }
+
+
         // inspect memory usage by this component
         tdz::tune(null, 32, 10);
         if(!class_exists($compiler)) {
@@ -224,15 +267,10 @@ class Tecnodesign_Studio_Asset
             return dechex($a[1]);
         });
         $parser->setVariables(array('assets-url'=>escapeshellarg(tdz::$assetsUrl), 'studio-url'=>escapeshellarg(Tecnodesign_Studio::$home))+static::$assetVariables);
-        $importDir = (is_array(self::$importDir)) ?self::$importDir :[self::$importDir];
-        if(is_dir($d=TDZ_DOCUMENT_ROOT.tdz::$assetsUrl.'/css/') && !in_array($d, $importDir)) $importDir[] = $d;
-        if($this->root && !in_array($this->root, $importDir)) $importDir[] = $this->root.'/';
 
-        if(is_array($fs) && count($fs)>1) {
+        if(count($fs)>1) {
             $s = '';
             foreach($fs as $i=>$o) {
-                if(!in_array($d=dirname($o), $importDir)) $importDir[] = $d.'/';
-                unset($d);
                 $s .= '@import '.escapeshellarg(basename($o)).";\n";
                 unset($fs[$i], $i, $o);
             }
@@ -240,8 +278,7 @@ class Tecnodesign_Studio_Asset
             $save = true;
             unset($s);
         } else {
-            if(is_array($fs)) $fs = array_shift($fs);
-            $importDir[] = dirname($fs).'/';
+            $fs = array_shift($fs);
             $save = false;
         }
 
