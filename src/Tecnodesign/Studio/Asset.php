@@ -244,11 +244,8 @@ class Tecnodesign_Studio_Asset
                 }
 
                 $args[] = '--include-path='.escapeshellarg(implode(';', $importDir));
-                if($this->root) {
-                    $args[] = '--rootpath='.escapeshellarg($this->root);
-                }
 
-                $cmd = preg_replace('/^(node_modules\/.bin\/)?lessc /', '$1lessc '.implode(' ', $args), $cmd);
+                $cmd = preg_replace('/^(node_modules\/.bin\/)?lessc /', '$1lessc '.implode(' ', $args).' ', $cmd);
             }
 
             if(!preg_match('#^(/|[A-Z]:)#i', $cmd)) $cmd = TDZ_PROJECT_ROOT.'/'.$cmd;
