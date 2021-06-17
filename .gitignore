@@ -11,6 +11,6 @@ data/studio*.db
 data/web/_/z-*
 data/web/_/fa-solid-900.*
 data/web/_/quill.min.js.map
-composer.lock
+*.lock
 package-lock.json
 codecept*
