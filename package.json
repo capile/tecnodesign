@@ -1,6 +1,9 @@
 {
-    "name": "capile-studio",
-    "version": "2.5.0",
+    "name": "Studio",
+    "version": "2.5.1",
+    "description": "Own your data!",
+    "main": "studio.js",
+    "author": "Guilherme Capilé",
     "dependencies": {
         "@fortawesome/fontawesome-free": "5.*",
         "c3": "0.7.*",
@@ -14,6 +17,9 @@
         "pell": "1.0.*",
         "pikaday-time": "1.6.1",
         "uglify-js": "*"
+    },
+    "scripts": {
+        "start": "electron ."
     },
     "license": "GPL-3.0-only"
 }
