@@ -2,7 +2,7 @@
 /**
  * Studio Index
  * 
- * PHP version 5.6+
+ * PHP version 7.2
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
@@ -15,7 +15,7 @@ namespace Studio\Model;
 use Studio\Model as Model;
 use Tecnodesign_App as App;
 use Tecnodesign_Studio as Studio;
-use Tecnodesign_Studio_Interface as InterfaceApp;
+use Tecnodesign_Studio_Interface as Api;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Query as Query;
 use Tecnodesign_Database as Database;
@@ -81,7 +81,7 @@ class Index extends Model
             $ref = null;
             if(is_string($a)) {
                 $ref = $a;
-                $a = InterfaceApp::find($a, false);
+                $a = Api::find($a, false);
                 if(!$a) continue;
             }
             static::indexInterface($a, $ref);
@@ -121,7 +121,7 @@ class Index extends Model
                 'id'=>$id,
                 'label'=>(isset($a['label'])) ?$a['label'] :$cn::label(),
                 'model'=>$cn,
-                'credential'=>(isset($a['auth'])) ?tdz::serialize($a['auth'], 'json') :S::serialize(InterfaceApp::$authDefault),
+                'credential'=>(isset($a['auth'])) ?tdz::serialize($a['auth'], 'json') :S::serialize(Api::$authDefault),
                 'indexed'=>TDZ_TIMESTAMP,
             ], null, null, true);
             if(!$II) return;
@@ -266,11 +266,11 @@ class Index extends Model
     {
         static $cfg = [
             'content'=>[
-                'Tecnodesign_Studio_Entry',
-                'Tecnodesign_Studio_Content',
-                'Tecnodesign_Studio_ContentDisplay',
-                'Tecnodesign_Studio_Relation',
-                'Tecnodesign_Studio_Tag',
+                'Studio\\Model\\Entries',
+                'Studio\\Model\\Contents',
+                'Studio\\Model\\ContentsDisplay',
+                'Studio\\Model\\Relations',
+                'Studio\\Model\\Tags',
             ],
             'credential'=>[
                 'Studio\\Model\\Users',
@@ -288,6 +288,16 @@ class Index extends Model
                 'Studio\\Model\\IndexText',
             ],
         ];
+
+        if(($version=Studio::config('compatibility_level')) && $version < 2.5) {
+            $cfg['content'] = [
+                'Tecnodesign_Studio_Entry',
+                'Tecnodesign_Studio_Content',
+                'Tecnodesign_Studio_ContentDisplay',
+                'Tecnodesign_Studio_Relation',
+                'Tecnodesign_Studio_Tag',
+            ];
+        }
 
         if(!$conn) {
             $conn = static::$schema->database;

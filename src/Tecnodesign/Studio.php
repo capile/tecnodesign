@@ -62,8 +62,8 @@ class Tecnodesign_Studio
         ],
         $cliApps=[
             'config'=>['Tecnodesign_App_Install','config'],
-            'check'=>['Tecnodesign_Studio_Index', 'checkConnection'],
-            'index'=>['Tecnodesign_Studio_Index','reindex'],
+            'check'=>['Studio\\Model\\Index', 'checkConnection'],
+            'index'=>['Studio\\Model\\Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
         ];
     const VERSION = 2.5;    // should match the development branch 
@@ -734,7 +734,7 @@ class Tecnodesign_Studio
     {
         if(self::$index) {
             // check if the studio connection should be set or changed to self::$index, if it's a string
-            Tecnodesign_Studio_Index::check($M, $interface);
+            Studio\Model\Index::check($M, $interface);
         }
     }
 

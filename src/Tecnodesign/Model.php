@@ -12,9 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign_AutoloadInterface
+class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 {
     const SCHEMA_PROPERTY='schema';
+    const AUTOLOAD_CALLBACK='staticInitialize';
     public static 
         $schema,
         $allowNewProperties = false,
@@ -30,7 +31,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $headingTemplate = '<hr /><h3>$LABEL</h3>',
         $previewTemplate = '<dl><dt>$LABEL</dt><dd>$INPUT</dd></dl>',
         $queryBatchLimit = 500,
-        $auditLog;
+        $auditLog,
+        $schemaClass='Tecnodesign_Schema_Model';
 
     protected static 
         $found=array(),
@@ -56,11 +58,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
     public static function staticInitialize()
     {
+        $scn = static::$schemaClass;
         if(isset(static::$schema['ref'])) {
             $cn = static::$schema['ref'];
             unset(static::$schema['ref']);
             $source = static::$schema;
-            static::$schema = Tecnodesign_Schema_Model::loadSchema($cn);
+            static::$schema = $scn::loadSchema($cn);
             foreach($source as $k=>$v) {
                 if(is_array($v) && isset(static::$schema[$k]) && is_array(static::$schema[$k])) {
                     static::$schema[$k] = $v + static::$schema[$k];
@@ -70,7 +73,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             static::$schema->className = get_called_class();
         } else {
-            static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+            static::$schema = $scn::loadSchema(get_called_class());
         }
         if(static::$schema && static::$auditLog) static::$schema->audit = static::$auditLog;
     }

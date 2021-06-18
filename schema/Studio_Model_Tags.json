@@ -1,0 +1,5 @@
+{
+    "ref": "Tecnodesign_Studio_Tag",
+    "className": "Studio\\Model\\Tags",
+    "tableName": "studio_tags"
+}

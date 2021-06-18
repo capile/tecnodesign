@@ -667,6 +667,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
         return $r;
     }
 
+    /*
     public static function studioIndex($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
     {
         static $pages, $root;
@@ -713,4 +714,5 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
 
         return static::studioIndex($a, $icn, $scope, $keyFormat, $valueFormat, $serialize);
     }
+    */
 }

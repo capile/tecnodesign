@@ -3120,8 +3120,10 @@ class tdz
             }
             unset($c);
         }
-        if(is_subclass_of($cn, 'Tecnodesign_AutoloadInterface')) {
-            $cn::staticInitialize();
+
+        if(defined($cn.'::AUTOLOAD_CALLBACK')) {
+            $m = $cn::AUTOLOAD_CALLBACK;
+            $cn::$m();
         }
     }
 

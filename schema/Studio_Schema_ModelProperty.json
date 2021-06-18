@@ -1,0 +1,218 @@
+{
+    "title": "Properties",
+    "description": "Metaschema of each Model property",
+    "className": "Studio\\Schema\\ModelProperty",
+    "type": "object",
+    "patternProperties": "\/.*\/",
+    "properties": {
+        "bind": {
+            "title": "Classname or property name to read\/update when using the property",
+            "description": "If not present, the property key, if available, should be used",
+            "type": "string"
+        },
+        "alias": {
+            "title": "Property alias",
+            "description": "If used, should completely replace the property, useful for deprecated properties",
+            "type": "string"
+        },
+        "primary": {
+            "title": "Primary keys",
+            "description": "Describes which properties are the primary key",
+            "type": "bool"
+        },
+        "title": {
+            "title": "Label to use for the property",
+            "description": "Full text label to use, can be translated if starts with *, otherwise is a derivation of the property key",
+            "type": "string"
+        },
+        "label": {
+            "alias": "title"
+        },
+        "description": {
+            "title": "Property description",
+            "description": "Detailed description of the property, or text to be used as placeholder in forms",
+            "type": "string"
+        },
+        "placeholder": {
+            "alias": "description"
+        },
+        "required": {
+            "title": "Is this property required?",
+            "description": "When true, the property should not be null. If not set and there's no default option, an error will be raised.",
+            "type": "bool",
+            "default": false
+        },
+        "type": {
+            "title": "Property type",
+            "description": "How this property should be stored, should only be bool, int, number, string, array or object. Other sub-variations will be mapped as format.",
+            "type": "string",
+            "choices": {
+                "bool": "Boolean true or false",
+                "int": "Non-decimal numbers",
+                "number": "Real numbers",
+                "string": "Text string",
+                "array": "List of items, with sequential numerical keys",
+                "object": "List of items, with textual indexed keys"
+            },
+            "trigger": {
+                "bit": "bool",
+                "integer": "int",
+                "decimal": "number",
+                "float": "number",
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "datetime": {
+                    "type": "string",
+                    "format": "datetime"
+                },
+                "form": {
+                    "type": "array",
+                    "format": "form"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "url"
+                },
+                "ip": {
+                    "type": "string",
+                    "format": "ip"
+                },
+                "dns": {
+                    "type": "string",
+                    "format": "dns"
+                },
+                "search": {
+                    "type": "string",
+                    "format": "search"
+                },
+                "file": {
+                    "type": "string",
+                    "format": "file"
+                },
+                "tel": {
+                    "type": "string",
+                    "format": "phone"
+                },
+                "range": {
+                    "type": "number",
+                    "format": "range"
+                },
+                "password": {
+                    "type": "string",
+                    "format": "password"
+                },
+                "date-select": {
+                    "type": "string",
+                    "format": "date-select"
+                },
+                "color": {
+                    "type": "string",
+                    "format": "color"
+                },
+                "phone": {
+                    "type": "string",
+                    "format": "phone"
+                },
+                "html": {
+                    "type": "string",
+                    "format": "html",
+                    "escape": false
+                },
+                "textarea": {
+                    "type": "string",
+                    "format": "textarea"
+                },
+                "none": {
+                    "type": "string",
+                    "format": "none"
+                },
+                "hidden-text": {
+                    "type": "string",
+                    "format": "hidden"
+                },
+                "hidden": {
+                    "type": "string",
+                    "format": "hidden"
+                },
+                "radio": {
+                    "format": "radio"
+                },
+                "checkbox": {
+                    "format": "checkbox"
+                },
+                "select": {
+                    "format": "select"
+                },
+                "csrf": {
+                    "format": "csrf"
+                }
+            }
+        },
+        "default": {
+            "title": "Default value",
+            "description": "Describes the property default value",
+            "type": "string"
+        },
+        "format": {
+            "title": "How to represent\/display the property externally",
+            "description": "Handles the form and display formats for the property",
+            "type": "string",
+            "choices": {
+                "bool": "Boolean true or false",
+                "int": "Non-decimal numbers",
+                "number": "Real numbers",
+                "string": "Text string",
+                "array": "List of items, with sequential numerical keys",
+                "object": "List of items, with textual indexed keys",
+                "date": "Date",
+                "datetime": "Date and time",
+                "form": "Subform",
+                "email": "E-mail address",
+                "url": "URL address",
+                "ip": "IP address",
+                "dns": "DNS address",
+                "search": "Searches the result in external sources",
+                "file": "File upload",
+                "range": "Number within a range",
+                "password": "Password",
+                "date-select": "Date as separate select inputs",
+                "color": "Color",
+                "phone": "Phone number",
+                "html": "HTML content",
+                "textarea": "Textarea",
+                "none": "Don't display on forms",
+                "hidden-text": "Hidden Text",
+                "hidden": "Hidden",
+                "radio": "Radio buttons",
+                "checkbox": "Check boxes",
+                "select": "Select input",
+                "csrf": "Cross Site Request Forgery prevention"
+            }
+        },
+        "choices": {
+            "title": "List of valid values for this property",
+            "description": "should be either an object of keys=>labels or a Model to fetch the options or an URI to retrieve the options from"
+        },
+        "increment": {
+            "type": "string"
+        },
+        "size": {
+            "type": "int"
+        },
+        "min_size": {
+            "type": "int"
+        },
+        "decimal": {
+            "type": "string"
+        },
+        "serialize": {
+            "type": "string"
+        }
+    }
+}

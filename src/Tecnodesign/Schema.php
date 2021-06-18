@@ -15,6 +15,7 @@
 class Tecnodesign_Schema extends Tecnodesign_PublicObject
 {
     const JSON_SCHEMA_VERSION='draft-07';
+    const OBJECT_TYPE='schema';
 
     public static 
         $errorInvalid='This is not a valid value for %s.',

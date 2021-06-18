@@ -1,15 +1,28 @@
 <?php
-
+/**
+ * Model
+ * 
+ * Object definition and logic
+ * 
+ * PHP version 7.2+
+ * 
+ * @package   capile/tecnodesign
+ * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.5
+ */
 namespace Studio;
 
 use Tecnodesign_Studio as Studio;
 use Tecnodesign_Query as Query;
 use tdz as S;
 
-class Model extends \Tecnodesign_Model implements \Tecnodesign_AutoloadInterface
+class Model extends \Tecnodesign_Model
 {
     const SCHEMA_PROPERTY='schema';
-    public static $allowNewProperties = true;
+    const AUTOLOAD_CALLBACK='staticInitialize';
+    public static $allowNewProperties = true, $schemaClass='Studio\\Schema\\Model';
 
     public static function staticInitialize()
     {

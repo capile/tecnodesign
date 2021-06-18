@@ -572,7 +572,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $valid = true;
         $M = $this->getModel();
-        $schema = $M::schema();
+        $schema = $M::$schema;;
         $sid = $scope = (!$this->scope)?('subform'):($this->scope);
         $errors=[];
 

@@ -1,0 +1,31 @@
+{
+    "title": "Model Schema",
+    "type": "object",
+    "className": "Studio\\Schema\\Model",
+    "patternProperties": "/^_/",
+    "properties": {
+        "database": { "type": "string" },
+        "className": { "type": "string" },
+        "tableName": { "type": "string" },
+        "title": { "type": "string" },
+        "label": { "alias": "title" },
+        "view": { "type": "string" },
+        "audit": { "type": "string" },
+        "properties": { 
+            "type": "object", 
+            "item": "Studio\\Schema\\ModelProperty"
+        },
+        "patternProperties": { "type": "string" },
+        "overlay": { "type": "object" },
+        "scope": { "type": "object" },
+        "relations": { "type": "object" },
+        "events": { "type": "object" },
+        "actAs": { "type": "object" },
+        "orderBy": { "type": "object" },
+        "order": { "alias": "orderBy" },
+        "group-by": { "alias": "groupBy" },
+        "groupBy": { "type": "object" },
+        "columns": { "alias": "properties" },
+        "form": { "alias": "overlay" }
+    }
+}

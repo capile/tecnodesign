@@ -527,7 +527,7 @@ if(!($S=$H->getTableSchema('tdz_credentials'))) {
     tdz::query($q);
 }
 
-
+/*
 if(!($S=$H->getTableSchema('z_index_interfaces'))) {
     $H->create(Tecnodesign_Studio_IndexInterfaces::$schema);
 }
@@ -540,3 +540,4 @@ if(!($S=$H->getTableSchema('z_index_properties'))) {
 if(!($S=$H->getTableSchema('z_index_log'))) {
     $H->create(Tecnodesign_Studio_IndexLog::$schema);
 }
+*/
