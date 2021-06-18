@@ -16,6 +16,7 @@ namespace Studio;
 
 use tdz as S;
 use Tecnodesign_Exception as Exception;
+use ArrayAccess;
 
 class Api implements ArrayAccess
 {
