@@ -25,5 +25,8 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model
                 tdz::$database[$db] = tdz::$database[$conn];
             }
         }
+        if(static::$schema && ($version=Tecnodesign_Studio::config('compatibility_level')) && $version < 2.5) {
+            static::$schema->tableName = str_replace('studio_', 'tdz_', static::$schema->tableName);
+        }
     }
 }

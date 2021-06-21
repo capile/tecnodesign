@@ -5,6 +5,7 @@ listResults: There are %s records available.
 listCounter: Showing from %s to %s.
 listNoResults: There are no records available.
 listNoSearchResults: There are no records available for your query. Please try again using different parameters.
+previewNoResult: This record is not available.
 updateSuccess: Record successfully updated.
 createSuccess: Record successfully created.
 deleteSuccess: Record successfully removed.

@@ -61,6 +61,27 @@ class Tecnodesign_Query implements \ArrayAccess
         }
         if(!is_null($db)) {
             if(isset(tdz::$database[$db])) return tdz::$database[$db];
+            if(strpos($db, ':')) {
+                $options = null;
+                if(strpos($db, ';')) {
+                    list($dsn, $params) = explode(';', $db, 2);
+                    if($params) parse_str($params, $options);
+                } else {
+                    $dsn = $db;
+                }
+                list($h, $u) = explode(':', $dsn, 2);
+                if(class_exists($cn='Tecnodesign_Query_'.tdz::camelize($h, true))) {
+                    tdz::$database[$db] = [
+                        'dsn'=>$dsn,
+                        'className' => $cn,
+                    ];
+                    if($options) {
+                        tdz::$database[$db]['options'] = $options;
+                    }
+                }
+                return tdz::$database[$db];
+            }
+
             return null;
         }
         return tdz::$database;

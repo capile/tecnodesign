@@ -96,7 +96,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if($insert && is_null($save)) {
                 $save = true;
             }
-        } else {
+        } else if(!isset($vars['_new'])) {
             $this->_new = null;
         }
         $this->initialize();
@@ -1386,6 +1386,20 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $this->save();
         }
         return $this->_delete;
+    }
+
+    public function setNew($v=null)
+    {
+        if(!is_null($v)) $this->_new = (bool) $v;
+        else $this->_new = $v;
+        return $this;
+    }
+
+    public function setDelete($v=null)
+    {
+        if(!is_null($v)) $this->_delete = (bool) $v;
+        else $this->_delete = $v;
+        return $this;
     }
 
     /**
@@ -2889,7 +2903,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             $this->$m(array($ref=>$value));
         // add other options for dotted.names?
         } else if($firstName && $ref && (isset($this->$firstName) || isset(static::$schema->properties[$firstName]))) {
-            if(!isset(static::$schema->properties[$firstName]['serialize'])) {
+            if(!($serialize=static::$schema->properties[$firstName]->serialize) && static::$schema->properties[$firstName]->type!='object') {
                 if(is_array($this->$firstName) || is_object($this->$firstName)) {
                     $this->{$firstName}[$ref] = $value;
                 }
@@ -2898,8 +2912,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                     $this->_original[$firstName] = $this->$firstName;
                 }
                 $a0 = $this->$firstName;
-                if(is_string($a0) && isset(static::$schema->properties[$firstName]['serialize'])) {
-                    $a0 = tdz::unserialize($a0, static::$schema['columns'][$firstName]['serialize']);
+                if(is_string($a0) && $serialize) {
+                    $a0 = tdz::unserialize($a0, $serialize);
                 }
                 if(!$a0) {
                     $a0 = array();

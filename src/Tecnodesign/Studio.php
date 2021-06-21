@@ -221,7 +221,7 @@ class Tecnodesign_Studio
     private static function _runInterface($url=null)
     {
         if(!$url) $url = substr(tdz::scriptName(), strlen(self::$home));
-        if(strpos($url, '.')!==false && !strpos($url, '/')) {
+        if(strpos($url, '.')!==false && !strpos($url, '/', 1)) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
             if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Z', true) 
@@ -969,6 +969,61 @@ class Tecnodesign_Studio
     public static function interfaceAddress($s)
     {
         return tdz::decrypt($s, null, 'uuid');
+    }
+
+
+    public static function enabledModels($model=null)
+    {
+        static $models, $compatibility=[
+            'Tecnodesign_Studio_Entry'=>'Studio\\Model\\Entries',
+            'Tecnodesign_Studio_Content'=>'Studio\\Model\\Contents',
+            'Tecnodesign_Studio_ContentDisplay'=>'Studio\\Model\\ContentsDisplay',
+            'Tecnodesign_Studio_Relation'=>'Studio\\Model\\Relations',
+            'Tecnodesign_Studio_Tag'=>'Studio\\Model\\Tags',
+        ], $compatible=false;
+
+        if(is_null($models)) {
+            $models = [];
+            $cfg = [
+                'content'=>[
+                    'Studio\\Model\\Entries',
+                    'Studio\\Model\\Contents',
+                    'Studio\\Model\\ContentsDisplay',
+                    'Studio\\Model\\Relations',
+                    'Studio\\Model\\Tags',
+                ],
+                'credential'=>[
+                    'Studio\\Model\\Users',
+                    'Studio\\Model\\Groups',
+                    'Studio\\Model\\Credentials',
+                ],
+                'index'=>[
+                    'Studio\\Model\\Interfaces',
+                    'Studio\\Model\\Tokens',
+                    'Studio\\Model\\Index',
+                    'Studio\\Model\\IndexBlob',
+                    'Studio\\Model\\IndexBool',
+                    'Studio\\Model\\IndexDate',
+                    'Studio\\Model\\IndexNumber',
+                    'Studio\\Model\\IndexText',
+                ],
+            ];
+            if(($version=self::config('compatibility_level')) && $version < 2.5) {
+                $compatible = true;
+                $cfg['content'] = array_keys($compatibility);
+            }
+            foreach($cfg as $n=>$cns) {
+                if(self::config('enable_interface_'.$n)) {
+                    $models = ($models) ?array_merge($models, $cns) :$cns;
+                }
+            }
+        }
+        if(!is_null($model)) {
+            if(isset($compatibility[$model]) && !$compatible) $model = $compatibility[$model];
+            return (in_array($model, $models)) ?$model :null;
+        }
+
+        return $models;
     }
 }
 

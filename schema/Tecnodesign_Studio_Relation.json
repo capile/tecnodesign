@@ -1,6 +1,6 @@
 {
     "database": "studio",
-    "tableName": "tdz_relations",
+    "tableName": "studio_relations",
     "className": "Tecnodesign_Studio_Relation",
     "properties": {
         "id": { "type": "int", "increment": "auto", "required": true, "primary": true },

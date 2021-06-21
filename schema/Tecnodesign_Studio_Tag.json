@@ -1,6 +1,6 @@
 {
     "database": "studio",
-    "tableName": "tdz_tags",
+    "tableName": "studio_tags",
     "className": "Tecnodesign_Studio_Tag",
     "properties": {
         "id": { "type": "int", "increment": "auto", "required": true, "primary": true },

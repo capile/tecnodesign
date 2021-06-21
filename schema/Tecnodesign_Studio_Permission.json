@@ -1,7 +1,7 @@
 {
     "title": "*Permissions",
     "database": "studio",
-    "tableName": "tdz_permissions",
+    "tableName": "studio_permissions",
     "className": "Tecnodesign_Studio_Permission",
     "properties": {
         "id": { "type": "int", "increment": "auto", "required": true, "primary": true },

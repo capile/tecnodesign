@@ -150,7 +150,7 @@ class Tecnodesign_Interface extends Studio\Api
         $ui;
 
 
-    protected $uid, $model, $action, $id, $search, $searchError, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source, $graph, $originalText;
+    protected $uid, $model, $action, $id, $search, $searchError, $groupBy, $orderBy, $key, $url, $options, $parent, $relation, $scope, $auth, $actions, $text, $template, $run, $params, $source, $graph, $originalText, $config;
     protected static
         $instances=array(),
         $is=0,
@@ -292,10 +292,18 @@ class Tecnodesign_Interface extends Studio\Api
         } else if(Tecnodesign_App::request('headers', 'z-interface-mode')=='standalone') {
             $this->template = 'interface-standalone';
         }
+        if(isset($d['config'])) {
+            if(is_array($d['config'])) {
+                $this->config = $d['config'];
+            }
+            unset($d['config']);
+        }
+        if(is_null($this->config)) $this->config = [];
+
         if(isset($d['formats']) && is_array($d['formats'])) {
-            static::$formats = $d['formats'];
+            $this->config['formats'] = $d['formats'];
             unset($d['formats']);
-            if(static::$format && !in_array(static::$format, static::$formats)) return static::error(400, static::t('errorNotSupported'));
+            if(static::$format && !in_array(static::$format, $this->config['formats'])) return static::error(400, static::t('errorNotSupported'));
         }
 
         if(count($d)>0) {
@@ -323,7 +331,10 @@ class Tecnodesign_Interface extends Studio\Api
                 $this->checkScope($d['options']['scope']);
             }
             foreach($boolopt as $opt) {
-                if(isset($this->options[$opt]) && $this->options[$opt]!=static::$$opt) static::$$opt = (bool) $this->options[$opt];
+                if(isset($this->options[$opt]) && $this->options[$opt]!=static::$$opt) {
+                    $this->config[$opt] = (bool) $this->options[$opt];
+                    //static::$$opt = (bool) $this->options[$opt];
+                }
             }
             unset($d['options']);
             if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
@@ -334,6 +345,27 @@ class Tecnodesign_Interface extends Studio\Api
             if(!$this->options) $this->options = static::$optionsDefault;
             else $this->options += static::$optionsDefault;
         }
+    }
+
+    public function config($n=null)
+    {
+        if($n) {
+            if($this->config && isset($this->config[$n])) $r = $this->config[$n];
+            else if(property_exists($this, $n)) $r = $this::$$n;
+            else return null;
+
+            $a = func_get_args();
+            array_shift($a);
+            while($r && $a) {
+                $n = array_shift($a);
+                if($r && is_array($r) && isset($r[$n])) $r = $r[$n];
+                else $r = null;
+            }
+
+            return $r;
+        }
+
+        return $this->config;
     }
 
     public function checkScope($a=array())
@@ -349,7 +381,7 @@ class Tecnodesign_Interface extends Studio\Api
                             'interface'=>$fd['interface'],
                             'relation'=>$fd['bind'],
                             'position'=>false,
-                        ) + static::$relationAction;
+                        ) + $this->config('relationAction');
                     }
                 }
             }
@@ -369,15 +401,19 @@ class Tecnodesign_Interface extends Studio\Api
 
     public static function format($format=null)
     {
-        if($format && in_array($format, static::$formats)) static::$format = $format;
+        $formats = ($I=static::current()) ? $I->config('formats') : static::$formats;
+        unset($I);
+        if($format && in_array($format, $formats)) static::$format = $format;
         return static::$format;
     }
 
     public static function checkFormat($ext=null)
     {
+        $formats = ($I=static::current()) ? $I->config('formats') : static::$formats;
         if($ext) {
             static::$ext = '.'.$ext;
-            if(!in_array($ext, static::$formats)) {
+            unset($I);
+            if(!in_array($ext, $formats)) {
                 return static::error(400, static::t('errorNotSupported'));
             } else {
                 static::$format = $ext;
@@ -387,8 +423,8 @@ class Tecnodesign_Interface extends Studio\Api
         $accept = (Tecnodesign_App::request('headers', 'z-action')==='choices') ?null :Tecnodesign_App::request('headers', 'accept');
         if($accept && preg_match('#^application/([a-z]+)#', $accept, $m)) {
             if($m[1]=='yaml') $m[1]='yml';
-            if(!in_array($m[1], static::$formats)) {
-                if(!in_array('*', static::$formats)) {
+            if(!in_array($m[1], $formats)) {
+                if(!in_array('*', $formats)) {
                     return static::error(400, static::t('errorNotSupported'));
                 }
             } else if(static::$ext && static::$ext!='.'.$m[1]) {
@@ -399,7 +435,7 @@ class Tecnodesign_Interface extends Studio\Api
             unset($m);
         }
         if(is_null(static::$format)) {
-            $f = static::$formats;
+            $f = array_values($formats);
             static::$format = array_shift($f);
             unset($f);
         }
@@ -429,7 +465,6 @@ class Tecnodesign_Interface extends Studio\Api
      */
     public static function run($n=null, $url=null)
     {
-
         if(self::$className!=get_called_class()) self::$className = get_called_class();
         try {
             if(!is_null($url)) tdz::scriptName($url);
@@ -494,7 +529,7 @@ class Tecnodesign_Interface extends Studio\Api
             return $I->output($p);
 
         } catch(Tecnodesign_App_End $e) {
-            if(static::$headers) static::headers();
+            static::headers();
             throw $e;
         } catch(Exception $e) {
             tdz::log('[ERROR] '.__METHOD__.'->'.get_class($e).':'.$e);
@@ -506,7 +541,7 @@ class Tecnodesign_Interface extends Studio\Api
     {
         $s = $this->render($p);
 
-        if(static::$headers) static::headers();
+        static::headers();
         if(static::$format!='html') {
             Tecnodesign_App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             Tecnodesign_App::end($s);
@@ -574,7 +609,8 @@ class Tecnodesign_Interface extends Studio\Api
             $b = (isset($cn::$schema['ui-credentials']))?($cn::$schema['ui-credentials']):(array());
 
             $la = array();
-            foreach(static::$actionsAvailable as $an=>$a) {
+            $actionsAvailable = $this->config('actionsAvailable');
+            foreach($actionsAvailable as $an=>$a) {
                 if($b && isset($b[$an]) && !$b[$an]) continue;
                 else if(isset($actions[$an]) && !$actions[$an]) continue;
 
@@ -593,9 +629,10 @@ class Tecnodesign_Interface extends Studio\Api
                 $a['id'] = $an;
                 $la[$p] = $a;
 
-                unset($b[$an], $an, $a, $p);
+                unset($actionsAvailable[$an], $b[$an], $an, $a, $p);
             }
-            foreach(static::$additionalActions as $an=>$a) {
+            $additionalActions = $this->config('additionalActions');
+            foreach($additionalActions as $an=>$a) {
                 if($b && isset($b[$an]) && !$b[$an]) continue;
                 else if(isset($actions[$an]) && !$actions[$an]) continue;
 
@@ -614,11 +651,11 @@ class Tecnodesign_Interface extends Studio\Api
                 $a['id'] = $an;
                 $la[$p] = $a;
 
-                unset($b[$an], $an, $a, $p);
+                unset($additionalActions[$an], $b[$an], $an, $a, $p);
             }
 
             foreach($actions as $an=>$a) {
-                if(isset($a['relation']) || isset($a['interface'])) $a += static::$relationAction;
+                if(isset($a['relation']) || isset($a['interface'])) $a += $this->config('relationAction');
 
                 if(isset($a['expire']) && ($t=strtotime($a['expire'])) && $t<TDZ_TIME) {
                     continue;
@@ -848,9 +885,8 @@ class Tecnodesign_Interface extends Studio\Api
         $a = $n = null;
         if($p) $n = array_shift($p);
         if($n) {
-            if(isset(static::$actionAlias[$n])) {
-                $a = static::$actionAlias[$n];
-            } else if(isset($I->actions[$n]) && !in_array($n, static::$actionAlias)) {
+            if($a = $I->config('actionAlias', $n)) {
+            } else if(isset($I->actions[$n]) && !in_array($n, $I->config('actionAlias'))) {
                 $a = $n;
             } else {
                 array_unshift($p, $n);
@@ -862,7 +898,7 @@ class Tecnodesign_Interface extends Studio\Api
             $A=$I->setAction($a, $p);
         } else {
             // try default actions
-            foreach(static::$actionsDefault as $a) {
+            foreach($I->config('actionsDefault') as $a) {
                 if($A=$I->setAction($a, $p)) {
                     break;
                 }
@@ -1338,7 +1374,7 @@ class Tecnodesign_Interface extends Studio\Api
                             . $o->renderTitle();
                         unset($r[$i], $i, $o);
                     }
-                } else if($this->action && !in_array($this->action, static::$actionsDefault)) {
+                } else if($this->action && !in_array($this->action, $this->config('actionsDefault'))) {
                     $l = $this->action;
                     if(isset($this->actions[$l]['label'])) {
                         $s = tdz::xml($this->actions[$l]['label'].': '.implode(', ', $r));
@@ -1349,7 +1385,7 @@ class Tecnodesign_Interface extends Studio\Api
                     $s = tdz::xml(implode(', ', $r));
                 }
             }
-        } else if($this->action && !in_array($this->action, static::$actionsDefault)) {
+        } else if($this->action && !in_array($this->action, $this->config('actionsDefault'))) {
             $l = $this->action;
             if(isset($this->actions[$l]['label'])) {
                 $s = tdz::xml($this->actions[$l]['label']);
@@ -1487,11 +1523,12 @@ class Tecnodesign_Interface extends Studio\Api
         }
         $A = (isset($this->actions[$a]))?($this->actions[$a]):(array());
         if(!is_array($A))$A=array();
-        if(isset(static::$actionsAvailable[$a])) {
-            $A += static::$actionsAvailable[$a];
-        } else if(isset(static::$additionalActions[$a])) {
-            $A += static::$additionalActions[$a];
+        if($aa = $this->config('actionsAvailable', $a)) {
+            $A += $aa;
+        } else if($aa = $this->config('additionalActions', $a)) {
+            $A += $aa;
         }
+        unset($aa);
         if(!tdz::isempty($this->id) || !tdz::isempty($id)) {
             if($id===true || (tdz::isempty($id) && isset($A['identified']) && $A['identified'])) {
                 $id = $this->id;
@@ -1555,10 +1592,10 @@ class Tecnodesign_Interface extends Studio\Api
         }
 
         if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
-            static::$envelope = (bool)tdz::raw($p);
+            $this->config['envelope'] = (bool)tdz::raw($p);
         }
         if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
-            static::$pretty = (bool)tdz::raw($p);
+            $this->config['pretty'] = (bool)tdz::raw($p);
         }
         unset($p);
 
@@ -1567,13 +1604,12 @@ class Tecnodesign_Interface extends Studio\Api
             $cn::$schema['scope'] = $this->options['scope'] + $cn::$schema['scope'];
         }
 
+        // this should be deprecated
         if(isset($this->options['messages'])) {
-            foreach($this->options['messages'] as $n=>$m) {
-                if(property_exists($this, $n)) $this::$$n = $m;
-            }
+            $this->config += $this->options['messages'];
         }
 
-        if(is_null($this->parent) && $this->action!='list' && ($uid=Tecnodesign_App::request('get', '_uid'))) {
+        if(is_null($this->parent) && $this->action!='list' && ($uid=Tecnodesign_App::request('get', '_uid')) && $uid!=$this->id) {
             if(!$this->search) $this->search=array();
             $pk = $cn::pk();
             $rq = (is_array($this->key)) ?explode(Tecnodesign_Model::$keySeparator, $uid, count($this->key)) :[$uid];
@@ -1592,7 +1628,7 @@ class Tecnodesign_Interface extends Studio\Api
             }
         }
 
-        if(($this->action=='list' || !isset($this->id)) && static::$displaySearch &&
+        if(($this->action=='list' || !isset($this->id)) && $this->config('displaySearch') &&
             (
                 (isset($this->options['search']) && $this->options['search'])
                 || (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])
@@ -1639,11 +1675,12 @@ class Tecnodesign_Interface extends Studio\Api
 
             if($redirect) {
                 if(!$redirectKey) $redirectKey = implode('-', $o->getPk(true));
+                $actionAlias = $this->config('actionAlias');
                 $redirect = static::$base
                    . '/'
                    . $redirect
                    . '/'
-                   . ((static::$actionAlias && ($aa=array_search($this->action, static::$actionAlias))) ?$aa :$this->action)
+                   . (($actionAlias && ($aa=array_search($this->action, $actionAlias))) ?$aa :$this->action)
                    . '/'
                    .  urlencode($redirectKey)
                    ;
@@ -1655,7 +1692,7 @@ class Tecnodesign_Interface extends Studio\Api
             }
         }
 
-        if($one && method_exists($cn, $m=static::$modelRenderPrefix.tdz::camelize($this->action, true))) {
+        if($one && method_exists($cn, $m=$this->config('modelRenderPrefix').tdz::camelize($this->action, true))) {
             $this->getButtons();
             $this->scope((isset($cn::$schema->scope[$this->action]))?($this->action):('preview'));
             if(!$o) $o = $this->model();
@@ -1696,10 +1733,10 @@ class Tecnodesign_Interface extends Studio\Api
         }
 
         if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
-            static::$envelope = (bool)tdz::raw($p);
+            $this->config['envelope'] = (bool)tdz::raw($p);
         }
         if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
-            static::$pretty = (bool)tdz::raw($p);
+            $this->config['pretty'] = (bool)tdz::raw($p);
         }
         unset($p);
 
@@ -1717,13 +1754,14 @@ class Tecnodesign_Interface extends Studio\Api
         }
         $this->options['scope'] = $this->scope($scope);
 
+        /*
+        // this should be deprecated
         if(isset($this->options['messages'])) {
-            foreach($this->options['messages'] as $n=>$m) {
-                if(property_exists($this, $n)) $this::$$n = $m;
-            }
+            $this->config += $this->options['messages'];
         }
+        */
 
-        if(($this->action=='list' || !isset($this->id)) && static::$displaySearch &&
+        if(($this->action=='list' || !isset($this->id)) && $this->config('displaySearch') &&
             (
                 (isset($this->options['search']) && $this->options['search'])
                 || (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])
@@ -1734,7 +1772,7 @@ class Tecnodesign_Interface extends Studio\Api
         if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
 
         $r = null;
-        if(method_exists($o=$this->model, $a='execute'.\tdz::camelize($this->action, true))) {
+        if(method_exists($o=$this->model, $a='execute'.tdz::camelize($this->action, true))) {
             if($this->id) {
                 // get object
                 $o = $this->model();
@@ -1883,7 +1921,8 @@ class Tecnodesign_Interface extends Studio\Api
     public static function headers()
     {
         $r = array();
-        foreach(static::$headers as $k=>$v) {
+        $headers = ($I=static::current()) ? $I->config('headers') : static::$headers;
+        foreach($headers as $k=>$v) {
             $k = tdz::slug($k);
             $x = true;
             if($k===static::H_LAST_MODIFIED || $k==='location' || $k==='access-control-allow-origin') {
@@ -1932,7 +1971,9 @@ class Tecnodesign_Interface extends Studio\Api
                 Tecnodesign_App::end('', 304);
             }
         }
-        static::$headers[static::H_LAST_MODIFIED]=gmdate(static::$dateFormat, $lmod);
+
+        if(!isset($this->config['headers'])) $this->config['headers'] = [];
+        $this->config['headers'][static::H_LAST_MODIFIED]=gmdate(static::$dateFormat, $lmod);
     }
 
     protected static $proc, $procTimeout=180;
@@ -2189,12 +2230,12 @@ class Tecnodesign_Interface extends Studio\Api
 
     public function requestScope()
     {
-        if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !isset(static::$actionsAvailable[$rs])) {
+        if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$rs]) && !$this->config('actionsAvailable', $rs)) {
             // check if $this->options['scope'][$this->action] requires authentication
             $r = 'scope::'.$rs;
 
             $as = $this->action;
-            $ad = static::$actionsDefault;
+            $ad = $this->config('actionsDefault');
             while(!isset($this->options['scope'][$as]) && $ad) {
                 $as = array_shift($ad);
             }
@@ -2247,7 +2288,7 @@ class Tecnodesign_Interface extends Studio\Api
         //$scope = $this->scope($scope);
         $this->options['scope'] = $this->scope($scope);
         $a=($this->source)?($this->source):(array());
-        if(static::$newFromQueryString && ($req=Tecnodesign_App::request('get'))) {
+        if($this->config('newFromQueryString') && ($req=Tecnodesign_App::request('get'))) {
             foreach($req as $fn=>$v) {
                 if(!isset($a[$fn]) && !tdz::isempty($v) && ($cn::$allowNewProperties || property_exists($cn, $fn))) {
                     $a[$fn] = $v;
@@ -2322,9 +2363,9 @@ class Tecnodesign_Interface extends Studio\Api
 
     public function renderGraph()
     {
-        if(!static::$displayGraph) return;
+        if(!($displayGraph=$this->config('displayGraph'))) return;
         $cn = $this->getModel();
-        if(!$this->graph && static::$displayGraph==='auto') {
+        if(!$this->graph && $displayGraph==='auto') {
             // autobuild graph based on index values
             $ckey = 'z-i-graph/'.$cn;
             $this->graph = Tecnodesign_Cache::get($ckey);
@@ -2436,7 +2477,7 @@ class Tecnodesign_Interface extends Studio\Api
             //$x = [];
             $cmap = [];
             $kcols = [];
-            if(count($R) > static::$graphLegendMax && isset($g['type']) && in_array($g['type'], ['donut','pie']) && isset($G['legend']['show'])) {
+            if(count($R) > $this->config('graphLegendMax') && isset($g['type']) && in_array($g['type'], ['donut','pie']) && isset($G['legend']['show'])) {
                 $G['legend']['show'] = false;
             }
             foreach($R as $i=>$o) {
@@ -2535,7 +2576,7 @@ class Tecnodesign_Interface extends Studio\Api
         $cn = $this->getModel();
         if(!$o) $o = $this->model();
         if(!$scope) {
-            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema->scope[$rs])) && !isset(static::$actionsAvailable[$rs])) {
+            if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema->scope[$rs])) && !$this->config('actionsAvailable', $rs)) {
                 $scope = $rs;
                 unset($rs);
             } else if(isset($this->options['update-scope-property']) && ($n=$this->options['update-scope-property']) && ($rs=tdz::slug($o->$n)) && isset($cn::$schema->scope[$rs])) {
@@ -2689,7 +2730,7 @@ class Tecnodesign_Interface extends Studio\Api
         if(!$scope) {
             if(($o=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && isset($this->options['scope'][$o]) && substr($o, 0, 1)!='_') {
                 $qs = '?'.static::REQ_SCOPE.'='.$o;
-                $scope = (!isset(static::$actionsAvailable[$o])) ?$this->scope($o, false, false, true) :$scope = $this->scope($o);
+                $scope = (!$this->config('actionsAvailable', $o)) ?$this->scope($o, false, false, true) :$scope = $this->scope($o);
                 unset($o);
             } else if(isset($this->options['scope'][$this->action])) {
                 $scope = $this->scope($this->action);
@@ -2703,19 +2744,16 @@ class Tecnodesign_Interface extends Studio\Api
             }
         }
 
-        $a = (in_array($this->params, static::$actionAlias))?(array_search($this->params, static::$actionAlias)):($this->params);
-        $identified = false;
-        if(isset(static::$actionsAvailable[$a]['identified'])) {
-            $identified = static::$actionsAvailable[$a]['identified'];
-        }
-
+        $actionAlias = $this->config('actionAlias');
+        $a = (in_array($this->params, $actionAlias))?(array_search($this->params, $actionAlias)):($this->params);
+        $identified = $this->config('actionsAvailable', $a, 'identified');
         $envelope=Tecnodesign_App::request('get', static::REQ_ENVELOPE);
         if($envelope) $envelope = ($envelope==='false') ?false :(bool)$envelope;
 
         if(!is_null($envelope)) {
             $qs = (($qs) ?'&' :'?').static::REQ_ENVELOPE.'='.var_export($envelope, true);
         } else {
-            $envelope = self::$envelope;
+            $envelope = $this->config('envelope');
         }
         self::$envelope = false;
 
@@ -2740,9 +2778,10 @@ class Tecnodesign_Interface extends Studio\Api
             );
             $S['required']=array('status', 'status-code');
             // add headers
-            if(isset(static::$headers)) {
-                foreach(static::$headers as $k=>$v) {
-                    if(static::$doNotEnvelope && in_array($k, static::$doNotEnvelope)) continue;
+            if($headers = $this->config('headers')) {
+                $doNotEnvelope = $this->config('doNotEnvelope');
+                foreach($headers as $k=>$v) {
+                    if($doNotEnvelope && in_array($k, $doNotEnvelope)) continue;
                     $S['properties'][$k]=array(
                         'type'=>'string',
                     );
@@ -2756,11 +2795,11 @@ class Tecnodesign_Interface extends Studio\Api
                 }
             }
 
-            $S['properties'][static::$envelopeProperty] = array(
+            $S['properties'][$this->config('envelopeProperty')] = array(
                 'type'=>'array',
                 'items'=>$so,
             );
-            $S['required'][] = static::$envelopeProperty;
+            $S['required'][] = $this->config('envelopeProperty');
 
         } else if(!$identified) {
             $S['type'] = 'array';
@@ -2799,8 +2838,9 @@ class Tecnodesign_Interface extends Studio\Api
             static::$urls[$link] = ['title'=>$this->getTitle()];
         }
 
-        tdz::$variables['form-field-template'] = (static::$updateTemplate)?(static::$updateTemplate):(static::$previewTemplate);
-
+        if(!(tdz::$variables['form-field-template'] = $this->config('updateTemplate'))) {
+            tdz::$variables['form-field-template'] = $this->config('previewTemplate');
+        }
 
         if(($itemreq=Tecnodesign_App::request('item')) && ($label=array_search($itemreq, $d))!==false) {
             if(is_integer($label)) $label = $cn::fieldLabel($itemreq, false);
@@ -2812,7 +2852,7 @@ class Tecnodesign_Interface extends Studio\Api
 
         $this->text['summary'] = $this->getSummary(static::$urls[$link]['title']);
 
-        $sep = static::$headingTemplate;
+        $sep = $this->config('headingTemplate');
         foreach($d as $i=>$fn) {
             if(is_array($fn)) {
 
@@ -2859,7 +2899,7 @@ class Tecnodesign_Interface extends Studio\Api
         $fo = $o->getForm($d);
         if(preg_match('/\&ajax=[0-9]+\b/', $fo->action)) $fo->action = preg_replace('/\&ajax=[0-9]+\b/', '', $fo->action);
         $fo->id = tdz::slug($this->text['interface']).'--'.(($o->isNew())?('n'):(tdz::slug(@implode('-',$o->getPk(true)))));
-        $fo->attributes['class']=static::$attrFormClass;
+        $fo->attributes['class'] = $this->config('attrFormClass');
         if($this->action=='update' || $this->action=='new') {
             $fo->buttons['submit']=static::t('button'.ucwords($this->action), ucwords($this->action));
         }
@@ -3028,6 +3068,9 @@ class Tecnodesign_Interface extends Studio\Api
         if(!tdz::isempty($this->id)) $sn = substr($sn, 0, strrpos($sn, '/'));
         // strip current action, leave only the model
         $sn = substr($sn, 0, strrpos($sn, '/'));
+        $attrButtonClass = $this->config('attrButtonClass');
+        if($attrButtonClass) $attrButtonClass = ' '.$attrButtonClass;
+
         foreach($this->getActions() as $an=>$action) {
             $qs=$this->qs();
             if(!isset($action['position']) || (!$action['position'] && $action['position']!==0)) continue;
@@ -3049,12 +3092,11 @@ class Tecnodesign_Interface extends Studio\Api
                 $id  = (isset($action['identified']))?($action['identified']):(false);
                 $label = (isset($action['label']))?($action['label']):(static::t('label'.$An, $An));
             }
-
             if($bt && !$this->options['checkbox']) $this->options['checkbox']=true;
             if($id && !$this->options['radio']) $this->options['radio']=true;
-
-            $aa = (static::$actionAlias && isset(static::$actionAlias[$an]))?(static::$actionAlias[$an]):($an);
-
+            if(!($aa = $this->config('actionAlias', $an))) {
+                $aa = $an;
+            }
             //$href = ($bt||$id)?('data-url="'.$sn.'/'.$aa.'/{id}'.'"'):('href="'.$sn.'/'.$aa.'"');
             if($id && !tdz::isempty($this->id)) $sid = $this->id;
             else if($id) $sid = '{id}';
@@ -3102,11 +3144,12 @@ class Tecnodesign_Interface extends Studio\Api
                     $href .= ' '.tdz::xmlEscape($k).'="'.tdz::xmlEscape($v).'"';
                 }
             }
-            $ac .= ((static::$attrButtonClass)?(' '.static::$attrButtonClass):(''))
+
+            $ac .= $attrButtonClass
                 . (($bt)?(' z-i-a-many'):(''))
                 . (($id)?(' z-i-a-one'):(''))
             ;
-            $s .= '<a '.$href.' class="'.$ac.'">'
+            $s .= '<a '.$href.' class="'.trim($ac).'">'
                 . '<span class="tdz-i-label">'
                 . $label
                 . '</span>'
@@ -3122,7 +3165,7 @@ class Tecnodesign_Interface extends Studio\Api
     {
         static $qs;
         if(is_null($qs)) {
-            $qs = array_diff_key(Tecnodesign_App::request('get'), static::$removeQueryString);
+            $qs = array_diff_key(Tecnodesign_App::request('get'), $this->config('removeQueryString'));
         }
 
         return ($asArray) ?$qs :http_build_query($qs);
@@ -3194,20 +3237,23 @@ class Tecnodesign_Interface extends Studio\Api
             $count = $found->count();
             $start = 0;
         }
-        static::$headers[static::H_TOTAL_COUNT] = $count;
-        $this->options['link'] = ($this->hasAction(static::$listAction))?($this->link(static::$listAction, false, false)):(false);
-        $this->text['listLimit'] = (isset($this->options['list-limit']) && is_numeric($this->options['list-limit']))?($this->options['list-limit']):(static::$hitsPerPage);
+
+        if(!isset($this->config['headers'])) $this->config['headers'] = [];
+        $this->config['headers'][static::H_TOTAL_COUNT] = $count;
+        $listAction = $this->config('listAction');
+        $this->options['link'] = ($this->hasAction($listAction))?($this->link($listAction, false, false)):(false);
+        $this->text['listLimit'] = (isset($this->options['list-limit']) && is_numeric($this->options['list-limit']))?($this->options['list-limit']):($this->config('hitsPerPage'));
         $p=Tecnodesign_App::request('get', static::REQ_LIMIT);
         if($p!==null && is_numeric($p) && $p >= 0) {
             $p = (int) $p;
             $this->text['listLimit'] = $p;
-            static::$headers['limit'] = $p;
-        } else if($count > static::$hitsPerPage) {
-            static::$headers['limit'] = static::$hitsPerPage;
+            $this->config['headers']['limit'] = $p;
+        } else if($count > $this->config('hitsPerPage')) {
+            $this->config['headers']['limit'] = $this->config('hitsPerPage');
         }
         if($this->text['listLimit']>static::MAX_LIMIT) {
             $this->text['listLimit'] = static::MAX_LIMIT;
-            static::$headers['limit'] = static::MAX_LIMIT;
+            $this->config['headers']['limit'] = static::MAX_LIMIT;
         }
 
         $this->text['listOffset'] = 0;
@@ -3220,14 +3266,14 @@ class Tecnodesign_Interface extends Studio\Api
                 if($p) $p = $count - $p;
             }
             $this->text['listOffset'] = $p;
-            static::$headers['offset'] = $p;
+            $this->config['headers']['offset'] = $p;
         } else if(($pag=Tecnodesign_App::request('get', static::REQ_PAGE)) && is_numeric($pag)) {
             if(!$pag) $pag=1;
             $this->text['listOffset'] = (($pag -1)*$this->text['listLimit']);
             if($this->text['listOffset']>$count) $this->text['listOffset'] = $count;
-            static::$headers['offset'] = $this->text['listOffset'];
-        } else if(isset(static::$headers['limit'])) {
-            static::$headers['offset'] = $this->text['listOffset'];
+            $this->config['headers']['offset'] = $this->text['listOffset'];
+        } else if(isset($this->config['headers']['limit'])) {
+            $this->config['headers']['offset'] = $this->text['listOffset'];
         }
         if(isset($scope)) {
             if($f=Tecnodesign_App::request('get', static::REQ_FIELDS)) {
@@ -3281,7 +3327,7 @@ class Tecnodesign_Interface extends Studio\Api
             $this->scope = $a;
             if(!is_array($a)) {
                 if(isset($this->options['scope'][$a.'-'.static::$format])) {
-                    $scope = $a.'-'.static::$format;
+                    $scope = $a . '-' . static::$format;
                     $this->scope = $this->options['scope'][$a.'-'.static::$format];
                 } else if(isset($this->options['scope'][$a])) {
                     $scope = $a;
@@ -3324,7 +3370,7 @@ class Tecnodesign_Interface extends Studio\Api
                                 $this->$p = $v;
                             }
                         } else {
-                            $this::$$p = $v;
+                            $this->config[$p] = $v;
                         }
                     }
                     unset($this->scope[$k], $p, $k, $v);
@@ -3431,7 +3477,7 @@ class Tecnodesign_Interface extends Studio\Api
         $ff=array();
         $dest = (isset($this->actions[$this->action]['query']) && $this->actions[$this->action]['query'])?($this->action):('list');
         $fo=array(
-            'class'=>static::$attrFormClass.' tdz-auto '.static::$attrSearchFormClass.' tdz-no-empty tdz-simple-serialize',
+            'class'=>$this->config('attrFormClass').' tdz-auto '.$this->config('attrSearchFormClass').' tdz-no-empty tdz-simple-serialize',
             'method'=>'get',
             'limits'=>false,
             'action'=>$this->link($dest, false),
@@ -3666,11 +3712,11 @@ class Tecnodesign_Interface extends Studio\Api
                     foreach($w as $slug) {
                         $S['|'.$fns[$slug].'%=']=$v;
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?(' '.static::t('or').' '):(''))
-                                        . '<span class="'.static::$attrParamClass.'">'.$ff['q'][$slug].'</span>';
+                                        . '<span class="'.$this->config('attrParamClass').'">'.$ff['q'][$slug].'</span>';
                     }
                     $S += $ps;
                     unset($ps);
-                    if($this->text['searchTerms']) $this->text['searchTerms'] .= ': <span class="'.static::$attrTermClass.'">'.tdz::xmlEscape($post['q']).'</span>';
+                    if($this->text['searchTerms']) $this->text['searchTerms'] .= ': <span class="'.$this->config('attrTermClass').'">'.tdz::xmlEscape($post['q']).'</span>';
                     continue;
                 } else if($k=='w') continue;
 
@@ -3714,15 +3760,15 @@ class Tecnodesign_Interface extends Studio\Api
                             else $S[$fns[$k]]='';
                         }
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                    . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
-                                    . '<span class="'.static::$attrTermClass.'">'.(($c1)?(static::t('Yes')):(static::t('No'))).'</span>';
+                                    . '<span class="'.$this->config('attrParamClass').'">'.$F[$k0]->label.'</span>: '
+                                    . '<span class="'.$this->config('attrTermClass').'">'.(($c1)?(static::t('Yes')):(static::t('No'))).'</span>';
                     }
                 } else if($ff[$k]=='choices') {
                     if(tdz::isempty($v) || !is_object($F[$k0])) continue;
                     $S[$fns[$k]] = $v;
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                . '<span class="'.static::$attrParamClass.'">'.$F[$k0]->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
+                                . '<span class="'.$this->config('attrParamClass').'">'.$F[$k0]->label.'</span>: '
+                                . '<span class="'.$this->config('attrTermClass').'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
                 } else if($type=='date') {
                     $t0=$t1=false;
                     if(isset($d[$k.'-0']) && $d[$k.'-0']) {
@@ -3743,18 +3789,18 @@ class Tecnodesign_Interface extends Studio\Api
                     if ($t0 && $t1) { // $cn::renderAs($v, $fns[$k])
                         $S[$fns[$k].'~']=array(date($df, $t0), date($df, $t1));
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.tdz::dateDiff($t0, $t1, $dt).'</span>';
+                                . '<span class="'.$this->config('attrParamClass').'">'.$F[$k.'-0']->label.'</span>: '
+                                . '<span class="'.$this->config('attrTermClass').'">'.tdz::dateDiff($t0, $t1, $dt).'</span>';
                     } else if($t0) {
                         $S[$fns[$k].'>=']=date($df, $t0);
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.static::t('from').' '.tdz::date($t0, $dt).'</span>';
+                                . '<span class="'.$this->config('attrParamClass').'">'.$F[$k.'-0']->label.'</span>: '
+                                . '<span class="'.$this->config('attrTermClass').'">' . static::t('from').' '.tdz::date($t0, $dt).'</span>';
                     } else if($t1) {
                         $S[$fns[$k].'<=']=date($df, $t1);
                         $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
-                                . '<span class="'.static::$attrParamClass.'">'.$F[$k.'-0']->label.'</span>: '
-                                . '<span class="'.static::$attrTermClass.'">'.static::t('to').' '.tdz::date($t1, $dt).'</span>';
+                                . '<span class="'.$this->config('attrParamClass').'">'.$F[$k.'-0']->label.'</span>: '
+                                . '<span class="'.$this->config('attrTermClass').'">' . static::t('to').' '.tdz::date($t1, $dt).'</span>';
                     }
                 }
             }

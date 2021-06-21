@@ -123,7 +123,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $re = '/^(Tecnodesign_Studio_|Studio\\\Model\\\)/';
         if(isset($a['model']) && preg_match($re, $a['model'])) {
             $n = preg_replace($re, '', $a['model']);
-            if(!Tecnodesign_Studio::config('enable_interface_'.strtolower($n))) {
+            if(!Tecnodesign_Studio::enabledModels($a['model'])) {
                 $a['options']['navigation'] = null;
                 $a['options']['list-parent'] = false;
                 $a['options']['priority'] = null;
@@ -135,8 +135,23 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         // overwrite credentials
         if($prepare && !isset($a['credential'])) {
             $min = null;
-            foreach(self::$actionAlias as $aa=>$an) {
-                if(!is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$n))) {
+            if(!isset($a['actions'])) $a['actions'] = [];
+            $defaultActions = array_keys(static::$actionsAvailable);
+            if(isset($a['default-actions'])) {
+                if(!$a['default-actions']) {
+                    $defaultActions = array_keys($a['actions']);
+                } else {
+                    $defaultActions = (!is_array($a['default-actions'])) ?[$a['default-actions']] :$a['default-actions'];
+                    if(!isset($a['config'])) {
+                        $a['config'] = [];
+                    }
+                    $a['config']['actionsDefault'] = $defaultActions;
+                }
+            }
+            foreach(static::$actionsAvailable as $an=>$ad) {
+                if(!isset($a['actions'][$an]) && !in_array($an, $defaultActions)) {
+                    $a['actions'][$an] = false;
+                } else if(!is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$n))) {
                     if($c===true) {
                         $min = $c;
                         $a['actions'][$an] = true;

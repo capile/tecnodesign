@@ -1,34 +1,22 @@
 ---
 all:
-  title: Studio
-  model: Tecnodesign_Studio_Entry
-  actions:
-    list:
-      action: executeMethod
+  title: '*Welcome!'
+  model: Studio\Model\Config
+  id: 000-studio
+  default-actions: [ update ]
+  default-action: update
   options:
     index: false
     navigation: true
     priority: 999
-    link-generator: getStudioLink
     scope:
-      list:
-        '*Link': _studio_link
-        '*Summary': group_concat(`id` separator '-') id
-        '*Updated': max(`updated`) updated
-      search:
-        q:
-          - title
-          - summary
-          - link
-        '*Link': link
-        '*Updated': updated
-        '*Type': 
-          bind: type
-          format: checkbox
-          multiple: true
-      review:
-        - title
-        - summary
-        - link
-        - type
-        - updated
+      update:
+        "*Version": 
+          bind: studio.version
+          format: select
+          type: string
+          choices: choicesStudioVersion
+          default: "2.5"
+        "*Enable Management Interface":
+          bind: studio.enable_interfaces
+          format: bool

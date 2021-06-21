@@ -1,7 +1,7 @@
 {
     "title": "*Groups",
     "database": "studio",
-    "tableName": "tdz_groups",
+    "tableName": "studio_groups",
     "className": "Tecnodesign_Studio_Group",
     "properties": {
         "id": { "type": "int", "increment": "auto", "required": true, "primary": true },

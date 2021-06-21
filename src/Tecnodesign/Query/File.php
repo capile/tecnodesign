@@ -15,6 +15,7 @@ class Tecnodesign_Query_File
     const TYPE='file', DRIVER='file';
     public static 
         $options=array(
+            'create'=>true,
             'recursive'=>false,
             'index'=>false,
         ),
@@ -24,19 +25,13 @@ class Tecnodesign_Query_File
         $errorCallback,
         $timeout=-1;
     protected 
-        $_schema, 
-        $_scope, 
-        $_select, 
-        $_distinct, 
-        $_selectDistinct, 
+        $_schema,
+        $_conn,
+        $_scope,
         $_from, 
         $_where, 
-        $_groupBy, 
-        $_orderBy, 
         $_limit, 
         $_offset, 
-        $_alias, 
-        $_transaction, 
         $_last;
     protected static $schemas=array(), $conn=array();
 
@@ -63,8 +58,9 @@ class Tecnodesign_Query_File
             try {
                 $level = 'find';
                 $db = Tecnodesign_Query::database($n);
-                if(!$n && is_array($db)) $db = array_shift($db); 
-                $db += array('options'=>static::$options);
+                if(!$n && is_array($db)) $db = array_shift($db);
+                if(isset($db['options'])) $db['options'] += static::$options;
+                else $db['options'] = static::$options;
                 if(isset($db['dsn']) && preg_match('/^([^\:]+)\:(.+)$/', $db['dsn'], $m) && is_dir($d=TDZ_VAR.'/'.dirname($m[2]))) {
                     $db['dsn'] = $d.'/'.basename($m[2]);
                     $db['format'] = $m[1];
@@ -100,6 +96,7 @@ class Tecnodesign_Query_File
     public function reset()
     {
         $this->_schema = null;
+        $this->_conn = null;
     }
 
     public function schema($prop=null, $object=true)
@@ -160,21 +157,7 @@ class Tecnodesign_Query_File
     public function where($w=null)
     {
         if($w) {
-            $this->_from = null;
-            $this->_where = array();
-            foreach($w as $k=>$f) {
-                if(is_array($f) && count($f)>1) {
-                    $f = '{'.implode(',',static::escape($f)).'}';
-                } else if(is_array($f)) {
-                    $f = static::escape(implode('', $f));
-                } else {
-                    $f = static::escape($f);
-                }
-                if($p=$this->schema($k.'Pattern')) {
-                    $this->_from = str_replace(array('*.*', '*'), sprintf($p, $f), $this->getFrom());
-                }
-                $this->_where[$k]=$f;
-            }
+            $this->_where = (is_array($w)) ?array_values($w) :[$w];
         }
         return $this->_where;
     }
@@ -182,25 +165,51 @@ class Tecnodesign_Query_File
     public function getFrom()
     {
         if($this->_from) return $this->_from;
-        else return $this->schema('tableName').'*';
+        else return $this->schema('tableName');
     }
 
     public function buildQuery($count=false)
     {
-        $src = $this->connect($this->schema('database'));
+        $src = ($this->_conn) ?$this->_conn :$this->connect($this->schema('database'));
         $pattern = $src['dsn'];
         if(strpos($pattern, '*')===false) {
-            if(substr($pattern, -1)!='/') $pattern = '/*';
+            if(substr($pattern, -1)!='/') $pattern .= '/*';
             else $pattern .= '*';
         }
+        $ext = (isset($src['options']['extension'])) ?'.'.$src['options']['extension'] :null;
+        if($ext) $pattern .= $ext;
 
+        $r = [];
         if($tn=$this->getFrom()) {
             $pattern = str_replace(array('*.*','*'), $tn, $pattern);
+            if(strpos($pattern, '*')===false) {
+                $r[] = $pattern;
+            }
         }
-        //any more filters?
-        $this->_last = glob($pattern, GLOB_BRACE);
 
-        // where applied?
+        if(!$r) {
+            $r = glob($pattern, GLOB_BRACE);
+        }
+
+        $recursive = (isset($src['options']['recursive']) && $src['options']['recursive']);
+        $create = (isset($src['options']['create']) && $src['options']['create']);
+        $this->_last = null;
+        if($r) {
+            $this->_last = [];
+            while($f=array_shift($r)) {
+                if($this->_where && !in_array(basename($f, $ext), $this->_where)) {
+                    continue;
+                }
+                if(is_dir($f)) {
+                    if($recursive && ($d = glob($f.'/*'))) {
+                        $r = array_merge($d, $r);
+                    }
+                } else if($create || file_exists($f)) {
+                    $this->_last[] = $f;
+                }
+            }
+        }
+
         return $this->_last;
     }
 
@@ -219,8 +228,8 @@ class Tecnodesign_Query_File
         if(!$this->_last) {
             return $r;
         }
-        $prop = array('_new'=>false);
-        if($this->_scope) $prop['_scope'] = $this->_scope;
+        $prop0 = [];
+        if($this->_scope) $prop0['_scope'] = $this->_scope;
         $this->_offset = $o;
         $this->_limit = $l;
 
@@ -234,25 +243,43 @@ class Tecnodesign_Query_File
         }
 
         if($res) {
-            $db=self::connect($this->schema('database'));
+            $db = ($this->_conn) ?$this->_conn :$this->connect($this->schema('database'));
             $cn=$this->schema('className');
-            $parser = 'yaml';
-            if(isset($db['format']) && $db['format']!=$parser && $db['format']!='file') $parser = $db['format'];
+            $parser0 = (isset($db['format']) && $db['format'] && $db['format']!='file') ?$db['format'] :'yaml';
+            $create = (isset($db['options']['create']) && $db['options']['create']);
+            $ext = (isset($db['options']['extension'])) ?'.'.$db['options']['extension'] :null;
+
             foreach($res as $i=>$f) {
-                if($parser = 'yaml') {
-                    $prop['uid'] = basename($f);
-                    $prop['src'] = $f;
-                    $d = Tecnodesign_Yaml::load($f);
+
+                $prop = $prop0;
+                $prop['__uid'] = basename($f, $ext);
+                $prop['__src'] = $f;
+                if(preg_match('/\.(ya?ml|js(on)?)$/', $f, $m)) {
+                    $parser = (substr($m[1], 0, 1)=='y') ?'yaml' :'json';
                 } else {
-                    $d = tdz::unserialize(file_get_contents($f), $parser);
+                    $parser = $parser0;
                 }
-                if($d) {
-                    if(isset($db['root']) && $db['root']) {
-                        if(isset($d[$db['root']])) $d = $d[$db['root']];
-                        else continue;
+                $prop['__serialize'] = $parser;
+                if(!file_exists($f) && $create) {
+                    $prop['_new'] = true;
+                    $d = [];
+                } else {
+                    $prop['_new'] = false;
+
+                    if($parser == 'yaml') {
+                        $d = Tecnodesign_Yaml::load($f);
+                    } else {
+                        $d = tdz::unserialize(file_get_contents($f), $parser);
                     }
-                    $r[] = ($cn)?(new $cn($prop+$d)):($d);
+                    if($d) {
+
+                        if(isset($db['options']['root']) && $db['options']['root']) {
+                            if(isset($d[$db['options']['root']])) $d = $d[$db['options']['root']];
+                            else continue;
+                        }
+                    }
                 }
+                $r[] = ($cn)?(new $cn($prop+$d)):($d);
             }
         }
 
@@ -275,15 +302,7 @@ class Tecnodesign_Query_File
 
     public function addScope($o)
     {
-        if(is_array($o)) {
-            foreach($o as $s) {
-                $this->addScope($s);
-                unset($s);
-            }
-        } else if($s=$this->scope($o)) {
-            $this->addSelect($s);
-            $this->_scope = $o;
-        }
+        if(is_string($o)) $this->_scope = $o;
         return $this;
     }
 
@@ -318,25 +337,17 @@ class Tecnodesign_Query_File
 
     public function exec($q, $conn=null)
     {
-        if(!$conn) {
-            $conn = self::connect($this->schema('database'));
+        if($conn) {
+            if(is_array($conn) && isset($conn['dsn'])) $this->_conn = $conn;
+            else $this->_conn = $this->connect($conn);
         }
-        $select = array('*');
-        $limit = -1;//($count || !$this->_limit)?(-1):((int)$this->_limit);
-        $this->_last = ldap_list($conn, $this->schema('tableName'), $q, $select, 0, $limit, static::$timeout);
+        $this->buildQuery();
         return $this->_last;
     }
 
     public function run($q)
     {
         return $this->exec($q);
-    }
-
-    public static function runStatic($q, $n='')
-    {
-        $select = array('*');
-        $limit = -1;
-        return ldap_list(self::connect($n), $this->schema('tableName'), $q, $select, 0, $limit, static::$timeout);
     }
 
     public function query($q, $p=null)
@@ -399,9 +410,8 @@ class Tecnodesign_Query_File
      */
     // public function lastInsertId($M=null, $conn=null) {}
 
-    public function insert($M, $conn=null)
+    public function update($M, $conn=null)
     {
-        return null;
         $odata = $M->asArray('save', null, null, true);
         $data = array();
 
@@ -418,124 +428,46 @@ class Tecnodesign_Query_File
             if (!isset($odata[$fn]) && $fv['null']===false) {
                 throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $M::fieldLabel($fn)));
             } else if(array_key_exists($fn, $odata)) {
-                $data[$fn] = self::sql($odata[$fn], $fv);
+                $data[$fn] = $odata[$fn];
             } else if($M->getOriginal($fn, false, true)!==false && is_null($M->$fn)) {
-                $data[$fn] = 'null';
+                $data[$fn] = null;
             }
             unset($fs[$fn], $fn, $fv);
         }
 
-        $tn = $M::$schema['tableName'];
-        if($data) {
-            if(!$conn) {
-                $conn = self::connect($this->schema('database'));
-            }
-            $this->_last = "insert into {$tn} (".implode(', ', array_keys($data)).') values ('.implode(', ', $data).')';
-            $r = $this->exec($this->_last, $conn);
-            if($r===false && $conn->errorCode()!=='00000') {
+        if($conn) {
+            if(is_array($conn) && isset($conn['dsn'])) $this->_conn = $conn;
+            else $this->_conn = $this->connect($conn);
+        }
+        $db = ($this->_conn) ?$this->_conn :$this->connect($this->schema('database'));
+        if(isset($db['options']['root']) && $db['options']['root']) {
+            $data = [$db['options']['root']=>$data];
+        }
+
+        // serialize and save
+        $r = null;
+        if(isset($M->__src) && $M->__src) {
+            if(!($r=tdz::save($M->__src, tdz::serialize($data, $M->__serialize)))) {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
-
-            if($id = $this->lastInsertId($M, $conn)) {
-                $pk = $M::pk();
-                if(is_array($id)) {
-                    if(!is_array($pk)) $pk = array($pk);
-                    foreach($pk as $f) {
-                        if(isset($id[$f])) {
-                            $M->$f = $id[$f];
-                        }
-                        unset($f);
-                    }
-                } else {
-                    if(is_array($pk)) $pk = array_shift($pk);
-                    $M[$pk] = $id;
-                }
-                $M->isNew(false);
-                $r = $id;
-            }
-            return $r;
         }
+        return $r;
     }
 
-    public function update($M, $conn=null)
+    public function insert($M, $conn=null)
     {
-        return null;
-        $odata = $M->asArray('save', null, null, true);
-        $data = array();
-
-        $fs = $M::$schema['columns'];
-        if(!$fs) $fs = array_flip(array_keys($odata));
-        $sql = '';
-        foreach($fs as $fn=>$fv) {
-            $original=$M->getOriginal($fn, false, true);
-            if(isset($fv['primary']) && $fv['primary']) {
-                $pks[$fn] = tdz::sql(($original)?($original):($odata[$fn]));
-                continue;
-            }
-            if(!is_array($fv)) $fv=array('null'=>true);
-
-            if (!isset($odata[$fn]) && $original===false) {
-                continue;
-            } else if(array_key_exists($fn, $odata)) {
-                $v  = $odata[$fn];
-                $fv = self::sql($v, $fv);
-            } else if($original!==false && $M->$fn===false) {
-                $v  = null;
-                $fv = 'null';
-            } else {
-                continue;
-            }
-
-            if($original===false) $original=null;
-
-            if((string)$original!==(string)$v) {
-                $sql .= (($sql!='')?(', '):(''))
-                      . "{$fn}={$fv}";
-                //$M->setOriginal($fn, $v);
-            }
-            unset($fs[$fn], $fn, $fv, $v);
-        }
-        if($sql) {
-            $tn = $M::$schema['tableName'];
-            $wsql = '';
-            foreach($pks as $fn=>$fv) {
-                $wsql .= (($wsql!='')?(' and '):(''))
-                       . "{$fn}={$fv}";
-            }
-            if(!$conn) {
-                $conn = self::connect($this->schema('database'));
-            }
-            $this->_last = "update {$tn} set {$sql} where {$wsql}";
-            $r = $this->exec($this->_last, $conn);
-            if($r===false && $conn->errorCode()!=='00000') {
-                throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
-            }
-            return $r;
-        }
+        return $this->update($M, $conn);
     }
 
     public function delete($M, $conn=null)
     {
-        return null;
-        $pk = $M->getPk(true);
-        if($pk) {
-            $tn = $M::$schema['tableName'];
-            $wsql = '';
-            foreach($pk as $fn=>$v) {
-                $fv = self::sql($v, (isset($M::$schema['columns'][$fn]))?($M::$schema['columns'][$fn]):(null));
-                $wsql .= (($wsql!='')?(' and '):(''))
-                       . "{$fn}={$fv}";
-            }
-            if(!$conn) {
-                $conn = self::connect($this->schema('database'));
-            }
-            $this->_last = "delete from {$tn} where {$wsql}";
-            $r = $this->exec($this->_last, $conn);
-            if($r===false && $conn->errorCode()!=='00000') {
+        $r = null;
+        if(isset($M->__src) && $M->__src) {
+            if(!($r=@unlink($M->__src))) {
                 throw new Tecnodesign_Exception(array(tdz::t('Could not save %s.', 'exception'), $M::label()));
             }
-            return $r;
         }
+        return $r;
     }
 
     //  public function create($tn=null, $conn=null) {}
@@ -544,79 +476,4 @@ class Tecnodesign_Query_File
      * Gets the timestampable last update
      */
     // public function timestamp($tns=null) {}
-}
-
-
-if (!function_exists('ldap_escape')) {
-    define('LDAP_ESCAPE_FILTER', 0x01);
-    define('LDAP_ESCAPE_DN',     0x02);
-
-    /**
-     * @param string $subject The subject string
-     * @param string $ignore Set of characters to leave untouched
-     * @param int $flags Any combination of LDAP_ESCAPE_* flags to indicate the
-     *                   set(s) of characters to escape.
-     * @return string
-     */
-    function ldap_escape($subject, $ignore = '', $flags = 0)
-    {
-        static $charMaps = array(
-            LDAP_ESCAPE_FILTER => array('\\', '*', '(', ')', "\x00"),
-            LDAP_ESCAPE_DN     => array('\\', ',', '=', '+', '<', '>', ';', '"', '#'),
-        );
-
-        // Pre-process the char maps on first call
-        if (!isset($charMaps[0])) {
-            $charMaps[0] = array();
-            for ($i = 0; $i < 256; $i++) {
-                $charMaps[0][chr($i)] = sprintf('\\%02x', $i);;
-            }
-
-            for ($i = 0, $l = count($charMaps[LDAP_ESCAPE_FILTER]); $i < $l; $i++) {
-                $chr = $charMaps[LDAP_ESCAPE_FILTER][$i];
-                unset($charMaps[LDAP_ESCAPE_FILTER][$i]);
-                $charMaps[LDAP_ESCAPE_FILTER][$chr] = $charMaps[0][$chr];
-            }
-
-            for ($i = 0, $l = count($charMaps[LDAP_ESCAPE_DN]); $i < $l; $i++) {
-                $chr = $charMaps[LDAP_ESCAPE_DN][$i];
-                unset($charMaps[LDAP_ESCAPE_DN][$i]);
-                $charMaps[LDAP_ESCAPE_DN][$chr] = $charMaps[0][$chr];
-            }
-        }
-
-        // Create the base char map to escape
-        $flags = (int)$flags;
-        $charMap = array();
-        if ($flags & LDAP_ESCAPE_FILTER) {
-            $charMap += $charMaps[LDAP_ESCAPE_FILTER];
-        }
-        if ($flags & LDAP_ESCAPE_DN) {
-            $charMap += $charMaps[LDAP_ESCAPE_DN];
-        }
-        if (!$charMap) {
-            $charMap = $charMaps[0];
-        }
-
-        // Remove any chars to ignore from the list
-        $ignore = (string)$ignore;
-        for ($i = 0, $l = strlen($ignore); $i < $l; $i++) {
-            unset($charMap[$ignore[$i]]);
-        }
-
-        // Do the main replacement
-        $result = strtr($subject, $charMap);
-
-        // Encode leading/trailing spaces if LDAP_ESCAPE_DN is passed
-        if ($flags & LDAP_ESCAPE_DN) {
-            if ($result[0] === ' ') {
-                $result = '\\20' . substr($result, 1);
-            }
-            if ($result[strlen($result) - 1] === ' ') {
-                $result = substr($result, 0, -1) . '\\20';
-            }
-        }
-
-        return $result;
-    }
 }

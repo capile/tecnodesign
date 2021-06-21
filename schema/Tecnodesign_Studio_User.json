@@ -1,7 +1,7 @@
 {
     "title": "*Users",
     "database": "studio",
-    "tableName": "tdz_users",
+    "tableName": "studio_users",
     "properties": {
         "id": { "type": "int", "min": 0, "increment": "auto", "primary": true, "required": true },
         "login": { "type": "string", "size": 100, "required": true, "index": [ "z_user__login_idx" ] },

@@ -264,41 +264,6 @@ class Index extends Model
 
     public static function checkConnection($conn=null)
     {
-        static $cfg = [
-            'content'=>[
-                'Studio\\Model\\Entries',
-                'Studio\\Model\\Contents',
-                'Studio\\Model\\ContentsDisplay',
-                'Studio\\Model\\Relations',
-                'Studio\\Model\\Tags',
-            ],
-            'credential'=>[
-                'Studio\\Model\\Users',
-                'Studio\\Model\\Groups',
-                'Studio\\Model\\Credentials',
-            ],
-            'index'=>[
-                'Studio\\Model\\Interfaces',
-                'Studio\\Model\\Tokens',
-                'Studio\\Model\\Index',
-                'Studio\\Model\\IndexBlob',
-                'Studio\\Model\\IndexBool',
-                'Studio\\Model\\IndexDate',
-                'Studio\\Model\\IndexNumber',
-                'Studio\\Model\\IndexText',
-            ],
-        ];
-
-        if(($version=Studio::config('compatibility_level')) && $version < 2.5) {
-            $cfg['content'] = [
-                'Tecnodesign_Studio_Entry',
-                'Tecnodesign_Studio_Content',
-                'Tecnodesign_Studio_ContentDisplay',
-                'Tecnodesign_Studio_Relation',
-                'Tecnodesign_Studio_Tag',
-            ];
-        }
-
         if(!$conn) {
             $conn = static::$schema->database;
         }
@@ -311,13 +276,7 @@ class Index extends Model
             }
         }
         // check studio and index database, and create tables if required
-        $check = [];
-        foreach($cfg as $n=>$cns) {
-            if(Studio::config('enable_interface_'.$n)) {
-                $check = array_merge($check, $cns);
-            }
-        }
-
+        $check = Studio::enabledModels();
         $H = [];
         $T = [];
         foreach($check as $cn) {
@@ -337,6 +296,30 @@ class Index extends Model
                     $H[$dbn]->create($cn::$schema);
                 } catch(\Exception $e) {
                     S::log('[WARNING] Error while creating table: '.$e->getMessage(), $H[$dbn]->lastQuery());
+                }
+            }
+            if(isset($cn::$schema->actAs['after-insert']['versionable']) && !isset($T[$dbn][$cn::$schema->tableName.'_version'])) {
+                $cn::$schema->tableName .= '_version';
+                if(S::$log>0) S::log('[INFO] Creating table '.$dbn.'.'.$cn::$schema->tableName);
+                $cn::$schema->properties['version']->primary = true;
+                $idx = [];
+                foreach($cn::$schema->properties as $fn=>$fd) {
+                    if($fd->index) {
+                        $idx[$fn] = $fd->index;
+                        $fd->index = null;
+                    }
+                    unset($fn, $fd);
+                }
+                try {
+                    $H[$dbn]->create($cn::$schema);
+                } catch(\Exception $e) {
+                    S::log('[WARNING] Error while creating table: '.$e->getMessage(), $H[$dbn]->lastQuery());
+                }
+                $cn::$schema->tableName = substr($cn::$schema->tableName, 0, strlen($cn::$schema->tableName) - 8);
+                $cn::$schema->properties['version']->primary = null;
+                foreach($idx as $fn=>$fd) {
+                    $cn::$schema->properties[$fn]->index = $fd;
+                    unset($idx[$fn], $fn, $fd);
                 }
             }
         }

@@ -1,6 +1,6 @@
 {
     "database": "studio",
-    "tableName": "tdz_contents_display",
+    "tableName": "studio_contents_display",
     "className": "Tecnodesign_Studio_ContentDisplay",
     "properties": {
         "content": { "type": "int", "required": true, "primary": true },
@@ -19,6 +19,9 @@
         "before-insert": [ "actAs" ],
         "before-update": [ "actAs" ],
         "before-delete": [ "actAs" ],
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ],
         "active-records": "`expired` is null"
     },
     "overlay": {
@@ -28,6 +31,9 @@
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },
         "before-update": { "timestampable": [ "updated" ] },
-        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
     }
 }

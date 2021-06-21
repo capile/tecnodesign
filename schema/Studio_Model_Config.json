@@ -1,0 +1,12 @@
+{
+    "title": "*Configuration",
+    "database": "file:config;root=all&extension=yml",
+    "tableName": "000-studio",
+    "className": "Studio\\Model\\Config",
+    "properties": {
+        "studio": { "type": "object" }
+    },
+    "scope": {
+        "string": [ "id" ]
+    }
+}
