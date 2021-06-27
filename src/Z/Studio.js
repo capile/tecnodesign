@@ -3,7 +3,7 @@
 
 "use strict";
 
-var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'z-action':'Interface'}, _Studio='/_studio', _title;
+var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'z-action':'Interface'}, _Studio='/_studio', _title, _otherRoot;
 
 // load authentication info
 function startup()
@@ -80,6 +80,7 @@ function activateStudio(e)
 function getViewport()
 {
     if(!_V) _V = document.getElementById('studio-viewport');
+    if(_V && !_otherRoot) _otherRoot = Z.setInterfaceRoot(_V);
     var b=_V.querySelector('.tdz-i-header');
     if(!b) {
         Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header','data-overflow':1}});
@@ -87,10 +88,6 @@ function getViewport()
         _title = document.title;
     }
 
-    if(!('loadInterface' in Z)) {
-        // startup Z.Interface
-        Z.loadInterface = window.Z_Interface;
-    }
     return _V;
 }
 
