@@ -8,7 +8,7 @@ all:
     list-parent: site
     priority: 1003
     index: true
-    group-by: id
+    group-by: [ id ]
     order:
       coalesce(max(`Children.Child.published`),`updated`): desc
       title: asc

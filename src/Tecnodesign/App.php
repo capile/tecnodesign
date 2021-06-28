@@ -334,11 +334,18 @@ class Tecnodesign_App
         if(isset(tdz::$variables['exit']) && !tdz::$variables['exit']) return self::$result;
         if(!self::$_request['shell']) {
             if(!headers_sent()) {
+                tdz::unflush();
                 if(!isset(self::$_response['headers']['content-length'])) {
                     if (PHP_SAPI !== 'cli-server'
-                        && isset($_SERVER['HTTP_ACCEPT_ENCODING']) && substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')) {
-                        self::$result = gzencode(self::$result, 9);
-                        self::$_response['headers']['content-encoding'] = strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip') ? 'x-gzip' : 'gzip';
+                        && ($enc=Tecnodesign_App::request('headers', 'accept-encoding')) && substr_count($enc, 'gzip')) {
+                        @ini_set('zlib.output_compression','Off');
+                        self::$result = gzencode(self::$result, 6);
+                        self::$_response['headers']['content-encoding'] = (strpos($enc, 'x-gzip')!==false) ?'x-gzip' :'gzip';
+                        if(!isset(self::$_response['headers']['vary'])) {
+                            self::$_response['headers']['vary'] = 'accept-encoding';
+                        } else {
+                            self::$_response['headers']['vary'] .= ', accept-encoding';
+                        }
                     }
                     self::$_response['headers']['content-length'] = strlen(self::$result);
                 }

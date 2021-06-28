@@ -38,6 +38,8 @@
         "u-widget":["content.app","slot","position"]
     },
     "order": {
+        "slot": "asc",
+        "position": "asc",
         "updated": "desc"
     },
     "events": {
