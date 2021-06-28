@@ -3187,7 +3187,7 @@ class Tecnodesign_Interface implements ArrayAccess
             } else {
                 $order = null;
             }
-            $found = $cn::find($this->search,0,$this->scope(null,true,true),true,$order,$this->groupBy);
+            $found = $cn::find($this->search,null,$this->scope(null,true,true),true,$order,$this->groupBy);
         }
         if(!$found) {
             $count = 0;
@@ -3407,7 +3407,7 @@ class Tecnodesign_Interface implements ArrayAccess
                 $r = $Q->count();
             } else {
                 $pk = $cn::pk(null, true);
-                $R = $cn::find($this->search,0,$pk,true,false,true);
+                $R = $cn::find($this->search,null,$pk,true,false,true);
                 if($R) $r = $R->count();
                 unset($R);
             }
