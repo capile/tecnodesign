@@ -65,6 +65,7 @@ function activateStudio(e)
     if(!e || e.detail !== 3) {
         return;
     }
+    Z.stopEvent(e);
 
     var L=[], i, T=e.target;
     if(T.getAttribute('data-studio')) L.push(T.getAttribute('data-studio'));
