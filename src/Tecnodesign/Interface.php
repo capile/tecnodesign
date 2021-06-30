@@ -3008,7 +3008,8 @@ class Tecnodesign_Interface implements ArrayAccess
            . '<span class="z-i-label-title">'.tdz::xml($title).'</span>'
            . '</p>';
 
-        if(isset($this->options['summary']) && $this->options['summary']) $s .= tdz::markdown($this->options['summary']);
+        if(isset($this->options['summary-'.$this->action]) && $this->options['summary-'.$this->action]) $s .= tdz::markdown($this->options['summary-'.$this->action]);
+        else if(isset($this->options['summary']) && $this->options['summary']) $s .= tdz::markdown($this->options['summary']);
         unset($cn);
         return $s;
 
@@ -3288,11 +3289,14 @@ class Tecnodesign_Interface implements ArrayAccess
                 } else if(isset($this->options['scope'][$a])) {
                     $scope = $a;
                     $this->scope = $this->options['scope'][$a];
+                } else if(isset($cn::$schema->scope[$a])) {
+                    $scope = $a;
+                    $this->scope = $cn::$schema->scope[$a];
                 } else {
                     $scope = null;
                 }
-                if($scope && !isset($cn::$schema['scope'][$scope])) {
-                    $cn::$schema['scope'] += $this->options['scope'];
+                if($scope && !isset($cn::$schema->scope[$scope])) {
+                    $cn::$schema->scope += $this->options['scope'];
                 }
                 unset($scope);
             }

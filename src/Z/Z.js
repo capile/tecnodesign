@@ -14,7 +14,8 @@ var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl,
     Z_Interface: '.tdz-i[data-url]',
     Z_Interface_AutoRemove: '.z-auto-remove',
     Z_Graph: '.z-graph',
-    Recaptcha: '.z-recaptcha'
+    Recaptcha: '.z-recaptcha',
+    LoadUri: '*.z-action[data-load-uri]'
   }, _zTimestamp='';
 
 // load authentication info
@@ -1182,6 +1183,25 @@ Z.backwardsCompatible=function()
       };
     }
     Z.xmlUnescape = function(s) {return s.decodeHTML();};
+}
+
+Z.initLoadUri=function()
+{
+    var u=this.getAttribute('data-load-uri');
+    if(!u) return;
+    if(u.search(/^([a-z0-9]+\:)\/\/([^\/]+)/)>-1) return; // need to enter the allowed hosts
+
+    var t=this.getAttribute('data-target'), T=(t) ?document.querySelector(t) :this;
+
+    Z.ajax(u, null, loadHtml, Z.error, 'html', T, {'z-action': 'load-uri'});
+}
+
+function loadHtml(html)
+{
+    if(this && ('innerHTML' in this)) {
+        this.innerHTML = html;
+        Z.init(this);
+    }
 }
 
 var _ResponseType={arraybuffer:true,blob:true,document:true,json:true,text:true};

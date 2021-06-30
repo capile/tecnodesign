@@ -2,7 +2,7 @@
 @charset "utf8";
 @import "interface-vars-default.less";
 @import "interface-vars.less";
-@import @icon-font;
+@import "@{icon-font}";
 .tdz-i-box{
   color:@colorText;
   width:100%;
@@ -27,7 +27,6 @@
     opacity: 1;
   }
 }
-
 
 .z-frame {
   position:relative;
@@ -2136,7 +2135,6 @@ th > input[type=checkbox], td > input[type=checkbox] {
 }
 
 
-
 .box-shadow(@x: 3px, @y: 3px, @blur: 4px, @color: rgba(0,0,0,.5)) {
   -webkit-box-shadow: @arguments;
      -moz-box-shadow: @arguments;
@@ -2332,4 +2330,5 @@ th > input[type=checkbox], td > input[type=checkbox] {
         transition: @arguments;
 }
 
+@import "Calendar.less";
 @import "custom-interface.less";
