@@ -2,7 +2,7 @@
 @charset "utf8";
 @import "interface-vars-default.less";
 @import "interface-vars.less";
-@import @icon-font;
+@import "@{icon-font}";
 .tdz-i-box{
   color:@colorText;
   width:100%;
@@ -27,7 +27,6 @@
     opacity: 1;
   }
 }
-
 
 .z-frame {
   position:relative;
@@ -401,6 +400,7 @@
   display:none;
   &.tdz-i-active{
     border-top: @borderSize solid @colorTabActive;
+    background: @color;
     height:auto;
     opacity:1;
     z-index:16;
@@ -724,7 +724,6 @@ input.tdz-i-switch{
 }
 
 .tdz-i-container > .tdz-i-preview {
-  background: @color;
   border-bottom: 1px solid @colorTab;
 }
 
@@ -1739,6 +1738,8 @@ form .i-mono dd {
 .z-i--close:before   {content: @iconClose;}
 .z-i--up:before      {content: @iconUp !important;}
 .z-i--down:before    {content: @iconDown !important;}
+.z-i--left:before    {content: @iconLeft !important;}
+.z-i--right:before   {content: @iconRight !important;}
 .z-i--share:before   {content: @iconShare;}
 .z-i--text:before    {content: @iconText;}
 .z-i--file:before    {content: @iconFile;}
@@ -2136,7 +2137,6 @@ th > input[type=checkbox], td > input[type=checkbox] {
 }
 
 
-
 .box-shadow(@x: 3px, @y: 3px, @blur: 4px, @color: rgba(0,0,0,.5)) {
   -webkit-box-shadow: @arguments;
      -moz-box-shadow: @arguments;
@@ -2332,4 +2332,5 @@ th > input[type=checkbox], td > input[type=checkbox] {
         transition: @arguments;
 }
 
+@import "Calendar.less";
 @import "custom-interface.less";

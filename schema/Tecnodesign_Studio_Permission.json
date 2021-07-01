@@ -27,7 +27,7 @@
         "after-delete": [ "actAs" ]
     },
     "overlay": {
-        "role": { "bind": "role", "format": "select", "class": "i1s2", "choices": "choicesRoles" },
+        "role": { "bind": "role", "format": "select", "class": "i1s2", "choices": "choicesRole" },
         "credentials": { "bind": "credentials", "format": "select", "class": "i1s2", "choices": "choicesCredentials", "multiple": true }
     },
     "actAs": {

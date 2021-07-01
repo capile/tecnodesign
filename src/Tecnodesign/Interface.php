@@ -337,7 +337,9 @@ class Tecnodesign_Interface extends Studio\Api
                 }
             }
             unset($d['options']);
-            if(isset($this->options['group-by'])) $this->groupBy = $this->options['group-by'];
+            if(isset($this->options['group-by'])) {
+                $this->groupBy = $this->options['group-by'];
+            }
             //if(isset($this->options['order-by'])) $this->orderBy = $this->options['order-by'];
         }
 
@@ -3046,7 +3048,8 @@ class Tecnodesign_Interface extends Studio\Api
            . '<span class="z-i-label-title">'.tdz::xml($title).'</span>'
            . '</p>';
 
-        if(isset($this->options['summary']) && $this->options['summary']) $s .= tdz::markdown($this->options['summary']);
+        if(isset($this->options['summary-'.$this->action]) && $this->options['summary-'.$this->action]) $s .= tdz::markdown($this->options['summary-'.$this->action]);
+        else if(isset($this->options['summary']) && $this->options['summary']) $s .= tdz::markdown($this->options['summary']);
         unset($cn);
         return $s;
 
@@ -3228,7 +3231,7 @@ class Tecnodesign_Interface extends Studio\Api
             } else {
                 $order = null;
             }
-            $found = $cn::find($this->search,0,$this->scope(null,true,true),true,$order,$this->groupBy);
+            $found = $cn::find($this->search,null,$this->scope(null,true,true),true,$order,$this->groupBy);
         }
         if(!$found) {
             $count = 0;
@@ -3332,11 +3335,14 @@ class Tecnodesign_Interface extends Studio\Api
                 } else if(isset($this->options['scope'][$a])) {
                     $scope = $a;
                     $this->scope = $this->options['scope'][$a];
+                } else if(isset($cn::$schema->scope[$a])) {
+                    $scope = $a;
+                    $this->scope = $cn::$schema->scope[$a];
                 } else {
                     $scope = null;
                 }
-                if($scope && !isset($cn::$schema['scope'][$scope])) {
-                    $cn::$schema['scope'] += $this->options['scope'];
+                if($scope && !isset($cn::$schema->scope[$scope])) {
+                    $cn::$schema->scope += $this->options['scope'];
                 }
                 unset($scope);
             }
@@ -3451,7 +3457,7 @@ class Tecnodesign_Interface extends Studio\Api
                 $r = $Q->count();
             } else {
                 $pk = $cn::pk(null, true);
-                $R = $cn::find($this->search,0,$pk,true,false,true);
+                $R = $cn::find($this->search,null,$pk,true,false,true);
                 if($R) $r = $R->count();
                 unset($R);
             }

@@ -249,10 +249,10 @@ class Tecnodesign_Mail
     public function replaceContent($arr)
     {
         if(isset($this->contents['text/html']['content'])) {
-            strtr($this->contents['text/html']['content'], $arr);
+            $this->contents['text/html']['content'] = strtr($this->contents['text/html']['content'], $arr);
         }
         if(isset($this->contents['text/plain']['content'])) {
-            strtr($this->contents['text/plain']['content'], $arr);
+            $this->contents['text/plain']['content'] = strtr($this->contents['text/plain']['content'], $arr);
         }
     }
 

@@ -1,0 +1,123 @@
+.z-calendar, .tdz-calendar {
+  position:relative;
+  .tdz-c-month, .z-c-month{
+    min-height:10em;
+    display: inline-block;
+    vertical-align: top;
+    width:14em;
+    margin: 0 1em 1em 0;
+    h3 {
+      font-size: 1em;
+      background:desaturate(@colorTabActive,50%);
+      padding:0.25em 0.5em;
+      margin:0;
+      color:@colorTabActiveText;
+    }
+    &.has-event h3 {
+      background:@colorTabActive;
+    }
+  }
+  .tdz-c-day, .z-c-day {
+    width: 1em;
+    height: 1em;
+    line-height: 1em;
+    padding: 0.5em;
+    text-align: right;
+    display:inline-block;
+    color: #ccc;
+    &.tdz-c-active, .z-c-active {
+      color:#444;
+      background:#eceeed;
+    }
+    a {
+      display:inline-block;
+      width:1em;
+      height:1em;
+      margin: -0.5em;
+      padding: 0.5em;
+      border: 2px solid @colorTabActive;
+      border-radius: 2em;
+      position:relative;
+      z-index:1;
+      &:link,&:visited {
+        color:#308000;
+      }
+      &:hover, &:active {
+        color:#fff;
+        background:#308000;
+        text-decoration:none;
+      }
+    }
+  }
+  .tdz-c-week, .z-c-week{
+    position:relative;
+    white-space:nowrap;
+  }
+  .day{position:absolute;z-index:10;left:0;width:11.78%;padding-right:2.5%;min-height:36px;text-align:right;background-color:rgba(255,255,255,.5);color:#999999}
+  .day.active{background-color:#eef0f6;z-index:0;color:#000000;}
+  .day a{display:block;position:relative;width:100%;height:100%;background:#c0c6c9;min-height:36px;padding-right:21.1%;}
+  .calendar-header{font-weight:bold; border-bottom:1px solid #ecf6f8;text-transform:uppercase}
+  .calendar-header .day{color:#598d9f;border:0;}
+  .calendar-header.week, .tdz-calendar .calendar-header .day{min-height:24px;height:24px;}
+
+  .sun{left:0;}
+  .mon{left:14.28%;}
+  .tue{left:28.57%;}
+  .wed{left:42.85%;}
+  .thu{left:57.13%;}
+  .fri{left:71.42%;}
+  .sat{left:85.71%;}
+  .summary{padding:0 5px;width:125%;display:inline-block;text-align:left;}
+  .event {
+    position:absolute;
+    text-decoration:none;
+    height:1.5em;
+    overflow:hidden;
+    font-size:0.75em;
+    line-height:1em;
+    padding-top:0.25em;
+    z-index:1;
+    margin-left:1.5%;
+    border-radius:0.25em;
+    color: @colorTabText;
+    background: @colorTab;
+
+    &:hover, &:active{text-decoration:none}
+    &.line1{top: 2em;background-color:fadeout(desaturate(@colorActive, 30%), 70%) !important;}
+    &.line2{top: 4em;background-color:fadeout(desaturate(@colorActive, 30%), 80%) !important;}
+    &.line3{top: 6em;background-color:fadeout(desaturate(@colorActive, 30%), 90%) !important;}
+    &.line4{top: 8em;background-color:fadeout(desaturate(@colorActive, 60%), 70%) !important;}
+    &.line5{top:10em;background-color:fadeout(desaturate(@colorActive, 60%), 80%) !important;}
+    &.line6{top:12em;background-color:fadeout(desaturate(@colorActive, 60%), 90%) !important;}
+    &.line7{top:14em;}
+    &.line8{top:16em;}
+    &.line9{top:18em;}
+    &.line10{top:20em;}
+    &.line11{top:22em;}
+    &.line12{top:24em;}
+    &.line13{top:26em;}
+  }
+  .duration0{width:11.28%;}
+  .duration1{width:25.57%;}
+  .duration2{width:39.85%;}
+  .duration3{width:54.14%;}
+  .duration4{width:68.42%;}
+  .duration5{width:82.71%;}
+  .duration6{width:97%;}
+  .continued{margin-left:0;padding-left:1.5%;border-top-left-radius:0;-moz-border-radius-topleft:0;-webkit-border-top-left-radius:0;border-bottom-left-radius:0;-moz-border-radius-bottomleft:0;-webkit-border-bottom-left-radius:0;}
+  .continue{margin-right:-1.5%;padding-right:1.5%;border-top-right-radius:0;-moz-border-radius-topright:0;-webkit-border-top-right-radius:0;border-bottom-right-radius:0;-moz-border-radius-bottomright:0;-webkit-border-bottom-right-radius:0;}
+  .tdz-c-week.lines1  .tdz-c-day{height:2em;}
+  .tdz-c-week.lines2  .tdz-c-day{height:3em;}
+  .tdz-c-week.lines3  .tdz-c-day{height:4em;}
+  .tdz-c-week.lines4  .tdz-c-day{height:5em;}
+  .tdz-c-week.lines5  .tdz-c-day{height:6em;}
+  .tdz-c-week.lines6  .tdz-c-day{height:7em;}
+  .tdz-c-week.lines7  .tdz-c-day{height:8em;}
+  .tdz-c-week.lines8  .tdz-c-day{height:9em;}
+  .tdz-c-week.lines9  .tdz-c-day{height:10em;}
+  .tdz-c-week.lines10 .tdz-c-day{height:11em;}
+  .tdz-c-week.lines11 .tdz-c-day{height:12em;}
+  .tdz-c-week.lines12 .tdz-c-day{height:13em;}
+  .tdz-c-week.lines13 .tdz-c-day{height:14em;}
+}
+  

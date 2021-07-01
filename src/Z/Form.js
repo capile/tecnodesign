@@ -1636,9 +1636,9 @@ function Form(o)
         Z.addPlugin('HtmlEditor', initHtmlEditor, 'textarea[data-format="html"]');
         Z.addPlugin('choices.js', initChoicesJs, 'select.z-choices-js,.z-choices-js select');
         Z.clearForm=clearForm;
-        var n=Z.node(o, this);
-        if(n) Z.init(n);
     }
+    var n=Z.node(o, this);
+    if(n) Z.init(n);
 }
 
 

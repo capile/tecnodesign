@@ -462,7 +462,7 @@ class Tecnodesign_Query_Sql
             }
         } else {
             $fn = $this->getAlias($o, null, true);
-            if($fn && strpos($fn, $this->_groupBy)===false) {
+            if($fn && strpos((string)$this->_groupBy, $fn)===false) {
                 $this->_groupBy .= ($this->_groupBy)?(", {$fn}"):(" {$fn}");
             }
             unset($fn);
@@ -1508,7 +1508,7 @@ class Tecnodesign_Query_Sql
 
     public function getTableSchemaQuery($table, $database=null, $enableViews=null)
     {
-        return 'show full columns from '.\tdz::sql($table, false);
+        return 'show full columns from '.tdz::sql($table, false);
     }
 
     protected static $columnSchemaMap=[
