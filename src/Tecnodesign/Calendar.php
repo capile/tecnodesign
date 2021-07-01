@@ -256,6 +256,24 @@ class Tecnodesign_Calendar implements ArrayAccess
     }
     
 
+    public function setStart($t)
+    {
+        if(!is_int($t)) $t = strtotime($t);
+
+        if($t) {
+            $this->_start = $t;
+        }
+    }
+
+    public function setEnd($t)
+    {
+        if(!is_int($t)) $t = strtotime($t);
+
+        if($t) {
+            $this->_end = $t;
+        }
+    }
+
     /**
      * Returns a timestamp for when the calendar ends
      */
