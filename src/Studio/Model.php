@@ -34,5 +34,5 @@ class Model extends \Tecnodesign_Model
                 S::$database[$db] = S::$database[$conn];
             }
         }
-    }	
+    }
 }

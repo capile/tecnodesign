@@ -7,7 +7,8 @@ all:
     config-dir: data/config
     cache-dir: data/cache
     log-dir: data/log
-    templates-dir: [ data/templates, src/Tecnodesign/Resources/templates ]
+    templates-dir: [ data/templates ]
+    schema-dir: [ data/schema ]
     document-root: data/web
     lib-dir: [ vendor ]
     controller-options:
