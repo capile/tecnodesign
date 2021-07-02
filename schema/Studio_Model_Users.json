@@ -7,7 +7,7 @@
         "username": { "type": "string", "size": 100, "required": true, "index": [ "studio_users__username_idx" ] },
         "login": { "alias": "username" },
         "name": { "type": "string", "size": 200 },
-        "password": { "type": "string", "size": 100 },
+        "password": { "type": "string", "size": 200 },
         "email": { "type": "string", "format": "email", "size": 100, "index": [ "studio_email__email_idx" ] },
         "details": { "type": "string", "size": 10000 },
         "accessed": { "format": "datetime", "type": "string" },

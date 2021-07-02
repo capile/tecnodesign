@@ -11,6 +11,14 @@ all:
     priority: 999
     scope:
       update:
+        __default:
+          fieldset: "*Studio Configuration"
+        "*Language": 
+          bind: studio.language
+          format: select
+          type: string
+          choices: choicesLanguage
+          default: "en"
         "*Version": 
           bind: studio.version
           format: select
@@ -20,3 +28,19 @@ all:
         "*Enable Management Interface":
           bind: studio.enable_interfaces
           format: bool
+          default: 1
+        "*Enable Content Management":
+          bind: studio.enable_interface_content
+          format: bool
+          default: 1
+        "*Enable User Management":
+          bind: studio.enable_interface_credential
+          format: bool
+          default: 1
+        "*Enable API Management":
+          bind: studio.enable_interface_index
+          format: bool
+          default: 1
+        "*Set Admin Password":
+          bind: _admin_password
+          format: password

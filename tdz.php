@@ -193,8 +193,8 @@ class tdz
             tdz::$_env = $env;
             Tecnodesign_Cache::siteKey($siteMemKey);
             if (!is_array($s) && file_exists($s)) {
-                tdz::$timeout = filemtime($s);
-                $cache = Tecnodesign_App::getInstance($siteMemKey, $env, tdz::$timeout);
+                $timeout = filemtime($s);
+                $cache = Tecnodesign_App::getInstance($siteMemKey, $env, $timeout);
                 if ($cache) {
                     return $cache;
                 }

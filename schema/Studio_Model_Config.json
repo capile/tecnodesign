@@ -8,5 +8,9 @@
     },
     "scope": {
         "string": [ "id" ]
+    },
+    "events": {
+        "after-save": "reloadConfiguration"
     }
+
 }
