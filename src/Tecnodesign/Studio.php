@@ -62,6 +62,7 @@ class Tecnodesign_Studio
         ],
         $cliApps=[
             'config'=>['Tecnodesign_App_Install','config'],
+            'start'=>['Studio\\Model\\Config','standaloneConfig'],
             'check'=>['Studio\\Model\\Index', 'checkConnection'],
             'index'=>['Studio\\Model\\Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
@@ -243,7 +244,7 @@ class Tecnodesign_Studio
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
                 Tecnodesign_App::response('layout', 'layout');
-                tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
+                //tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
                 //Tecnodesign_App::response('style', array('/studio.less'));
                 return $In::run();
@@ -991,6 +992,7 @@ class Tecnodesign_Studio
                     'Studio\\Model\\ContentsDisplay',
                     'Studio\\Model\\Relations',
                     'Studio\\Model\\Tags',
+                    'Studio\\Model\\Permissions',
                 ],
                 'credential'=>[
                     'Studio\\Model\\Users',

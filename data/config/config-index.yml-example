@@ -12,21 +12,16 @@ all:
         method: signOut
         static: true
         additional-params: true
-  studio:
-    enable_interfaces: true
-    enable_interface_tokens: true
-    enable_interface_interfaces: true
   user:
     model: Studio\Model\Users
     ns:
       oauth2-client:
         name: OAuth2 Client
         enabled: true
-        cookie: studio-o
+        cookie: z-studio
         class: Studio\OAuth2\Client
         static: true
         test: testing
         export:
           username: username
           name: name
-

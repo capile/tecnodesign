@@ -2799,7 +2799,7 @@ class tdz
             }
             return true;
         } catch(Exception $e) {
-            tdz::log(__METHOD__, $e->getMessage());
+            tdz::log('[INFO] mail error: '.$e->getMessage());
             return false;
         }
     }

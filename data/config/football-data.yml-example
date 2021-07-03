@@ -1,6 +1,6 @@
 ---
 all:
-  tecnodesign:
+  app:
     lib-dir: [ vendor, data/examples/football-data/lib ]
     schema-dir: [ schema, data/examples/football-data/schema ]
     routes:

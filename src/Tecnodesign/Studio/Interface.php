@@ -36,7 +36,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrCounterClass   = 'tdz-counter',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
-        $dir                = [ 'interface' ],
+        $dir                = [ 'api' ],
         $headingTemplate    = '<h2 class="z-title">$LABEL</h2><hr />',
         $actionAlias        = [
             'n'=>'new',
@@ -79,7 +79,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
     public static function find($q=null, $checkAuth=true)
     {
         $Is = parent::find($q, $checkAuth);
-        if(!Studio::config('enable_interfaces')) {
+        if(!Studio::config('enable_interface_index')) {
             return $Is;
         }
 
@@ -105,12 +105,12 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return $Is;
     }
 
-    public static function configFile($s, $enableStudio=null)
+    public static function configFile($s)
     {
-        if(Tecnodesign_Studio::config('enable_interfaces') && ($I=Interfaces::find($s,1))) {
+        if(Tecnodesign_Studio::config('enable_interface_index') && ($I=Interfaces::find($s,1))) {
             $r = $I->cacheFile($s);
         } else {
-            $r = parent::configFile($s, $enableStudio);
+            $r = parent::configFile($s);
         }
 
         return $r;
@@ -180,6 +180,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                 $a['credential'] = $c;
             }
         }
+        tdz::log(__METHOD__, $a);
 
         return $a;
     }
@@ -232,5 +233,5 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 }
 
 if(TDZ_VAR!=TDZ_ROOT.'/data') {
-    Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/data/interface';
+    Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/data/api';
 }

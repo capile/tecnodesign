@@ -1,18 +1,19 @@
 ---
 all:
   include: data/config/*.yml
-  tecnodesign:
+  app:
     apps-dir: .
     data-dir: data
     config-dir: data/config
     cache-dir: data/cache
     log-dir: data/log
     templates-dir: [ data/templates ]
+    api-dir: [ data/api ]
     schema-dir: [ data/schema ]
     document-root: data/web
     lib-dir: [ vendor ]
     controller-options:
-      class: Tecnodesign_Studio
+      class: Studio\Studio
       static: true
       additional-params: true
       layout: layout
@@ -20,3 +21,8 @@ all:
         style:
           site: [ /_/css/site.less ]
     default-route: run
+    export:
+      tdz:
+        database:
+          studio:
+            dsn: sqlite:data/studio.db

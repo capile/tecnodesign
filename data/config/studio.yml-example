@@ -47,7 +47,7 @@ all:
 
       # CMS UI credentials
       search: [ Administrator, Developer, Editor, Author ]
-  tecnodesign:
+  app:
     export:
       Tecnodesign_Studio:
         cliInterface: true

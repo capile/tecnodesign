@@ -1,0 +1,5 @@
+{
+    "ref": "Tecnodesign_Studio_Permission",
+    "className": "Studio\\Model\\Permissions",
+    "tableName": "studio_permissions"
+}

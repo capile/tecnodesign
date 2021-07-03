@@ -2,7 +2,7 @@
 all:
   title: '*Welcome!'
   model: Studio\Model\Config
-  id: 000-studio
+  id: config
   default-actions: [ update ]
   default-action: update
   options:
