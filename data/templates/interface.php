@@ -24,6 +24,22 @@ if($Interface::$navigation) {
         $nav = $Interface::listInterfaces();
     }
 }
+
+$a = [
+    'class' => 'tdz-i'.((isset($active) && $active) ?' tdz-i-active' :''),
+    'data-action'=>$Interface['action'],
+    'data-url'=>$url,
+];
+if($qs) $a['data-qs'] = str_replace(',', '%2C', $qs);
+if($Interface['id']) $a['data-id'] = $Interface['id'];
+if(isset($ui)) $a['data-ui'] = base64_encode(tdz::serialize($ui, 'json'));
+
+if(isset($attributes) && is_array($attributes)) {
+    if(isset($attributes['class'])) $a['class'] .= ' '.tdz::xml($attributes['class']);
+    $a += $attributes;
+}
+
+
 // .tdz-i-header
 ?><div class="tdz-i-header"<?php 
     if($nav) echo ' data-toggler="off"';
@@ -41,7 +57,7 @@ if($Interface::$navigation) {
     }
     foreach($urls as $iurl=>$t) {
         if($iurl!='/' && (!isset($t['interface']) || $t['interface'])):
-            ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' z-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xmlEscape($iqs)), '"' ?>><span class="z-text"><?php echo \tdz::xml($t['title']); ?></span></a><?php
+            ?><a href="<?php echo $iurl ?>" class="tdz-i-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' tdz-i-title-active'; echo ' z-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', tdz::xml($iqs)), '"' ?>><span class="z-text"><?php echo tdz::xml($t['title']); ?></span></a><?php
         endif;
     }
 
@@ -56,12 +72,7 @@ if($Interface::$navigation) {
     }
 
     // .tdz-i
-    ?><div class="tdz-i<?php if(isset($active) && $active) echo ' tdz-i-active'; ?>" data-action="<?php echo tdz::xml($Interface['action']) ?>" data-url="<?php echo $url ?>"<?php 
-        if($qs) echo ' data-qs="',str_replace(',', '%2C', tdz::xmlEscape($qs)),'"';
-        if($Interface['id']) echo ' data-id="',tdz::xmlEscape($Interface['id']),'"';
-        if(isset($ui)) echo ' data-ui="'.base64_encode(tdz::serialize($ui, 'json')).'"';
-        ?>><?php
-
+    ?><div<?php foreach($a as $k=>$v) echo ' '.tdz::slug($k, '-_').'="'.tdz::xml($v).'"'; ?>><?php
         // .z-i-actions
         if(!isset($buttons)) $buttons = null;
         if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface::$attrButtonsClass); ?>"><?php

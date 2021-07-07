@@ -180,7 +180,6 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                 $a['credential'] = $c;
             }
         }
-        tdz::log(__METHOD__, $a);
 
         return $a;
     }

@@ -2446,49 +2446,7 @@ class tdz
      */
     public static function hash($str, $salt=null, $type=40)
     {
-        if($type===true) { // guess based on $salt
-            if(preg_match('/^\{([^\}]+)\}/', $salt, $m)) {
-                $type = $m[1];
-            } else {
-                $type = 40;
-            }
-        }
-        if($type=='uuid') {
-            return self::encrypt($str, $salt, 'uuid');
-        } else if(is_string($type)) {
-            $t = strtoupper($type);
-            if(substr($t, 0, 4)=='SSHA' || substr(strtolower($t), 0, 4)=='SMD5') {
-                if(is_null($salt)) $salt = openssl_random_pseudo_bytes(20);
-                else if(substr($salt, 0, strlen($type)+2)=="{{$t}}") {
-                    $salt = substr(base64_decode(substr($salt, strlen($type)+2)), strlen(hash(strtolower(substr($t,1)), null, true)));
-                }
-                $h = "{{$t}}" . base64_encode(hash(strtolower(substr($t,1)), $str . $salt, true) . $salt);
-            } else {
-                $h = hash($type, $str);
-                if ($salt != null && strcasecmp($h, $salt)==0) {
-                    return $salt;
-                }
-            }
-            return $h;
-        } else {
-            $len = 8;
-            $m='md5';
-            if(is_int($type) && $type>32) {
-                $len = $type - 32;
-                if($type>64) {
-                    if($type > 80) {
-                        $type = 80;
-                    }
-                    $m = 'sha1';
-                    $len = $type - 40;
-                }
-            }
-            if(!$salt){
-                $salt = $m(uniqid(rand(), 1));
-            }
-            $salt = substr($salt, 0, $len);
-            return $salt . $m($str.$salt);
-        }
+        return Studio\Crypto::hash($str, $salt, $type);
     }
 
 

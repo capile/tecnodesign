@@ -495,9 +495,9 @@ class Tecnodesign_Interface extends Studio\Api
 
             if($apid=tdz::getApp()->config('app', 'api-dir')) {
                 if(!is_array($apid)) {
-                    if(!in_array($apid, static::$dir)) static::$dir[] = $apid;
+                    if(!in_array($apid, static::$dir)) array_unshift(static::$dir, $apid);
                 } else {
-                    static::$dir = array_unique(array_merge(static::$dir, $apid));
+                    static::$dir = array_unique(array_merge($apid, static::$dir));
                 }
             }
             unset($apid);

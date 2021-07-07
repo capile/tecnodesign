@@ -4,6 +4,7 @@ namespace Studio\Model;
 
 use Studio\User;
 use Studio\Crypto;
+use tdz as S;
 
 class Users extends \Tecnodesign_Studio_User
 {

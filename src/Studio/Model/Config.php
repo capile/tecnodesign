@@ -39,13 +39,6 @@ class Config extends Model
         return $this->__uid;
     }
 
-    public function validateAdminPassword($s)
-    {
-        if($s) {
-            return Crypto::hash($s, null, User::$hashType);
-        }
-    }
-
     public function checkConfiguration()
     {
         $this->app = [];

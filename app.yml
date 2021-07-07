@@ -8,7 +8,7 @@ all:
     cache-dir: data/cache
     log-dir: data/log
     templates-dir: [ data/templates ]
-    api-dir: [ data/api ]
+    api-dir: ~
     schema-dir: [ data/schema ]
     document-root: data/web
     lib-dir: [ vendor ]

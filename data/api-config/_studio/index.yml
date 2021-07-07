@@ -5,14 +5,16 @@ all:
   id: config
   default-actions: [ update ]
   default-action: update
+  attributes:
+    class: z-i-no-summary z-i-no-actions z-i-no-breadcrumb z-i-color-alt z-i-splash
   options:
     index: false
     navigation: true
     priority: 999
+    before-update: |
+      # ![Studio](/_/img/studio-neg.svg) {.z-i-logo}
     scope:
       update:
-        __default:
-          fieldset: "*Studio Configuration"
         "*Language": 
           bind: studio.language
           format: select
@@ -25,6 +27,9 @@ all:
           type: string
           choices: choicesStudioVersion
           default: "2.5"
+        "*Set Admin Password":
+          bind: _admin_password
+          format: password
         "*Enable Management Interface":
           bind: studio.enable_interfaces
           format: bool
@@ -41,6 +46,3 @@ all:
           bind: studio.enable_interface_index
           format: bool
           default: 1
-        "*Set Admin Password":
-          bind: _admin_password
-          format: password

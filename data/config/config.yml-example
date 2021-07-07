@@ -5,8 +5,7 @@ all:
     connection: studio
     enable_interfaces: true
   app:
-    api-dir: 
-      temp: data/api-config
+    api-dir: [ data/api-config ]
   user:
     super-admin: Administrators
     credentials:
