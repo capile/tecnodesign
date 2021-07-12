@@ -294,23 +294,29 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
         }
 
         // @TODO: write other validators
+        $set = false;
         if(($value==='' || $value===null) && isset($def['default'])) {
             $value = $def['default'];
+            // default values explicitly set should remain as is
+            if(!is_null($value)) $set = true;
         }
 
-        if(isset($def['required']) && $def['required']) {
-            $nullable = false;
-        } else if(isset($def['null']) && !$def['null']) {
-            $nullable = false;
-        } else {
-            $nullable = true;
+        if(!$set) {
+            if(isset($def['required']) && $def['required']) {
+                $nullable = false;
+            } else if(isset($def['null']) && !$def['null']) {
+                $nullable = false;
+            } else {
+                $nullable = true;
+            }
+            if (($value==='' || $value===null) && !$nullable) {
+                $label = (isset($def['label']))?($def['label']):(tdz::t(ucwords(str_replace('_', ' ', $name)), 'labels'));
+                throw new Tecnodesign_Exception(sprintf(tdz::t(static::$errorMandatory, 'exception'), $label));
+            } else if($value==='') {
+                $value = false;
+            }
         }
-        if (($value==='' || $value===null) && !$nullable) {
-            $label = (isset($def['label']))?($def['label']):(tdz::t(ucwords(str_replace('_', ' ', $name)), 'labels'));
-            throw new Tecnodesign_Exception(sprintf(tdz::t(static::$errorMandatory, 'exception'), $label));
-        } else if($value==='') {
-            $value = false;
-        }
+
         return $value;
     }
 

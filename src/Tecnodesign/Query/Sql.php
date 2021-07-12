@@ -979,9 +979,13 @@ class Tecnodesign_Query_Sql
         return $str;
     }
 
-    public static function sql($v, $d) {
+    public static function sql($v, $d, $allowDefault=null) {
         if(is_null($v) || $v===false) {
-            return 'null';
+            if($allowDefault && isset($d['default']) && $d['default']!==false) {
+                return self::sql($d['default'], $d);
+            } else {
+                return 'null';
+            }
         } else if(isset($d['type']) && $d['type']=='int') {
             return (int) $v;
         } else if(isset($d['type']) && $d['type']=='bool') {
@@ -1131,7 +1135,7 @@ class Tecnodesign_Query_Sql
         $fs = $M::$schema['columns'];
         if(!$fs) $fs = array_flip(array_keys($odata));
         foreach($fs as $fn=>$fv) {
-            if(!is_array($fv) && !is_object($fv)) $fv=array('null'=>true);
+            if(!is_array($fv) && !is_object($fv)) $fv=[];
             if(isset($fv['increment']) && $fv['increment']=='auto' && !isset($odata[$fn])) {
                 continue;
             }
@@ -1139,10 +1143,11 @@ class Tecnodesign_Query_Sql
             if(!isset($odata[$fn]) && isset($fv['default']) &&  $M->getOriginal($fn, false, true)===false) {
                 $odata[$fn] = $fv['default'];
             }
-            if (!isset($odata[$fn]) && $fv['null']===false) {
+            $req = ((isset($fv['required']) && $fv['required']) || (isset($fv['null']) && !$fv['null']));
+            if (!isset($odata[$fn]) && $req) {
                 throw new Tecnodesign_Exception(array(tdz::t('%s should not be null.', 'exception'), $M::fieldLabel($fn)));
             } else if(array_key_exists($fn, $odata)) {
-                $data[$fn] = self::sql($odata[$fn], $fv);
+                $data[$fn] = self::sql($odata[$fn], $fv, true);
                 $a[$fn] = $odata[$fn];
             } else if($M->getOriginal($fn, false)!==false && is_null($M->$fn)) {
                 $data[$fn] = 'null';

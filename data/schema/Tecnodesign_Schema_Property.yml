@@ -83,6 +83,7 @@ properties:
     title: Default value
     description: Describes the property default value
     type: string
+    default: ""
   format:
     title: How to represent/display the property externally
     description: Handles the form and display formats for the property
