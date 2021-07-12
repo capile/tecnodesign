@@ -243,7 +243,7 @@ class Tecnodesign_Studio_Asset
                     $args[] = '--global-var='.escapeshellarg($k.'='.$v);
                 }
 
-                $args[] = '--include-path='.escapeshellarg(implode(';', $importDir));
+                $args[] = '--include-path='.escapeshellarg(implode(':', $importDir));
 
                 $cmd = preg_replace('/^(node_modules\/.bin\/)?lessc /', '$1lessc '.implode(' ', $args).' ', $cmd);
             }
