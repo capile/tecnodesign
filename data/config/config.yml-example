@@ -6,10 +6,13 @@ all:
     enable_interfaces: true
   app:
     api-dir: [ data/api-config ]
+    languages:
+      English: en
+      Português: pt
   user:
     super-admin: Administrators
     credentials:
-      Administrator: ~
+      Administrators: ~
     ns:
       host:
         name: Host-based authentication

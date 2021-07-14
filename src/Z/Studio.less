@@ -1,7 +1,12 @@
 /*! Studio v2.5 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
-@import "interface-vars-default.less";
-@import "interface-vars.less";
-@import "studio-base.less";
+@charset "utf8";
+@import (reference) "interface-vars-default.less";
+@import (optional)  "interface-vars.less";
+@import (reference) "studio-base.less";
+
+html {
+    .studio-type();
+}
 
 #studio{
   z-index:100;

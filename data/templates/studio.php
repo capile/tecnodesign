@@ -63,5 +63,23 @@ if(!isset($content) && isset($data) && isset($slots) && class_exists('tdzEntry')
     }
 }
 
+
+$App = tdz::getApp();
+if(!($lang=$App->config('app', 'language')) && ($langs=$App->config('app', 'languages'))) {
+    $lang = tdz::$lang;
+    $sn = tdz::scriptName(true);
+    $ls = '<div class="s-language-selector">';
+    foreach($langs as $k=>$n) {
+        $ln = (is_int($k)) ?$n :$k;
+        $ls .= ($n==$lang) ?'<span><strong>'.tdz::xml($ln).'</strong></span>' :'<span><a href="'.tdz::xml($sn.'?!'.$n).'">'.tdz::xml($ln).'</a></span>';
+        unset($k, $n);
+    }
+    $ls .= '</div>';
+    if(!isset($data)) $data = $ls;
+    else $data = $ls.$data;
+    unset($ls, $sn);
+}
+unset($App);
+
 $lang = (tdz::$lang) ?tdz::$lang :'en';
 ?><!doctype html><html lang="<?php echo $lang ?>"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title><?php if(isset($title)) echo $title ?></title><?php if(isset($meta)) echo $meta; ?><?php if(isset($style)) echo $style; ?></head><body class="no-js"><?php if(isset($data)) echo $data;if(isset($content)) echo $content; ?><?php if(isset($script)) echo $script; ?></body></html>

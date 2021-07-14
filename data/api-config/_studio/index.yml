@@ -15,12 +15,13 @@ all:
       # ![Studio](/_/img/studio-neg.svg) {.z-i-logo}
     scope:
       update:
-        "*Language": 
-          bind: app.language
-          format: select
-          type: string
+        "*Languages": 
+          bind: app.languages
+          format: checkbox
+          multiple: true
           choices: choicesLanguage
-          default: "en"
+          default: [ "en", "pt" ]
+          class: i-vlabel
         "*Version": 
           bind: studio.version
           format: select

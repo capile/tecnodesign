@@ -122,9 +122,14 @@ class Tecnodesign_Studio
             Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
         }
 
-        if(!self::$languages && isset(self::$app->tecnodesign['languages'])) self::$languages=self::$app->tecnodesign['languages'];
-
-        if(self::$languages) tdz::$lang=self::language(self::$languages);
+        if($lang=self::$app->config('app', 'language')) {
+            tdz::$lang = $lang;
+        } else {
+            if(!self::$languages) self::$languages=self::$app->config('app', 'languages');
+            if(self::$languages) {
+                self::language(self::$languages);
+            }
+        }
 
         if(is_null(self::$connection)) {
             if(isset(self::$app->studio['connection'])) {
@@ -194,7 +199,7 @@ class Tecnodesign_Studio
             $req = Tecnodesign_App::request();
             if(substr($req['query-string'],0,1)=='!' && in_array($lang=substr($req['query-string'],1), $l)) {
                 setcookie('lang',$lang,0,'/',false,false);
-                tdz::redirect($req['script-name'].'?'.$lang);
+                tdz::redirect($req['script-name'].'#'.$lang);
             }
             unset($lang);
             if(!(isset($_COOKIE['lang']) && ($lang=$_COOKIE['lang']) && (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))))) {

@@ -865,10 +865,10 @@ class Tecnodesign_App
         if(is_null(self::$_request)) {
             self::$_response=&tdz::$variables;
             self::$_response+=array('headers'=>array(),'variables'=>array());
-            $app = tdz::getApp();
-            if(isset($app->tecnodesign['response'])) {
-                self::$_response += $app->tecnodesign['response'];
+            if($r=tdz::getApp()->config('app', 'response')) {
+                self::$_response += $r;
             }
+            unset($r);
             self::$_request=array('started'=>microtime(true));
             self::$_request['shell']=TDZ_CLI;
             self::$_request['method']=(!self::$_request['shell'])?(strtolower($_SERVER['REQUEST_METHOD'])):('get');

@@ -32,6 +32,25 @@
   }
 }
 
+.s-language-selector {
+  position:absolute;
+  top: 1em;
+  right: 2em;
+  z-index: 1000;
+  color: @color;
+  font-size: 0.75em;
+  span:before {
+    content: ' | ';
+    display:inline-block;
+  }
+  span:first-child:before {
+    display:none;
+    content: '';
+  }
+  a:link, a:visited {color:@colorAltText;text-decoration:none;}
+  a:active, a:hover {color:@colorActive;text-decoration:none;}
+}
+
 .z-frame {
   position:relative;
   iframe {

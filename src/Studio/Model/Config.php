@@ -43,7 +43,22 @@ class Config extends Model
     {
         if(is_null($this->app)) $this->app = [];
         else if(isset($this->app['api-dir'])) unset($this->app['api-dir']);
-        if(is_null($this->user)) $this->user = [];
+
+        if(isset($this->app['languages']) && $this->app['languages']) {
+            if(count($this->app['languages'])==1) {
+                $this->app['language'] = array_shift($this->app['languages']);
+                unset($this->app['languages']);
+            } else {
+                $langs = $this->choicesLanguage();
+                $l = [];
+                foreach($this->app['languages'] as $lang) {
+                    if(isset($langs[$lang])) $l[$langs[$lang]] = $lang;
+                }
+                $this->app['languages'] = $l;
+            }
+        }
+
+        $this->user = [];
         $cfgs = [];
         if(isset($this->studio['enable_interface_credential']) && $this->studio['enable_interface_credential']) {
             $cfgs = Yaml::load(S_ROOT.'/data/config/config-credential.yml-example');
