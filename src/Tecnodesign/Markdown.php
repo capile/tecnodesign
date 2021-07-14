@@ -992,14 +992,11 @@ class Tecnodesign_Markdown extends Parsedown
     protected function blockFigureComplete($Block)
     {
         if(isset($Block['element']['caption'])) {
-            $line = $this->line($Block['element']['caption']);
+            $line = $this->element(['name'=>'figcaption', 'text'=>$Block['element']['caption']]);
             $Block['element']['handler']='multiple';
             $Block['element']['text'] = array(
                 $Block['element']['text'],
-                array(
-                    'name'=>'figcaption',
-                    'text'=>$line,
-                ),
+                $line,
             );
             $Block['element']['attributes']['title']=strip_tags($line);
             unset($Block['element']['caption']);
