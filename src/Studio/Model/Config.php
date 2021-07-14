@@ -22,7 +22,7 @@ class Config extends Model
 {
     public static $schema;
 
-    protected $studio, $tecnodesign, $user;
+    protected $app, $studio, $user;
 
     public function choicesStudioVersion()
     {
@@ -41,8 +41,9 @@ class Config extends Model
 
     public function checkConfiguration()
     {
-        $this->app = [];
-        $this->user = [];
+        if(is_null($this->app)) $this->app = [];
+        else if(isset($this->app['api-dir'])) unset($this->app['api-dir']);
+        if(is_null($this->user)) $this->user = [];
         $cfgs = [];
         if(isset($this->studio['enable_interface_credential']) && $this->studio['enable_interface_credential']) {
             $cfgs = Yaml::load(S_ROOT.'/data/config/config-credential.yml-example');
@@ -57,7 +58,11 @@ class Config extends Model
         if($cfgs) {
             foreach($cfgs['all'] as $k=>$v) {
                 if($k!='studio') {
-                    $this->$k = $v;
+                    if($this->$k) {
+                        $this->$k += $v;
+                    } else {
+                        $this->$k = $v;
+                    }
                 }
             }
         }

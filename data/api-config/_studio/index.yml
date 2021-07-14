@@ -16,7 +16,7 @@ all:
     scope:
       update:
         "*Language": 
-          bind: studio.language
+          bind: app.language
           format: select
           type: string
           choices: choicesLanguage
