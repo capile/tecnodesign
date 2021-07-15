@@ -55,6 +55,7 @@ class Tecnodesign_App
         $result,
         $http2push=false,
         $link;
+    protected static $configMap = ['tecnodesign'=>'app'];
     protected $_o=null;
 
     public function __construct($s, $siteMemKey=false, $env='prod')
@@ -1068,7 +1069,6 @@ class Tecnodesign_App
         return false;
     }
 
-    protected static $configMap = ['tecnodesign'=>'app'];
     /**
      * Magic setter. Searches for a set$Name method, and stores the value in $_vars
      * for later use.

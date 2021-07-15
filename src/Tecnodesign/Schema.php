@@ -101,15 +101,15 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
     public static function loadSchemaRef($ref)
     {
         if(is_null(static::$schemaDir)) {
-            static::$schemaDir = tdz::getApp()->config('tecnodesign', 'schema-dir');
+            static::$schemaDir = tdz::getApp()->config('app', 'schema-dir');
             if(!static::$schemaDir) {
                 static::$schemaDir = array();
             } else if(!is_array(static::$schemaDir)) {
                 static::$schemaDir = array(static::$schemaDir);
             }
         }
-        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(TDZ_ROOT.'/schema', static::$schemaDir)) {
-            static::$schemaDir[] = TDZ_ROOT.'/schema';
+        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(TDZ_ROOT.'/data/schema', static::$schemaDir)) {
+            static::$schemaDir[] = TDZ_ROOT.'/data/schema';
         }
 
         $src = array();

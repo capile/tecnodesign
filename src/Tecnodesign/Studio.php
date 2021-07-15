@@ -14,6 +14,7 @@
  */
 
 use Tecnodesign_Studio_Entry as Entry;
+use Tecnodesign_Studio_Content as Content;
 
 class Tecnodesign_Studio
 {
@@ -67,7 +68,7 @@ class Tecnodesign_Studio
             'index'=>['Studio\\Model\\Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
         ];
-    const VERSION = 2.5;    // should match the development branch 
+    const VERSION = 2.6;    // should match the development branch 
 
     /**
      * This is a Tecnodesign_App, the constructor is loaded once and then cached (until configuration changes)
@@ -388,8 +389,8 @@ class Tecnodesign_Studio
             }
             unset($tmp);
         }
-        if(!isset(tdzContent::$contentType[$ext])) return false;
-        else if(is_array(tdzContent::$disableExtensions) && in_array($ext, tdzContent::$disableExtensions)) return false;
+        if(!isset(Content::$contentType[$ext])) return false;
+        else if(is_array(Content::$disableExtensions) && in_array($ext, Content::$disableExtensions)) return false;
         $p = file_get_contents($page);
         if(!$p) return false;
         $meta = null;
@@ -407,9 +408,9 @@ class Tecnodesign_Studio
         }
         $id = substr($page, strlen(Tecnodesign_Studio::documentRoot()));
         $lmod = date('Y-m-d\TH:i:s', filemtime($page));
-        $C = new tdzContent(array(
+        $C = new Content(array(
             'id'=>tdz::hash($id, null, 'uuid'),
-            //'entry'=>tdzContent::entry($id),
+            //'entry'=>Content::entry($id),
             'slot'=>$slotname,
             'content'=>$p,
             'content_type'=>$ext,
@@ -427,7 +428,7 @@ class Tecnodesign_Studio
             if(isset($meta['attributes'])) unset($meta['attributes']);
             if(isset($meta['credential'])) unset($meta['credential']);
             if($meta) static::addResponse($meta);
-            foreach(tdzContent::$schema->properties as $fn=>$fd) {
+            foreach(Content::$schema->properties as $fn=>$fd) {
                 if(isset($meta[$fn])) $C->$fn = $meta[$fn];
                 unset($fd, $fn);
             }

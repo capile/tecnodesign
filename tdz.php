@@ -3174,7 +3174,7 @@ if(strpos($locale, '.')===false) {
 }
 unset($locale);
 
-define('STUDIO_VERSION', "2.5.0");
+define('STUDIO_VERSION', "2.6.0");
 if(!defined('TDZ_CLI')) {
     define('TDZ_CLI', (!isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SHELL'])));
 }
