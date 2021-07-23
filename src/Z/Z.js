@@ -118,7 +118,7 @@ function initZ(d)
     }
     if(!('timeout' in Z)) Z.timeout = 0;
     if(store && Z.timeout) Z.storage('z-auth', d, Z.timeout);
-    
+
     Z.ready(Z.init);
 }
 
@@ -176,7 +176,7 @@ Z.init=function(o)
             if(i.substr(0,2)=='Z_' && (i in window)) {
                 if(typeof(window[i])=='function') {
                     //Z.debug('adding plugin: '+i, window[i], Z.modules[i]);
-                    ifn=Z.addPlugin(i, window[i], Z.modules[i]);    
+                    ifn=Z.addPlugin(i, window[i], Z.modules[i]);
                     window[i]=null;
                     delete(window[i]);
                 }
@@ -426,7 +426,7 @@ Z.lang=function(s)
     }
 
     if(!(Z.language in Z.l)) {
-        Z.language = 'en'; 
+        Z.language = 'en';
     }
     return Z.language;
 };
@@ -736,7 +736,7 @@ function setReady(fn)
         if(!('time' in Z)) Z.time = new Date().getTime();
         return fn();
     }
-    // Mozilla, Opera, Webkit 
+    // Mozilla, Opera, Webkit
     if (document.addEventListener) {
         var _rel=function(){
             document.removeEventListener("DOMContentLoaded", _rel, false);
@@ -913,7 +913,7 @@ Z.deleteNode=function(o)
 Z.initCallback=function(o)
 {
     if(!o || !Z.node(o)) o=this;
-    var fn = o.getAttribute('data-callback'), 
+    var fn = o.getAttribute('data-callback'),
         e=o.getAttribute('data-callback-event'),
         nn=o.nodeName.toLowerCase(),
         C,
@@ -1095,6 +1095,7 @@ Z.l.pt.decimalSeparator = ',';
 Z.l.pt.thousandSeparator = '.';
 Z.l.pt.UploadSize='O arquivo é maior que o permitido.';
 Z.l.pt.UploadInvalidFormat='O formato do arquivo não é suportado.';
+Z.l.pt.EditorLimit='Limite: [n]/[t]';
 
 
 Z.l.en.add='Insert';
@@ -1109,6 +1110,7 @@ Z.l.en.decimalSeparator = '.';
 Z.l.en.thousandSeparator = ',';
 Z.l.en.UploadSize='Uploaded file exceeds the limit of %s.';
 Z.l.en.UploadInvalidFormat='File format is not supported.';
+Z.l.en.EditorLimit='Limit: [n]/[t]';
 
 // for timepickers
 Z.l.en.previousMonth = 'Previous Month';
@@ -1353,8 +1355,8 @@ Z.formatBytes=function(s, precision)
 Z.initToggleActive=function(o)
 {
     o=Z.node(this,o);
-    var id=o.getAttribute('id'), 
-        control=o.getAttribute('data-toggler-options'), 
+    var id=o.getAttribute('id'),
+        control=o.getAttribute('data-toggler-options'),
         el=((control && control.indexOf('self')>-1) || o.className.search(/\bz-toggler\b/)>-1) ?o :null,
         sibling=(control && control.indexOf('sibling')<0) ?false :true,
         child=(control && control.indexOf('child')<0) ?false :true,
@@ -1417,7 +1419,7 @@ function toggleDragStart(e)
     if(!dp) dp = '#'+id;
     _dragging = dp;
 
-    if(!(dp in _drag)) _drag[dp]={}; 
+    if(!(dp in _drag)) _drag[dp]={};
     _drag[dp].source = this;
     _drag[dp].area = dt
     _drag[dp].target = dp;
@@ -1459,7 +1461,7 @@ function applyDrag(id)
         return;
     }
 
-    var x = _drag[id].x - r.x, y = _drag[id].y - r.y, w0=100*_drag[id].x/r.width, w1=99.99-w0, 
+    var x = _drag[id].x - r.x, y = _drag[id].y - r.y, w0=100*_drag[id].x/r.width, w1=99.99-w0,
         L=(_drag[id].target) ?(document.querySelectorAll(_drag[id].target)) :[_drag[id].source], i=L.length, el, ds, s;
 
     while(i--) {
@@ -1540,7 +1542,7 @@ function ToggleActive()
     else if(this.getAttribute('data-toggler-options') && this.getAttribute('data-toggler-options').search(/\bself\b/)>-1) t=this;
     else this.previousSibling;
     if(!t) return;
-    var c=this.getAttribute('data-active-class'), o=t.getAttribute('data-toggler-options'), 
+    var c=this.getAttribute('data-active-class'), o=t.getAttribute('data-toggler-options'),
         drag=(o && o.indexOf('draggable')>-1) ?true :false,
         storage=(o && o.indexOf('storage')>-1) ?t.getAttribute('id') :null;
     if(!c)c='z-active';
@@ -1613,10 +1615,10 @@ if (!document.querySelectorAll) {
         styleTag = doc.createElement('STYLE');
         head.appendChild(styleTag);
         doc.__qsaels = [];
-         
+
         styleTag.styleSheet.cssText = selector + "{x:expression(document.__qsaels.push(this))}";
         window.scrollBy(0, 0);
-         
+
         return doc.__qsaels;
     };
 }
