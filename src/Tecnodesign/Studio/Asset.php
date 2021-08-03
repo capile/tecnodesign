@@ -196,7 +196,8 @@ class Tecnodesign_Studio_Asset
             if(!file_exists($tmpCss) || filemtime($tmpCss)<max($r['less'])) {
                 $this->parseLess(array_keys($r['less']), $tmpCss);
             }
-            $r['less'] = $tmpCss;
+            if(file_exists($tmpCss)) $r['less'] = $tmpCss;
+            else unset($r['less']);
         }
 
         if(isset($r['scss'])) {
@@ -226,9 +227,18 @@ class Tecnodesign_Studio_Asset
 
         if(isset(tdz::$minifier[$format])) {
             $s = '';
-            foreach($fs as $i=>$o) {
-                $s .= escapeshellarg($o).' ';
-                unset($i, $o);
+            $del = null;
+            if(count($fs)>1) {
+                $del = tempnam(dirname($outputFile), '.less-'.basename($outputFile));
+                $w = '';
+                foreach($fs as $i=>$o) {
+                    $w .= '@import '.escapeshellarg($o).";\n";
+                    unset($i, $o);
+                }
+                tdz::save($del, $w);
+                $s .= escapeshellarg($del).' ';
+            } else {
+                $s .= escapeshellarg(array_shift($fs)).' ';
             }
 
             $cmd = sprintf(tdz::$minifier[$format], $s, $outputFile);
@@ -249,7 +259,9 @@ class Tecnodesign_Studio_Asset
             }
 
             if(!preg_match('#^(/|[A-Z]:)#i', $cmd)) $cmd = TDZ_PROJECT_ROOT.'/'.$cmd;
-            return tdz::exec(['shell'=>$cmd]);
+            tdz::exec(['shell'=>$cmd]);
+            if($del) unlink($del);
+            return;
         }
 
 
