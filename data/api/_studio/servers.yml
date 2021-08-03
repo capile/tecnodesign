@@ -1,6 +1,6 @@
 ---
 all:
-  title: "*OAuth/API Connectors"
+  title: "*API Connectors"
   model: Studio\Model\Tokens
   actions:
     connect:
@@ -25,6 +25,7 @@ all:
     type: server
   options:
     priority: 1010
+    list-parent: interfaces
     index: true
     scope:
       uid:

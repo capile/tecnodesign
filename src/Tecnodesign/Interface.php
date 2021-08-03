@@ -2484,11 +2484,12 @@ class Tecnodesign_Interface extends Studio\Api
                 $pivot = '_x';
             }
         }
+        $I = static::current();
         if($R=$cn::find($q,null,$scope,false,$orderBy,$groupBy)) {
             //$x = [];
             $cmap = [];
             $kcols = [];
-            if(count($R) > $this->config('graphLegendMax') && isset($g['type']) && in_array($g['type'], ['donut','pie']) && isset($G['legend']['show'])) {
+            if(count($R) > $I->config('graphLegendMax') && isset($g['type']) && in_array($g['type'], ['donut','pie']) && isset($G['legend']['show'])) {
                 $G['legend']['show'] = false;
             }
             foreach($R as $i=>$o) {
