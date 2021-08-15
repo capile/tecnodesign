@@ -294,8 +294,8 @@ class Schema implements ArrayAccess
                 static::$schemaDir = array(static::$schemaDir);
             }
         }
-        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array(S_ROOT.'/schema', static::$schemaDir)) {
-            static::$schemaDir[] = S_ROOT.'/schema';
+        if(preg_match('/^(Tecnodesign_|Studio)/', $ref) && !in_array($rootSchema=S_ROOT.'/data/schema', static::$schemaDir)) {
+            static::$schemaDir[] = $rootSchema;
         }
 
         $src = array();
