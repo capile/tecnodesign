@@ -29,6 +29,8 @@ class Tecnodesign_Studio
         $webButton,
         $webInteractive,
         $cliInterface=true, // enable command-line interface
+        $resetInterfaceStyle=true,
+        $resetInterfaceScript=true,
         $checkOrigin=1,     // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $allowOrigin=[],
         $private=[],        // updated at runtime, indicates when a cache-control: private,nocache should be sent
@@ -257,8 +259,8 @@ class Tecnodesign_Studio
                 Tecnodesign_App::$assets[] = 'Z.Interface';
                 Tecnodesign_App::$assets[] = 'Z.Form';
                 Tecnodesign_App::response('layout', 'studio');
-                Tecnodesign_App::response('style', []);
-                Tecnodesign_App::response('script', []);
+                if(self::config('reset_interface_style')) Tecnodesign_App::response('style', []);
+                if(self::config('reset_interface_script')) Tecnodesign_App::response('script', []);
                 //tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //tdz::$assetsUrl = self::$home;
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));

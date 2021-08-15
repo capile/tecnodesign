@@ -16,7 +16,8 @@ if(isset($script)) {
     if(!is_array($script)) $script = explode(',', $script);
     foreach($script as $k=>$v) {
         if(is_string($k)) {
-            $js .= tdz::minify($v, TDZ_DOCUMENT_ROOT, true, true, false, tdz::$assetsUrl.'/'.$k.'.js');
+            $uk = (substr($k, 0, 1)=='/') ?$k :tdz::$assetsUrl.'/'.$k.'.js';
+            $js .= tdz::minify($v, TDZ_DOCUMENT_ROOT, true, true, false, $uk);
             unset($script[$k]);
         }
         unset($k, $v);
@@ -36,7 +37,8 @@ if(isset($style)) {
     if(!is_array($style)) $style = explode(',', $style);
     foreach($style as $k=>$v) {
         if(is_string($k)) {
-            $css .= tdz::minify($v, TDZ_DOCUMENT_ROOT, true, true, false, '/_/'.$k.'.css');
+            $uk = (substr($k, 0, 1)=='/') ?$k :tdz::$assetsUrl.'/'.$k.'.css';
+            $css .= tdz::minify($v, TDZ_DOCUMENT_ROOT, true, true, false, $uk);
             unset($style[$k]);
         }
         unset($k, $v);

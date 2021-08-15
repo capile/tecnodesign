@@ -57,6 +57,7 @@ function startup()
             trigger(null, true);
         }
         Z.bind(_Z, 'click', trigger);
+        Z.studioInterface = getInterface;
     }
 }
 
