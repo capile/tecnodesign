@@ -90,7 +90,7 @@ class Index extends Model
         return true;
     }
 
-    public static function indexInterface($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
+    public static function indexInterface($a, $icn=null, $scope='preview', $keyFormat=false, $valueFormat=false, $serialize=false)
     {
         $q = null;
         if(isset($a['search']) && $a['search']) $q = $a['search'];
@@ -181,6 +181,11 @@ class Index extends Model
                             'id'=>$pk,
                             'summary'=>(string) $o,
                             'indexed'=>TDZ_TIMESTAMP,
+                            'IndexBlob'=>[],
+                            'IndexBool'=>[],
+                            'IndexDate'=>[],
+                            'IndexNumber'=>[],
+                            'IndexText'=>[],
                         ];
                         if($fn_updated) {
                             $o->refresh($fn_updated);
@@ -214,15 +219,7 @@ class Index extends Model
                         if($preview=$o->asArray($pscope, $keyFormat, $valueFormat, $serialize)) {
                             foreach($preview as $n=>$v) {
                                 if(!S::isempty($n)) {
-                                    $type = (isset($o::$schema->properties[$n]->type)) ?$o::$schema->properties[$n]->type :'text';
-                                    if(is_array($v)) $v = S::serialize($v, 'json');
-                                    if($type=='text' && strlen($v)>2000) $type='blob';
-                                    else if($type=='int' || $type=='float' || $type=='decimal' || ($type=='text' && (is_int($v) || is_float($v)))) $type='number';
-                                    else if(substr($type, 0, 4)=='date') $type='date';
-                                    $rel = 'Index'.ucwords($type);
-
-                                    if(!isset($d[$rel])) $d[$rel] = [];
-                                    $d[$rel][] = ['interface'=>$id, 'id'=>$pk, 'name'=>(string)$n, 'value'=>$v];
+                                    self::propToRel($v, $n, (isset($o::$schema->properties[$n])) ?$o::$schema->properties[$n] :null, $d, $b);
                                 }
                             }
                         }
@@ -259,6 +256,56 @@ class Index extends Model
             }
         }
         if(S::$log>0) S::log('[INFO] Indexed '.$total.' '.$cn.' in '.S::formatNumber(microtime(true)-$t0, 5).'s (mem: '.S::formatBytes(memory_get_peak_usage(true)).')');
+    }
+
+    public static function propToRel($value, $name, $schema, &$output=[], $base=[])
+    {
+        static $map = ['string'=>'text', 'int64'=>'number', 'int'=>'number', 'float'=>'number', 'decimal'=>'number', 'char'=>'text', 'varchar'=>'text', 'nvarchar'=>'text', 'bit'=>'bool', 'boolean'=>'bool'];
+        if($schema && isset($schema['format'])) {
+            $type = $schema['format'];
+        } else if($schema && isset($schema['type'])) {
+            $type = $schema['type'];
+        } else {
+            $type = 'text';
+        }
+        if(is_array($value)) {
+            $subs = ($schema && $type=='object' && isset($schema['properties'])) ?$schema['properties'] :null;
+            $fd = (!$subs && $schema && $type=='array' && isset($schema['items'])) ?$schema['items'] :null;
+            foreach($value as $k=>$v) {
+                if($subs) {
+                    $fd = (isset($subs[$k])) ?$subs[$k] :null;
+                }
+                self::propToRel($v, $name.'.'.$k, $fd, $output, $base);
+            }
+            return $output;
+        }
+
+        if(isset($map[$type])) $type = $map[$type];
+        else if($type=='text' && is_string($value) && strlen($value)>2000) $type='blob';
+        else if(substr($type, 0, 4)=='date') $type='date';
+        else if(is_int($value) || is_float($value)) $type = 'number';
+
+        $rel = 'Index'.ucwords($type);
+        if(!isset($output[$rel])) $rel = 'IndexText';
+        $output[$rel][] = $base + ['name'=>(string)$name, 'value'=>$value];
+
+        return $output;
+    }
+
+    public function expandProperties($arr, $prefix=null)
+    {
+        if(is_array($arr)) {
+            $r = [];
+            foreach($arr as $k=>$v) {
+                $n = ($prefix) ?$prefix.'.'.$k :$k;
+                if(is_array($v)) $r += self::expandProperties($v, $n);
+                else $r[$n] = $v;
+            }
+
+            return $r;
+        } else {
+            return $arr;
+        }
     }
 
 

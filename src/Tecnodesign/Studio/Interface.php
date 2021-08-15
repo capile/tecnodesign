@@ -84,20 +84,16 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         }
 
         if($L = Interfaces::find($q,null,null,false)) {
-            $n = (isset(Studio::$interfaces['interfaces'])) ?Studio::$interfaces['interfaces'] :'interfaces';
-            if(isset($Is[$n])) {
-                $base['options'] = ['list-parent'=>$n];
-            }
 
             foreach($L as $i=>$o) {
-                $a = $o->asArray('interface');
-                if(isset($Is[$o->id])) {
-                    $Is[$o->id] = $a + $Is[$o->id];
+                if($f = $o->cacheFile()) {
+                    $a = S::config($f, S::env());
+                }
+                $oid = basename($f, '.yml');
+                if(isset($Is[$oid])) {
+                    $Is[$oid] = $a + $Is[$oid];
                 } else {
-                    $a += $base;
-                    $a['options']['priority'] = $i;
-                    $a['options']['index'] = ($o->index_interval > 0);
-                    $Is[$o->id] = $a;
+                    $Is[$oid] = $a;
                 }
             }
         }
@@ -107,9 +103,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 
     public static function configFile($s)
     {
-        if(Tecnodesign_Studio::config('enable_interface_index') && ($I=Interfaces::find($s,1))) {
-            $r = $I->cacheFile($s);
-        } else {
+        if(!Tecnodesign_Studio::config('enable_interface_index') || !($r=Interfaces::findCacheFile($s))) {
             $r = parent::configFile($s);
         }
 
