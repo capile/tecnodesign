@@ -107,7 +107,8 @@ class Tecnodesign_Database
             if(count($data)==1) $data = array_shift($data);
             else {
                 foreach($data as $f) {
-                    self::import($data);
+                    if($f===':import') continue;
+                    self::import($f);
                 }
                 return;
             }

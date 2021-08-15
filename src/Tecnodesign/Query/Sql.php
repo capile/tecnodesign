@@ -993,7 +993,7 @@ class Tecnodesign_Query_Sql
             return ($v && $v>0)?(1):(0);
         } else if((isset($d['format']) && $d['format']=='datetime') || (isset($d['type']) && $d['type']=='datetime')) {
             $ms = (int) static::$microseconds;
-            if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2}) ?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
+            if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2})[ T]?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
                 if(!isset($m[3]) || !$m[3]) {
                     return "'{$m[2]}T00:00:00'";
                 } else if(!isset($m[5]) || !$m[5]) {
