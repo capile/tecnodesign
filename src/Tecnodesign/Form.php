@@ -543,16 +543,13 @@ class Tecnodesign_Form implements ArrayAccess
             if(file_exists($arg['template'])) {
                 $tpl = $arg['template'];
             } else {
-                $app = tdz::getApp();
-                if(file_exists($app->tecnodesign['templates-dir'].'/'.$arg['template'])) {
-                    $tpl = $app->tecnodesign['templates-dir'].'/'.$arg['template'];
-                }
+                $tpl = tdz::templateFile(preg_replace('/\.php$/', '', $arg['template']), 'form');
             }
             unset($arg['template']);
         }
 
         if(!$tpl) {
-            $tpl = substr(__FILE__, 0, strlen(__FILE__)-4).'/Resources/templates/form.php';
+            $tpl = S_ROOT.'/data/templates/form.php';
         }
         $this->getEnctype();
         $this->getLimits();

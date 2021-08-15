@@ -1,0 +1,11 @@
+---
+all:
+  title: '*Welcome!'
+  options:
+    index: false
+    navigation: false
+    priority: ~
+  text: |
+    # ![Studio](/_/img/studio.svg) {.z-i-logo}
+  attributes:
+    class: z-i-no-summary z-i-no-actions z-i-no-breadcrumb

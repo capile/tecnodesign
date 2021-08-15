@@ -36,7 +36,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $attrCounterClass   = 'tdz-counter',
         $attrButtonsClass   = '',
         $attrButtonClass    = '',
-        $dir                = [ 'interface' ],
+        $dir                = [ 'api' ],
         $headingTemplate    = '<h2 class="z-title">$LABEL</h2><hr />',
         $actionAlias        = [
             'n'=>'new',
@@ -79,25 +79,21 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
     public static function find($q=null, $checkAuth=true)
     {
         $Is = parent::find($q, $checkAuth);
-        if(!Studio::config('enable_interfaces')) {
+        if(!Studio::config('enable_interface_index')) {
             return $Is;
         }
 
         if($L = Interfaces::find($q,null,null,false)) {
-            $n = (isset(Studio::$interfaces['interfaces'])) ?Studio::$interfaces['interfaces'] :'interfaces';
-            if(isset($Is[$n])) {
-                $base['options'] = ['list-parent'=>$n];
-            }
 
             foreach($L as $i=>$o) {
-                $a = $o->asArray('interface');
-                if(isset($Is[$o->id])) {
-                    $Is[$o->id] = $a + $Is[$o->id];
+                if($f = $o->cacheFile()) {
+                    $a = S::config($f, S::env());
+                }
+                $oid = basename($f, '.yml');
+                if(isset($Is[$oid])) {
+                    $Is[$oid] = $a + $Is[$oid];
                 } else {
-                    $a += $base;
-                    $a['options']['priority'] = $i;
-                    $a['options']['index'] = ($o->index_interval > 0);
-                    $Is[$o->id] = $a;
+                    $Is[$oid] = $a;
                 }
             }
         }
@@ -105,12 +101,10 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return $Is;
     }
 
-    public static function configFile($s, $enableStudio=null)
+    public static function configFile($s)
     {
-        if(Tecnodesign_Studio::config('enable_interfaces') && ($I=Interfaces::find($s,1))) {
-            $r = $I->cacheFile($s);
-        } else {
-            $r = parent::configFile($s, $enableStudio);
+        if(!Tecnodesign_Studio::config('enable_interface_index') || !($r=Interfaces::findCacheFile($s))) {
+            $r = parent::configFile($s);
         }
 
         return $r;
@@ -123,7 +117,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         $re = '/^(Tecnodesign_Studio_|Studio\\\Model\\\)/';
         if(isset($a['model']) && preg_match($re, $a['model'])) {
             $n = preg_replace($re, '', $a['model']);
-            if(!Tecnodesign_Studio::config('enable_interface_'.strtolower($n))) {
+            if(!Tecnodesign_Studio::enabledModels($a['model'])) {
                 $a['options']['navigation'] = null;
                 $a['options']['list-parent'] = false;
                 $a['options']['priority'] = null;
@@ -135,8 +129,23 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         // overwrite credentials
         if($prepare && !isset($a['credential'])) {
             $min = null;
-            foreach(self::$actionAlias as $aa=>$an) {
-                if(!is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$n))) {
+            if(!isset($a['actions'])) $a['actions'] = [];
+            $defaultActions = array_keys(static::$actionsAvailable);
+            if(isset($a['default-actions'])) {
+                if(!$a['default-actions']) {
+                    $defaultActions = array_keys($a['actions']);
+                } else {
+                    $defaultActions = (!is_array($a['default-actions'])) ?[$a['default-actions']] :$a['default-actions'];
+                    if(!isset($a['config'])) {
+                        $a['config'] = [];
+                    }
+                    $a['config']['actionsDefault'] = $defaultActions;
+                }
+            }
+            foreach(static::$actionsAvailable as $an=>$ad) {
+                if(!isset($a['actions'][$an]) && !in_array($an, $defaultActions)) {
+                    $a['actions'][$an] = false;
+                } else if(!is_null($c = Tecnodesign_Studio::credential($an.'Interface'.$n))) {
                     if($c===true) {
                         $min = $c;
                         $a['actions'][$an] = true;
@@ -217,5 +226,5 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 }
 
 if(TDZ_VAR!=TDZ_ROOT.'/data') {
-    Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/data/interface';
+    Tecnodesign_Studio_Interface::$dir[] = TDZ_ROOT.'/data/api';
 }

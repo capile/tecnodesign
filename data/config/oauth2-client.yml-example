@@ -1,6 +1,6 @@
 ---
 all:
-  tecnodesign:
+  app:
     routes:
       /signin/oauth2:
         class: Studio\OAuth2\Client

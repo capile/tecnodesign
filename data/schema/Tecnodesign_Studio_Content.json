@@ -1,0 +1,83 @@
+{
+    "title": "*Contents",
+    "database": "studio",
+    "tableName": "studio_contents",
+    "className": "Tecnodesign_Studio_Content",
+    "properties": {
+        "id": { "increment": "auto", "required": true, "primary": true },
+        "entry": { "type": "int", "index": [ "z_content__entry_idx" ] },
+        "slot": { "type": "string", "size": 50 },
+        "content_type": { "type": "string", "size": 100 },
+        "source": { "type": "string", "size": 200 },
+        "attributes": { "type": "string", "size": 2000, "serialize": "json" },
+        "content": { "type": "string", "serialize": "yaml" },
+        "position": { "type": "int" },
+        "published": { "format": "datetime", "type": "string", "index": [ "z_content__published_idx" ] },
+        "version": { "type": "int" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_content__expired_idx" ] },
+        "show_at": { "type": "string" },
+        "hide_at": { "type": "string" }
+    },
+    "relations": {
+        "ContentDisplay": { "local": "id", "foreign": "content", "type": "many", "className": "Tecnodesign_Studio_ContentDisplay" },
+        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_content__entry": "cascade" } }
+    },
+    "scope": {
+        "string": [ "id", "slot", "Entry.title _title" ],
+        "update": [ "content_type", "slot" ],
+        "studio-content": [ "content_type", "slot",  "_title", "_subtitle", "_html", "_img", "_entry", "_master", "_limit", "_hpp", "_options", "_script", "_pi", "_src", "_format", "_href", "_txt" ] ,
+        "review": { "*Id": "id", "*Page": "entry", "*Content Type": "content_type", "*Last Modified": "updated" },
+        "u-html":  ["content.title","content.subtitle","content.html","content.img","slot","position"], 
+        "u-php": ["content.script","content.pi","slot","position"],
+        "u-feed":["content.entry","content.master", "content.limit", "content.hpp","slot","position"],
+        "u-media":["content.src","content.title","content.alt","content.format","content.id","content.href","slot","position"],
+        "u-text":["content.txt","slot","position"],
+        "u-txt":["content.txt","slot","position"],
+        "u-widget":["content.app","slot","position"]
+    },
+    "order": {
+        "slot": "asc",
+        "position": "asc",
+        "updated": "desc"
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ],
+        "active-records": "`expired` is null"
+    },
+    "overlay": {
+        "content_type": {"bind": "content_type","label":"*Content Type","format": "select", "class": "i1s2","required":true},
+        "slot": {"bind": "slot", "label": "*Slot", "type": "select", "class": "i1s2", "choices": "choicesSlot" },
+        "content": {"bind": "content", "format": "form", "class": "studio-field-content" },
+        "content.title": { "label":"*Title"},
+        "content.subtitle":{"label":"*Subtitle"},
+        "content.html":{"label":"*Content","format":"html","class":"ih10","html_labels":true},
+        "content.img":{"label":"*Image","attributes":{"data-datalist-api":"/_studio/file/q?tipo=image&fields=URL&envelope=false"}},
+        "content.entry":{"label":"*Feed","format":"select","choices":"Tecnodesign_Studio_Entry","choices-filter":{"type":["feed", "page"]}},
+        "content.master":{"label":"*Template","format":"select","choices":"choicesMaster","class":"i1s2"},
+        "content.limit":{"label":"*Number of items","class":"i1s4"},
+        "content.hpp":{"label":"*Items per page","class":"i1s4"},
+        "content.options":{"label":"*Options","type":"checkbox","multiple":true,"class":"i-vlabel","choices":{"related":"*Related","linkhome":"*Include link to page","preview":"*Preview","filter":"*Enable search","nometa":"*Disable page metadata"}},
+        "content.script":{"label":"*Script"},
+        "content.pi":{"label":"*Script Code","format":"textarea","class":"ih10"},
+        "content.src":{"label":"*Source"},
+        "content.format":{"label":"*Media Format"},
+        "content.href":{"label":"*Link Target"},
+        "content.txt":{"label":"*Text","format":"textarea","class":"ih10"},
+        "position":{"label":"*Position","class":"i1s2","format":"int"}
+    },
+    "actAs": {
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "auto-increment": [ "version" ], "timestampable": [ "updated" ] },
+        "before-delete": { "auto-increment": [ "version" ], "timestampable": [ "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
+    }
+}

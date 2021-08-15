@@ -1,0 +1,19 @@
+{
+    "title": "*Configuration",
+    "database": "file:config;root=all&extension=yml",
+    "tableName": "config",
+    "className": "Studio\\Model\\Config",
+    "properties": {
+        "studio": { "type": "object" },
+        "app": { "type": "object" },
+        "user": { "type": "object" }
+    },
+    "scope": {
+        "string": [ "id" ]
+    },
+    "events": {
+        "before-save": "checkConfiguration",
+        "after-save": "reloadConfiguration"
+    }
+
+}

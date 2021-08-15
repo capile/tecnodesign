@@ -1,0 +1,72 @@
+{
+    "title": "*Entries",
+    "database": "studio",
+    "tableName": "studio_entries",
+    "className": "Tecnodesign_Studio_Entry",
+    "properties": {
+        "id": { "increment": "auto", "required": true, "primary": true },
+        "title": { "type": "string", "size": 200 },
+        "summary": { "type": "string" },
+        "link": { "type": "string", "size": 200, "index": [ "z_entry__link_idx" ] },
+        "source": { "type": "string", "size": 200 },
+        "format": { "type": "string", "size": 100, "index": [ "z_entry__format_idx" ] },
+        "published": { "type": "datetime", "index": [ "z_entry__published_idx" ] },
+        "language": { "type": "string", "size": 10 },
+        "type": { "type": "string", "size": 100, "index": [ "z_entry__type_idx" ] },
+        "master": { "type": "string", "size": 100 },
+        "version": { "type": "int", "default": "1" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true },
+        "expired": { "type": "datetime", "index": [ "z_entry__expired_idx" ] }
+    },
+    "relations": {
+        "Tag": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Tag" },
+        "Contents": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Content" },
+        "Permission": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Permission" },
+        "Child": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Parent": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Related": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Relation": { "local": "id", "foreign": "entry", "type": "many", "className": "Tecnodesign_Studio_Relation" },
+        "Children": { "local": "id", "foreign": "parent", "type": "many", "className": "Tecnodesign_Studio_Relation" }
+    },
+    "scope": {
+        "string": [ "title", "type", "id" ],
+        "link": [ "id", "link", "title", "summary" ],
+        "studio-new": [ "type", "title", "link", "summary", "published" ],
+        "studio-edit": [ "type", "title", "link", "summary", "published", "contents" ],
+        "review": { "*Title": "title", "*Link": "link", "*Summary": "summary", "*Last Modified": "updated" }
+    },
+    "order": {
+        "published": "desc",
+        "version": "desc"
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ],
+        "active-records": "`expired` is null"
+    },
+    "overlay": {
+        "type": { "bind": "type", "format": "select", "choices": "choicesTypes" },
+        "title": { "bind": "title", "required": true },
+        "link": { "bind": "link", "attributes": { "data-type": "url" } },
+        "summary": { "bind": "summary", "format": "textarea" },
+        "published": { "bind": "published", "format": "datetime" },
+        "contents": { "bind": "Contents", "format": "form" },
+        "master": { "bind": "master", "format":"select", "choices": "choicesMaster" },
+        "_tags": { "bind": "_tags", "multiple": true },
+        "source": { "bind": "source", "format": "file", "accept": {"uploader":true},"class":"app-file-preview"},
+        "_parent_wip": { "bind": "Related", "multiple": true, "format": "form", "scope": "parent" }
+    },
+    "actAs": {
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
+    }
+}

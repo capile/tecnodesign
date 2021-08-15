@@ -7,6 +7,7 @@ use Studio\Schema as Schema;
 use Studio\OAuth2\Storage as Storage;
 use Studio\OAuth2\Client as Client;
 use Tecnodesign_Schema_Model as ModelSchema;
+use Tecnodesign_Studio as Studio;
 use tdz as S;
 
 class Interfaces extends Model
@@ -128,10 +129,17 @@ class Interfaces extends Model
 
     public function cacheFile()
     {
-        $d = S::getApp()->config('tecnodesign', 'cache-dir').'/interface';
-        $f =  $d.'/'.S::slug($this->id).'.yml';
-        if(!file_exists($f)) {
-            $a = $this->asArray('interface');
+        static $n;
+        static $d;
+        static $i=1;
+
+        if(is_null($n)) $n = (isset(Studio::$interfaces['interfaces'])) ?Studio::$interfaces['interfaces'] :'interfaces';
+        if(is_null($d)) $d = S::getApp()->config('tecnodesign', 'cache-dir').'/interface';
+
+        $id = S::slug($this->id, '_', true);
+        $f =  $d.'/'.$id.'.yml';
+        if(!file_exists($f) || !$this->updated || !($t=strtotime($this->updated)) || $t>filemtime($f)) {
+            $a = ['interface'=>$id] + $this->asArray('interface');
             if(!isset($a['model'])) {
                 $a['model'] = 'Studio\\Model\\Index';
                 $a['search'] = ['interface'=>$this->id];
@@ -139,11 +147,23 @@ class Interfaces extends Model
                 $a['options']['scope']['uid'] = ['id'];
             }
 
+            if(!isset($a['options'])) $a['options'] = [];
+            $a['options']['list-parent']=$n;
+            $a['options']['priority'] = $i++;
+            $a['options']['index'] = ($this->index_interval > 0);
+
             if(!S::save($f, S::serialize(['all'=>$a], 'yaml'), true)) {
                 $f = null;
             }
         }
 
         return $f;
+    }
+
+    public static function findCacheFile($file)
+    {
+        $d = S::getApp()->config('tecnodesign', 'cache-dir').'/interface';
+        $f =  $d.'/'.S::slug($file, '_', true).'.yml';
+        if(file_exists($f)) return $f;
     }
 }

@@ -2,6 +2,10 @@
 
 namespace Studio\Model;
 
+use Studio\User;
+use Studio\Crypto;
+use tdz as S;
+
 class Users extends \Tecnodesign_Studio_User
 {
     public static $schema;
@@ -10,6 +14,13 @@ class Users extends \Tecnodesign_Studio_User
     public function __toString()
     {
         return ($this->name && $this->username) ?(string)"{$this->name} ({$this->username})" :(string)$this->username; 
+    }
+
+    public function setPassword($s)
+    {
+        if($s!==null) {
+            $this->password = Crypto::hash($s, null, User::$hashType);
+        }
     }
 
     public function getCredentials()

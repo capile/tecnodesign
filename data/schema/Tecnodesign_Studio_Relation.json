@@ -1,0 +1,44 @@
+{
+    "database": "studio",
+    "tableName": "studio_relations",
+    "className": "Tecnodesign_Studio_Relation",
+    "properties": {
+        "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
+        "parent": { "type": "int", "index": [ "z_relation__parent_idx" ] },
+        "entry": { "type": "int", "required": true, "index": [ "z_relation__entry_idx" ] },
+        "position": { "type": "int" },
+        "version": { "type": "int" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_relation__expired_idx" ] }
+    },
+    "relations": {
+        "Child": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_relation_child__entry": "cascade" } },
+        "Parent": { "local": "parent", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_relation_parent__entry": "cascade" } }
+    },
+    "scope": {
+        "string": [ "Parent.title _s" ],
+        "parent": [ "parent", "order" ]
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null",
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ]
+    },
+    "overlay": {
+        "parent": { "bind": "parent", "format": "select", "choices": "Tecnodesign_Studio_Entry" },
+        "position": { "bind": "position", "format": "int" }
+    },
+    "actAs": {
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created",     "updated" ], "sortable": [ "position" ] },
+        "before-update": { "timestampable": [ "updated" ], "sortable": [ "position" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ], "sortable": [ "position" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
+    }
+}

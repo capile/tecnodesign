@@ -1,0 +1,41 @@
+{
+    "title": "*Permissions",
+    "database": "studio",
+    "tableName": "studio_permissions",
+    "className": "Tecnodesign_Studio_Permission",
+    "properties": {
+        "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
+        "entry": { "type": "int", "index": [ "z_permission__entry_idx" ] },
+        "role": { "type": "string", "size": 100, "required": true },
+        "credentials": { "type": "string", "size": 1000 },
+        "version": { "type": "int" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string" }
+    },
+    "relations": {
+        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_permission__entry": "cascade" } }
+    },
+    "scope": [],
+    "events": {
+        "before-insert": [ "actAs", "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null",
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ]
+    },
+    "overlay": {
+        "role": { "bind": "role", "format": "select", "class": "i1s2", "choices": "choicesRole" },
+        "credentials": { "bind": "credentials", "format": "select", "class": "i1s2", "choices": "choicesCredentials", "multiple": true }
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ], "auto-increment": [ "id" ] },
+        "before-update": { "timestampable": [ "created", "updated" ] },
+        "before-delete": { "timestampable": [ "created", "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
+    }
+}

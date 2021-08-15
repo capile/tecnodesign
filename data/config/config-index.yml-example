@@ -1,0 +1,27 @@
+---
+all:
+  app:
+    routes:
+      /signin/oauth2:
+        class: Studio\OAuth2\Client
+        method: authorizeSignIn
+        static: true
+        additional-params: true
+      /signout/oauth2:
+        class: Studio\OAuth2\Client
+        method: signOut
+        static: true
+        additional-params: true
+  user:
+    model: Studio\Model\Users
+    ns:
+      oauth2-client:
+        name: OAuth2 Client
+        enabled: true
+        cookie: z-studio
+        class: Studio\OAuth2\Client
+        static: true
+        test: testing
+        export:
+          username: username
+          name: name

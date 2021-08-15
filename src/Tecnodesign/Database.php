@@ -114,10 +114,14 @@ class Tecnodesign_Database
             }
         }
         if(!is_array($data)) {
-            if(strpos($data, "\n")===false && file_exists($data)) {
-                $data = file_get_contents($data);
+            if(substr($data, 0, 1)=='{') {
+                $data = tdz::unserialize($data, 'json');
+            } else {
+                if(strpos($data, "\n")===false && file_exists($data)) {
+                    $data = file_get_contents($data);
+                }
+                $data = Tecnodesign_Yaml::load($data);
             }
-            $data = Tecnodesign_Yaml::load($data);
         }
         if(!is_array($data)) {
             return false;

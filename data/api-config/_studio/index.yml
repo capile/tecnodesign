@@ -1,0 +1,49 @@
+---
+all:
+  title: '*Welcome!'
+  model: Studio\Model\Config
+  id: config
+  default-actions: [ update ]
+  default-action: update
+  attributes:
+    class: z-i-no-summary z-i-no-actions z-i-no-breadcrumb z-i-color-alt z-i-splash
+  options:
+    index: false
+    navigation: true
+    priority: 999
+    before-update: |
+      # ![Studio](/_/img/studio-neg.svg) {.z-i-logo}
+    scope:
+      update:
+        "*Languages": 
+          bind: app.languages
+          format: checkbox
+          multiple: true
+          choices: choicesLanguage
+          default: [ "en", "pt" ]
+          class: i-vlabel
+        "*Version": 
+          bind: studio.version
+          format: select
+          type: string
+          choices: choicesStudioVersion
+          default: "2.5"
+        "*Set Admin Password":
+          bind: _admin_password
+          format: password
+        "*Enable Management Interface":
+          bind: studio.enable_interfaces
+          format: bool
+          default: 1
+        "*Enable Content Management":
+          bind: studio.enable_interface_content
+          format: bool
+          default: 1
+        "*Enable User Management":
+          bind: studio.enable_interface_credential
+          format: bool
+          default: 1
+        "*Enable API Management":
+          bind: studio.enable_interface_index
+          format: bool
+          default: 1

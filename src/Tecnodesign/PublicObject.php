@@ -12,9 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-class Tecnodesign_PublicObject implements ArrayAccess, Tecnodesign_AutoloadInterface
+class Tecnodesign_PublicObject implements ArrayAccess
 {
     const SCHEMA_PROPERTY='meta';
+    const AUTOLOAD_CALLBACK='staticInitialize';
 
     /**
      * Object initialization can receive an array as the initial values

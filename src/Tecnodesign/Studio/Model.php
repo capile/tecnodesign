@@ -10,7 +10,7 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_AutoloadInterface
+class Tecnodesign_Studio_Model extends Tecnodesign_Model
 {
     const SCHEMA_PROPERTY='schema';
     public static $allowNewProperties = true;
@@ -24,6 +24,9 @@ class Tecnodesign_Studio_Model extends Tecnodesign_Model implements Tecnodesign_
             if($conn && $conn!=$db && isset(tdz::$database[$conn])) {
                 tdz::$database[$db] = tdz::$database[$conn];
             }
+        }
+        if(static::$schema && ($version=Tecnodesign_Studio::config('compatibility_level')) && $version < 2.5) {
+            static::$schema->tableName = str_replace('studio_', 'tdz_', static::$schema->tableName);
         }
     }
 }

@@ -55,6 +55,7 @@ class Tecnodesign_App
         $result,
         $http2push=false,
         $link;
+    protected static $configMap = ['tecnodesign'=>'app'];
     protected $_o=null;
 
     public function __construct($s, $siteMemKey=false, $env='prod')
@@ -77,46 +78,55 @@ class Tecnodesign_App
             $this->_vars = tdz::config($s, $env);
         }
         unset($s);
-        $base = (isset($this->_vars['tecnodesign']['apps-dir'])) ?$this->_vars['tecnodesign']['apps-dir'] :null;
+        foreach(self::$configMap as $from=>$to) {
+            if(isset($this->_vars[$from])) {
+                if(!isset($this->_vars[$to])) $this->_vars[$to] = $this->_vars[$from];
+                else $this->_vars[$to] += $this->_vars[$from];
+                unset($this->_vars[$from]);
+            }
+            unset($from, $to);
+        }
+        $base = (isset($this->_vars['app']['apps-dir'])) ?$this->_vars['app']['apps-dir'] :null;
         if (!$base || $base === '.') {
             $base = TDZ_APP_ROOT;
-            $this->_vars['tecnodesign']['apps-dir'] = $base;
+            $this->_vars['app']['apps-dir'] = $base;
         }
-        if(!isset($this->_vars['tecnodesign']['controller-options'])) {
-            $this->_vars['tecnodesign']['controller-options']=self::$defaultController;
+        if(!isset($this->_vars['app']['controller-options'])) {
+            $this->_vars['app']['controller-options']=self::$defaultController;
         } else {
-            $this->_vars['tecnodesign']['controller-options']+=self::$defaultController;
+            $this->_vars['app']['controller-options']+=self::$defaultController;
         }
-        if(!isset($this->_vars['tecnodesign']['routes'])) {
-            $this->_vars['tecnodesign']['routes']=array();
+        if(!isset($this->_vars['app']['routes'])) {
+            $this->_vars['app']['routes']=array();
         }
-        foreach ($this->_vars['tecnodesign']['routes'] as $url=>$route) {
-            $this->_vars['tecnodesign']['routes'][$url]=$this->getRouteConfig($route);
+        foreach ($this->_vars['app']['routes'] as $url=>$route) {
+            $this->_vars['app']['routes'][$url]=$this->getRouteConfig($route);
         }
-        if(isset($this->_vars['tecnodesign']['default-route'])) {
-            $this->_vars['tecnodesign']['routes']['.*']=$this->getRouteConfig($this->_vars['tecnodesign']['default-route']);
+        if(isset($this->_vars['app']['default-route'])) {
+            $this->_vars['app']['routes']['.*']=$this->getRouteConfig($this->_vars['app']['default-route']);
         }
-        foreach ($this->_vars['tecnodesign'] as $name=>$value) {
+        foreach ($this->_vars['app'] as $name=>$value) {
             if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
                 if(is_array($value)) {
                     foreach($value as $i=>$dvalue) {
                         if(substr($dvalue, 0, 1)!='/' && substr($dvalue, 1, 1)!=':') {
                             $save = true;
-                            $this->_vars['tecnodesign'][$name][$i]=str_replace('\\', '/', realpath($base.'/'.$dvalue));
+                            $this->_vars['app'][$name][$i]=str_replace('\\', '/', realpath($base.'/'.$dvalue));
                         }
                     }
                 } else {
                     $save = true;
-                    $this->_vars['tecnodesign'][$name]=str_replace('\\', '/', realpath($base.'/'.$value));
+                    $this->_vars['app'][$name]=str_replace('\\', '/', realpath($base.'/'.$value));
                 }
             }
             unset($name, $value);
         }
         $this->cache();
         $this->start();
+        /*
         $save = false;
-        if(isset($this->_vars['tecnodesign']['addons']) && is_array($this->_vars['tecnodesign']['addons'])) {
-            foreach ($this->_vars['tecnodesign']['addons'] as $addon=>$load) {
+        if(isset($this->_vars['app']['addons']) && is_array($this->_vars['app']['addons'])) {
+            foreach ($this->_vars['app']['addons'] as $addon=>$load) {
                 if ($load) {
                     $save = true;
                     if (is_array($load) && isset($load['class'])) {
@@ -142,6 +152,7 @@ class Tecnodesign_App
         if($save){
             $this->cache();
         }
+        */
     }
 
     public static function getInstance($name=false, $env='prod', $expires=0)
@@ -195,14 +206,14 @@ class Tecnodesign_App
      */
     public function start()
     {
-        if(isset($this->_vars['tecnodesign']['lib-dir'])) {
+        if(isset($this->_vars['app']['lib-dir'])) {
             $sep = (isset($_SERVER['WINDIR']))?(';'):(':');
-            if(!is_array($this->_vars['tecnodesign']['lib-dir'])) {
-                $this->_vars['tecnodesign']['lib-dir'] = explode($sep, $this->_vars['tecnodesign']['lib-dir']);
+            if(!is_array($this->_vars['app']['lib-dir'])) {
+                $this->_vars['app']['lib-dir'] = explode($sep, $this->_vars['app']['lib-dir']);
             }
-            foreach ($this->_vars['tecnodesign']['lib-dir'] as $dir) {
+            foreach ($this->_vars['app']['lib-dir'] as $dir) {
                 if(substr($dir, 0, 1)!='/' && substr($dir, 1, 1)!=':') {
-                    $dir = $this->_vars['tecnodesign']['apps-dir'].'/'.$dir;
+                    $dir = $this->_vars['app']['apps-dir'].'/'.$dir;
                 }
                 if(!in_array($dir, tdz::$lib)) {
                     tdz::$lib[]=$dir;
@@ -211,18 +222,20 @@ class Tecnodesign_App
             $libdir = ini_get('include_path').$sep.implode($sep, tdz::$lib);
             @ini_set('include_path', $libdir);
         }
-        if(isset($this->_vars['tecnodesign']['languages'])) {
-            tdz::set('languages', $this->_vars['tecnodesign']['languages']);
+        if(isset($this->_vars['app']['languages'])) {
+            tdz::set('languages', $this->_vars['app']['languages']);
         }
-        if(isset($this->_vars['tecnodesign']['language'])) {
-            tdz::$lang = $this->_vars['tecnodesign']['language'];
+        if(isset($this->_vars['app']['language'])) {
+            tdz::$lang = $this->_vars['app']['language'];
         }
-        if(isset($this->_vars['tecnodesign']['document-root'])) {
-            $_SERVER['DOCUMENT_ROOT'] = $this->_vars['tecnodesign']['document-root'];
+        if(isset($this->_vars['app']['document-root'])) {
+            $_SERVER['DOCUMENT_ROOT'] = $this->_vars['app']['document-root'];
         }
+        /*
         if(isset($this->_vars['database']) && !tdz::$database) {
             tdz::$database = $this->_vars['database'];
         }
+        */
     }
 
     public static function end($output='', $status=200)
@@ -237,8 +250,8 @@ class Tecnodesign_App
     {
         self::$_request=null;
         self::request();
-        if(isset($this->_vars['tecnodesign']['export'])) {
-            foreach($this->_vars['tecnodesign']['export'] as $cn=>$toExport) {
+        if(isset($this->_vars['app']['export'])) {
+            foreach($this->_vars['app']['export'] as $cn=>$toExport) {
                 if($cn!=='tdz' && !tdz::classFile($cn)) {
                     $cn = 'Tecnodesign_'.tdz::camelize($cn, true);
                     if(!tdz::classFile($cn)) {
@@ -288,8 +301,8 @@ class Tecnodesign_App
                     $addonObject->$m();
                 }
             }
-            $routes = $this->_vars['tecnodesign']['routes'];
-            $defaults = $this->_vars['tecnodesign']['controller-options'];
+            $routes = $this->_vars['app']['routes'];
+            $defaults = $this->_vars['app']['controller-options'];
             $request = self::request();
             $valid = false;
             if (isset($routes[$request['script-name']])) {
@@ -442,8 +455,8 @@ class Tecnodesign_App
             self::status($error);
         }
         if(is_null($layout)) {
-            if(isset($this->_vars['tecnodesign']['controller-options']['layout'])) {
-                $layout = $this->_vars['tecnodesign']['controller-options']['layout'];
+            if(isset($this->_vars['app']['controller-options']['layout'])) {
+                $layout = $this->_vars['app']['controller-options']['layout'];
             }
         }
         if(tdz::templateFile('error'.$error)) self::$_response['template']='error'.$error;
@@ -635,8 +648,8 @@ class Tecnodesign_App
         if(is_array($url) && isset($url['url'])) {
             $options = $url;
             $url = $options['url'];
-        } else if(isset($this->_vars['tecnodesign']['routes'][$url])) {
-            $options = $this->_vars['tecnodesign']['routes'][$url];
+        } else if(isset($this->_vars['app']['routes'][$url])) {
+            $options = $this->_vars['app']['routes'][$url];
         } else {
             return false;
         }
@@ -693,7 +706,7 @@ class Tecnodesign_App
                         if(!is_array($po['choices'])) {
                             $po['choices'] = array();
                         }
-                        $this->_vars['tecnodesign']['routes'][$url]['params'][$pi]['choices']=$po['choices'];
+                        $this->_vars['app']['routes'][$url]['params'][$pi]['choices']=$po['choices'];
                         $this->cache();
                     }
                     if ($pv && isset($po['choices']) && !in_array($pv, $po['choices'])) {
@@ -836,7 +849,7 @@ class Tecnodesign_App
         if(!is_array($route)) {
             $route = array('method'=>$route);
         }
-        $route += $this->_vars['tecnodesign']['controller-options'];
+        $route += $this->_vars['app']['controller-options'];
         return $route;
     }
 
@@ -853,10 +866,10 @@ class Tecnodesign_App
         if(is_null(self::$_request)) {
             self::$_response=&tdz::$variables;
             self::$_response+=array('headers'=>array(),'variables'=>array());
-            $app = tdz::getApp();
-            if(isset($app->tecnodesign['response'])) {
-                self::$_response += $app->tecnodesign['response'];
+            if($r=tdz::getApp()->config('app', 'response')) {
+                self::$_response += $r;
             }
+            unset($r);
             self::$_request=array('started'=>microtime(true));
             self::$_request['shell']=TDZ_CLI;
             self::$_request['method']=(!self::$_request['shell'])?(strtolower($_SERVER['REQUEST_METHOD'])):('get');
@@ -1030,7 +1043,12 @@ class Tecnodesign_App
     {
         $a = func_get_args();
         $o = $this->_vars;
+        $first = true;
         while($v=array_shift($a)) {
+            if($first) {
+                if(isset(self::$configMap[$v])) $v = self::$configMap[$v];
+                $first = false;
+            }
             if(isset($o[$v])) {
                 $o=$o[$v];
             } else {
@@ -1062,6 +1080,7 @@ class Tecnodesign_App
      */
     public function  __set($name, $value)
     {
+        if(isset(self::$configMap[$name])) $name = self::$configMap[$name];
         $m='set'.ucfirst($name);
         if (method_exists($this, $m)) {
             $this->$m($value);
@@ -1079,6 +1098,7 @@ class Tecnodesign_App
      */
     public function  __get($name)
     {
+        if(isset(self::$configMap[$name])) $name = self::$configMap[$name];
         $m='get'.ucfirst($name);
         $ret = false;
         if (method_exists($this, $m)) {
