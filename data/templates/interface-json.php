@@ -14,30 +14,6 @@ $id = tdz::slug($url);
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
 
-// add headers
-// add messages
-// echo tdz::getUser()->getMessage(false, true), (isset($app))?($app):('');
-
-// add errors
-/*
-if(isset($error)): 
-    ?><div class="tdz-error"><?php 
-        if(is_array($error)) {
-            foreach($error as $e) echo '<div class="tdz-i-msg tdz-i-error"><p>', $e, '</p></div>';
-        } else {
-            echo $error; 
-        }
-    ?></div><?php 
-endif;
-*/
-// add preview
-// add summary
-/*
-if(isset($summary)) {
-    echo $summary;
-    Tecnodesign_App::response('summary', $summary);
-}
-*/
 $nonull = (in_array($Interface::format(), array('json', 'xml')));
 
 $r = array();

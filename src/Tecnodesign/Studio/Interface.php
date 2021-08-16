@@ -219,10 +219,12 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return parent::renderDelete($o, $scope);
     }
 
+    /*
     public static function error($code=500, $msg=null)
     {
         Tecnodesign_Studio::error($code);
     }
+    */
 }
 
 if(TDZ_VAR!=TDZ_ROOT.'/data') {
