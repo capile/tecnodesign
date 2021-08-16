@@ -259,7 +259,11 @@ class Tecnodesign_Studio_Asset
             }
 
             if(!preg_match('#^(/|[A-Z]:)#i', $cmd)) $cmd = TDZ_PROJECT_ROOT.'/'.$cmd;
-            tdz::exec(['shell'=>$cmd]);
+            $r = tdz::exec(['shell'=>$cmd]);
+            if(!file_exists($outputFile)) {
+                tdz::log('[WARN] Less parsing failed: '.$cmd, $r);
+            }
+            unset($r);
             if($del) unlink($del);
             return;
         }

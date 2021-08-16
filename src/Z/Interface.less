@@ -2066,12 +2066,12 @@ th > input[type=checkbox], td > input[type=checkbox] {
     width:100%;border:none;border-collapse:collapse;
   }
   tr {
-    background:@colorTab + @colorTabText - #161616;
+    background: fade(@colorTab, 8%);
     &:nth-child(even) {
-      background:@colorTab + @colorTabText - #111;
+      background: fade(@colorTab, 4%);
     }
     &:hover, &.on {
-      background:@colorActive * 1.2;
+      background:@colorActive * 1.25;
       a:hover,a:active {
         color:@link;
       }
