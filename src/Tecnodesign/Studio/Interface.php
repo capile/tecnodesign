@@ -54,6 +54,13 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 
     public static function t($s, $alt=null)
     {
+        $self = self::$className;
+        if(property_exists($self, $s)) {
+            $s = static::$$s;
+        } else if($alt) {
+            $s = $alt;
+        }
+
         return Tecnodesign_Studio::t($s, $alt, 'interface');
     }
 

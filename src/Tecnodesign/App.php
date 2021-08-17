@@ -392,7 +392,7 @@ class Tecnodesign_App
     public static function afterRun($exec=null, $next=false)
     {
         if($exec && $next) {
-            $t=microtime(true);
+            $t=($next===true) ?microtime(true) :$next;
             Tecnodesign_App::$afterRun[$t]=$exec;
             $nrun = Tecnodesign_Cache::get('nextRun', 0, null, true);
             if(!$nrun || !is_array($nrun)) {
