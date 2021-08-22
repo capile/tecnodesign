@@ -143,8 +143,8 @@ class Tecnodesign_Studio
         if(self::$connection==='studio' && !Tecnodesign_Query::database('studio')) {
             self::$connection = null;
         }
-        if(isset($_GET['!rev'])) {
-            self::$params['!rev'] = $_GET['!rev'];
+        if($rev=Tecnodesign_App::request('get', '!rev')) {
+            self::$params['!rev'] = $rev;
             self::$staticCache = 0;
         } else if(self::$cacheTimeout && self::$staticCache) {
             self::getStaticCache();

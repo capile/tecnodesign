@@ -1604,9 +1604,11 @@ class Tecnodesign_Interface extends Studio\Api
 
         if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
             $this->config['envelope'] = (bool)tdz::raw($p);
+            static::$envelope = $this->config['envelope'];
         }
         if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
             $this->config['pretty'] = (bool)tdz::raw($p);
+            static::$pretty = $this->config['pretty'];
         }
         unset($p);
 
@@ -1742,14 +1744,6 @@ class Tecnodesign_Interface extends Studio\Api
                 $req = $this->options['default-filter'];
             }
         }
-
-        if($p=Tecnodesign_App::request('get', static::REQ_ENVELOPE)) {
-            $this->config['envelope'] = (bool)tdz::raw($p);
-        }
-        if($p=Tecnodesign_App::request('get', static::REQ_PRETTY)) {
-            $this->config['pretty'] = (bool)tdz::raw($p);
-        }
-        unset($p);
 
         $cn = $this->getModel();
         if(isset($this->options['scope']) && is_array($this->options['scope'])) {

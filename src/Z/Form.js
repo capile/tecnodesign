@@ -184,6 +184,7 @@ function initDatalist(o)
     t.setAttribute('data-datalist-t', 1);
     t.setAttribute('data-datalist-q', Z.val(t));
     if(t.nodeName.toLowerCase()=='input') {
+        t.setAttribute('autocomplete', 'off');
         //Z.bind(t, 'keypress', tdz.delayedChange);
         Z.bind(t, 'keydown', datalistKeypress);
         Z.bind(t, 'focus', datalistQuery);
@@ -495,6 +496,7 @@ function initDatepicker()
 
     var id='p'+(_Pickerc++);
     this.setAttribute('data-datepicker', id);
+    this.setAttribute('autocomplete', 'off');
 
     if(Z.datepicker=='Pikaday') {
         var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false }, D, d;
