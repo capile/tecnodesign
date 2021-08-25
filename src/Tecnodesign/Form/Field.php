@@ -4,7 +4,7 @@
  * 
  * This package implements applications to build HTML forms
  * 
- * PHP version 5.6+
+ * PHP version 7.2+
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
@@ -1657,7 +1657,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $tpl = ($this->template) ?tdz::templateFile($this->template) :null;
         if (!$tpl && isset($arg['template'])) {
             if($arg['template']===false) $arg['template'] = 'input';
-            $tpl = tdz::templateFile($arg['template']);
+            $tpl = tdz::templateFile($arg['template'], $arg['template'].'.php');
         }
         if(!$tpl) {
             $tpl = S_ROOT.'/data/templates/field.php';

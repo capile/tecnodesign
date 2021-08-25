@@ -714,7 +714,7 @@ class Tecnodesign_Studio
 
     public static function templateDir()
     {
-        static $d = TDZ_ROOT.'/src/Tecnodesign/Resources/templates/';
+        static $d = S_ROOT.'/data/templates';
         if(is_null(tdz::$tplDir)) {
             tdz::templateDir();
         }
@@ -877,12 +877,9 @@ class Tecnodesign_Studio
         static $r;
 
         if(is_null($r)) {
-            if(!in_array($d=TDZ_ROOT.'/src/Tecnodesign/Resources/templates', tdz::templateDir())) {
-                tdz::$tplDir[] = $d;
-            }
             $r = [];
             $shift = strlen('tdz_'.$type);
-            foreach(tdz::$tplDir as $d) {
+            foreach(self::templateDir() as $d) {
                 $found = glob($d.'/tdz_'.$type.'*.php');
                 foreach($found as $f) {
                     $k = basename($f, '.php');
@@ -902,10 +899,7 @@ class Tecnodesign_Studio
      */
     public static function templateFile($tpl)
     {
-        if(!in_array($d=TDZ_ROOT.'/src/Tecnodesign/Resources/templates', tdz::templateDir())) {
-            tdz::$tplDir[] = $d;
-        }
-        unset($d);
+        self::templateDir();
         return tdz::templateFile(func_get_args());
     }
 
