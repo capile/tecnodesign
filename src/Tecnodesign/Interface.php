@@ -158,24 +158,7 @@ class Tecnodesign_Interface extends Studio\Api
         $formats=array( 'html', 'json', 'xls', 'xlsx', 'csv', 'yml', 'xml' ),
         $format,
         $ext,
-        $msg,
-        $statusCodes = array(
-            200 => 'OK',
-            201 => 'Created',
-            202 => 'Accepted',
-            301 => 'Moved Permanently',
-            302 => 'Found',
-            304 => 'Not Modified',
-            400 => 'Bad Request',
-            401 => 'Unauthorized',
-            403 => 'Forbidden',
-            404 => 'Not Found',
-            405 => 'Method Not Allowed',
-            409 => 'Conflict',
-            412 => 'Precondition Failed',
-            422 => 'Unprocessable Entity',
-            500 => 'Internal Server Error',
-        );
+        $msg;
 
 
     /**
@@ -773,9 +756,9 @@ class Tecnodesign_Interface extends Studio\Api
         return (!$c || tdz::getUser()->hasCredential($c, false));
     }
 
-    public function auth($action=null)
+    public function auth($action=null, $setStatus=null)
     {
-        return static::checkAuth($this->getAuth($action));
+        return static::checkAuth($this->getAuth($action), $setStatus);
     }
 
     public static function authHeaders($U=null, $h='private')
@@ -784,31 +767,35 @@ class Tecnodesign_Interface extends Studio\Api
         self::$headers[static::H_CACHE_CONTROL] = $h;
     }
 
-    public static function checkAuth($c)
+    public static function checkAuth($c, $setHeaders=null)
     {
         static $H, $U;
+        if(is_null($U)) {
+            $U = tdz::getUser();
+        }
         if(!is_array($c)) {
             if(!$c) return true;
-            if(is_null($U)) {
-                $U = tdz::getUser();
-            }
             if($U->isAuthenticated()) {
-                self::authHeaders($U);
+                if($setHeaders) {
+                    self::authHeaders($U);
+                }
                 return true;
             } else {
+                if($setHeaders) {
+                    static::error(401, static::t('errorForbidden'));
+                }
                 return false;
             }
         }
         if(isset($c['user']) && is_array($c['user'])) {
-            if(is_null($U)) {
-                $U = tdz::getUser();
-            }
             if($U->isAuthenticated() && ($uid=$U->getPk())) {
                 if(in_array($uid, $c['user'])) return true;
             }
         }
         if(isset($c['host']) && is_array($c['host'])) {
-            self::authHeaders();
+            if($setHeaders) {
+                self::authHeaders();
+            }
             if(is_null($H)) {
                 $H = (isset($_SERVER['REMOTE_ADDR']))?($_SERVER['REMOTE_ADDR']):(false);
             }
@@ -817,15 +804,19 @@ class Tecnodesign_Interface extends Studio\Api
             }
         }
         if(isset($c['credential'])) {
-            if(is_null($U)) {
-                $U = tdz::getUser();
-            }
             if(!$c['credential']) {
                 return true;
             } else {
-                self::authHeaders($U);
-                return $U->hasCredential($c['credential'], false);
+                if($setHeaders) {
+                    self::authHeaders($U);
+                }
+                if($U->hasCredential($c['credential'], false)) {
+                    return true;
+                }
             }
+        }
+        if($setHeaders) {
+            static::error(($U->isAuthenticated()) ?403 :401, static::t('errorForbidden'));
         }
         return false;
     }
@@ -873,8 +864,8 @@ class Tecnodesign_Interface extends Studio\Api
             unset($f);
             $cn = self::$className;
             $I = new $cn($n);
-            if(!$I->auth()) {
-                return static::error(403, static::t('errorForbidden'));
+            if(!$I->auth(null, true)) {
+                return false;
             }
             if($rn) {
                 $n = substr($n, 0, strlen($n) - strlen($rn));
@@ -1011,8 +1002,7 @@ class Tecnodesign_Interface extends Studio\Api
             $this->action = $a;
             static::$urls[$link=$this->link($a)] = [ 'title' => $this->getTitle(), 'action' => $a ];
 
-            if(!$this->auth($a)) {
-                static::error(403, static::t('errorForbidden'));
+            if(!$this->auth($a, true)) {
                 return false;
             }
             if((!isset($this->actions[$a]['additional-params']) || !$this->actions[$a]['additional-params']) && $p) {
@@ -1043,7 +1033,7 @@ class Tecnodesign_Interface extends Studio\Api
 
         // add status headers
         static::$headers = array(
-                static::H_STATUS=>static::$statusCodes[static::$status],
+                static::H_STATUS=>Tecnodesign_App::status(static::$status, false),
                 static::H_STATUS_CODE=>static::$status,
             ) + static::$headers;
         if(static::H_CACHE_CONTROL && !isset(static::$headers[static::H_CACHE_CONTROL])) {

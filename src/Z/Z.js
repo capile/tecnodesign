@@ -1,4 +1,4 @@
-/*! Tecnodesign Z v2.3 | (c) 2020 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z v2.6 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
 if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{},env:'prod',timestamp:null};
 (function(Z) {
 "use strict";
@@ -46,7 +46,7 @@ function initZ(d)
         // defining assets
         var L=document.querySelectorAll('script[src^="'+_assetUrl+'/z-.+\.js"]'), i=L.length;
         while(i--) {
-            Z.debug('asset '+L[i].getAttribute('src').replace(/\.js.*/, ''));
+            //Z.debug('asset '+L[i].getAttribute('src').replace(/\.js.*/, ''));
             _assets[L[i].getAttribute('src').replace(/\.js.*/, '')]=true;
         }
     }
@@ -1086,6 +1086,8 @@ if(!('l' in Z)) Z.l={en:{},pt:{}};
 Z.l.pt.add='Acrescentar';
 Z.l.pt.del='Excluir';
 Z.l.pt.Nothing='Nenhuma opção foi encontrada para esta consulta.';
+Z.l.pt.Error401='É necessário se autenticar para acessar esta página. Por favor experimente se conectar.';
+Z.l.pt.Error403='Parece que você não possui as credenciais para acessar esta página. Por favor experimente se conectar ou acessar com uma credencial diferente.';
 Z.l.pt.Error404='O recurso selecionado não existe (erro 404).';
 Z.l.pt.Error504='O recurso selecionado excedeu o tempo limite da requisição (erro 504).';
 Z.l.pt.Error='Houve um erro ao processar esta informação. Por favor tente novamente ou entre em contato com o suporte.';
@@ -1096,10 +1098,11 @@ Z.l.pt.thousandSeparator = '.';
 Z.l.pt.UploadSize='O arquivo é maior que o permitido.';
 Z.l.pt.UploadInvalidFormat='O formato do arquivo não é suportado.';
 
-
 Z.l.en.add='Insert';
 Z.l.en.del='Remove';
 Z.l.en.Nothing='No records were found.';
+Z.l.en.Error401='Authentication is required, and we could not authenticate your request. Please try signing in.';
+Z.l.en.Error403='Looks like you don\'t have enough credentials to access this page. Please try signing in or accessing it with a different username.';
 Z.l.en.Error404='The selected resource is not available (404 not found).';
 Z.l.en.Error504='The selected resource exceeded the response time limit (504 gateway error).';
 Z.l.en.Error='There was an error while processing this request. Please try again or contact support.';
@@ -1135,9 +1138,9 @@ Z.l.pt_BR = Z.l.pt;
 
 Z.error=function(msg)
 {
-    if('console' in window) console.log('ERROR', this);
+    Z.log('ERROR', this);
     for(var i=0;i<arguments.length;i++) {
-        console.log(arguments[i]);
+        Z.log(arguments[i]);
     }
 };
 
@@ -1151,7 +1154,7 @@ Z.log=function()
         }
         i++;
     }
-    console.log.apply(this, arguments);
+    if('console' in window) console.log.apply(this, arguments);
 };
 Z.debug=function()
 {
@@ -1323,11 +1326,11 @@ Z.formatNumber=function(n, d, ds, ts)
     if(!d) d=2;
     var x = (n.toFixed(d) + '').split('.');
     var x1 = x[0];
-    if(!ds) ds=Z.l[Z.language].decimalSeparator;
+    if(!ds) ds=Z.t('decimalSeparator');
     var x2 = x.length > 1 ? ds + x[1] : '';
     var rgx = /(\d+)(\d{3})/;
     while (rgx.test(x1)) {
-        if(!ts) ts = Z.l[Z.language].thousandSeparator;
+        if(!ts) ts = Z.t('thousandSeparator');
         x1 = x1.replace(rgx, '$1' + ts + '$2')
     }
     return x1 + x2;

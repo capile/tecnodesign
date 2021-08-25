@@ -442,18 +442,17 @@ class Tecnodesign_App
             500 => 'Internal Server Error',
         );
         if(!isset($status[$code])) $code = 500;
-        $proto = (isset($_SERVER['SERVER_PROTOCOL']))?($_SERVER['SERVER_PROTOCOL']):('HTTP/1.1');
-        @header($proto.' '.$code.' '.$status[$code], true);
-        return $code.' '.$status[$code];
+        if($header) {
+            $proto = (isset($_SERVER['SERVER_PROTOCOL']))?($_SERVER['SERVER_PROTOCOL']):('HTTP/1.1');
+            @header($proto.' '.$code.' '.$status[$code], true);            
+        }
+        return $status[$code];
     }
 
     public function runError($error, $layout=null)
     {
         @ob_clean();
-        if(!self::status($error)) {
-            $error = 500;
-            self::status($error);
-        }
+        self::status($error);
         if(is_null($layout)) {
             if(isset($this->_vars['app']['controller-options']['layout'])) {
                 $layout = $this->_vars['app']['controller-options']['layout'];
