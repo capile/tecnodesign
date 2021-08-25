@@ -1492,6 +1492,8 @@ function initHtmlEditor()
     Z.debug('initHtmlEditor: ', this);
     if(this.getAttribute('data-html-editor')) return;
     var a=(this.getAttribute('data-editor')), Editor, elcontainer;
+    var limit = this.getAttribute('maxlength') ?? 0;
+    limit = parseInt(limit);
 
     if(!a) {
         if('Quill' in window) a = 'Quill';
@@ -1500,6 +1502,13 @@ function initHtmlEditor()
     if(!(a in window)) return;
     this.setAttribute('data-html-editor', a);
 
+    if (limit > 0) {
+        var elcounter = Z.element({e:'div',p:{id:'z-editor-counter-'+this.id, className:'z-html-editor-counter'}},null,this);
+        elcounter.innerHTML = '<p>'+Z.l[Z.language].EditorLimit.replace('[n]','<span id="z-editor-counter-length-'+this.id+'" class="z-html-editor-length">0</span>').replace('[t]',limit)+'</p>';
+
+        var elcounter_length = elcounter.querySelector('span#z-editor-counter-length-'+this.id);
+    }
+
     var selfel = this;
     elcontainer = Z.element({e:'div',p:{id:'z-editor-'+this.id, className:'z-html-editor'}}, this);
 
@@ -1507,31 +1516,9 @@ function initHtmlEditor()
         Editor = pell.init({
           element: elcontainer,
           onChange: html => this.value = html,
-
-          // <string>, optional, default = 'div'
           // Instructs the editor which element to inject via the return key
           defaultParagraphSeparator: 'p',
           styleWithCSS: false,
-          /*
-
-          // <Array[string | Object]>, string if overwriting, object if customizing/creating
-          // action.name<string> (only required if overwriting)
-          // action.icon<string> (optional if overwriting, required if custom action)
-          // action.title<string> (optional)
-          // action.result<Function> (required)
-          // Specify the actions you specifically want (in order)
-          actions: [
-            'bold',
-            {
-              name: 'custom',
-              icon: 'C',
-              title: 'Custom Action',
-              result: () => console.log('Do something!')
-            },
-            'underline'
-          ],
-            */
-          // classes<Array[string]> (optional)
           // Choose your custom class names
           classes: {
             actionbar: 'z-editor-actionbar',
@@ -1569,8 +1556,9 @@ function initHtmlEditor()
             theme: 'snow'
         };
 
-        Editor = new Quill(elcontainer, options);
+        var totalchar = 0;
 
+        Editor = new Quill(elcontainer, options);
         Editor.container.firstChild.innerHTML = this.value;
         Editor.on('text-change', function(delta, oldDelta, source) {
             if (source == 'user') {
@@ -1580,6 +1568,28 @@ function initHtmlEditor()
                 } else {
                     selfel.value = Editor.root.innerHTML;
                 }
+
+                totalchar = Editor.getLength() ?? 0;
+
+                /* TODO
+                if (totalchar > limit && limit > 0) {
+                    var diffchar = (totalchar-limit);
+                    Editor.deleteText(limit, diffchar);
+                }*/
+            }
+
+            elcounter_length.innerText = totalchar;
+            if (totalchar > limit) {
+                elcounter_length.classList.add('exceed');
+            } else if (totalchar < limit) {
+                elcounter_length.classList.remove('exceed');
+            }
+
+            if (totalchar > (limit-((limit*5)/100)) && totalchar < limit) {
+                elcounter_length.classList.remove('exceed');
+                elcounter_length.classList.add('closing');
+            } else if (totalchar < (limit-((limit*5)/100)))
+                elcounter_length.classList.remove('closing');{
             }
         });
     }
