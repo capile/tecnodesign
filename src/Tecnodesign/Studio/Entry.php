@@ -113,7 +113,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         else if($c==='*') $c = false;
 
         if($c && !(($U=tdz::getUser()) && $U->hasCredential($c, false))) {
-            Tecnodesign_Studio::error(403);
+            Tecnodesign_Studio::error($U->isAuthenticated() ?403 :401);
             return false;
         }
         if($c) {
@@ -416,7 +416,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         }
 
         if($c && !(($U=tdz::getUser()) && $U->hasCredential($c, false))) {
-            Tecnodesign_Studio::error(403);
+            Tecnodesign_Studio::error($U->isAuthenticated() ?403 :401);
             return false;
         }
         $file = $this->filePreview();

@@ -14,6 +14,7 @@
  */
 
 use Tecnodesign_Studio_Entry as Entry;
+use Tecnodesign_Studio_Content as Content;
 
 class Tecnodesign_Studio
 {
@@ -29,6 +30,8 @@ class Tecnodesign_Studio
         $webButton,
         $webInteractive,
         $cliInterface=true, // enable command-line interface
+        $resetInterfaceStyle=true,
+        $resetInterfaceScript=true,
         $checkOrigin=1,     // prevents sending user details to external origins, use 2 to prevent even to unknown origins
         $allowOrigin=[],
         $private=[],        // updated at runtime, indicates when a cache-control: private,nocache should be sent
@@ -62,11 +65,12 @@ class Tecnodesign_Studio
         ],
         $cliApps=[
             'config'=>['Tecnodesign_App_Install','config'],
-            'check'=>['Tecnodesign_Studio_Index', 'checkConnection'],
-            'index'=>['Tecnodesign_Studio_Index','reindex'],
+            'start'=>['Studio\\Model\\Config','standaloneConfig'],
+            'check'=>['Studio\\Model\\Index', 'checkConnection'],
+            'index'=>['Studio\\Model\\Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
         ];
-    const VERSION = 2.5;    // should match the development branch 
+    const VERSION = 2.6;    // should match the development branch 
 
     /**
      * This is a Tecnodesign_App, the constructor is loaded once and then cached (until configuration changes)
@@ -121,9 +125,14 @@ class Tecnodesign_Studio
             Tecnodesign_App::$assets[] = '!'.Tecnodesign_Form::$assets;
         }
 
-        if(!self::$languages && isset(self::$app->tecnodesign['languages'])) self::$languages=self::$app->tecnodesign['languages'];
-
-        if(self::$languages) tdz::$lang=self::language(self::$languages);
+        if($lang=self::$app->config('app', 'language')) {
+            tdz::$lang = $lang;
+        } else {
+            if(!self::$languages) self::$languages=self::$app->config('app', 'languages');
+            if(self::$languages) {
+                self::language(self::$languages);
+            }
+        }
 
         if(is_null(self::$connection)) {
             if(isset(self::$app->studio['connection'])) {
@@ -134,8 +143,8 @@ class Tecnodesign_Studio
         if(self::$connection==='studio' && !Tecnodesign_Query::database('studio')) {
             self::$connection = null;
         }
-        if(isset($_GET['!rev'])) {
-            self::$params['!rev'] = $_GET['!rev'];
+        if($rev=Tecnodesign_App::request('get', '!rev')) {
+            self::$params['!rev'] = $rev;
             self::$staticCache = 0;
         } else if(self::$cacheTimeout && self::$staticCache) {
             self::getStaticCache();
@@ -193,7 +202,7 @@ class Tecnodesign_Studio
             $req = Tecnodesign_App::request();
             if(substr($req['query-string'],0,1)=='!' && in_array($lang=substr($req['query-string'],1), $l)) {
                 setcookie('lang',$lang,0,'/',false,false);
-                tdz::redirect($req['script-name'].'?'.$lang);
+                tdz::redirect($req['script-name'].'#'.$lang);
             }
             unset($lang);
             if(!(isset($_COOKIE['lang']) && ($lang=$_COOKIE['lang']) && (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))))) {
@@ -221,7 +230,7 @@ class Tecnodesign_Studio
     private static function _runInterface($url=null)
     {
         if(!$url) $url = substr(tdz::scriptName(), strlen(self::$home));
-        if(strpos($url, '.')!==false && !strpos($url, '/')) {
+        if(strpos($url, '.')!==false && !strpos($url, '/', 1)) {
             if(substr($url, 0, 1)=='.') $url = '/studio'.$url;
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
             if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Z', true) 
@@ -243,7 +252,7 @@ class Tecnodesign_Studio
                 tdz::scriptName(self::$home);
                 tdz::$translator = 'Tecnodesign_Studio::translate';
                 Tecnodesign_App::response('layout', 'layout');
-                tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
+                //tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
                 //Tecnodesign_App::response('style', array('/studio.less'));
                 return $In::run();
@@ -257,8 +266,8 @@ class Tecnodesign_Studio
                 Tecnodesign_App::$assets[] = 'Z.Interface';
                 Tecnodesign_App::$assets[] = 'Z.Form';
                 Tecnodesign_App::response('layout', 'studio');
-                Tecnodesign_App::response('style', []);
-                Tecnodesign_App::response('script', []);
+                if(self::config('reset_interface_style')) Tecnodesign_App::response('style', []);
+                if(self::config('reset_interface_script')) Tecnodesign_App::response('script', []);
                 //tdz::$variables['document-root'] = dirname(__FILE__).'/Resources/assets';
                 //tdz::$assetsUrl = self::$home;
                 //Tecnodesign_App::response('script', array('/z.js','/studio.js','/interface.js'));
@@ -382,8 +391,8 @@ class Tecnodesign_Studio
             }
             unset($tmp);
         }
-        if(!isset(tdzContent::$contentType[$ext])) return false;
-        else if(is_array(tdzContent::$disableExtensions) && in_array($ext, tdzContent::$disableExtensions)) return false;
+        if(!isset(Content::$contentType[$ext])) return false;
+        else if(is_array(Content::$disableExtensions) && in_array($ext, Content::$disableExtensions)) return false;
         $p = file_get_contents($page);
         if(!$p) return false;
         $meta = null;
@@ -401,9 +410,9 @@ class Tecnodesign_Studio
         }
         $id = substr($page, strlen(Tecnodesign_Studio::documentRoot()));
         $lmod = date('Y-m-d\TH:i:s', filemtime($page));
-        $C = new tdzContent(array(
+        $C = new Content(array(
             'id'=>tdz::hash($id, null, 'uuid'),
-            //'entry'=>tdzContent::entry($id),
+            //'entry'=>Content::entry($id),
             'slot'=>$slotname,
             'content'=>$p,
             'content_type'=>$ext,
@@ -421,7 +430,7 @@ class Tecnodesign_Studio
             if(isset($meta['attributes'])) unset($meta['attributes']);
             if(isset($meta['credential'])) unset($meta['credential']);
             if($meta) static::addResponse($meta);
-            foreach(tdzContent::$schema->properties as $fn=>$fd) {
+            foreach(Content::$schema->properties as $fn=>$fd) {
                 if(isset($meta[$fn])) $C->$fn = $meta[$fn];
                 unset($fd, $fn);
             }
@@ -734,7 +743,7 @@ class Tecnodesign_Studio
     {
         if(self::$index) {
             // check if the studio connection should be set or changed to self::$index, if it's a string
-            Tecnodesign_Studio_Index::check($M, $interface);
+            Studio\Model\Index::check($M, $interface);
         }
     }
 
@@ -969,6 +978,62 @@ class Tecnodesign_Studio
     public static function interfaceAddress($s)
     {
         return tdz::decrypt($s, null, 'uuid');
+    }
+
+
+    public static function enabledModels($model=null)
+    {
+        static $models, $compatibility=[
+            'Tecnodesign_Studio_Entry'=>'Studio\\Model\\Entries',
+            'Tecnodesign_Studio_Content'=>'Studio\\Model\\Contents',
+            'Tecnodesign_Studio_ContentDisplay'=>'Studio\\Model\\ContentsDisplay',
+            'Tecnodesign_Studio_Relation'=>'Studio\\Model\\Relations',
+            'Tecnodesign_Studio_Tag'=>'Studio\\Model\\Tags',
+        ], $compatible=false;
+
+        if(is_null($models)) {
+            $models = [];
+            $cfg = [
+                'content'=>[
+                    'Studio\\Model\\Entries',
+                    'Studio\\Model\\Contents',
+                    'Studio\\Model\\ContentsDisplay',
+                    'Studio\\Model\\Relations',
+                    'Studio\\Model\\Tags',
+                    'Studio\\Model\\Permissions',
+                ],
+                'credential'=>[
+                    'Studio\\Model\\Users',
+                    'Studio\\Model\\Groups',
+                    'Studio\\Model\\Credentials',
+                ],
+                'index'=>[
+                    'Studio\\Model\\Interfaces',
+                    'Studio\\Model\\Tokens',
+                    'Studio\\Model\\Index',
+                    'Studio\\Model\\IndexBlob',
+                    'Studio\\Model\\IndexBool',
+                    'Studio\\Model\\IndexDate',
+                    'Studio\\Model\\IndexNumber',
+                    'Studio\\Model\\IndexText',
+                ],
+            ];
+            if(($version=self::config('compatibility_level')) && $version < 2.5) {
+                $compatible = true;
+                $cfg['content'] = array_keys($compatibility);
+            }
+            foreach($cfg as $n=>$cns) {
+                if(self::config('enable_interface_'.$n)) {
+                    $models = ($models) ?array_merge($models, $cns) :$cns;
+                }
+            }
+        }
+        if(!is_null($model)) {
+            if(isset($compatibility[$model]) && !$compatible) $model = $compatibility[$model];
+            return (in_array($model, $models)) ?$model :null;
+        }
+
+        return $models;
     }
 }
 

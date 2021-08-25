@@ -1,6 +1,6 @@
 ---
 all:
-  tecnodesign:
+  app:
     routes:
       schema:
         class: Tecnodesign_Database

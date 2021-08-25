@@ -1,0 +1,22 @@
+{
+    "ref": "Tecnodesign_Studio_User",
+    "className": "Studio\\Model\\Users",
+    "tableName": "studio_users",
+    "properties": {
+        "id": { "type": "int", "min": 0, "increment": "auto", "primary": true, "required": true },
+        "username": { "type": "string", "size": 100, "required": true, "index": [ "studio_users__username_idx" ] },
+        "login": { "alias": "username" },
+        "name": { "type": "string", "size": 200 },
+        "password": { "type": "string", "size": 200 },
+        "email": { "type": "string", "format": "email", "size": 100, "index": [ "studio_email__email_idx" ] },
+        "details": { "type": "string", "size": 10000 },
+        "accessed": { "format": "datetime", "type": "string" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "studio_users__expired_idx" ] }
+
+    },
+    "relations": {
+        "Credentials": { "local": "id", "foreign": "user", "type": "many", "className": "Studio\\Model\\Credentials" }
+    }
+}

@@ -572,7 +572,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         }
         $valid = true;
         $M = $this->getModel();
-        $schema = $M::schema();
+        $schema = $M::$schema;;
         $sid = $scope = (!$this->scope)?('subform'):($this->scope);
         $errors=[];
 
@@ -1660,7 +1660,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $tpl = tdz::templateFile($arg['template']);
         }
         if(!$tpl) {
-            $tpl = TDZ_ROOT.'/src/Tecnodesign/Resources/templates/field.php';
+            $tpl = S_ROOT.'/data/templates/field.php';
         }
         $run['script']=$tpl;
         $run['variables']['input']=$input;

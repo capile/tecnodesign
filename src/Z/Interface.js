@@ -511,9 +511,9 @@
                 }
                 if(!valid) {
                     if (m) {
-                        msg(Z.l[Z.language].moreRecord, 'z-i-error');
+                        msg(Z.t('moreRecord'), 'z-i-error');
                     } else {
-                        msg(Z.l[Z.language].noRecordSelected, 'z-i-error');
+                        msg(Z.t('noRecordSelected'), 'z-i-error');
                     }
                     return false;
                 }
@@ -1336,10 +1336,11 @@
         /*jshint validthis: true */
         var mid = 'Error';
         if(status) mid += String(status);
-        var m=(mid in Z.l[Z.language]) ?Z.l[Z.language][mid] :Z.l[Z.language].Error;
+        var m=Z.t(mid);
+        if(!m || m==mid) m=Z.t('Error');
         Z.error.call(this, m);
         msg(m, 'tdz-i-error');
-        Z.delay(msg, 5000, 'msg');
+        Z.delay(msg, 10000, 'msg');
         Z.focus(_root.querySelector('.tdz-i-body.tdz-blur'));
         if(this.className.search(/\btdz-i-off\b/)>-1) Z.deleteNode(this);
     }

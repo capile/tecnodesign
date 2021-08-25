@@ -184,6 +184,7 @@ function initDatalist(o)
     t.setAttribute('data-datalist-t', 1);
     t.setAttribute('data-datalist-q', Z.val(t));
     if(t.nodeName.toLowerCase()=='input') {
+        t.setAttribute('autocomplete', 'off');
         //Z.bind(t, 'keypress', tdz.delayedChange);
         Z.bind(t, 'keydown', datalistKeypress);
         Z.bind(t, 'focus', datalistQuery);
@@ -408,7 +409,7 @@ function datalistRender(d)
         }
     }
     if(!p) {
-        p={e:'li',p:{className:'z-i-msg z-i-alert'},c:Z.l[Z.language].Nothing};
+        p={e:'li',p:{className:'z-i-msg z-i-alert'},c:Z.t('Nothing')};
         Z.element.call(c,p);
     }
     return _D;
@@ -486,7 +487,7 @@ function datalistOption()
 }
 //Z.datalistOption = datalistOption;
 
-var _Picker={}, _Pickerc=0, _PickerT=0;
+var _Picker={}, _Pickerc=0, _PickerT=0, _P18n;
 function initDatepicker()
 {
     /*jshint validthis: true */
@@ -495,14 +496,26 @@ function initDatepicker()
 
     var id='p'+(_Pickerc++);
     this.setAttribute('data-datepicker', id);
+    this.setAttribute('autocomplete', 'off');
 
     if(Z.datepicker=='Pikaday') {
-        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: Z.l[Z.language], format:Z.l[Z.language].dateFormat, showTime: false }, D, d;
+        if(!_P18n) _P18n = {
+            previousMonth:Z.t('previousMonth'),
+            nextMonth:Z.t('nextMonth'),
+            months:Z.t('months'),
+            weekdays:Z.t('weekdays'),
+            weekdaysShort:Z.t('weekdaysShort'),
+            midnight:Z.t('midnight'),
+            noon:Z.t('noon'),
+            dateFormat:Z.t('dateFormat'),
+            timeFormat:Z.t('timeFormat')
+        };
+        var t=this.getAttribute('data-type'), cfg={ field: this, i18n: _P18n, format:Z.t('dateFormat'), showTime: false }, D, d;
         if(!t) t=this.getAttribute('type');
         if(t && t.search(/time/)>-1) {
             cfg.showTime = true;
             cfg.use24Hour = true;
-            cfg.format+= ' '+Z.l[Z.language].timeFormat;
+            cfg.format+= ' '+Z.t('timeFormat');
         }
         if(this.value) {
             if('moment' in window) {
@@ -1627,7 +1640,7 @@ function initChoicesJs()
 
 function Form(o)
 {
-    Z.debug('Form', o);
+    //Z.debug('Form', o);
     var q='Z_Form';
     if(!('initDatePicker' in Z)) Z.initDatepicker = initDatepicker;
     if(q in Z.modules) {

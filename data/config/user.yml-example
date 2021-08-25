@@ -1,6 +1,6 @@
 ---
 all:
-  tecnodesign:
+  app:
     routes:
       /signin:
         class: Studio\User
@@ -19,8 +19,8 @@ all:
           signout: /signout
           signedout: /
   user:
-    super-admin: Administrator
-    icons: /_/img/connect.png
+    super-admin: Administrators
+    icons: /_/img/studio.png
     model: ~
     credentials:
       Author: ~

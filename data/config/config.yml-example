@@ -1,0 +1,29 @@
+---
+all:
+  studio:
+    version: 2.5
+    connection: studio
+    enable_interfaces: true
+  app:
+    api-dir: [ data/api-config ]
+    languages:
+      English: en
+      Português: pt
+  user:
+    super-admin: Administrators
+    credentials:
+      Administrators: ~
+    ns:
+      host:
+        name: Host-based authentication
+        enabled: true
+        type: host
+        cookie: false
+        options:
+          hosts:
+            127.0.0.1:
+              id: admin
+              username: Administrator
+              credentials: [ Administrators ]
+        export:
+          username: username

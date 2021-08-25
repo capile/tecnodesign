@@ -517,13 +517,14 @@ class Tecnodesign_Query_Sql
         if($f==='null' || $f===false || (substr($f, 0, 1)=='-' && substr($f,-1)=='-')) {
             return false;
         } else if(preg_match_all('#`([^`]+)`#', $fn, $m)) {
-            $r = $s = array();
+            $r = [];
             foreach($m[1] as $i=>$nfn) {
-                $s[]=$m[0][$i];
-                $r[]=$this->getAlias($nfn, $ref, true);
-                unset($i, $nfn);
+                if(!isset($r[$m[0][$i]])) {
+                    $r[$m[0][$i]]=$this->getAlias($nfn, $ref, true);
+                    unset($i, $nfn);
+                }
             }
-            return str_replace($s, $r, $fn);
+            return strtr($fn, $r);
         } else if(preg_match('#^([a-z\.0-9A-Z_]+)\s+(as\s+)?([a-z\.0-9A-Z_]+)$#', trim($fn), $m) && ($r = $this->getAlias($m[1], $ref, true))) {
             return $r.' '.tdz::sql($m[3]);
         } else if($r===false) {
@@ -992,7 +993,7 @@ class Tecnodesign_Query_Sql
             return ($v && $v>0)?(1):(0);
         } else if((isset($d['format']) && $d['format']=='datetime') || (isset($d['type']) && $d['type']=='datetime')) {
             $ms = (int) static::$microseconds;
-            if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2}) ?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
+            if(preg_match('/^(([0-9]{4}\-[0-9]{2}\-[0-9]{2})[ T]?(([0-9]{2}:[0-9]{2})(:[0-9]{2}(\.[0-9]{1,'.$ms.'})?)?)?)[0-9]*$/', $v, $m)) {
                 if(!isset($m[3]) || !$m[3]) {
                     return "'{$m[2]}T00:00:00'";
                 } else if(!isset($m[5]) || !$m[5]) {

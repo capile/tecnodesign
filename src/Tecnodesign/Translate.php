@@ -85,7 +85,6 @@ class Tecnodesign_Translate
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$l.'/'.$table.'.yml') ||
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$table.'.'.$this->_lang.'.yml') ||
                     file_exists($yml=TDZ_ROOT.'/data/translate/'.$table.'.'.$l.'.yml') || 
-                    file_exists($yml=TDZ_ROOT.'/data/studio/'.$table.'.'.$l.'.yml') || 
                     (($yml=TDZ_VAR.'/translate/'.$this->_lang.'/'.$table.'.yml') && false)
                 ) {
 
@@ -94,6 +93,7 @@ class Tecnodesign_Translate
                         $yml = null;
                     }
                 } else {
+                    if(tdz::$log>1) tdz::log('[DEBUG] Translation table '.$table.' was not found.');
                     $yml = null;
                 }
             }
@@ -105,6 +105,7 @@ class Tecnodesign_Translate
                 if(!is_array($this->_table[$table])) $this->_table[$table] = array();
             }
             if(!isset($this->_table[$table][$message])) {
+                if(tdz::$log>1) tdz::log('[DEBUG] Translation entry '.$table.'.'.$message.' was not found.');
                 $text = $message;
                 $w = ($yml && self::$writeUntranslated);
                 if($w && self::$forceTranslation && $this->_from!=$this->_lang && self::$method && (self::$apiKey || self::$clientId)){

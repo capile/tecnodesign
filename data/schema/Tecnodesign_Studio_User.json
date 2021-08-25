@@ -1,0 +1,32 @@
+{
+    "title": "*Users",
+    "database": "studio",
+    "tableName": "studio_users",
+    "properties": {
+        "id": { "type": "int", "min": 0, "increment": "auto", "primary": true, "required": true },
+        "login": { "type": "string", "size": 100, "required": true, "index": [ "z_user__login_idx" ] },
+        "name": { "type": "string", "size": 200 },
+        "password": { "type": "string", "size": 100 },
+        "email": { "type": "string", "format": "email", "size": 100, "index": [ "z_user__email_idx" ] },
+        "details": { "type": "string", "size": 10000 },
+        "accessed": { "format": "datetime", "type": "string" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_user__expired_idx" ] }
+    },
+    "scope": {
+        "string": [ "name" ]
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null"
+    },
+    "actAs": {
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+    },
+    "overlay": []
+}

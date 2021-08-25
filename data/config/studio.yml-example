@@ -3,6 +3,10 @@ all:
   studio:
     version: 2.5
     connection: studio
+    enable_interfaces: true
+    enable_interface_content: true
+    enable_interface_credential: true
+    enable_interface_index: true
     enable_interface_entry: true
     enable_interface_content: true
     credential:
@@ -43,7 +47,7 @@ all:
 
       # CMS UI credentials
       search: [ Administrator, Developer, Editor, Author ]
-  tecnodesign:
+  app:
     export:
       Tecnodesign_Studio:
         cliInterface: true
@@ -61,10 +65,3 @@ all:
       additional-params: true
       layout: layout
     default-route: run
-    #routes:
-    #  /_studio:
-    #    class: Tecnodesign_Studio
-    #    method: run
-    #    static: true
-    #    layout: layout
-    #    additional-params: true

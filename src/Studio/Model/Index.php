@@ -2,7 +2,7 @@
 /**
  * Studio Index
  * 
- * PHP version 5.6+
+ * PHP version 7.2
  * 
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
@@ -15,7 +15,7 @@ namespace Studio\Model;
 use Studio\Model as Model;
 use Tecnodesign_App as App;
 use Tecnodesign_Studio as Studio;
-use Tecnodesign_Studio_Interface as InterfaceApp;
+use Tecnodesign_Studio_Interface as Api;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Query as Query;
 use Tecnodesign_Database as Database;
@@ -81,7 +81,7 @@ class Index extends Model
             $ref = null;
             if(is_string($a)) {
                 $ref = $a;
-                $a = InterfaceApp::find($a, false);
+                $a = Api::find($a, false);
                 if(!$a) continue;
             }
             static::indexInterface($a, $ref);
@@ -90,7 +90,7 @@ class Index extends Model
         return true;
     }
 
-    public static function indexInterface($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
+    public static function indexInterface($a, $icn=null, $scope='preview', $keyFormat=false, $valueFormat=false, $serialize=false)
     {
         $q = null;
         if(isset($a['search']) && $a['search']) $q = $a['search'];
@@ -121,7 +121,7 @@ class Index extends Model
                 'id'=>$id,
                 'label'=>(isset($a['label'])) ?$a['label'] :$cn::label(),
                 'model'=>$cn,
-                'credential'=>(isset($a['auth'])) ?tdz::serialize($a['auth'], 'json') :S::serialize(InterfaceApp::$authDefault),
+                'credential'=>(isset($a['auth'])) ?tdz::serialize($a['auth'], 'json') :S::serialize(Api::$authDefault),
                 'indexed'=>TDZ_TIMESTAMP,
             ], null, null, true);
             if(!$II) return;
@@ -181,6 +181,11 @@ class Index extends Model
                             'id'=>$pk,
                             'summary'=>(string) $o,
                             'indexed'=>TDZ_TIMESTAMP,
+                            'IndexBlob'=>[],
+                            'IndexBool'=>[],
+                            'IndexDate'=>[],
+                            'IndexNumber'=>[],
+                            'IndexText'=>[],
                         ];
                         if($fn_updated) {
                             $o->refresh($fn_updated);
@@ -214,15 +219,7 @@ class Index extends Model
                         if($preview=$o->asArray($pscope, $keyFormat, $valueFormat, $serialize)) {
                             foreach($preview as $n=>$v) {
                                 if(!S::isempty($n)) {
-                                    $type = (isset($o::$schema->properties[$n]->type)) ?$o::$schema->properties[$n]->type :'text';
-                                    if(is_array($v)) $v = S::serialize($v, 'json');
-                                    if($type=='text' && strlen($v)>2000) $type='blob';
-                                    else if($type=='int' || $type=='float' || $type=='decimal' || ($type=='text' && (is_int($v) || is_float($v)))) $type='number';
-                                    else if(substr($type, 0, 4)=='date') $type='date';
-                                    $rel = 'Index'.ucwords($type);
-
-                                    if(!isset($d[$rel])) $d[$rel] = [];
-                                    $d[$rel][] = ['interface'=>$id, 'id'=>$pk, 'name'=>(string)$n, 'value'=>$v];
+                                    self::propToRel($v, $n, (isset($o::$schema->properties[$n])) ?$o::$schema->properties[$n] :null, $d, $b);
                                 }
                             }
                         }
@@ -261,34 +258,59 @@ class Index extends Model
         if(S::$log>0) S::log('[INFO] Indexed '.$total.' '.$cn.' in '.S::formatNumber(microtime(true)-$t0, 5).'s (mem: '.S::formatBytes(memory_get_peak_usage(true)).')');
     }
 
+    public static function propToRel($value, $name, $schema, &$output=[], $base=[])
+    {
+        static $map = ['string'=>'text', 'int64'=>'number', 'int'=>'number', 'float'=>'number', 'decimal'=>'number', 'char'=>'text', 'varchar'=>'text', 'nvarchar'=>'text', 'bit'=>'bool', 'boolean'=>'bool'];
+        if($schema && isset($schema['format'])) {
+            $type = $schema['format'];
+        } else if($schema && isset($schema['type'])) {
+            $type = $schema['type'];
+        } else {
+            $type = 'text';
+        }
+        if(is_array($value)) {
+            $subs = ($schema && $type=='object' && isset($schema['properties'])) ?$schema['properties'] :null;
+            $fd = (!$subs && $schema && $type=='array' && isset($schema['items'])) ?$schema['items'] :null;
+            foreach($value as $k=>$v) {
+                if($subs) {
+                    $fd = (isset($subs[$k])) ?$subs[$k] :null;
+                }
+                self::propToRel($v, $name.'.'.$k, $fd, $output, $base);
+            }
+            return $output;
+        }
+
+        if(isset($map[$type])) $type = $map[$type];
+        else if($type=='text' && is_string($value) && strlen($value)>2000) $type='blob';
+        else if(substr($type, 0, 4)=='date') $type='date';
+        else if(is_int($value) || is_float($value)) $type = 'number';
+
+        $rel = 'Index'.ucwords($type);
+        if(!isset($output[$rel])) $rel = 'IndexText';
+        $output[$rel][] = $base + ['name'=>(string)$name, 'value'=>$value];
+
+        return $output;
+    }
+
+    public function expandProperties($arr, $prefix=null)
+    {
+        if(is_array($arr)) {
+            $r = [];
+            foreach($arr as $k=>$v) {
+                $n = ($prefix) ?$prefix.'.'.$k :$k;
+                if(is_array($v)) $r += self::expandProperties($v, $n);
+                else $r[$n] = $v;
+            }
+
+            return $r;
+        } else {
+            return $arr;
+        }
+    }
+
 
     public static function checkConnection($conn=null)
     {
-        static $cfg = [
-            'content'=>[
-                'Tecnodesign_Studio_Entry',
-                'Tecnodesign_Studio_Content',
-                'Tecnodesign_Studio_ContentDisplay',
-                'Tecnodesign_Studio_Relation',
-                'Tecnodesign_Studio_Tag',
-            ],
-            'credential'=>[
-                'Studio\\Model\\Users',
-                'Studio\\Model\\Groups',
-                'Studio\\Model\\Credentials',
-            ],
-            'index'=>[
-                'Studio\\Model\\Interfaces',
-                'Studio\\Model\\Tokens',
-                'Studio\\Model\\Index',
-                'Studio\\Model\\IndexBlob',
-                'Studio\\Model\\IndexBool',
-                'Studio\\Model\\IndexDate',
-                'Studio\\Model\\IndexNumber',
-                'Studio\\Model\\IndexText',
-            ],
-        ];
-
         if(!$conn) {
             $conn = static::$schema->database;
         }
@@ -301,13 +323,7 @@ class Index extends Model
             }
         }
         // check studio and index database, and create tables if required
-        $check = [];
-        foreach($cfg as $n=>$cns) {
-            if(Studio::config('enable_interface_'.$n)) {
-                $check = array_merge($check, $cns);
-            }
-        }
-
+        $check = Studio::enabledModels();
         $H = [];
         $T = [];
         foreach($check as $cn) {
@@ -327,6 +343,30 @@ class Index extends Model
                     $H[$dbn]->create($cn::$schema);
                 } catch(\Exception $e) {
                     S::log('[WARNING] Error while creating table: '.$e->getMessage(), $H[$dbn]->lastQuery());
+                }
+            }
+            if(isset($cn::$schema->actAs['after-insert']['versionable']) && !isset($T[$dbn][$cn::$schema->tableName.'_version'])) {
+                $cn::$schema->tableName .= '_version';
+                if(S::$log>0) S::log('[INFO] Creating table '.$dbn.'.'.$cn::$schema->tableName);
+                $cn::$schema->properties['version']->primary = true;
+                $idx = [];
+                foreach($cn::$schema->properties as $fn=>$fd) {
+                    if($fd->index) {
+                        $idx[$fn] = $fd->index;
+                        $fd->index = null;
+                    }
+                    unset($fn, $fd);
+                }
+                try {
+                    $H[$dbn]->create($cn::$schema);
+                } catch(\Exception $e) {
+                    S::log('[WARNING] Error while creating table: '.$e->getMessage(), $H[$dbn]->lastQuery());
+                }
+                $cn::$schema->tableName = substr($cn::$schema->tableName, 0, strlen($cn::$schema->tableName) - 8);
+                $cn::$schema->properties['version']->primary = null;
+                foreach($idx as $fn=>$fd) {
+                    $cn::$schema->properties[$fn]->index = $fd;
+                    unset($idx[$fn], $fn, $fd);
                 }
             }
         }

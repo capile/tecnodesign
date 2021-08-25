@@ -107,16 +107,21 @@ class Tecnodesign_Database
             if(count($data)==1) $data = array_shift($data);
             else {
                 foreach($data as $f) {
-                    self::import($data);
+                    if($f===':import') continue;
+                    self::import($f);
                 }
                 return;
             }
         }
         if(!is_array($data)) {
-            if(strpos($data, "\n")===false && file_exists($data)) {
-                $data = file_get_contents($data);
+            if(substr($data, 0, 1)=='{') {
+                $data = tdz::unserialize($data, 'json');
+            } else {
+                if(strpos($data, "\n")===false && file_exists($data)) {
+                    $data = file_get_contents($data);
+                }
+                $data = Tecnodesign_Yaml::load($data);
             }
-            $data = Tecnodesign_Yaml::load($data);
         }
         if(!is_array($data)) {
             return false;

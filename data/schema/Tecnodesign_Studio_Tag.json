@@ -1,0 +1,40 @@
+{
+    "database": "studio",
+    "tableName": "studio_tags",
+    "className": "Tecnodesign_Studio_Tag",
+    "properties": {
+        "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
+        "entry": { "type": "int", "index": [ "z_tag__entry_idx" ] },
+        "tag": { "type": "string", "size": 100, "required": true },
+        "slug": { "type": "string", "size": 100, "required": true },
+        "version": { "type": "int" },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_tag__expired_idx" ] }
+    },
+    "relations": {
+        "Entry": { "local": "entry", "foreign": "id", "type": "one", "className": "Tecnodesign_Studio_Entry", "constraint": { "fk_z_tag__entry": "cascade" } }
+    },
+    "scope": {
+        "string": ["tag"],
+        "link": [ "tag", "slug" ]
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null",
+        "after-insert": [ "actAs" ],
+        "after-update": [ "actAs" ],
+        "after-delete": [ "actAs" ]
+    },
+    "overlay": [],
+    "actAs": {
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] },
+        "after-insert": { "versionable": [ "version" ] },
+        "after-update": { "versionable": [ "version" ] },
+        "after-delete": { "versionable": [ "version" ] }
+    }
+}

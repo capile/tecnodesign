@@ -1,0 +1,34 @@
+{
+    "title": "*Groups",
+    "database": "studio",
+    "tableName": "studio_groups",
+    "className": "Tecnodesign_Studio_Group",
+    "properties": {
+        "id": { "type": "int", "increment": "auto", "required": true, "primary": true },
+        "name": { "type": "string", "size": 200, "required": true },
+        "description": { "type": "string", "size": 500 },
+        "priority": { "type": "int", "required": true },
+        "created": { "format": "datetime", "type": "string", "required": true },
+        "updated": { "format": "datetime", "type": "string", "required": true },
+        "expired": { "format": "datetime", "type": "string", "index": [ "z_group__expired_idx" ] }
+    },
+    "relations": {
+        "Credential": { "local": "id", "foreign": "groupid", "type": "many", "className": "Tecnodesign_Studio_Credential" }
+    },
+    "scope": [],
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ],
+        "active-records": "`expired` is null"
+    },
+    "actAs": {
+        "before-insert": { "auto-increment": [ "id" ], "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ], "soft-delete": [ "expired" ] }
+    },
+    "overlay": {
+        "name": { "bind": "name" },
+        "priority": { "bind": "priority" }
+    }
+}

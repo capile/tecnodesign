@@ -12,9 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.3
  */
-class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign_AutoloadInterface
+class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
 {
     const SCHEMA_PROPERTY='schema';
+    const AUTOLOAD_CALLBACK='staticInitialize';
     public static 
         $schema,
         $allowNewProperties = false,
@@ -30,7 +31,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
         $headingTemplate = '<hr /><h3>$LABEL</h3>',
         $previewTemplate = '<dl><dt>$LABEL</dt><dd>$INPUT</dd></dl>',
         $queryBatchLimit = 500,
-        $auditLog;
+        $auditLog,
+        $schemaClass='Tecnodesign_Schema_Model';
 
     protected static 
         $found=array(),
@@ -56,11 +58,12 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
 
     public static function staticInitialize()
     {
+        $scn = static::$schemaClass;
         if(isset(static::$schema['ref'])) {
             $cn = static::$schema['ref'];
             unset(static::$schema['ref']);
             $source = static::$schema;
-            static::$schema = Tecnodesign_Schema_Model::loadSchema($cn);
+            static::$schema = $scn::loadSchema($cn);
             foreach($source as $k=>$v) {
                 if(is_array($v) && isset(static::$schema[$k]) && is_array(static::$schema[$k])) {
                     static::$schema[$k] = $v + static::$schema[$k];
@@ -70,7 +73,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             }
             static::$schema->className = get_called_class();
         } else {
-            static::$schema = Tecnodesign_Schema_Model::loadSchema(get_called_class());
+            static::$schema = $scn::loadSchema(get_called_class());
         }
         if(static::$schema && static::$auditLog) static::$schema->audit = static::$auditLog;
     }
@@ -93,7 +96,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             if($insert && is_null($save)) {
                 $save = true;
             }
-        } else {
+        } else if(!isset($vars['_new'])) {
             $this->_new = null;
         }
         $this->initialize();
@@ -1383,6 +1386,20 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $this->save();
         }
         return $this->_delete;
+    }
+
+    public function setNew($v=null)
+    {
+        if(!is_null($v)) $this->_new = (bool) $v;
+        else $this->_new = $v;
+        return $this;
+    }
+
+    public function setDelete($v=null)
+    {
+        if(!is_null($v)) $this->_delete = (bool) $v;
+        else $this->_delete = $v;
+        return $this;
     }
 
     /**
@@ -2886,7 +2903,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
             $this->$m(array($ref=>$value));
         // add other options for dotted.names?
         } else if($firstName && $ref && (isset($this->$firstName) || isset(static::$schema->properties[$firstName]))) {
-            if(!isset(static::$schema->properties[$firstName]['serialize'])) {
+            if(!($serialize=static::$schema->properties[$firstName]->serialize) && static::$schema->properties[$firstName]->type!='object') {
                 if(is_array($this->$firstName) || is_object($this->$firstName)) {
                     $this->{$firstName}[$ref] = $value;
                 }
@@ -2895,8 +2912,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable, Tecnodesign
                     $this->_original[$firstName] = $this->$firstName;
                 }
                 $a0 = $this->$firstName;
-                if(is_string($a0) && isset(static::$schema->properties[$firstName]['serialize'])) {
-                    $a0 = tdz::unserialize($a0, static::$schema['columns'][$firstName]['serialize']);
+                if(is_string($a0) && $serialize) {
+                    $a0 = tdz::unserialize($a0, $serialize);
                 }
                 if(!$a0) {
                     $a0 = array();

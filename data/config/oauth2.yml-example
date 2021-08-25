@@ -1,6 +1,6 @@
 ---
 all:
-  tecnodesign:
+  app:
     lib-dir: [ vendor, data/examples/oauth2 ]
     routes:
       /examples/oauth2:
