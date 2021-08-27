@@ -245,18 +245,19 @@ class Tecnodesign_Query_Sql
         return $this;
     }
 
-    public function concat($a, $sep='-')
+    public function concat($a, $sep='-', $getAlias=true)
     {
         if(is_array($a) && count($a)>1) {
             $r = '';
             foreach($a as $fn) {
+                if($getAlias) $this->getAlias($fn, null, true);
                 $r .= (($r) ?','.tdz::sql($sep).',' :'')
-                    . 'coalesce('.$this->getAlias($fn, null, true).',\'\')';
+                    . 'coalesce('.$fn.',\'\')';
             }
             return ($r) ?'concat('.$r.')' :'null';
         } else {
             if(is_array($a)) $a = array_shift($a);
-            $r = $this->getAlias($a, null, true);
+            $r = ($getAlias) ?$this->getAlias($a, null, true) :$a;
         }
 
         return $r;
@@ -282,7 +283,7 @@ class Tecnodesign_Query_Sql
                 $cc = '';
                 if($this->_groupBy) {
                     if(strpos($this->_groupBy, ',')!==false && strpos($this->_groupBy, '(')===false) {
-                        $cc = $this->concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),'');
+                        $cc = $this->concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),':',false);
                     } else {
                         $cc = trim($this->_groupBy);
                     }

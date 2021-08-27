@@ -118,18 +118,19 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
         return $this;
     }
 
-    public function concat($a, $sep='-')
+    public function concat($a, $sep='-', $getAlias=true)
     {
         if(is_array($a) && count($a)>1) {
             $r = '';
             foreach($a as $fn) {
+                if($getAlias) $fn=$this->getAlias($fn, null, true);
                 $r .= (($r) ?'+'.tdz::sql($sep).'+' :'')
-                    . 'coalesce('.$this->getAlias($fn, null, true).',\'\')';
+                    . 'coalesce('.$fn.',\'\')';
             }
             return $r;
         } else {
             if(is_array($a)) $a = array_shift($a);
-            return $this->getAlias($a, null, true);
+            return ($getAlias) ?$this->getAlias($a, null, true) :$a;
         }
     }
 
