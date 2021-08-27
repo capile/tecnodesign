@@ -250,7 +250,7 @@ class Tecnodesign_Query_Sql
         if(is_array($a) && count($a)>1) {
             $r = '';
             foreach($a as $fn) {
-                if($getAlias) $this->getAlias($fn, null, true);
+                if($getAlias) $fn = $this->getAlias($fn, null, true);
                 $r .= (($r) ?','.tdz::sql($sep).',' :'')
                     . 'coalesce('.$fn.',\'\')';
             }
