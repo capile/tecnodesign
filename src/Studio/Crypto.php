@@ -30,7 +30,7 @@ class Crypto
      */
     public static function hash($str, $salt=null, $type=null)
     {
-        if(is_null($type)) { // guess based on $salt
+        if(is_null($type) || $type===true) { // guess based on $salt
             if($salt) {
                 if(preg_match('/^\{([^\}]+)\}/', $salt, $m)) {
                     $type = $m[1];
