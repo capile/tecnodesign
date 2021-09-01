@@ -1421,11 +1421,11 @@ select, input {
       padding: 6px 12px;
       font-size: 14px;
       line-height: 16px;
-      background:@color;
+      background:lighten(@colorBody, 5%);
       color:@colorText;
   }
   li:nth-child(odd), &:hover li:nth-child(odd) {
-    background:@color + #060606;
+    background:lighten(@colorBody, 10%);
   }
   li.tdz-selected {
     background: @colorActive;
