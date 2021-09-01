@@ -112,6 +112,7 @@ class Tecnodesign_Interface extends Studio\Api
         $newTemplate,
         $renderer           = 'renderPreview',
         $dir                = [ 'api' ],
+        $baseMap            = [],
         $urls               = [],
         $indexFile          = 'index',
         $baseInterface      = array(
@@ -835,7 +836,7 @@ class Tecnodesign_Interface extends Studio\Api
             if($p) {
                 $p0 = $p;
                 $n = preg_replace('#[^a-z0-9\-\_\@]#i', '', array_shift($p));// find a file
-                while(!file_exists($f=static::configFile($n)) && $p) {
+                while(!($f=static::configFile($n)) && $p) {
                     $n .= '/'.rawurlencode(array_shift($p));
                     $f = null;
                 }
@@ -847,7 +848,7 @@ class Tecnodesign_Interface extends Studio\Api
                 } else if($p) {
                     $n = preg_replace('#[^a-z0-9\-\_\@]#i', '', array_shift($p));
                     $rn = '/'.static::$indexFile;
-                    while(!file_exists($f=static::configFile($n.'/'.static::$indexFile)) && $p) {
+                    while(!($f=static::configFile($n.'/'.static::$indexFile)) && $p) {
                         $n .= '/'.array_shift($p);
                     }
                     if($f) $n .= $rn;
@@ -3894,10 +3895,28 @@ class Tecnodesign_Interface extends Studio\Api
             if(is_string($q)) return array(static::loadInterface($q));
         }
         $Is = array();
-        $dd = tdz::getApp()->tecnodesign['data-dir'];
+        $dd = tdz::getApp()->config('app', 'data-dir');
         $da = (!static::$authDefault)?(true):(static::checkAuth(static::$authDefault));
+        $base = static::base();
         foreach(static::$dir as $d) {
-            foreach(glob(((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.static::base().'/*.yml') as $i) {
+            $b0 = ((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d;
+            $b = $b0.$base.'/*.yml';
+            $L = glob($b);
+            if(static::$baseMap && isset(static::$baseMap[$base])) {
+                $bm=static::$baseMap[$base];
+                foreach($bm as $nbase) {
+                    $b = $b0.$nbase.'/*.yml';
+                    $nL = glob($b);
+                    if($nL) {
+                        if(!$L) $L = $nL;
+                        else $L = array_merge($L, $nL);
+                    }                     
+                    unset($nbase, $nL);
+                }
+                if($L) $L = array_unique($L);
+            }
+            if(!$L) continue;
+            foreach($L as $i) {
                 $a = basename($i, '.yml');
                 $I = static::loadInterface($a);
                 if(isset($I['enable']) && !$I['enable']) {
@@ -3920,18 +3939,34 @@ class Tecnodesign_Interface extends Studio\Api
         return $Is;
     }
 
-    public static function configFile($s)
+    public static function configFile($s, $skip=[])
     {
         static $dd;
-        if(is_null($dd)) $dd = tdz::getApp()->app['data-dir'];
+        if(is_null($dd)) $dd = tdz::getApp()->config('app', 'data-dir');
         $s = tdz::slug($s, '/_',true);
+        if(!is_array($skip)) $skip = [];
+
+        $base = static::base();
+        $bm = (static::$baseMap && isset(static::$baseMap[$base])) ?static::$baseMap[$base] :null;
         foreach(static::$dir as $d) {
-            if(file_exists( $f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.'/'.$s.'.yml') ) {
-                return $f;
-            } elseif (file_exists( $f=((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d.static::$base.'/'.$s.'.yml') ) {
+            $b0 = ((substr($d, 0, 1)!='/')?($dd.'/'):('')).$d;
+            /*
+            if(file_exists($f=$b0.'/'.$s.'.yml')) {
                 return $f;
             }
-            unset($d, $f);
+            */
+            if (file_exists($f=$b0.$base.'/'.$s.'.yml') && !in_array($f, $skip)) {
+                return $f;
+            }
+            if($bm) {
+                foreach($bm as $nbase) {
+                    if(file_exists($f=$b0.$nbase.'/'.$s.'.yml') && !in_array($f, $skip)) {
+                        return $f;
+                    }
+                    unset($nbase);
+                }
+            }
+            unset($d, $b0);
         }
 
         unset($s);
@@ -3943,14 +3978,17 @@ class Tecnodesign_Interface extends Studio\Api
             $a = array('interface'=>$a);
         }
         if(isset($a['interface']) && $a['interface']) {
+            $not = [];
             if($f = static::configFile($a['interface'])) {
+                $not[] = $f;
                 $cfg = tdz::config($f, tdz::env());
                 if($cfg) $a += $cfg;
                 unset($cfg);
             }
             if(isset($a['base'])) {
                 $i=3;
-                while(isset($a['base']) && ($f=static::configFile($a['base']))) {
+                while(isset($a['base']) && ($f=static::configFile($a['base'], $not))) {
+                    $not[] = $f;
                     unset($a['base']);
                     $na = tdz::config($f, tdz::env());
                     if($na) $a = tdz::mergeRecursive($a, $na);

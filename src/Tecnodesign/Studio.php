@@ -155,6 +155,10 @@ class Tecnodesign_Studio
 
         // try the interface
         if(static::$webInterface && ($sn==self::$home || strncmp($sn, self::$home, strlen(self::$home))===0)) {
+            if($sn!=='/_studio' && self::config('enable_interface_index')) {
+                $icn = self::$interfaceClass;
+                $icn::$baseMap[$sn] = ['/_studio'];
+            }
             static::$internal = true;
             tdz::scriptName($sn);
             tdz::cacheControl('private,must-revalidate,no-cache', 0);
@@ -357,7 +361,7 @@ class Tecnodesign_Studio
     public static function content($page, $checkLang=true, $checkTemplates=true, $addResponse=true)
     {
         static $root;
-        if(is_null($root)) $root = Tecnodesign_Studio::documentRoot();
+        if(is_null($root)) $root = self::documentRoot();
         if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot) || !file_exists($page)) return;
         $slotname = Entry::$slot;
         $pos = '00000';
@@ -403,12 +407,12 @@ class Tecnodesign_Studio
                     return false;
                 }
                 $c = (!is_array($meta['credential']))?(array($meta['credential'])):($meta['credential']);
-                if(!is_array(Tecnodesign_Studio::$private)) Tecnodesign_Studio::$private = $c;
-                else Tecnodesign_Studio::$private = array_merge($c, Tecnodesign_Studio::$private);
+                if(!is_array(self::$private)) self::$private = $c;
+                else self::$private = array_merge($c, self::$private);
                 unset($U);
             }
         }
-        $id = substr($page, strlen(Tecnodesign_Studio::documentRoot()));
+        $id = substr($page, strlen(self::documentRoot()));
         $lmod = date('Y-m-d\TH:i:s', filemtime($page));
         $C = new Content(array(
             'id'=>tdz::hash($id, null, 'uuid'),
@@ -500,17 +504,17 @@ class Tecnodesign_Studio
     public static function uid()
     {
         self::$private=true;
-        if(Tecnodesign_Studio::$checkOrigin) {
-            if(is_array(Tecnodesign_Studio::$allowOrigin) && !in_array($referer=tdz::buildUrl(''), Tecnodesign_Studio::$allowOrigin)) {
-                Tecnodesign_Studio::$allowOrigin[] = $referer;
+        if(self::$checkOrigin) {
+            if(is_array(self::$allowOrigin) && !in_array($referer=tdz::buildUrl(''), self::$allowOrigin)) {
+                self::$allowOrigin[] = $referer;
             }
-            if(!($from=Tecnodesign_App::request('headers', 'origin')) && !($from=Tecnodesign_App::request('headers', 'referer')) && Tecnodesign_Studio::$checkOrigin>1) {
+            if(!($from=Tecnodesign_App::request('headers', 'origin')) && !($from=Tecnodesign_App::request('headers', 'referer')) && self::$checkOrigin>1) {
                 return false;
             }
 
             if($from) {
                 $valid = false;
-                foreach(Tecnodesign_Studio::$allowOrigin as $allow) {
+                foreach(self::$allowOrigin as $allow) {
                     if($allow==='*' || substr($from, 0, strlen($allow))==$allow) {
                         $valid = true;
                         @header('access-control-allow-origin: '.$allow);
@@ -538,7 +542,7 @@ class Tecnodesign_Studio
                 if(static::$webButton) $r['plugins']['studio']['options']['button'] = true;
                 if(static::$webInteractive) $r['plugins']['studio']['options']['interactive'] = true;
             }
-            if($U->isAuthenticated() && ($cfg=Tecnodesign_Studio::$app->user)) {
+            if($U->isAuthenticated() && ($cfg=self::$app->user)) {
                 if(isset($cfg['export']) && is_array($cfg['export'])) {
                     foreach($cfg['export'] as $k=>$v) {
                         $r[$k] = $U->$v;
@@ -726,7 +730,7 @@ class Tecnodesign_Studio
 
     public static function error($code=500)
     {
-        if(!Tecnodesign_Studio::$app) Tecnodesign_Studio::$app = tdz::getApp();
+        if(!self::$app) self::$app = tdz::getApp();
         if(isset(tdz::$variables['route']['layout'])  && tdz::$variables['route']['layout']) {
             $layout = tdz::$variables['route']['layout'];
         } else {
@@ -736,7 +740,7 @@ class Tecnodesign_Studio
         self::template('/error'.$code);
         Entry::loadMeta('/error'.$code);
 
-        return Tecnodesign_Studio::$app->runError($code, $layout);
+        return self::$app->runError($code, $layout);
     }
 
     public static function checkIndex($M, $interface=null)

@@ -102,10 +102,10 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         return $Is;
     }
 
-    public static function configFile($s)
+    public static function configFile($s, $skip=[])
     {
         if(!Studio::config('enable_interface_index') || !($r=Interfaces::findCacheFile($s))) {
-            $r = parent::configFile($s);
+            $r = parent::configFile($s, $skip);
         }
 
         return $r;
@@ -124,7 +124,7 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
                 $a['options']['priority'] = null;
             }
         } else {
-            $n = tdz::camelize($a['interface'], true);
+            $n = S::camelize($a['interface'], true);
         }
 
         // overwrite credentials
