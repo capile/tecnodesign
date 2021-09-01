@@ -290,23 +290,12 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
     public static function id($name)
     {
-        return str_replace('-', '_', tdz::slug($name, '§,', true));
+        return trim(preg_replace('/[^0-9a-z\§\,]+/i', '_', $name),'_');
     }
 
     public function getId()
     {
         return static::id($this->getName(false));
-        /*
-        $id = '';
-        if ($this->prefix) {
-            $id .= tdz::textToSlug($this->prefix).'_';
-        }
-        if (is_null($this->id)) {
-            $this->id = 'f'.uniqid();
-        }
-        $id .= tdz::textToSlug($this->id);
-        return $id;
-        */
     }
 
     public function getName($useAttributes=true)
@@ -1582,7 +1571,6 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($M && method_exists($M, $m=tdz::camelize('prepare-'.$this->id).'FormField')) {
             $M->$m($arg, $this);
         }
-
         $base = array('id', 'name', 'value', 'error', 'label', 'class');
         foreach ($base as $k) {
             if (!isset($arg[$k])) {
