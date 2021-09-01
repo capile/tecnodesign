@@ -912,7 +912,7 @@
 
         updateInterface(I);
 
-        //if(_root.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) headerOverflow(true);
+        if(_root.querySelector('.tdz-i-box .tdz-i-header[data-overflow]')) headerOverflow(true);
         if(I.style) I.removeAttribute('style');
         Z.resizeCallback();
 

@@ -636,11 +636,21 @@
     white-space: nowrap;
     min-height:2em;
   }
+
   &.z-overflow {
-    display:flex;
+    display:  -webkit-box;
+    display:     -moz-box;
+    display:  -ms-flexbox;
+    display: -webkit-flex;
+    display:         flex;
+    justify-content: flex-start;
+
     .tdz-i-title {
-      flex: 1;
-      max-width: 50%;
+      -webkit-box-flex: 1 1 0;
+         -moz-box-flex: 1 1 0;
+          -webkit-flex: 1 1 0;
+              -ms-flex: 1 1 0;
+                  flex: 1 1 0;
       padding:0;
       overflow-x: hidden;
       overflow-y:hidden;
