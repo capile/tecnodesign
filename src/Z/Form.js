@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Form v2.3 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.6 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -569,6 +569,7 @@ function initUploader(o)
     Z.bind(f, 'change', preUpload);
 }
 
+var _Uploads={};
 function preUpload(e)
 {
     /*jshint validthis: true */
@@ -576,6 +577,7 @@ function preUpload(e)
     if(this.getAttribute('data-status')!='ready') return;
     this.setAttribute('data-status','uploading');
     var i=this.files.length, U={target:this,size:0,loaded:0,url:this.form.action,id:'upl'+((new Date()).getTime())};
+    _Uploads[this.id] = U;
 
     U.progress = this.parentNode.querySelector('.tdz-i-progress');
     if(!U.progress) U.progress = Z.element({e:'div',p:{className:'tdz-i-progress'},c:[{e:'div',p:{className:'tdz-i-progress-bar'}}]}, null, this);
@@ -648,7 +650,7 @@ function uploadFile(file, U)
     var ajax = [];
     var H = { 'z-action': 'Upload', 'Content-Type': 'application/json' };
     var workers = 2;
-    var retries = 3;
+    var retries = 5;
     U.size += total;
     //var progress = document.getElementById(file.name).nextSibling.nextSibling;
 
@@ -700,8 +702,10 @@ function uploadFile(file, U)
         }
     };
 
-    var uploadError = function(d)
+    var uploadError = function(d, status, url, req)
     {
+        if(retries && retryUpload.call(this, url)) return;
+
         // remove any error messages within this form field
         var M=this.parentNode.querySelectorAll('.tdz-i-msg,.tdz-i-progress'), i=M.length, err=(d && ('message' in d)) ?d.message :'There was an error in the file upload.';
         if(err) {
@@ -718,6 +722,50 @@ function uploadFile(file, U)
         if(this.form) Z.enableForm(this.form);
         //workers++;
     };
+
+    var retryUpload = function(url)
+    {
+        if(!(this.id in _Uploads)) return false;
+
+        var U=_Uploads[this.id], m=url.match(/\&_index=([0-9]+)$/), i=(m && m[1]) ?parseInt(m[1]) :null;
+        if(i===null) return false;
+        var loaded = i * step;
+
+        var d = { _upload: { id: U.target.id, uid: U.id, uploader: U.target.getAttribute('data-uploader-id'), file: file.name, start: loaded, end: loaded+step, total: total, data: null, index: i }  };
+        if(loaded + step > total) {
+            d._upload.end = total;
+            d._upload.last = true;
+        }
+        if(U.target.name.indexOf('[')) {
+            var n=U.target.name, t=d, p=n.indexOf('['), m;
+            while(p>-1) {
+                m=n.substr(0,p+1).replace(/[\[\]]+/, '');
+                n=n.substr(p+1);
+                p=n.indexOf('[');
+                t[m]={};
+                t=t[m];
+                if(p<=-1) {
+                    m = n.substr(0, n.length -1);
+                    t[m]=0;
+                    t=null;
+                    break;
+                }
+            }
+        }
+
+        var errorReader = new FileReader();
+        errorReader.onload = function (e) {
+            d._upload.data = e.target.result;
+            var data = JSON.stringify(d);
+            d = null;
+            Z.ajax(url+'&_retry='+retries--, data, uploadProgress, uploadError, 'json', U.target, H);
+        };
+
+        var blob = file.slice(loaded,d._upload.end);
+        errorReader.readAsDataURL(blob);
+
+        return true;
+    }
 
     reader.onload = function(e) {
         var d = { _upload: { id: U.target.id, uid: U.id, uploader: U.target.getAttribute('data-uploader-id'), file: file.name, start: loaded, end: loaded+step, total: total, data: e.target.result, index: i++ }  };

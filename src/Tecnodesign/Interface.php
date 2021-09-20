@@ -3483,6 +3483,7 @@ class Tecnodesign_Interface extends Studio\Api
             'limits'=>false,
             'action'=>$this->link($dest, false),
             'buttons'=> false,
+            //'model' => new $cn,
             'fields'=> [
                 '_omnibar' => [
                     'type' => 'search',
@@ -3491,6 +3492,7 @@ class Tecnodesign_Interface extends Studio\Api
                 ],
             ],
         );
+        $model = new $cn;
         $fieldset = static::t('Search options');
         $active = false;
         $noq = false;
@@ -3587,8 +3589,10 @@ class Tecnodesign_Interface extends Studio\Api
                     if(!in_array($type, ['select', 'checkbox', 'radio'])) $type = 'checkbox';
                     if($fd['choices'] && is_string($fd['choices']) && isset($cn::$schema['relations'][$fd['choices']]['className'])) {
                         $fd['choices'] = $cn::$schema['relations'][$fd['choices']]['className'];
-                    } else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($cn, $m)) {
-                        $fd['choices']=$cn::$m();
+                    } else if(is_string($fd['choices']) && ($m=$fd['choices']) && method_exists($model, $m)) {
+                        $fd['choices']=$model->$m();
+                    } else if(is_string($fd['choices']) && isset($fd['className']) && $fd['className']!=get_class($model) && method_exists($fd['className'], $m)) {
+                        $fd['choices']=(new $fd['className'])->$m();
                     }
 
                     $fo['fields'][$slug]=array(

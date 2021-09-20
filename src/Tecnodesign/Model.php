@@ -571,11 +571,13 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     public static function column($s, $applyForm=false, $relation=false)
     {
         $cn = get_called_class();
+        $add = [];
         if(strpos($s, '.')!==false && !($applyForm && isset($cn::$schema->overlay[$s]))) {
             while(strpos($s, '.')!==false) {
                 list($rn,$s)=explode('.', $s, 2);
                 if(isset($cn::$schema->relations[$rn])) {
                     $cn = (isset($cn::$schema->relations[$rn]['className']))?($cn::$schema->relations[$rn]['className']):($rn);
+                    $add['className'] = $cn;
                 } else {
                     return false;
                 }
@@ -604,6 +606,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
             $d['label'] = tdz::t(substr($d['label'], 1), $translate);
         }
+        if($add) $d+= $add;
+
         return $d;
     }
 
@@ -1360,15 +1364,16 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             unset($Q);
         }
         if($fn) {
-            if(isset($this->$relation)) {
-                $R = $this->$relation;
+            if(isset($this->$relation) && ($R=$this->$relation)) {
                 if(is_object($R) && ($R instanceof Tecnodesign_Collection)) $R = $R->getItems();
                 else if(is_object($R)) return $this->$relation[$fn];
 
                 $r = [];
-                foreach($R as $i=>$o) {
-                    $r[] = $o->$fn;
-                    unset($R[$i], $i, $o);
+                if($R && is_array($R)) {
+                    foreach($R as $i=>$o) {
+                        $r[] = $o->$fn;
+                        unset($R[$i], $i, $o);
+                    }
                 }
                 return $r;
             }

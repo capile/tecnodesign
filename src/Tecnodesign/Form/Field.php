@@ -111,7 +111,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 $cn = get_class($model);
                 $this->_className=$cn;
                 $schema = $this->getSchema();
-                if(!isset($def['bind']) && isset($schema['columns'][$def['id']])) {
+                if(!isset($def['bind']) && isset($schema->properties[$def['id']])) {
                     $def['bind'] = $def['id'];
                 }
             }
@@ -162,6 +162,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
     public function getModel()
     {
         return Tecnodesign_Form::instance($this->form)->model;
+    }
+
+    public function getBindModel()
+    {
+        return $this->getModel();
     }
 
     public function getSchema()
@@ -867,7 +872,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
             }
 
-            $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$uid.':'.preg_replace('/(ajax|_index)=[0-9]+/', '', tdz::requestUri()));
+            $ckey = 'upload-'.hash('sha256', $upload['uid'].':'.$uid.':'.preg_replace('/(ajax|_index|\&_retry)=[0-9]+/', '', tdz::requestUri()));
             $size = $upload['end'] - $upload['start'];
             if(!($u=Tecnodesign_Cache::get($ckey, $timeout))) {
                 $f = tempnam(self::$tmpDir, $ckey);
@@ -1459,9 +1464,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 if($noexec) {
                     $this->choices = preg_split('/\s*\,\s*/', $this->choices, null, PREG_SPLIT_NO_EMPTY);
                 }else if(strpos($this->choices, '(')) {
+                    tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$this->choices);
                     $this->choices = @eval('return '.$this->choices.';');
                 } else {
-                    $M = $this->getModel();
+                    $M = $this->getBindModel();
                     if(method_exists($M, $this->choices)) {
                         $m = $this->choices;
                         $this->choices = $M->$m();
@@ -3271,6 +3277,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $this->prefix=$s;
     }
 
+    public function setClassName($n)
+    {
+        $this->_className = $n;
+    }
+
 
     /**
      * Magic terminator. Returns the page contents, ready for output.
@@ -3291,7 +3302,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      *
      * @return void
      */
-    public function  __set($name, $value)
+    public function __set($name, $value)
     {
         $Name = tdz::camelize($name, true);
         $m='set'.$Name;
