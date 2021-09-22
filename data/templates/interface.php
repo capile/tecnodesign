@@ -169,7 +169,9 @@ if(isset($attributes) && is_array($attributes)) {
                         $listRenderer = (isset($options['list-renderer']) && $options['list-renderer']) ?$options['list-renderer'] :'renderUi';
                         $sn = tdz::scriptName(true);
                         tdz::scriptName($Interface->link());
-                        if(!is_object($list)) $list = new Tecnodesign_Collection($list, $Interface->getModel());
+                        if(!is_object($list)) {
+                            $list = new Tecnodesign_Collection($list, $Interface->getModel());
+                        }
                         echo $list->paginate($listLimit, $listRenderer, array('options'=>$options), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
                         tdz::scriptName($sn);
                         unset($sn);

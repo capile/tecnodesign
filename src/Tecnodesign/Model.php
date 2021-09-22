@@ -606,6 +606,8 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(!isset($translate)) $translate = 'model-'.static::$schema->tableName;
             $d['label'] = tdz::t(substr($d['label'], 1), $translate);
         }
+
+        if(!is_array($d)) $d=[];
         if($add) $d+= $add;
 
         return $d;

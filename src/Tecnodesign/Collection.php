@@ -11,7 +11,7 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.3
+ * @version   2.6
  */
 class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
 {
@@ -335,6 +335,8 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             if($page<1) $page=1;
             else if($page>$pages)$page=$pages;
             $this->_current = ($page -1)*$hpp;
+        } else if($this->_current > 0 && $this->_query && $this->_count) {
+            $this->_current = $this->_current % $this->_count;
         }
         $pn = tdz::pages(array('page'=>$page, 'last-page'=>$pages), tdz::requestUri());
         if(!is_array($renderMethod)) $renderMethod = array($this->_hint, $renderMethod);
@@ -522,6 +524,8 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
             return $this;
         } else if($ret instanceof Tecnodesign_Model && Tecnodesign_Model::$keepCollection) {
             $ret->setCollection($this); // se for instanceof Tecnodesign_Model
+        } else if(!$ret && $limit!=1 && !is_array($ret)) {
+            $ret = [];
         }
 
         return $ret;
