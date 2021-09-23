@@ -62,7 +62,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
     public function render()
     {
         if(Tecnodesign_Studio::$private) {
-            tdz::cacheControl('private', Tecnodesign_Studio::$staticCache);
+            $cch = 'private';
+            if(!Tecnodesign_Studio::$staticCache) $cch .= ', no-cache';
+            tdz::cacheControl($cch, Tecnodesign_Studio::$staticCache);
         } else if(Tecnodesign_Studio::$staticCache) {
             Tecnodesign_App::$afterRun['staticCache']=array('callback'=>array('Tecnodesign_Studio','setStaticCache'));
             tdz::cacheControl('public', Tecnodesign_Studio::$cacheTimeout);
@@ -320,7 +322,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         unset($mc, $master);
         if(Tecnodesign_Studio::$private) {
             Tecnodesign_Studio::$private = array_unique(Tecnodesign_Studio::$private);
-            tdz::cacheControl('private', Tecnodesign_Studio::$staticCache);
+            $cch = 'private';
+            if(!Tecnodesign_Studio::$staticCache) $cch .= ', no-cache';
+            tdz::cacheControl($cch, Tecnodesign_Studio::$staticCache);
         }
         if(Tecnodesign_Studio::$staticCache && Tecnodesign_Studio::$cacheTimeout && isset($cf) && tdz::save($cf, $layout, true)) {
             return array('layout'=>substr($cf, 0, strlen($cf)-4), 'template'=>'');
@@ -361,7 +365,9 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
 
         if(!isset(tdz::$variables['cache-control'])) {
             if(Tecnodesign_Studio::$private) {
-                tdz::set('cache-control', 'private');
+                $cch = 'private';
+                if(!Tecnodesign_Studio::$staticCache) $cch .= ', no-cache';
+                tdz::set('cache-control', $cch);
             } else {
                 tdz::set('cache-control', 'public');
             }

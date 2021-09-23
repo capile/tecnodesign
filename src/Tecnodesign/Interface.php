@@ -762,7 +762,7 @@ class Tecnodesign_Interface extends Studio\Api
         return static::checkAuth($this->getAuth($action), $setStatus);
     }
 
-    public static function authHeaders($U=null, $h='private')
+    public static function authHeaders($U=null, $h='private, no-cache')
     {
         tdz::cacheControl($h, static::$expires);
         self::$headers[static::H_CACHE_CONTROL] = $h;

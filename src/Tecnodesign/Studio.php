@@ -38,7 +38,7 @@ class Tecnodesign_Studio
         $page,              // updated at runtime, actual entry id rendered
         $connection,        // connection to use, set to false to disable database
         $params=array(),    // updated at runtime, general params
-        $cacheTimeout=false,// configurable, cache timeout, use false to disable caching, 0 means forever
+        $cacheTimeout=false,// configurable, cache timeout
         $staticCache=false, // configurable, store static previews of entries
         $home='/_studio',   // configurable, where to load Studio interface
         $uid='/_me',        // configurable, where to load a json to check if a user is authenticated
@@ -161,7 +161,7 @@ class Tecnodesign_Studio
             }
             static::$internal = true;
             tdz::scriptName($sn);
-            tdz::cacheControl('private,must-revalidate,no-cache', 0);
+            tdz::cacheControl('private, no-cache', 0);
             return self::_runInterface();
         } else if(static::$cliInterface && self::$cli && TDZ_CLI && substr($sn, 0, 1)==':' && isset(self::$cliApps[$sn=substr($sn,1)])) {
             // cli apps
@@ -173,7 +173,9 @@ class Tecnodesign_Studio
             }
             self::error(404);
         } else if(Tecnodesign_App::request('headers', 'tdz-slots') || $sn==self::$uid) {
-            tdz::cacheControl('private', static::$cacheTimeout);
+            $cch = 'private';
+            if(!static::$cacheTimeout) $cch .= ', no-cache';
+            tdz::cacheControl($cch, static::$cacheTimeout);
             tdz::output(tdz::serialize(self::uid(), 'json'), 'json');
         } else if(self::ignore($sn)) {
             self::error(404);
@@ -561,7 +563,9 @@ class Tecnodesign_Studio
         }
 
         if(tdz::scriptName(true)===self::$uid) {
-            tdz::cacheControl('private,must-revalidate', static::$cacheTimeout);
+            $cch = 'private';
+            if(!static::$cacheTimeout) $cch .= ', no-cache';
+            tdz::cacheControl($cch, static::$cacheTimeout);
             tdz::output(tdz::serialize($r, 'json'), 'json');
         }
 
