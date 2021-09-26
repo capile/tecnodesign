@@ -8,6 +8,9 @@ use Studio\OAuth2\Storage as Storage;
 use Studio\OAuth2\Client as Client;
 use Tecnodesign_Schema_Model as ModelSchema;
 use Tecnodesign_Studio as Studio;
+use Tecnodesign_App as App;
+use Tecnodesign_Query_Api as Api;
+use Tecnodesign_Interface as SInterface;
 use tdz as S;
 
 class Interfaces extends Model
@@ -44,7 +47,7 @@ class Interfaces extends Model
 
     public function loadSchema($asArray=true)
     {
-        $S = ['test'=>false];
+        $S = [];
         $this->refresh(['schema_data', 'schema_source', 'model']);
         if($this->model && method_exists($this->model, 'schema')) {
             $cn = $this->model;
@@ -53,21 +56,17 @@ class Interfaces extends Model
         } else if($this->schema_source) {
             $sc = Schema::import($this->schema_source);
             $S = $sc;//->properties;
-
-            if(!$asArray) {
-                $S = new ModelSchema($S);
-            }
         }
 
         if($this->schema_data) {
-            $d = (is_string($this->schema_data)) ?S::unserialize($this->schema_data, 'yaml') :$this->schema_data;
+            $d = (is_string($this->schema_data)) ?S::unserialize($this->schema_data) :$this->schema_data;
 
-            if($d && $asArray) {
+            if($d) {
                 $S = S::mergeRecursive($d, $S);
             }
         }
-
         if(!$asArray) {
+            $S = new ModelSchema($S);
             $pk = [];
             foreach($S->properties as $fn=>$fd) {
                 if($fd['primary']) $pk[] = $fn;
@@ -165,5 +164,122 @@ class Interfaces extends Model
         $d = S::getApp()->config('tecnodesign', 'cache-dir').'/interface';
         $f =  $d.'/'.S::slug($file, '_', true).'.yml';
         if(file_exists($f)) return $f;
+    }
+
+    public function executeImport($Interface=null)
+    {
+        if(!($p=S::urlParams()) && ($route = App::response('route'))) {
+            S::scriptName($route['url']);
+            $p = S::urlParams();
+        }
+
+        self::$boxTemplate     = $Interface::$boxTemplate;
+        self::$headingTemplate = $Interface::$headingTemplate;
+        self::$previewTemplate = $Interface::$previewTemplate;
+        S::$variables['form-field-template'] = self::$previewTemplate;
+
+        $S = new Interfaces();
+        $F = $S->getForm('import');
+        $s = '';
+        if(($post=App::request('post')) && $F->validate($post)) {
+            $d = $F->getData();
+            try {
+                $m = 'import'.S::camelize($d['_schema_source_type'], true);
+                $msg = '';
+                if($R = Api::runStatic($d['schema_source'])) {
+                    $S->$m($R, $msg);
+                    $s .= $msg;
+                }
+            } catch(\Exception $e) {
+                S::log('[ERROR] Could not import '.S::serialize($d, 'json').': '.$e->getMessage()."\n{$e}");
+                $msg = '<div class="z-i-msg z-i-error">'.S::t(SInterface::$importError).'<br />'.S::xml($e->getMessage()).'</div>';
+            }
+        }
+
+        $s .= (string) $F;
+
+        $r = $Interface['text'];
+        $r['preview'] = $s;
+
+        $Interface['text'] = $r;
+    }
+
+    public function importSwagger($d, &$msg='')
+    {
+        $url = $this->schema_source;
+        if(isset($d['basePath'])) {
+            $surl = parse_url($url);
+            if(isset($d['host'])) $surl['host'] = $d['host'];
+            $url = S::buildUrl($d['basePath'], $surl);
+        }
+
+        // api options
+        $api = [];
+        if(isset($d['parameters']['perPage'])) {
+            $api['limit'] = $d['parameters']['perPage']['name'];
+            if(isset($d['parameters']['perPage']['default'])) $api['limitCount'] = (int)$d['parameters']['perPage']['default'];
+        }
+        if(isset($d['parameters']['page'])) {
+            $api['pageOffset'] = $d['parameters']['page']['name'];
+            $api['startPage'] = (isset($d['parameters']['perPage']['default'])) ?(int)$d['parameters']['perPage']['default'] :1;
+        }
+        $api['schema'] = $this->schema_source;
+
+        // import connections
+        $cid = null;
+        if(isset($d['securityDefinitions'])) {
+            foreach($d['securityDefinitions'] as $i=>$o) {
+                if(isset($o['type']) && $o['type']!='oauth2') continue;
+                $b = ['id'=>$i, 'type'=>'server'];
+                $cid = 'server:'.$i;
+                if(!($T=Tokens::find($b,1))) {
+                    $T = new Tokens($b, true, false);
+                }
+
+                $options = $T->options;
+                if($options && is_string($options)) $options = S::unserialize($options);
+                $options['api_endpoint'] = $url;
+                if(isset($o['authorizationUrl'])) $options['authorization_endpoint'] = $o['authorizationUrl'];
+                if(isset($o['tokenUrl'])) $options['token_endpoint'] = $o['tokenUrl'];
+                if(isset($o['userinfoUrl'])) $options['userinfo_endpoint'] = $o['userinfoUrl'];
+                if(isset($o['scopes'])) $api['scopes'] = $o['scopes'];
+                $options['api_options'] = $api;
+
+                $T->options = $options;
+                $T->save();
+                $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(SInterface::$importSuccess), $T::label(), (string)$T).'</div>';
+            }
+        }
+        // loop through paths and import APIs
+        if(isset($d['paths'])) {
+            foreach($d['paths'] as $i=>$o) {
+                foreach($o as $m=>$ad) {
+                    $aid = (isset($ad['operationId'])) ?$ad['operationId'] :$m.':'.$i;
+                    $aid = $this->id.':'.$aid;
+                    $sc = [];
+                    if(isset($ad['responses'][200]['schema'])) $sc = Schema::import($ad['responses'][200]['schema']);
+                    if(!isset($sc['properties']) && isset($sc['items']['$ref']['properties'])) {
+                        $sc['properties'] = $sc['items']['$ref']['properties'];
+                        unset($sc['items']);
+                    }
+                    if(!is_array($sc)) $sc = [];
+                    $sc = ['_options' => ['methods' => [$m] ] ] + $sc;
+                    $a = [
+                        'id' => $aid,
+                        'connection'=>$cid,
+                        'source'=>$i,
+                    ];
+                    if(isset($ad['summary'])) $a['title'] = $ad['summary'];
+                    if(isset($ad['parameters'])) $sc['_options']['args'] = $ad['parameters'];
+                    $a['schema_data'] = S::serialize($sc, 'json');
+
+                    $A = self::replace($a);
+                    $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(SInterface::$importSuccess), $A::label(), (string)$A).'</div>';
+                }
+            }
+        }
+
+        // combine models?
+        return true;
     }
 }

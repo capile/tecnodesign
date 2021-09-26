@@ -87,15 +87,18 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
         if($L = Interfaces::find($q,null,null,false)) {
 
             foreach($L as $i=>$o) {
-                if($f = $o->cacheFile()) {
-                    $a = S::config($f, S::env());
+                if($o->indexed) {
+                    if($f = $o->cacheFile()) {
+                        $a = S::config($f, S::env());
+                    }
+                    $oid = basename($f, '.yml');
+                    if(isset($Is[$oid])) {
+                        $Is[$oid] = $a + $Is[$oid];
+                    } else {
+                        $Is[$oid] = $a;
+                    }
                 }
-                $oid = basename($f, '.yml');
-                if(isset($Is[$oid])) {
-                    $Is[$oid] = $a + $Is[$oid];
-                } else {
-                    $Is[$oid] = $a;
-                }
+                unset($L[$i], $i, $o);
             }
         }
 

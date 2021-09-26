@@ -696,7 +696,7 @@ class Schema implements ArrayAccess
                 }
             } else if($k=='$ref') {
                 static::import($v, $R);
-            } else if($k=='properties') {
+            } else if($k=='properties' || $k=='items') {
                 if(!isset($R[$k])) $R[$k] = [];
                 foreach($v as $kk=>$vv) {
                     $R[$k][$kk] = static::import($vv);

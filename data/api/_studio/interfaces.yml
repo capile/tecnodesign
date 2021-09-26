@@ -2,14 +2,14 @@
 all:
   title: "*Interfaces"
   model: Studio\Model\Interfaces
-  #actions:
-  #  connect:
-  #    action: executeMethod
-  #    position: 99
-  #    identified: true
-  #    batch: false
-  #    query: true
-  #    additional-params: true
+  actions:
+    import:
+      action: executeMethod
+      position: 99
+      identified: false
+      batch: false
+      query: true
+      additional-params: true
   key: id
   #search:
   #  type: server
@@ -29,6 +29,22 @@ all:
       new:
         - scope::n
         - scope::s
+      import:
+        __default:
+          fieldset: "*Connect to API"
+        "*Source":
+          bind: schema_source
+          format: url
+          required: true
+        "*Source Type":
+          bind: _schema_source_type
+          choices:
+            openapi: OpenAPI
+            SCIM: SCIM
+            swagger: Swagger
+          format: radio
+          required: true
+        "*ID Prefix": id
       n:
         __default:
           type: text
