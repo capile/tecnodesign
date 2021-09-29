@@ -3104,6 +3104,11 @@ class Tecnodesign_Interface extends Studio\Api
 
             $ac = (isset($action['icon'])) ?'z-i-a '.$action['icon'] :'z-i-a z-i--'.$aa;
             if(static::$standalone) {
+                if(!tdz::isempty($this->id)) {// only show batch or identifiable buttons
+                    if(!$id && !$bt) continue;
+                } else {
+                    if($id) continue;
+                }
                 if(preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
                     if(isset($action['query']) && $action['query'] && $qs) {
