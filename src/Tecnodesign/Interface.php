@@ -986,7 +986,7 @@ class Tecnodesign_Interface extends Studio\Api
                     }
                 } else if(!isset($this->id) && $this->search) {
                     if($this->count()==1) {
-                        $this->id = $this->model()->getPk();
+                        $this->model([], 1, false, true);
                     }
                 } else if($n && $n!=$this->id) {
                     return false;
@@ -1701,7 +1701,7 @@ class Tecnodesign_Interface extends Studio\Api
         if($one && method_exists($cn, $m=$this->config('modelRenderPrefix').tdz::camelize($this->action, true))) {
             $this->getButtons();
             $this->scope((isset($cn::$schema->scope[$this->action]))?($this->action):('preview'));
-            if(!$o) $o = $this->model();
+            if(!$o) $o = $this->model([], 1, false, true);
             $this->text['preview'] = $o->$m($this);
             unset($o);
         } else if(method_exists($this, $m='render'.tdz::camelize($this->action, true))) {
@@ -1773,7 +1773,7 @@ class Tecnodesign_Interface extends Studio\Api
         if(method_exists($o=$this->model, $a='execute'.tdz::camelize($this->action, true))) {
             if($this->id) {
                 // get object
-                $o = $this->model();
+                $o = $this->model([], 1, false, true);
                 $r = $o->$a($this, $req);
             } else {
                 $r = $o::$a($this, $req);
@@ -2256,7 +2256,7 @@ class Tecnodesign_Interface extends Studio\Api
         }
         $this->options['scope'] = $this->scope($scope);
 
-        if(!$o) $o = $this->model();
+        if(!$o) $o = $this->model([], 1, false, true);
 
         if(!$o) {
             if(static::$format!='html') {
@@ -2573,7 +2573,7 @@ class Tecnodesign_Interface extends Studio\Api
     public function renderUpdate($o=null, $scope=null)
     {
         $cn = $this->getModel();
-        if(!$o) $o = $this->model();
+        if(!$o) $o = $this->model([], 1, false, true);
         if(!$scope) {
             if(($rs=tdz::slug(Tecnodesign_App::request('get', static::REQ_SCOPE))) && (isset($this->options['scope'][$rs]) || isset($o::$schema->scope[$rs])) && !$this->config('actionsAvailable', $rs)) {
                 $scope = $rs;
@@ -2667,7 +2667,7 @@ class Tecnodesign_Interface extends Studio\Api
     public function renderDelete($o=null, $scope=null)
     {
         try {
-            if(($M = $this->model())) {
+            if(($M = $this->model([], 1, false, true))) {
                 $oldurl = $this->link();
                 $s = $this->getTitle();
                 $M->delete(true);
@@ -3102,14 +3102,20 @@ class Tecnodesign_Interface extends Studio\Api
             else if($id) $sid = '{id}';
             else $sid = false;
 
+            if(isset($action['on']) && is_array($action['on'])) {
+                if(tdz::isempty($this->id) || !$this->model([], 1, false, true) || !$this->model()->checkObjectProperties($action['on'])) {
+                    continue;
+                }
+            }
+
             $ac = (isset($action['icon'])) ?'z-i-a '.$action['icon'] :'z-i-a z-i--'.$aa;
             if(static::$standalone) {
+                if(preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(!tdz::isempty($this->id)) {// only show batch or identifiable buttons
                     if(!$id && !$bt) continue;
                 } else {
                     if($id) continue;
                 }
-                if(preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(isset($action['attributes']['target']) && (!$id || !tdz::isempty($this->id))) {
                     if(isset($action['query']) && $action['query'] && $qs) {
                         $qs = str_replace(',', '%3A', tdz::xmlEscape($qs));
@@ -3118,7 +3124,7 @@ class Tecnodesign_Interface extends Studio\Api
                     }
                     $href = 'href="'.$this->link($an, $sid).$qs.'"';
                 } else {
-                    $href = 'href="'.tdz::xmlEscape($this->link($an, ($id)?($sid):(false), true, $qs)).'"';
+                    $href = 'href="'.tdz::xml($this->link($an, ($id)?($sid):(false), true, $qs)).'"';
                 }
                 $s .= '<a '.$href.' class="'.$ac.'">'
                     . '<span class="tdz-i-label">'
@@ -3297,8 +3303,9 @@ class Tecnodesign_Interface extends Studio\Api
         return $this->text['list'];
     }
 
-    public function model($req=array(), $max=1, $collection=false)
+    public function model($req=array(), $max=1, $collection=false, $setId=null)
     {
+        static $current=[];
         $cn = $this->getModel();
         $order = null;
         if(isset($req['o']) && preg_match('/^[a-z0-9\.\_]+$/i', $req['o'])) {
@@ -3315,7 +3322,24 @@ class Tecnodesign_Interface extends Studio\Api
         } else {
             $a = 'review';
         }
-        return $cn::find($this->search,$max,$this->scope($a,true,true),$collection,$order,$this->groupBy);
+
+        if($max==1 && !tdz::isempty($this->id)) {
+            $key = $cn.'::'.$this->id.'::'.$a;
+            if(isset($current[$key])) {
+                return $current[$key]; 
+            }
+        }
+
+        $r = $cn::find($this->search,$max,$this->scope($a,true,true),$collection,$order,$this->groupBy);
+
+        if($max==1 && tdz::isempty($this->id) && $setId && $r) {
+            $this->id = implode(',', $r->getPk(true));
+        }
+        if($max==1 && !tdz::isempty($this->id)) {
+            $current[$cn.'::'.$this->id.'::'.$a] = $r;
+        }
+
+        return $r;
     }
 
     public function scope($a=null, $clean=false, $pk=false, $expand=null)
