@@ -343,7 +343,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
                 $f = array_shift($fpart);
                 if($fpart && !$this->format) $this->format = array_shift($fpart);
             } else if(!file_exists($file=static::file($f))
-                && !file_exists($file=TDZ_VAR.'/'.$f)
+                && !file_exists($file=S_VAR.'/'.$f)
                 && !file_exists($file=TDZ_DOCUMENT_ROOT.'/'.$f)
                 && !file_exists($file=Tecnodesign_Studio::$app->tecnodesign['document-root'].'/'.$f)
             ) {
@@ -385,7 +385,7 @@ class Tecnodesign_Studio_Entry extends Tecnodesign_Studio_Model
         if($optimize) {
             $ext = strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i','$1',basename($file)));
             $actions=Tecnodesign_Studio::$app->studio['assets_optimize_actions'];
-            $cache=TDZ_VAR.'/optimize/'.md5_file($file);
+            $cache=S_VAR.'/optimize/'.md5_file($file);
             if(isset($actions[$optimize]) && in_array(strtolower($ext),$actions[$optimize]['extensions'])) {
                 $options=$actions[$optimize];
                 if(isset($options['params'])) $params=$options['params'];

@@ -116,7 +116,7 @@ class Tecnodesign_Studio_Content extends Tecnodesign_Studio_Model
             if($limit==1) return $C;
             else return array($C);
         //} else if(is_array($q) && isset($q['source']) && count($q)==1) {
-        //    $C = Tecnodesign_Studio::content(TDZ_VAR.'/'.$q['source'], false, false, false);
+        //    $C = Tecnodesign_Studio::content(S_VAR.'/'.$q['source'], false, false, false);
         }
         if(!Tecnodesign_Studio::$connection) {
             return false;

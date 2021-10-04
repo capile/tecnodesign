@@ -61,7 +61,7 @@ class Tecnodesign_Query_File
                 if(!$n && is_array($db)) $db = array_shift($db);
                 if(isset($db['options'])) $db['options'] += static::$options;
                 else $db['options'] = static::$options;
-                if(isset($db['dsn']) && preg_match('/^([^\:]+)\:(.+)$/', $db['dsn'], $m) && is_dir($d=TDZ_VAR.'/'.dirname($m[2]))) {
+                if(isset($db['dsn']) && preg_match('/^([^\:]+)\:(.+)$/', $db['dsn'], $m) && is_dir($d=S_VAR.'/'.dirname($m[2]))) {
                     $db['dsn'] = $d.'/'.basename($m[2]);
                     $db['format'] = $m[1];
                 } else {

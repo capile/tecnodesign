@@ -549,8 +549,8 @@ FIM;
             $co[$i] = $f;
             $i++;
         }
-        if(is_dir(TDZ_VAR.'/studio/data/')) {
-            foreach(glob(TDZ_VAR.'/studio/data/*.yml') as $f){
+        if(is_dir(S_VAR.'/studio/data/')) {
+            foreach(glob(S_VAR.'/studio/data/*.yml') as $f){
                 $q .= "  {$i}) ".basename($f)."\n";
                 $co[$i] = $f;
                 $i++;

@@ -1,10 +1,26 @@
 ---
 all:
-  title: '*Welcome!'
+  title: 'Studio'
+  model: Studio\Model\Config
+  config:
+    actionsAvailable:
+      preview:
+        position: 30
+        identified: false
+        batch: true
+        query: false
+        additional-params: false
+        action: executeMethod
+      connect:
+        action: executeMethod
+        position: 99
+        identified: true
+        batch: false
+        query: true
+        additional-params: true
   options:
     index: false
-    navigation: false
-    priority: ~
+    priority: 0
   text: |
     # ![Studio](/_/img/studio.svg) {.z-i-logo}
   attributes:

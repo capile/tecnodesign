@@ -15,7 +15,7 @@ use Studio\Model;
 use Studio\User;
 use Studio\Crypto;
 use Tecnodesign_Yaml as Yaml;
-use tdz as S;
+use Studio as S;
 
 
 class Config extends Model
@@ -145,5 +145,18 @@ class Config extends Model
         }
 
         S::exec(['shell'=>$cmd.' '.escapeshellarg('http://127.0.0.1:9999/_studio')]);
+    }
+
+    public static function executePreview($Interface, $args=[])
+    {
+        $r = $Interface['text'];
+
+        $s = S::markdown($r['text']);
+        $s .= '<p>Version '.S::VERSION.'</p>';
+
+
+        $r['preview'] = $s;
+
+        $Interface['text'] = $r;
     }
 }

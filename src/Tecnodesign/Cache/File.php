@@ -41,7 +41,7 @@ class Tecnodesign_Cache_File
         if (!is_null($s)) {
             self::$_cacheDir = $s;
         } else if (is_null(self::$_cacheDir)) {
-            self::$_cacheDir = TDZ_VAR.'/cache';
+            self::$_cacheDir = S_VAR.'/cache';
         }
         return self::$_cacheDir;
     }

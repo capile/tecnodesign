@@ -6,7 +6,6 @@ vendor/
 node_modules/
 data/cache/
 data/log/
-data/database/*.db
 data/studio*.db
 data/web/_/z-*
 data/web/_/fa-solid-900.*

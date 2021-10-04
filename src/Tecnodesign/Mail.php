@@ -358,7 +358,7 @@ class Tecnodesign_Mail
         if (!$id) {
             $id = uniqid(tdz::slug(tdz::scriptName(true)).'-');
         }
-        $dir  = TDZ_VAR.'/mail/';
+        $dir  = S_VAR.'/mail/';
         if($this->sent){
             if(file_exists($dir.'unsent/'.$id)) {
                 unlink($dir.'unsent/'.$id);

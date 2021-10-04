@@ -47,7 +47,7 @@ if(!defined('K_PATH_CACHE'))
 if (isset(tdz::getApp()->tecnodesign['cache-dir']) && tdz::getApp()->tecnodesign['cache-dir'] != null) {
     define ('K_PATH_CACHE', tdz::getApp()->tecnodesign['cache-dir'].'/');
 } else {
-    define ('K_PATH_CACHE', TDZ_VAR.'/cache/');
+    define ('K_PATH_CACHE', S_VAR.'/cache/');
 };
 
 /**
@@ -58,12 +58,12 @@ if(!defined('K_PATH_URL_CACHE')) define ('K_PATH_URL_CACHE', '/cache/');
 /**
  *images directory
  */
-if(!defined('K_PATH_IMAGES') && is_dir(TDZ_VAR.'/images/')) define ('K_PATH_IMAGES', TDZ_VAR.'/images/');
+if(!defined('K_PATH_IMAGES') && is_dir(S_VAR.'/images/')) define ('K_PATH_IMAGES', S_VAR.'/images/');
 
 /**
  * blank image
  */
-if(!defined('K_BLANK_IMAGE') && file_exists(TDZ_VAR.'/images/_blank.png')) define ('K_BLANK_IMAGE', K_PATH_IMAGES.'_blank.png');
+if(!defined('K_BLANK_IMAGE') && file_exists(S_VAR.'/images/_blank.png')) define ('K_BLANK_IMAGE', K_PATH_IMAGES.'_blank.png');
 
 /**
  * page format

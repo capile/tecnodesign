@@ -85,7 +85,7 @@ class Tecnodesign_Studio
     {
         static $root;
         if(is_null($root)) {
-            $root = preg_replace('#/+$#', '', TDZ_VAR.'/'.Entry::$pageDir);
+            $root = preg_replace('#/+$#', '', S_VAR.'/'.Entry::$pageDir);
         }
         return $root;
     }
@@ -241,7 +241,7 @@ class Tecnodesign_Studio
             else if(substr($url, 0, 1)!='/') $url = '/'.$url;
             if(!Tecnodesign_Studio_Asset::run($url, TDZ_ROOT.'/src/Z', true) 
                 && (substr($url, -4) == '.css' || substr($url, -3) == '.js') 
-                && !Tecnodesign_Studio_Asset::run($url, TDZ_VAR.'/cache/minify', true)) {
+                && !Tecnodesign_Studio_Asset::run($url, S_VAR.'/cache/minify', true)) {
                 self::error(404);
             }
         } else {

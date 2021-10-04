@@ -118,7 +118,7 @@ class Tecnodesign_Studio_Asset
         if($optimize) {
             $cmdoutput=null;
             $cacheDir = ($app=tdz::getApp()) ?$app->tecnodesign['cache-dir'] :null;
-            if(!$cacheDir) $cacheDir = TDZ_VAR.'/cache/minify';
+            if(!$cacheDir) $cacheDir = S_VAR.'/cache/minify';
             if(!is_dir($cacheDir)) {
                 mkdir($cacheDir, 0777, true);
             }
@@ -187,7 +187,7 @@ class Tecnodesign_Studio_Asset
         }
 
         $cacheDir = ($app=tdz::getApp()) ?$app->tecnodesign['cache-dir'] :null;
-        if(!$cacheDir) $cacheDir = TDZ_VAR.'/cache/minify';
+        if(!$cacheDir) $cacheDir = S_VAR.'/cache/minify';
         if(!is_dir($cacheDir)) {
             mkdir($cacheDir, 0777, true);
         }
