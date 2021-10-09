@@ -1,6 +1,6 @@
 <?php
 /**
- * Tecnodesign Framework shortcuts and multi-purpose utils
+ * Studio Framework shortcuts and multi-purpose utils
  *
  * PHP version 7.3+
  *

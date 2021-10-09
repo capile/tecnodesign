@@ -4,11 +4,13 @@
  *
  * This is the only resource that needs to be called.
  * 
- * PHP version 7.2+
- * 
+ * PHP version 7.3+
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
+ * @version   2.6
  */
 if(file_exists($a=__DIR__.'/vendor/autoload.php') || file_exists($a=__DIR__.'/../../autoload.php')) require $a;
 unset($a);

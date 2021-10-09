@@ -5,8 +5,8 @@
  * A collection is an extended array which extends its unknown properties to its
  * collected items.
  * 
- * PHP version 5.6+
- * 
+ * PHP version 7.3+
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0

@@ -1,5 +1,5 @@
 #!/bin/sh
-TAG='studio-server=2.5.0'
+TAG='studio-server=2.6.11'
 PID=`pgrep -f "$TAG"`
 [ ! -z "$PID" ] && pkill -f "$TAG"
 mkdir -p "${0%/*}/data/log"

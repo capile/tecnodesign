@@ -1,4 +1,13 @@
 <?php
+/**
+ * PHP version 7.3+
+ *
+ * @package   capile/tecnodesign
+ * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.6
+ */
 if(!class_exists('tdz')) {
     $tdz = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/tdz.php';
     if(file_exists($f=preg_replace('#/capile/tecnodesign/tdz.php$#', '/autoload.php', $tdz))) $tdz = $f;

@@ -2,13 +2,13 @@
 /**
  * Database abstraction
  *
- * PHP version 5.6+
+ * PHP version 7.3+
  *
- * @category  Database
- * @package   Model
- * @author    Guilherme Capilé, Tecnodesign <ti@tecnodz.com>
- * @copyright 2020 Tecnodesign
- * @link      https://tecnodz.com/
+ * @package   capile/tecnodesign
+ * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.6
  */
 class Tecnodesign_Query_Sqlsrv extends Tecnodesign_Query_Dblib
 {
