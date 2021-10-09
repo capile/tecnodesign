@@ -3060,6 +3060,18 @@ if (!defined('S_DOCUMENT_ROOT')) {
     }
     unset($d);
 }
+
+if(!defined('S_REPO_ROOT')) {
+    if(is_dir($d=S_PROJECT_ROOT.'/www-contrib')
+        || is_dir($d=S_PROJECT_ROOT.'/web-repos')
+        || is_dir($d=S_APP_ROOT.'/www-contrib')
+        || is_dir($d=S_APP_ROOT.'/web-repos')
+        || is_dir($d=S_VAR.'/web-repos')
+    ) {
+    }
+    define('S_REPO_ROOT', realpath($d));
+}
+
 spl_autoload_register('Studio::autoload', true, true);
 if(is_null(Studio::$lib)) {
     Studio::$lib = [];
