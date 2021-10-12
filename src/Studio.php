@@ -1436,6 +1436,12 @@ class Studio
 
     public static function cacheControl($set=null, $expires=null)
     {
+        if(!$expires && $set) {
+            if(strpos($set, 'no-cache')!==false) {
+                if(strpos($set, 'no-store')===false) $set .= ', no-store';
+                if(strpos($set, 'must-revalidate')===false) $set .= ', must-revalidate';
+            }
+        }
         if(!is_null($set) && is_string($set)) {
             self::set('cache-control', $set);
             $cacheControl = $set;
