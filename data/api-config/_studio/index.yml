@@ -27,7 +27,7 @@ all:
           format: select
           type: string
           choices: choicesStudioVersion
-          default: "2.5"
+          default: "2.6"
         "*Set Admin Password":
           bind: _admin_password
           format: password
@@ -45,5 +45,9 @@ all:
           default: 1
         "*Enable API Management":
           bind: studio.enable_interface_index
+          format: bool
+          default: 1
+        "*Enable Schema Management":
+          bind: studio.enable_api_schema
           format: bool
           default: 1

@@ -1,0 +1,7 @@
+---
+all:
+  title: "*Schema"
+  model: Studio\Model\Schema
+  options:
+    priority: 1020
+    index: true

@@ -4,6 +4,16 @@ all:
     version: 2.6
     connection: studio
     enable_interfaces: true
+    enable_interface_content: true
+    enable_interface_credential: true
+    enable_interface_index: true
+    enable_api_schema: true
+    web-repos:
+      studio-docs:
+        src: git@github.com:capile/tecnodesign.wiki.git
+        map:
+          - src: ~
+            url: /docs
   app:
     api-dir: [ data/api-config ]
     languages:

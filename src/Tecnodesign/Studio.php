@@ -1028,13 +1028,17 @@ class Tecnodesign_Studio
                     'Studio\\Model\\IndexNumber',
                     'Studio\\Model\\IndexText',
                 ],
+                'schema'=>[
+                    'Studio\\Model\\Schema',
+                    'Studio\\Model\\SchemaProperties',
+                ],
             ];
             if(($version=self::config('compatibility_level')) && $version < 2.5) {
                 $compatible = true;
                 $cfg['content'] = array_keys($compatibility);
             }
             foreach($cfg as $n=>$cns) {
-                if(self::config('enable_interface_'.$n)) {
+                if(self::config('enable_interface_'.$n) || self::config('enable_api_'.$n)) {
                     $models = ($models) ?array_merge($models, $cns) :$cns;
                 }
             }

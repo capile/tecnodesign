@@ -1,0 +1,43 @@
+{
+    "title": "*Schema Properties",
+    "database": "studio",
+    "tableName": "studio_schema_properties",
+    "className": "Studio\\Model\\SchemaProperties",
+    "properties": {
+        "schema_id": { "type": "string", "size": 200, "required": true, "primary": true },
+        "bind": { "type": "string", "size": 200, "required": true, "primary": true },
+        "title": { "type": "string", "size": 200, "required": true },
+        "type": { "type": "string", "size": 40, "required": true },
+        "format": { "type": "string", "size": 40, "required": true, "default": "text" },
+        "description": { "type": "string", "size": 500 },
+        "placeholder": { "type": "string", "size": 500 },
+        "primary": { "type": "bool", "required": true, "default": "0" },
+        "required": { "type": "bool", "required": true, "default": "0" },
+        "default": { "type": "string", "size": 100 },
+        "choices": { "type": "string", "size": 2000, "serialize": "json" },
+        "serialize": { "type": "string", "size": 40 },
+        "scope": { "type": "object", "size": 2000, "serialize": "json" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "Schema": { "local": "schema_id", "foreign": "id", "type": "one", "className": "Studio\\Model\\Schema", "constraint": { "fk_studio_schema_properties__schema": "cascade" } }
+    },
+    "scope": {
+        "string": [ "bind" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

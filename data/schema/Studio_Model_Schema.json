@@ -1,0 +1,42 @@
+{
+    "title": "*Schema",
+    "database": "studio",
+    "tableName": "studio_schema",
+    "className": "Studio\\Model\\Schema",
+    "properties": {
+        "id": { "type": "string", "size": 200, "required": true, "primary": true },
+        "title": { "type": "string", "size": 200, "required": true },
+        "type": { "type": "string", "size": 40, "required": true, "default": "object" },
+        "description": { "type": "string", "size": 500 },
+        "class_name": { "type": "string", "size": 200, "index": [ "studio_schema_class_name__idx" ] },
+        "database": { "type": "string", "size": 200 },
+        "table_name": { "type": "string", "size": 200 },
+        "view": { "type": "string", "size": 200 },
+        "order_by": { "type": "object", "size": 200, "serialize": "json" },
+        "group_by": { "type": "object", "size": 200, "serialize": "json" },
+        "pattern_properties": { "type": "string", "size": 200 },
+        "scope": { "type": "object", "size": 2000, "serialize": "json" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "SchemaProperties": { "local": "id", "foreign": "schema_id", "type": "many", "className": "Studio\\Model\\SchemaProperties" }
+    },
+    "scope": {
+        "string": [ "title" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

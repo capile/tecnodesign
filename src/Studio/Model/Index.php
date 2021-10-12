@@ -13,8 +13,8 @@
 namespace Studio\Model;
 
 use Studio\Model as Model;
+use Studio\Studio as Studio;
 use Tecnodesign_App as App;
-use Tecnodesign_Studio as Studio;
 use Tecnodesign_Studio_Interface as Api;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Query as Query;
