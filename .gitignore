@@ -14,3 +14,4 @@ data/web/_/quill.min.js.map
 *.lock
 package-lock.json
 codecept*
+yarn-error.log
