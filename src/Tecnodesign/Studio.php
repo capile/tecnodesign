@@ -363,8 +363,17 @@ class Tecnodesign_Studio
     public static function content($page, $checkLang=true, $checkTemplates=true, $addResponse=true)
     {
         static $root;
-        if(is_null($root)) $root = self::documentRoot();
-        if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot) || !file_exists($page)) return;
+
+        if(!file_exists($page)) return;
+
+        if(strpos($page, S_REPO_ROOT.'/')===0) {
+            $id = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
+        } else {
+            if(is_null($root)) $root = self::documentRoot();
+            if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot)) return;
+            $id = substr($page, strlen(self::documentRoot()));
+        }
+
         $slotname = Entry::$slot;
         $pos = '00000';
         $pn = basename($page);
@@ -414,7 +423,7 @@ class Tecnodesign_Studio
                 unset($U);
             }
         }
-        $id = substr($page, strlen(self::documentRoot()));
+
         $lmod = date('Y-m-d\TH:i:s', filemtime($page));
         $C = new Content(array(
             'id'=>tdz::hash($id, null, 'uuid'),

@@ -25,5 +25,4 @@ class Studio extends \Tecnodesign_Studio
             'index'=>['Studio\\Model\\Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
         ];
-    const VERSION = 2.6; 
 }
