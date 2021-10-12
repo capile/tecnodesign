@@ -16,7 +16,7 @@ class StudioCest
     {
     }
 
-    public function docsPageWorks(\AcceptanceTester $I)
+    public function homePageWorks(\AcceptanceTester $I)
     {
         // remove cached css and see if it was properly generated
         $css = TDZ_DOCUMENT_ROOT . '/_/site.css';
@@ -24,8 +24,8 @@ class StudioCest
             unlink($css);
         }
 
-        $I->amOnPage('/docs/');
-        $I->see('Tecnodesign Studio');
+        $I->amOnPage('/');
+        $I->see('Welcome to Studio!');
         $I->seeElement('link[href^="/_/site.css?"]');
     }
 

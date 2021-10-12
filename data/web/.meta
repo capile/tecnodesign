@@ -1,7 +1,7 @@
 ---
-title: Tecnodesign Documentation
+title: Studio Documentation
 #script: 
 #  docs: [ /_/js/docs.js ]
 style:
-  docs: [ /_/css/site.less ]
+  site: [ /_/css/site.less ]
 languages: [ en ]
