@@ -3052,7 +3052,7 @@ if(!defined('S_PROJECT_ROOT')) {
 }
 if (!defined('S_DOCUMENT_ROOT')) {
     if(defined('TDZ_DOCUMENT_ROOT')) define('S_DOCUMENT_ROOT', TDZ_DOCUMENT_ROOT);
-    if(is_dir($d=S_PROJECT_ROOT.'/htdocs')
+    else if(is_dir($d=S_PROJECT_ROOT.'/htdocs')
         || is_dir($d=S_PROJECT_ROOT.'/www')
         || is_dir($d=S_PROJECT_ROOT.'/web')
         || is_dir($d=S_APP_ROOT.'/web')

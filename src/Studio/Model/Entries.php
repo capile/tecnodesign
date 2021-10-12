@@ -888,8 +888,6 @@ class Entries extends Model
             $page = static::file($url, false);
             if($page && is_array($page)) $page = array_shift($page);
         }
-        S::log(__METHOD__, $page);
-
 
         // get metadata
         if(file_exists($mf=$page.'.'.S::$lang.'.meta') || file_exists($mf=$page.'.meta')) {

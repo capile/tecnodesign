@@ -12,4 +12,5 @@
  * @link      https://tecnodz.com
  * @version   2.6
  */
+require_once __DIR__.'/src/Studio.php';
 require_once __DIR__.'/src/tdz.php';
