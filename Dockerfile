@@ -1,14 +1,18 @@
-## tecnodesign/studio:v1.0
+## tecnodesign/studio:v1.1
 #
-# docker build -f Dockerfile  . -t tecnodesign/studio:v1.0
-# docker push tecnodesign/studio:v1.0
+# docker build -f Dockerfile  . -t tecnodesign/studio:v1.1
+# docker push tecnodesign/studio:v1.1
 FROM php:fpm
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs libpng-dev libjpeg-dev libwebp-dev libfreetype6-dev zlib1g-dev libzip-dev libonig-dev libxml2-dev zip
+
+COPY --from=node:lts /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:lts /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=node:lts /usr/local/bin/npx /usr/local/bin/npx
+COPY --from=node:lts /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+RUN apt-get install -y libpng-dev libjpeg-dev libwebp-dev libfreetype6-dev zlib1g-dev libzip-dev libonig-dev libxml2-dev zip git
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp
 RUN docker-php-ext-install mbstring zip gd simplexml dom fileinfo ctype pdo pdo_mysql
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN mkdir -p /var/www/app
 WORKDIR /var/www/app
@@ -38,7 +42,7 @@ RUN sed -e 's/^error_log.*/error_log = \/dev\/stderr/' \
         -i /usr/local/etc/php-fpm.conf
 
 ## foxy compatibility issues with composer 2.1 (open)
-RUN composer self-update 2.0.14
+## RUN composer self-update 2.0.14
 
 #USER www-data
 #COPY . /var/www/app
