@@ -569,12 +569,12 @@ class Tecnodesign_Form implements ArrayAccess
      * @return bool true on success, false on error — each form field will have
      *              the referred error in this case
      */
-    public function validate($values=array())
+    public function validate($values=array(), $allowReload=true)
     {
         if($this->getEnctype()==='multipart/form-data') {
             $values = tdz::postData($values);
         }
-        $req = (Tecnodesign_App::request('headers', 'z-action')==='Form.Validate');
+        $req = ($allowReload && Tecnodesign_App::request('headers', 'z-action')==='Form.Validate');
         $values = tdz::fixEncoding($values);
         $valid = true;
         if(!$this->checkLimits($values)) {

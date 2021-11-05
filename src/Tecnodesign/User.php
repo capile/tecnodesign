@@ -689,27 +689,28 @@ class Tecnodesign_User
         }
         return $this->_cid;
     }
+
     public function getSessionNs()
     {
         if (!$this->_me) {
             return false;
         }
-        return $this->_ns['id'];
+        return ($this->_ns && isset($this->_ns['id'])) ?$this->_ns['id'] :null;
     }
 
-    
     public function store($storage=null)
     {
         if (!$this->_me) {
             return false;
         }
-        if(is_null($storage) && isset($this->_ns['storage'])) {
+
+        if(is_null($storage) && $this->_ns && isset($this->_ns['storage'])) {
             $storage = $this->_ns['storage'];
         }
         $sid = $this->getSessionId(true);
-        $ckey = "user/{$this->_ns['id']}-".$sid;
+        $ckey = "user/{$this->getSessionNs()}-".$sid;
         $fkey = 'fpr/'.$sid;
-        $timeout = (isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
+        $timeout = ($this->_ns && isset($this->_ns['timeout']))?($this->_ns['timeout']):(static::$timeout);
         Tecnodesign_Cache::set($ckey, $this->_me, $timeout, $storage);
         if(isset(static::$fingerprint) && is_object($this->_me)) {
             $fprk = static::$fingerprint;

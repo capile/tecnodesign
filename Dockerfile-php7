@@ -48,7 +48,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ## foxy compatibility issues with composer 2.1 (open)
 RUN composer self-update 2.0.14
 
-RUN mkdir -p /app && chown www-data:www-data /app
+RUN mkdir -p /app /var/www/.{composer,npm} && chown www-data:www-data /app /var/www/.{composer,npm}
 USER www-data
 WORKDIR /app
 
