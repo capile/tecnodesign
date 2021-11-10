@@ -4,11 +4,11 @@
 # docker push tecnodesign/studio:v1.1
 FROM php:fpm
 
-RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libwebp-dev libfreetype6-dev zlib1g-dev libzip-dev libonig-dev libxml2-dev zip git
+RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libwebp-dev libfreetype6-dev zlib1g-dev libzip-dev libonig-dev libxml2-dev zip git gnupg
 RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp
 RUN apt-get install libldap2-dev -y && \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/
-RUN docker-php-ext-install mbstring zip gd simplexml dom fileinfo ctype pdo pdo_mysql ldap
+RUN docker-php-ext-install mbstring zip gd simplexml dom fileinfo ctype pdo pdo_mysql ldap soap
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 RUN sed -e 's/expose_php = On/expose_php = Off/' \
         -e 's/max_execution_time = 30/max_execution_time = 10/' \
@@ -24,9 +24,9 @@ RUN sed -e 's/expose_php = On/expose_php = Off/' \
 RUN echo 'max_input_vars = 10000' > /usr/local/etc/php/conf.d/x-config.ini
 RUN sed -e 's/^listen = .*/listen = 9000/' \
         -e 's/^listen\.allowed_clients/;listen.allowed_clients/' \
-        -e 's/^user = apache/user = nobody/' \
+        -e 's/^user = apache/user = www-data/' \
         -e 's/;catch_workers_output.*/catch_workers_output = yes/' \
-        -e 's/^group = apache/group = nobody/' \
+        -e 's/^group = apache/group = www-data/' \
         -e 's/^php_admin_value\[error_log\]/;php_admin_value[error_log]/' \
         -e 's/^;?php_admin_value[memory_limit] = .*/php_admin_value[memory_limit] = 32M/' \
         -i /usr/local/etc/php-fpm.d/www.conf
@@ -48,7 +48,24 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ## foxy compatibility issues with composer 2.1 (open)
 RUN composer self-update 2.0.14
 
-RUN mkdir -p /app /var/www/.{composer,npm} && chown www-data:www-data /app /var/www/.{composer,npm}
+## nodejs and puppeteer support
+RUN mkdir -p /app /var/www/.composer /var/www/.npm && \
+    chown www-data:www-data /app /var/www/.composer /var/www/.npm
+RUN apt-get install -y \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-dev \
+    libcups2 \
+    libdrm-dev \
+    libxkbcommon-dev \
+    libxcomposite-dev \
+    libxdamage-dev \
+    libxrandr-dev \
+    libgbm-dev \
+    libpango-1.0 \
+    libcairo-dev \
+    libasound-dev \
+    libxshmfence-dev
 USER www-data
 WORKDIR /app
 
