@@ -2229,10 +2229,14 @@ class Studio
             // this is double-stored in file cache to prevent duplication
             if($alg==='uuid') {
                 $sh = (strlen($s)>30 || preg_match('/[^a-z0-9-_]/i', $s))?(md5($s)):($s);
+                $r = null;
                 if($r=Cache::get('uuid/'.$sh)) {
+                    if($salt===false) {
+                        Cache::delete('uuid/'.$sh);
+                        Cache::delete('uuids/'.$r);
+                    }
                     unset($sh);
-                    return $r;
-                } else {
+                } else if($salt!==false) {
                     // generate uniqid in base64: 10 char string
                     while(!$r) {
                         $r = rtrim(strtr(base64_encode((function_exists('openssl_random_pseudo_bytes'))?(openssl_random_pseudo_bytes(7)):(pack('H*',uniqid(true)))), '+/', '-_'), '=');
@@ -2714,7 +2718,7 @@ class Studio
     		}
 			return $ns;
     	}
-        $num=hexdec($s);
+        $num=@hexdec($s);
         $b=64;
         $i=1;
         $ns='';

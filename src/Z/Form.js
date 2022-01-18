@@ -99,7 +99,8 @@ function autoSubmit(e)
 {
     /*jshint validthis: true */
     Z.stopEvent(e);
-    if(this.form && this.form.getAttribute('data-do-not-submit')) return false;
+    if(!this.form || this.form.getAttribute('data-do-not-submit')) return false;
+    else if(this.form.className.search(/\bz-form-reload\b/)>-1) formReload.call(this, e);
     else if(this.form) this.form.submit(e);
     else if(this.submit) this.submit(e);
     return false;
@@ -131,7 +132,7 @@ function formReloadData(d)
     }
     F.parentNode.replaceChild(R, F);
     R.setAttribute('data-do-not-submit', '1');
-    Z.init(R);
+    Z.init(R.parentNode);
     R.removeAttribute('data-do-not-submit');
 }
 

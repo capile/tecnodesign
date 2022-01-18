@@ -43,7 +43,6 @@ class User
 
             }
             unset($Request, $Server);
-            \tdz::log(__METHOD__, $token);
 
             return ($token && isset($token['user_id'])) ?$token['user_id'] :null;
         }
