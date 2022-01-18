@@ -5,8 +5,8 @@
     "className": "Studio\\Model\\Schema",
     "properties": {
         "id": { "type": "string", "size": 200, "required": true, "primary": true },
-        "title": { "type": "string", "size": 200, "required": true },
         "type": { "type": "string", "size": 40, "required": true, "default": "object" },
+        "title": { "type": "string", "size": 200 },
         "description": { "type": "string", "size": 500 },
         "class_name": { "type": "string", "size": 200, "index": [ "studio_schema_class_name__idx" ] },
         "database": { "type": "string", "size": 200 },
@@ -16,11 +16,14 @@
         "group_by": { "type": "object", "size": 200, "serialize": "json" },
         "pattern_properties": { "type": "string", "size": 200 },
         "scope": { "type": "object", "size": 2000, "serialize": "json" },
+        "base": { "type": "string", "size": 200 },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "SchemaProperties": { "local": "id", "foreign": "schema_id", "type": "many", "className": "Studio\\Model\\SchemaProperties" }
+        "SchemaProperties": { "local": "id", "foreign": "schema_id", "type": "many", "className": "Studio\\Model\\SchemaProperties" },
+        "SchemaDisplay": { "local": "id", "foreign": "schema_id", "type": "many", "className": "Studio\\Model\\SchemaDisplay" },
+        "BaseSchema": { "local": "base", "foreign": "id", "type": "one", "className": "Studio\\Model\\Schema" }
     },
     "scope": {
         "string": [ "title" ]
@@ -33,6 +36,7 @@
         "before-delete": [ "actAs" ]
     },
     "overlay": {
+        "type": { "format": "select", "choices": "choicesType" }
     },
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },

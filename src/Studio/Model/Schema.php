@@ -17,5 +17,17 @@ class Schema extends Model
 {
     public static $schema;
 
-    protected $id, $title, $type, $description, $class_name, $database, $table_name, $view, $order_by, $group_by, $pattern_properties, $scope, $created, $updated, $SchemaProperties;
+    protected $id, $title, $type, $description, $class_name, $database, $table_name, $view, $order_by, $group_by, $pattern_properties, $scope, $base, $created, $updated, $BaseSchema, $SchemaProperties, $SchemaDisplay;
+
+
+    public static function choicesType()
+    {
+        static $types=[];
+
+        if(!$types) {
+            $types = S::t(['object'=>'Object', 'array'=>'Array', 'string'=>'String', 'number'=>'Number', 'date'=>'Date', 'datetime'=>'Datetime', 'int'=>'Integer', 'bool'=>'Boolean'], 'ui');
+        }
+
+        return $types;
+    }
 }

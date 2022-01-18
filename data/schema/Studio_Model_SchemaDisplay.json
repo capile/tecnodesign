@@ -1,0 +1,46 @@
+{
+    "title": "*Schema Display",
+    "database": "studio",
+    "tableName": "studio_schema_display",
+    "className": "Studio\\Model\\SchemaDisplay",
+    "properties": {
+        "schema_id": { "type": "string", "size": 200, "required": true, "primary": true },
+        "id": { "type": "int", "required": true, "primary": true, "increment": "auto" },
+        "bind": { "type": "string", "size": 200, "index": [ "studio_schema_display__bind_idx" ] },
+        "type": { "type": "string", "size": 40, "index": [ "studio_schema_display__type_idx" ] },
+        "content": { "type": "string", "size": 2000 },
+        "condition": { "type": "string", "size": 2000, "serialize": "json" },
+        "created": { "type": "datetime", "required": true },
+        "updated": { "type": "datetime", "required": true }
+    },
+    "relations": {
+        "Schema": { "local": "schema_id", "foreign": "id", "type": "one", "className": "Studio\\Model\\Schema", "constraint": { "fk_studio_schema_display__schema": "cascade" } },
+        "Properties": { "local": [ "schema_id", "bind" ], "foreign": [ "schema_id", "bind" ], "type": "one", "className": "Studio\\Model\\SchemaProperties" }
+    },
+    "scope": {
+        "string": [ "schema_id", "id" ]
+    },
+    "order": {
+    },
+    "events": {
+        "before-insert": [ "actAs" ],
+        "before-update": [ "actAs" ],
+        "before-delete": [ "actAs" ]
+    },
+    "overlay": {
+        "bind": { "format": "select", "choices": "choicesBind", "class": "i1s2", "label": "*Property" },
+        "type": { "format": "select", "choices": "choicesType", "class": "i1s2", "label": "*Display Option" },
+        "content": { "format": "textarea", "label": "*Content", "class": "ih4" },
+        "condition": { "format": "form", "scope": {
+            "bind": { "format": "select", "choices": "choicesBind", "class": "i1s3", "label": "*Property" },
+            "on": { "format": "select", "choices": "choicesCondition", "class": "i1s3", "label": "*Condition" },
+            "value": { "format": "text", "class": "i1s3", "label": "*Value" }
+        }}
+
+    },
+    "actAs": {
+        "before-insert": { "timestampable": [ "created", "updated" ], "auto-increment": [ "id" ] },
+        "before-update": { "timestampable": [ "updated" ] },
+        "before-delete": { "timestampable": [ "updated" ] }
+    }
+}

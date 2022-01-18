@@ -6,27 +6,28 @@
     "properties": {
         "schema_id": { "type": "string", "size": 200, "required": true, "primary": true },
         "bind": { "type": "string", "size": 200, "required": true, "primary": true },
-        "title": { "type": "string", "size": 200, "required": true },
-        "type": { "type": "string", "size": 40, "required": true },
-        "format": { "type": "string", "size": 40, "required": true, "default": "text" },
-        "description": { "type": "string", "size": 500 },
-        "placeholder": { "type": "string", "size": 500 },
+        "position": { "type": "int", "default": "0", "required": true, "index": [ "studio_schema_properties__position_idx" ] },
+        "type": { "type": "string", "size": 40 },
+        "format": { "type": "string", "size": 40 },
+        "title": { "type": "string", "size": 200 },
+        "description": { "type": "string", "size": 200 },
         "primary": { "type": "bool", "required": true, "default": "0" },
         "required": { "type": "bool", "required": true, "default": "0" },
         "default": { "type": "string", "size": 100 },
-        "choices": { "type": "string", "size": 2000, "serialize": "json" },
         "serialize": { "type": "string", "size": 40 },
-        "scope": { "type": "object", "size": 2000, "serialize": "json" },
         "created": { "type": "datetime", "required": true },
         "updated": { "type": "datetime", "required": true }
     },
     "relations": {
-        "Schema": { "local": "schema_id", "foreign": "id", "type": "one", "className": "Studio\\Model\\Schema", "constraint": { "fk_studio_schema_properties__schema": "cascade" } }
+        "Schema": { "local": "schema_id", "foreign": "id", "type": "one", "className": "Studio\\Model\\Schema", "constraint": { "fk_studio_schema_properties__schema": "cascade" } },
+        "Display": { "local": [ "schema_id", "bind" ], "foreign": [ "schema_id", "bind" ], "type": "many", "className": "Studio\\Model\\SchemaDisplay" }
     },
     "scope": {
-        "string": [ "bind" ]
+        "string": [ "bind", "title", "description" ]
     },
-    "order": {
+    "order": {        
+        "position": "asc",
+        "bind": "asc"
     },
     "events": {
         "before-insert": [ "actAs" ],
@@ -34,6 +35,16 @@
         "before-delete": [ "actAs" ]
     },
     "overlay": {
+        "bind": { "class": "i1s2", "label": "*Name" },
+        "type": { "format": "select", "choices": "choicesType", "class": "i1s4", "label": "*Data Type" },
+        "format": { "format": "select", "choices": "choicesFormat", "class": "i1s4", "label": "*Form Display" },
+        "title": { "class": "i1s2", "label": "*Label" },
+        "description": { "format": "text", "class": "i1s2", "label": "*Description" },
+        "primary": { "format": "radio", "choices": "choicesBool", "class": "i1s4", "label": "*Primary Key" },
+        "required": { "format": "radio", "choices": "choicesBool", "class": "i1s4", "label": "*Required" },
+        "default": { "class": "i1s2", "label": "*Default Value" },
+        "serialize": { "format": "select", "choices": "choicesSerialize", "class": "i1s4", "label": "*Serialize Data" },
+        "position": { "format": "number", "class": "i1s4", "label": "*Sorting Order" }
     },
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },

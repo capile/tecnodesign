@@ -1031,6 +1031,7 @@ class Tecnodesign_Studio
                 'schema'=>[
                     'Studio\\Model\\Schema',
                     'Studio\\Model\\SchemaProperties',
+                    'Studio\\Model\\SchemaDisplay',
                 ],
             ];
             if(($version=self::config('compatibility_level')) && $version < 2.5) {

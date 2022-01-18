@@ -5,3 +5,54 @@ all:
   options:
     priority: 1020
     index: true
+    scope:
+      new:
+        __default:
+          fieldset: '*New Schema'
+        '*Source URL or ID': id
+        '*Title': title
+        '*Schema Type': type
+      list:
+        '*Title': title
+        '*Last modified': updated
+      preview:
+        - 'scope::core'
+        - 'scope::prop'
+        - 'scope::disp'
+      core:
+        __default:
+          fieldset: '*Schema'
+        '*ID': id
+        '*Title': title
+        '*Schema Type': type
+        '*Description': description
+        '*Source': base
+      prop:
+        '*Properties':
+          bind: SchemaProperties
+          fieldset: '*Properties'
+          format: form
+          scope:
+            - bind
+            - type
+            - format
+            - description
+            - primary
+            - required
+            - default
+            - serialize
+            - position
+      disp:
+        '*Appearance':
+          bind: SchemaDisplay
+          fieldset: '*Appearance'
+          format: form
+          scope:
+            - type
+            - bind
+            - content
+            #- condition
+
+
+
+

@@ -9,3 +9,11 @@ last: última
 first: primeira
 Clear selection: Limpar seleção
 Select all: Selecionar todos
+Object: Objeto
+Array: Lista
+String: Texto
+Number: Número
+Date: Data
+Datetime: Data e Hora
+Integer: Número Inteiro
+Boolean: Sim/Não

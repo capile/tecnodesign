@@ -1,0 +1,19 @@
+---
+Schema: Estrutura de dados
+New Schema: Nova Estrutura de dados
+Source URL or ID: URL de origem ou ID
+Title: Título
+Schema Type: Tipo de informação
+Description: Descrição
+Source: Origem
+Properties: Atributos
+Bind: Identificador do atributo
+Text input: Linha de texto
+Number input: Número
+Date input: Data
+Datetime input: Data e hora 
+E-mail input: E-mail
+Checkbox: Caixa de seleção
+Radio buttons: Botão de seleção
+Select: Lista de seleção
+Multiple Select: Lista de seleção múltipla

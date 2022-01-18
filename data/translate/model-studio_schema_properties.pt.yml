@@ -1,0 +1,12 @@
+---
+Name: Nome
+Description: Descrição
+Label: Rótulo
+Data Type: Tipo de informação
+Form Display: Exibição em Formulários
+Serialize Data: Serializar informação
+Choices: Opções de Escolha
+Primary Key: Chave Primária
+Required: Obrigatório
+Default Value: Valor Padrão
+Sorting Order: Ordem

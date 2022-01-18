@@ -1460,21 +1460,20 @@ class Tecnodesign_Form_Field implements ArrayAccess
                         $this->choices=new Tecnodesign_Collection();
                     }
                 }
-            } else if(is_string($this->choices)) {
+            } else if(is_string($choices)) {
                 if($noexec) {
-                    $this->choices = preg_split('/\s*\,\s*/', $this->choices, null, PREG_SPLIT_NO_EMPTY);
-                }else if(strpos($this->choices, '(')) {
+                    $choices = preg_split('/\s*\,\s*/', $choices, null, PREG_SPLIT_NO_EMPTY);
+                }else if(tdz::$enableEval && strpos($choices, '(')) {
                     tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$this->choices);
-                    $this->choices = @eval('return '.$this->choices.';');
+                    $choices = @eval('return '.$choices.';');
                 } else {
                     $M = $this->getBindModel();
-                    if(method_exists($M, $this->choices)) {
-                        $m = $this->choices;
-                        $this->choices = $M->$m();
+                    if(method_exists($M, $choices)) {
+                        $this->choices = $M->$choices($check, $count);
                     } else if(tdz::$enableEval) {
-                        $this->choices = @eval('return '.$this->choices.';');
+                        $this->choices = @eval('return '.$choices.';');
                     } else {
-                        tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$M.'->'.$this->id.': '.$this->choices);
+                        tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$M.'->'.$this->id.': '.$choices);
                         $this->choices = [];
                     }
                     unset($M, $m);

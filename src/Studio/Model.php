@@ -35,4 +35,12 @@ class Model extends \Tecnodesign_Model
             }
         }
     }
+
+    public function choicesBool()
+    {
+        static $o;
+        if(!$o) $o = S::t(['No', 'Yes'], 'interface');
+
+        return $o;
+    }
 }
