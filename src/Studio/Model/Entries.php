@@ -886,7 +886,8 @@ class Entries extends Model
     {
         if(is_null($page) && $url) {
             $page = static::file($url, false);
-            if($page && is_array($page)) $page = array_shift($page);
+            if(!$page) $page = '';
+            else if($page && is_array($page)) $page = array_shift($page);
         }
 
         // get metadata
