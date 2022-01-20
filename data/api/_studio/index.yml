@@ -1,6 +1,6 @@
 ---
 all:
-  title: 'Studio'
+  title: '*Welcome to Studio CMS'
   model: Studio\Model\Config
   config:
     actionsAvailable:
@@ -11,6 +11,15 @@ all:
         query: false
         additional-params: false
         action: executeMethod
+      update:
+        position: 30
+        identified: false
+        batch: true
+        query: false
+        additional-params: false
+        renderer: renderUpdate
+        label: Configuration
+        next: preview
       connect:
         action: executeMethod
         position: 99
@@ -21,7 +30,94 @@ all:
   options:
     index: false
     priority: 0
+    scope:
+      update:
+        __default:
+          fieldset: "*Studio Configuration"
+          class: i1s2
+        "*Languages": 
+          bind: app.languages
+          format: checkbox
+          multiple: true
+          choices: choicesLanguage
+          default: [ "en", "pt" ]
+          class: i-vlabel
+        "*Version": 
+          bind: studio.version
+          format: select
+          type: string
+          choices: choicesStudioVersion
+          default: "2.6"
+        "*Set Admin Password":
+          bind: _admin_password
+          format: password
+        "*Enable Management Interface":
+          bind: studio.enable_interfaces
+          format: bool
+          default: 1
+        "*Enable Content Management":
+          bind: studio.enable_interface_content
+          format: bool
+          default: 1
+        "*Enable User Management":
+          bind: studio.enable_interface_credential
+          format: bool
+          default: 1
+        "*Enable API Management":
+          bind: studio.enable_interface_index
+          format: bool
+          default: 1
+        "*Enable Schema Management":
+          bind: studio.enable_api_schema
+          format: bool
+          default: 1
+        "*Enable Web Interface":
+          bind: studio.web_interface
+          format: bool
+          default: 1
+        "*Content Repositories":
+          bind: studio.web-repos
+          format: form
+          class: i-vlabel
+          scope:
+            "*Repository ID":
+              bind: id
+              placeholder: "*Local ID for the repository"
+              required: true
+              format: text
+              class: i1s2
+              rules:
+                'regexp:/[^a-z0-9\-\_\.]+/i': This value is not accepted...
+            "*Repository URL":
+              bind: src
+              placeholder: "*Remote URL the repository"
+              format: text
+              required: true
+              class: i1s2
+            "*Mount Path":
+              bind: mount
+              placeholder: "*Local URL where will be mounted"
+              required: true
+              format: text
+              class: i1s2
+            "*Mount Source":
+              bind: mount-src
+              placeholder: "*Remote [branch:]path that will be mounted"
+              format: text
+              class: i1s2
+            "*Access Type":
+              bind: client
+              format: select
+              choices: choiceswebRepoClient
+              class: i1s2
+            "*Access Credentials":
+              bind: secret
+              format: text
+              placeholder: "*Additional credentials to access the repository"
+              class: i1s2
   text: |
     # ![Studio](/_/img/studio.svg) {.z-i-logo}
+
+    <a href="/_studio/index/u" class="z-i-a z-i-link z-i--config"></a>
   attributes:
-    class: z-i-no-summary z-i-no-actions z-i-no-breadcrumb
+    class: z-i-no-breadcrumb

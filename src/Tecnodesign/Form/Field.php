@@ -355,21 +355,28 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if($validation && in_array($this->type, static::$typesNotForValidation)) return true;
 
         $this->error=array();
-        $value = $this->parseValue($value);
+        $v0 = $value = $this->parseValue($value);
 
         foreach($this->getRules() as $m=>$message) {
             $msg = '';
             try {
+                $regex = null;
                 if(substr($m, 0, 6)=='model:') {
                     $fn = substr($m,0,6);
                     $tg = $this->getModel();
+                } else if(substr($m, 0, 7)=='regexp:') {
+                    $regex = substr($m,7);
                 } else if(strpos($m, '::') && !strpos($m, '(')) {
                     list($tg, $fn) = explode('::', $m);
                 } else {
                     $fn = 'check'.ucfirst($m);
                     $tg = $this;
                 }
-                if(method_exists($tg, $fn)) {
+                if($regex) {
+                    if(preg_match($regex, $value)) {
+                        $value = false;
+                    }
+                } else if(method_exists($tg, $fn)) {
                     if(is_array($value) && $this->multiple && in_array($fn, $textChecks)) {
                         $r = [];
                         foreach($value as $i=>$v) {
@@ -400,7 +407,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 unset($tg, $fn);
                 if($value===false && $outputError) {
                     if(count($this->error)==0) {
-                        $msg = sprintf(tdz::t($message, 'exception'), $this->getLabel(), $value);
+                        $msg = sprintf(tdz::t($message, 'exception'), $this->getLabel(), $v0);
                         $this->error[$msg]=$msg;
                         throw(new Tecnodesign_Exception($msg));
                     }
@@ -2008,6 +2015,11 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 } else {
                     $fd['bind'] = $fn;
                 }
+            } else {
+                if(!isset($fd['label'])) {
+                    $fd['label'] = $fn;
+                }
+                $fn = $fd['bind'];
             }
             if(!isset($fd['label'])) {
                 $fd['label'] = $M::fieldLabel($fd['bind']);

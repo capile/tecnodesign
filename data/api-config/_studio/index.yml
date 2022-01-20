@@ -51,3 +51,7 @@ all:
           bind: studio.enable_api_schema
           format: bool
           default: 1
+        "*Enable Web Interface":
+          bind: studio.web_interface
+          format: bool
+          default: 1

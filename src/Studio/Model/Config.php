@@ -13,16 +13,17 @@
 
 namespace Studio\Model;
 
+use Studio\App as App;
 use Studio\Model;
 use Studio\User;
 use Studio\Crypto;
 use Tecnodesign_Yaml as Yaml;
+use Tecnodesign_Exception as Exception;
 use Studio as S;
-
 
 class Config extends Model
 {
-    public static $schema;
+    public static $schema, $webRepoClient=['ssh'=>'SSH using public keys', 'http'=>'HTTP using token'];
 
     protected $app, $studio, $user;
 
@@ -34,6 +35,19 @@ class Config extends Model
     public function choicesLanguage()
     {
         return ["en"=>"English", "pt"=>"Português"];
+    }
+
+    public function choiceswebRepoClient()
+    {
+        static $options;
+        if(is_null($options)) {
+            $options=[];
+            foreach(self::$webRepoClient as $n=>$v) {
+                $options[$n] = S::t($v, 'interface');
+            }
+        }
+
+        return $options;
     }
 
     public function renderTitle()
@@ -98,7 +112,7 @@ class Config extends Model
         S::exec(['shell'=>$cmd.' :check']);
 
         // import admin password (if set)
-        if(isset($this->_admin_password)) {
+        if(isset($this->_admin_password) && $this->_admin_password) {
             $import = [
                 'Studio\Model\Users!'=>[[
                     '__key' => [ 'username' ],
@@ -160,5 +174,62 @@ class Config extends Model
         $r['preview'] = $s;
 
         $Interface['text'] = $r;
+    }
+
+    public function validateStudioWebRepos($v)
+    {
+        if($v && is_array($v)) {
+            foreach($v as $i=>$o) {
+                if(!$this->syncRepo($v[$i])) {
+                    $n = (isset($o['id'])) ?$o['id'] :$i+1;
+                    throw new Exception(sprintf(S::t('The repository %s could not be synchronized.', 'exception'), $n));
+                }
+            }
+        }
+
+        return $v;
+    }
+
+    public static function syncRepo(&$repo, $push=null)
+    {
+        if(!isset($repo['id']) || !$repo['id'] || !isset($repo['src']) || !$repo['src']) return false;
+
+        $rr = S::config('repo-dir');
+        if(!$rr) $rr = S_VAR.'/web-repos';
+
+        if(!isset($repo['client']) || !$repo['client']) $repo['client'] = null;
+        if(!isset($repo['secret']) || !$repo['secret']) $repo['secret'] = null;
+
+        $o = [];
+        if($repo['client']) {
+            $o[] = '-c '.escapeshellarg('credential.'.$repo['src'].'.username='.$repo['client']);
+        }
+        if($repo['secret']) {
+            $o[] = '-c '.escapeshellarg('credential.'.$repo['src'].'.password='.$repo['secret']);
+        }
+
+        $d = $rr.'/'.$repo['id'];
+        $clone = null;
+        if(!is_dir($d)) {
+            if(!mkdir($d, 0777, true)) return false;
+            $clone = true;
+        } else if(S::isEmptyDir($d)) {
+            $clone = true;
+        } else if(!file_exists($d.'/.git')) {
+            // not a git repo
+            return false;
+        }
+
+        if($clone && isset($repo['mount-src']) && $repo['mount-src'] && strpos($repo['mount-src'], ':')) {
+            $o[] = '--branch '.escapeshellarg(substr($repo['mount-src'], 0, strpos($repo['mount-src'], ':')));
+        }
+
+        if($clone) $a = 'git -C '.escapeshellarg($d).' clone '.implode(' ', $o).' '.escapeshellarg($repo['src']).' .';
+        else if($push) $a = 'git -C '.escapeshellarg($d).' push '.implode(' ', $o);
+        else $a = 'git -C '.escapeshellarg($d).' pull '.implode(' ', $o);
+
+        if(!S::exec(['shell'=>$a])) return false;
+
+        return true;
     }
 }

@@ -459,12 +459,11 @@ class Studio
                 if(in_array($s, $loaded)) continue;
                 $loaded[] = $s;
                 $s = Yaml::load($s);
-
                 if (!is_array($s)) {
                     continue;
                 }
                 if(isset($s[$env]['include']) && !in_array($s[$env]['include'], $loaded)) {
-                    $loaded[] = $s['all']['include'];
+                    $loaded[] = $s[$env]['include'];
                     if($load = glob($s[$env]['include'])) {
                         foreach($load as $f) {
                             if(!in_array($f, $loaded)) {
@@ -487,7 +486,6 @@ class Studio
                     unset($load);
                     unset($s['all']['include']);
                 }
-
 
                 if ($section) {
                     if(isset($s[$env][$section]) && is_array($s[$env][$section])) {
@@ -1145,6 +1143,22 @@ class Studio
     public static function notEmpty($a)
     {
         return !self::isempty($a);
+    }
+
+    public static function isEmptyDir($d)
+    {
+        if($h=opendir($d)) {
+            $r = true;
+            while (false !== ($e=readdir($h))) {
+                if ($e != "." && $e != "..") {
+                    $r = false;
+                    break;
+                }
+            }
+            closedir($h);
+            return $r;
+        }
+        return false;
     }
 
     public static function fixEncoding($s, $encoding='UTF-8')
@@ -2209,6 +2223,11 @@ class Studio
 
     public static function env()
     {
+        if(is_null(self::$_env)) {
+            if(defined('S_ENV')) self::$_env = S_ENV;
+            else if(defined('TDZ_ENV')) self::$_env = TDZ_ENV;
+            else self::$_env = 'prod';
+        }
         return self::$_env;
     }
 

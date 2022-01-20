@@ -1,4 +1,4 @@
-/*! Studio v2.3 | (c) 2019 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Studio v2.6 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
 (function() {
 
 "use strict";

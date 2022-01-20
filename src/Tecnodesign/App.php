@@ -12,6 +12,8 @@
  * @link      https://tecnodz.com
  * @version   2.6
  */
+use Studio as S;
+
 class Tecnodesign_App
 {
     protected static $_instances = null, $_current=null, $_request=null, $_response=array();
@@ -106,7 +108,7 @@ class Tecnodesign_App
             $this->_vars['app']['routes']['.*']=$this->getRouteConfig($this->_vars['app']['default-route']);
         }
         foreach ($this->_vars['app'] as $name=>$value) {
-            if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
+            if ((substr($name, -4)== 'root' || substr($name, -4)=='-dir') && !is_null($value) && (is_array($value) || (substr($value, 0, 1)!='/' && substr($value, 1, 1)!=':'))) {
                 if(is_array($value)) {
                     foreach($value as $i=>$dvalue) {
                         if(substr($dvalue, 0, 1)!='/' && substr($dvalue, 1, 1)!=':') {
@@ -1038,10 +1040,10 @@ class Tecnodesign_App
         return self::$_response;
     }
 
-    public function config()
+    public static function config()
     {
         $a = func_get_args();
-        $o = $this->_vars;
+        $o = S::getApp()->_vars;
         $first = true;
         while($v=array_shift($a)) {
             if($first) {

@@ -680,31 +680,34 @@ class Entries extends Model
         $src = [];
         if($rs = Studio::config('web-repos')) {
             foreach($rs as $rn=>$repo) {
-                if(!is_dir($d0=S_REPO_ROOT.'/'.$rn)) continue;
-                if(isset($repo['map'])) {
-                    $map = (is_array($repo['map'])) ?$repo['map'] :[['url'=>$repo['map']]];
-                    foreach($map as $m) {
-                        if(!is_array($m)) $mu = $m;
-                        else if(isset($m['url'])) $mu = $m['url'];
-                        else continue;
-
-                        if($mu===$url || substr($url, 0, strlen($mu)+1)===$mu.'/') {
-                            $d = $d0;
-                            if(is_array($m) && isset($m['src']) && $m['src'] && $m['src']!=='/') $d .= '/'.$m['src'];
-                            if($mu===$url) $f = $d;
-                            else $f = $d.substr($url, strlen($mu));
-                            if($check) {
-                                if(file_exists($f)) return $f;
-                                continue;
-                            }
-
-                            if(is_dir($f)) $f .= ((substr($f, -1)=='/') ?'' :'/') . static::$indexFile;
-                            $src[] = $f;
-                            unset($f, $d);
-                        }
-                        unset($m, $mu);
+                if(isset($repo['id'])) $rn = $repo['id'];
+                if(!is_dir($d=S_REPO_ROOT.'/'.$rn)) continue;
+                $mu = (isset($repo['mount'])) ?$repo['mount'] :'';
+                $murl = $url;
+                if($mu) {
+                    if($mu===$url) {
+                        $murl = '';
+                    } else if(substr($url, 0, strlen($mu)+1)===$mu.'/') {
+                        $murl = substr($url, strlen($mu));
+                    } else {
+                        continue;
                     }
                 }
+
+                if(isset($repo['mount-src']) && ($msrc=preg_replace('/([^\:]+\:)/', '', $repo['mount-src'])) && !preg_match('#/\.\./#', $repo['mount-src'])) {
+                    if($msrc!='.' && $msrc!='/') {
+                        $d .= '/'.$msrc;
+                    }
+                }
+
+                $f = $d.$murl;
+                if($check) {
+                    if(file_exists($f)) return $f;
+                    continue;
+                }
+                if(is_dir($f)) $f .= ((substr($f, -1)=='/') ?'' :'/') . static::$indexFile;
+                $src[] = $f;
+                unset($f, $d, $murl, $mu);
             }
         }
 
@@ -805,9 +808,15 @@ class Entries extends Model
             $r = array_unique($r);
         }
         return $r;
-    }   
+    }
 
-    protected static function _checkPage($page, $url, $multiview=false)
+    public static function fromFile($file, $attr=[])
+    {
+        S::debug(__METHOD__, $file, var_export(self::_checkPage($file, $attr['url'], false, $attr), true));
+
+    }
+
+    protected static function _checkPage($page, $url, $multiview=false, $extended=null)
     {
         if(is_dir($page)) return;
         $base = preg_replace('/\..*/', '', basename($page));
@@ -868,6 +877,12 @@ class Entries extends Model
             'type'=>($isPage)?('page'):('file'),
             'updated'=>$t,
         ));
+        if($extended) {
+            $P->created = date('Y-m-d\TH:i:s', filectime($page));
+            if(is_array($extended)) {
+                if(isset($extended['src']) && $extended['src']) $this->source = $extended['src'].$this->source;
+            }
+        }
         // reindex?
         if($meta) {
             foreach($meta as $fn=>$v) {

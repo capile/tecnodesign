@@ -12,6 +12,9 @@
  * @link      https://tecnodz.com
  * @version   2.6
  */
+use Studio as S;
+use Tecnodesign_App as App;
+
 class Tecnodesign_Interface extends Studio\Api
 {
     const MAX_LIMIT=10000;
@@ -479,7 +482,7 @@ class Tecnodesign_Interface extends Studio\Api
                 }
             } else if(static::$base=='/') static::$base='';
 
-            if($apid=tdz::getApp()->config('app', 'api-dir')) {
+            if($apid=App::config('app', 'api-dir')) {
                 if(!is_array($apid)) {
                     if(!in_array($apid, static::$dir)) array_unshift(static::$dir, $apid);
                 } else {
@@ -3930,7 +3933,7 @@ class Tecnodesign_Interface extends Studio\Api
             if(is_string($q)) return array(static::loadInterface($q));
         }
         $Is = array();
-        $dd = tdz::getApp()->config('app', 'data-dir');
+        $dd = App::config('app', 'data-dir');
         $da = (!static::$authDefault)?(true):(static::checkAuth(static::$authDefault));
         $base = static::base();
         foreach(static::$dir as $d) {
@@ -3977,10 +3980,9 @@ class Tecnodesign_Interface extends Studio\Api
     public static function configFile($s, $skip=[])
     {
         static $dd;
-        if(is_null($dd)) $dd = tdz::getApp()->config('app', 'data-dir');
-        $s = tdz::slug($s, '/_',true);
+        if(is_null($dd)) $dd = App::config('app', 'data-dir');
+        $s = S::slug($s, '/_',true);
         if(!is_array($skip)) $skip = [];
-
         $base = static::base();
         $bm = (static::$baseMap && isset(static::$baseMap[$base])) ?static::$baseMap[$base] :null;
         foreach(static::$dir as $d) {
@@ -4016,7 +4018,7 @@ class Tecnodesign_Interface extends Studio\Api
             $not = [];
             if($f = static::configFile($a['interface'])) {
                 $not[] = $f;
-                $cfg = tdz::config($f, tdz::env());
+                $cfg = S::config($f, S::env());
                 if($cfg) $a += $cfg;
                 unset($cfg);
             }
@@ -4025,8 +4027,8 @@ class Tecnodesign_Interface extends Studio\Api
                 while(isset($a['base']) && ($f=static::configFile($a['base'], $not))) {
                     $not[] = $f;
                     unset($a['base']);
-                    $na = tdz::config($f, tdz::env());
-                    if($na) $a = tdz::mergeRecursive($a, $na);
+                    $na = S::config($f, S::env());
+                    if($na) $a = S::mergeRecursive($a, $na);
                     if($i-- <=0) break;
                 }
             }
@@ -4034,13 +4036,13 @@ class Tecnodesign_Interface extends Studio\Api
             static $r;
             if(!$r) {
                 $r = array('$DATE'=>date('Y-m-d\TH:i:s'), '$TODAY'=>date('Y-m-d'), '$NOW'=>date('H:i:s'));
-                $U = tdz::getUser();
+                $U = S::getUser();
                 if($U->isAuthenticated()) {
                     $r['$UID'] = $U->getPk();
                 }
                 unset($U);
             }
-            $a = tdz::replace($a, $r);
+            $a = S::replace($a, $r);
             unset($f);
         }
         if($prepare && isset($a['model']) && isset($a['prepare'])) {
