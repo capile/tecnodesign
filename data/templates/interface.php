@@ -118,7 +118,7 @@ if(isset($attributes) && is_array($attributes)) {
                     Tecnodesign_App::response('summary', $summary);
                 }
 
-                echo $Interface->message(), (isset($app))?($app):('');
+                if(isset($app)) echo $app;
 
                 if(isset($list) && ($g=$Interface->renderGraph())):
                     ?><div class="<?php echo $Interface::$attrGraphClass; ?>"><?php

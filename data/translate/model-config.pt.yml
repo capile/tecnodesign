@@ -6,3 +6,20 @@ Enable Management Interface: Habilitar Interface de Gerenciamento
 Enable Content Management: Habilitar Gerenciamento de Conteúdo (CMS)
 Enable User Management: Habilitar Gerenciamento de Usuário
 Enable API Management: Habilitar Gerenciamento de API
+Enable Schema Management: Habilitar Gerenciamento de Dados
+Enable Web Interface: Habilitar Interface Web
+Content Repositories: Repositórios de Conteúdo
+Repository ID: ID do Repositório
+Repository URL: URL do Repositório
+Mount Path: Montar na URL
+Mount Source: Montar da Origem
+Access Type: Tipo de acesso
+Access Credentials: Credenciais de acesso
+SSH using public keys: SSH usando chaves públicas
+HTTP using token: HTTP usando token
+Local URL where will be mounted: URL local que será montada
+Remote URL at the repository: URL remota no repositório
+"Remote [branch:]path that will be mounted": "[Branch:]Pasta que será montada
+Additional credentials to access the repository: Credenciais adicionais para acessar o repositório
+Only alpha-numeric characters and simple punctuation are valid, no spaces.: Apenas caracteres alfanuméricos e pontuação simples é válida, sem espaços.
+Local ID for the repository: ID local para designar o repositório

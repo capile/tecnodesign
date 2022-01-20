@@ -482,12 +482,13 @@ class Tecnodesign_User
     public function setMessage($msg, $storage=null)
     {
         if(is_null($this->_message)) {
-            $this->_message = array();
+            $this->_message = [];
         }
         if($msg) {
             $this->_message[(string)microtime(true)]=$msg;
             $this->storeMessage($storage);
         }
+
         return $this;
     }
 
@@ -538,6 +539,7 @@ class Tecnodesign_User
             unset($cookies);
         }
         if($delete) $this->deleteMessage($storage);
+
         return $msg;
     }
 

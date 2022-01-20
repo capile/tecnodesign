@@ -715,16 +715,25 @@ class Tecnodesign_Interface extends Studio\Api
 
     public function message($m=null)
     {
+        $U = S::getUser();
+        $clean = null;
+        if(is_null(static::$msg)) {
+            static::$msg = (string) $U->getMessage(null, true);
+            $clean = true;
+        }
         if($m) {
-            tdz::getUser()->setMessage($m);
             static::$msg .= $m;
-        } else if(is_null(static::$msg)) {
-            static::$msg .= (string) tdz::getUser()->getMessage(false, true);
+            if(!$clean) $U->deleteMessage();
+            $U->setMessage(static::$msg);
         } else if($m===false) {
+            unset($U, $clean);
             $msg = static::$msg;
             static::$msg = null;
+
             return $msg;
         }
+        unset($U, $clean);
+
         return static::$msg;
     }
 
@@ -1355,6 +1364,8 @@ class Tecnodesign_Interface extends Studio\Api
     public function getTitle()
     {
         $cn = $this->getModel();
+        $s = null;
+        $xml = null;
         if(!tdz::isempty($this->id)) {
             $w = $this->search;
             if(!tdz::isempty($this->id) && !tdz::isempty($this->key)) {
@@ -1372,7 +1383,6 @@ class Tecnodesign_Interface extends Studio\Api
             }
             if(!$w) $w = ($this->search) ?$this->search :$this->id;
             $r = $cn::find($w,null,'string',false,null,$this->groupBy);
-            $s = null;
             if($r) {
                 if(method_exists($cn, 'renderTitle')) {
                     $s = '';
@@ -1381,29 +1391,31 @@ class Tecnodesign_Interface extends Studio\Api
                             . $o->renderTitle();
                         unset($r[$i], $i, $o);
                     }
+                    $xml = true;
                 } else if($this->action && !in_array($this->action, $this->config('actionsDefault'))) {
                     $l = $this->action;
-                    if(isset($this->actions[$l]['label'])) {
-                        $s = tdz::xml($this->actions[$l]['label'].': '.implode(', ', $r));
+                    if(isset($this->actions[$l]['label']) && ($label = $this->actions[$l]['label'])) {
+                        if(substr($label, 0, 1)==='*') $label = static::t(substr($label, 1));
+                        $s = $label.': '.implode(', ', $r);
                     } else {
-                        $s = tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)).': '.implode(', ', $r));
+                        $s = static::t(tdz::camelize('label-'.$l), ucwords($l)).': '.implode(', ', $r);
                     }
                 } else {
-                    $s = tdz::xml(implode(', ', $r));
+                    $s = implode(', ', $r);
                 }
             }
         } else if($this->action && !in_array($this->action, $this->config('actionsDefault'))) {
             $l = $this->action;
-            if(isset($this->actions[$l]['label'])) {
-                $s = tdz::xml($this->actions[$l]['label']);
+            if(isset($this->actions[$l]['label']) && ($s = $this->actions[$l]['label'])) {
+                if(substr($s, 0, 1)==='*') $s = static::t(substr($s, 1));
             } else {
-                $s = tdz::xml(static::t(tdz::camelize('label-'.$l), ucwords($l)));
+                $s = static::t(tdz::camelize('label-'.$l), ucwords($l));
             }
         } else {
             if(!isset($this->text['title'])) {
-                $s = tdz::xml($cn::label());
+                $s = $cn::label();
             } else if(substr($this->text['title'], 0, 1)=='*') {
-                $s = tdz::xml(static::t(substr($this->text['title'],1)));
+                $s = static::t(substr($this->text['title'],1));
             } else {
                 $s = $this->text['title'];
             }
@@ -1412,6 +1424,8 @@ class Tecnodesign_Interface extends Studio\Api
         if(!$s) {
             $s = static::t('Untitled');
         }
+
+        if($s && !$xml) $s = S::xml($s);
 
         return $s;
     }
@@ -3085,16 +3099,19 @@ class Tecnodesign_Interface extends Studio\Api
                 $qs='';
             }
             $An = tdz::camelize($an, true);
+            $label = null;
 
             if(isset($action['relation'])) {
                 $id = true;
                 $bt = false;
-                $label = (isset($action['text']['title']))?($action['text']['title']):(static::t('label'.$An, $An));
+                if(isset($action['text']['title'])) $label = $action['text']['title'];
             } else {
                 $bt = (isset($action['batch']))?($action['batch']):(false);
                 $id  = (isset($action['identified']))?($action['identified']):(false);
-                $label = (isset($action['label']))?($action['label']):(static::t('label'.$An, $An));
+                if(isset($action['label'])) $label = $action['label'];
             }
+            if($label && substr($label, 0, 1)=='*') $label = static::t(substr($label, 1));
+            else if(!$label) $label = static::t('label'.$An, $An);
             if($bt && !$this->options['checkbox']) $this->options['checkbox']=true;
             if($id && !$this->options['radio']) $this->options['radio']=true;
             if(!($aa = $this->config('actionAlias', $an))) {

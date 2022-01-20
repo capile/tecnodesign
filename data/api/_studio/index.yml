@@ -5,27 +5,29 @@ all:
   config:
     actionsAvailable:
       preview:
-        position: 30
+        position: ~
         identified: false
         batch: true
-        query: false
+        query: true
         additional-params: false
         action: executeMethod
       update:
         position: 30
         identified: false
-        batch: true
-        query: false
+        batch: false
+        query: true
         additional-params: false
         renderer: renderUpdate
-        label: Configuration
+        icon: z-i--config
+        label: "*Configuration"
         next: preview
       connect:
         action: executeMethod
         position: 99
-        identified: true
+        identified: false
         batch: false
         query: true
+        label: "*Studio Connect"
         additional-params: true
   options:
     index: false
@@ -87,10 +89,10 @@ all:
               format: text
               class: i1s2
               rules:
-                'regexp:/[^a-z0-9\-\_\.]+/i': This value is not accepted...
+                'regexp:/[^a-z0-9\-\_\.]+/i': "*Only alphabetic characters and simple punctuation are valid, no spaces."
             "*Repository URL":
               bind: src
-              placeholder: "*Remote URL the repository"
+              placeholder: "*Remote URL at the repository"
               format: text
               required: true
               class: i1s2

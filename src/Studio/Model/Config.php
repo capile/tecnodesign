@@ -23,7 +23,7 @@ use Studio as S;
 
 class Config extends Model
 {
-    public static $schema, $webRepoClient=['ssh'=>'SSH using public keys', 'http'=>'HTTP using token'];
+    public static $schema, $webRepoClient=['ssh'=>'*SSH using public keys', 'http'=>'*HTTP using token'];
 
     protected $app, $studio, $user;
 
@@ -165,11 +165,11 @@ class Config extends Model
 
     public static function executePreview($Interface, $args=[])
     {
+        $Interface->getButtons();
         $r = $Interface['text'];
 
         $s = S::markdown($r['text']);
         $s .= '<p>Version '.S::VERSION.'</p>';
-
 
         $r['preview'] = $s;
 
