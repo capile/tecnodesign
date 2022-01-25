@@ -119,7 +119,5 @@ all:
               class: i1s2
   text: |
     # ![Studio](/_/img/studio.svg) {.z-i-logo}
-
-    <a href="/_studio/index/u" class="z-i-a z-i-link z-i--config"></a>
   attributes:
     class: z-i-no-breadcrumb

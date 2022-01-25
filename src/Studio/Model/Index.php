@@ -54,84 +54,122 @@ class Index extends Model
         // studio indexing
         if(!static::checkConnection()) return;
 
-        $files = [];
-        if(file_exists(S_REPO_ROOT) && ($repos=App::config('studio', 'web-repos'))) {
-            foreach($repos as $repo) {
-                $n = $repo['id'];
-                if(is_dir($d=S_REPO_ROOT.'/'.$n)) {
-                    if(isset($repo['mount-src']) && $repo['mount-src']) {
-                        $m = preg_replace('/^[^\:]+\:/', '', $repo['mount-src']);
-                        if($m=='.' || $m=='/') $m = null;
-                        else if(!is_dir($d=$d.'/'.$m)) continue;
+        $index = [];
+        $q = [];
+        $indexApi = $indexFiles = true;
+        if(App::request('shell') && ($a = App::request('argv'))) {
+            $p = $m = null;
+            foreach($a as $i=>$o) {
+                if(substr($o, 0, 1)==='-') {
+                    if(preg_match('/^-(v+)$/', $o, $m)) {
+                        S::$log = strlen($m[1]);
+                    } else  if(substr($o, 1, 1)==='q') {
+                        S::$log = 0;
+                    } else if($o==='-a' || $o==='--api') {
+                        $indexFiles = false;
+                    } else if($o==='-d' || $o==='--dir') {
+                        $indexApi = false;
                     }
-
-                    $files[] = ['file'=>$d, 'model'=>Studio::class, 'url'=>(isset($repo['mount'])) ?$repo['mount'] :null, 'src'=>$repo['id'].':'];
+                } else if($p=strpos($o, '=')) {
+                    $q[substr($o, 0, $p)] = substr($o, $p);
+                } else {
+                    $q['id'][] = $o;
                 }
+                unset($a[$i], $i, $o, $p, $m);
+            }
+            if($q) {
+                $index = Interfaces::find(['id'=>$q],null,null,false);
+                if(!$index) $index = [];
             }
         }
-        if(file_exists(S_DOCUMENT_ROOT) && is_dir(S_DOCUMENT_ROOT)) {
-            $files[] = ['file'=>S_DOCUMENT_ROOT, 'model'=>Studio::class, 'url'=>null, 'src'=>null];
+
+        if($p=Cache::get('studio/indexing')) {
+            S::log('[WARNING] Another process is indexing (for '.substr(S_TIME - $p, 0, 5).'s), please wait.');
+            return;
+        }
+        Cache::set('studio/indexing', S_TIME, 20);
+        if($indexApi) {
+            if(!$q) {
+                $index = static::$interfaces;
+                if(!$index) {
+                    $index = Interfaces::find(['index_interval>'=>0],null,null,false);
+                    if(!$index) $index = [];
+                }
+            }
+
+            if(S::$log) {
+                S::log('[INFO] Indexing APIs: '.implode(', ', $index));
+            }
+
+            $q=null;
+            foreach($index as $a) {
+                $ref = null;
+                if(is_string($a)) {
+                    $ref = $a;
+                    $a = Api::find($a, false);
+                    if(!$a) continue;
+                }
+                static::indexInterface($a, $ref);
+            }
         }
 
-        while($a=array_shift($files)) {
-            if(!method_exists($a['model'], 'fromFile')) continue;
-            $cn = $a['model'];
-            if(is_dir($a['file'])) {
-                $h = opendir($a['file']);
-                while (($f = readdir($h)) !== false) {
-                    if($f==='.' || $f==='..') continue;
-                    if($M=$cn::fromFile($a['file'].'/'.$f, $a)) {
-                        try {
-                            if(!is_array($M)) $M = [$M];
-                            foreach($M as $i=>$o) {
-                                $o->save();
-                                self::indexModel($o);
-                                unset($M[$i], $i, $o);
+        if($indexFiles) {
+            $files = [];
+            $ds = [];
+            if(file_exists(S_REPO_ROOT) && ($repos=App::config('studio', 'web-repos'))) {
+                foreach($repos as $repo) {
+                    $n = $repo['id'];
+                    if(is_dir($d=S_REPO_ROOT.'/'.$n)) {
+                        if(isset($repo['mount-src']) && $repo['mount-src']) {
+                            $m = preg_replace('/^[^\:]+\:/', '', $repo['mount-src']);
+                            if($m=='.' || $m=='/') $m = null;
+                            else if(!is_dir($d=$d.'/'.$m)) continue;
+                        }
+
+                        $files[] = ['file'=>$d, 'model'=>Studio::class, 'url'=>(isset($repo['mount'])) ?$repo['mount'] :null, 'src'=>$repo['id'].':'];
+                        $ds[] = $d;
+                    }
+                }
+            }
+            if(file_exists(S_DOCUMENT_ROOT) && is_dir(S_DOCUMENT_ROOT)) {
+                $files[] = ['file'=>S_DOCUMENT_ROOT, 'model'=>Studio::class, 'url'=>null, 'src'=>null];
+                $ds[] = S_DOCUMENT_ROOT;
+            }
+
+            if($ds) {
+                if(S::$log) {
+                    S::log('[INFO] Indexing folders for CMS content: '.implode(', ', $ds));
+                }
+                unset($ds);
+
+                while($a=array_shift($files)) {
+                    if(!method_exists($a['model'], 'fromFile')) continue;
+                    $cn = $a['model'];
+                    if(is_dir($a['file'])) {
+                        $h = opendir($a['file']);
+                        while (($f = readdir($h)) !== false) {
+                            if($f==='.' || $f==='..') continue;
+                            if($M=$cn::fromFile($a['file'].'/'.$f, $a)) {
+                                try {
+                                    if(!is_array($M)) $M = [$M];
+                                    foreach($M as $i=>$o) {
+                                        $o->save();
+                                        self::indexModel($o);
+                                        unset($M[$i], $i, $o);
+                                    }
+                                    unset($M);
+                                } catch(Exception $e) {
+                                    S::log('[WARNING] Could not index '.$M.': '.$e->getMessage()."\nexiting...");
+                                    break;
+                                }
                             }
-                            unset($M);
-                        } catch(Exception $e) {
-                            S::log('[WARNING] Could not index '.$M.': '.$e->getMessage()."\nexiting...");
-                            break;
                         }
                     }
                 }
-            }
 
+            }
         }
 
-        $index = [];
-        if(App::request('shell') && ($a = App::request('argv'))) {
-            if(static::$interfaces) {
-                $index=array_intersect(static::$interfaces, $a);
-                if(!$index) $index = [];
-                else $a = array_diff($a, $index);
-            }
-
-            if($a) {
-                $L = Interfaces::find(['id'=>$a],null,null,false);
-                if($L) $index = array_merge($index, $L);
-                unset($L);
-            }
-        } else {
-            $index = static::$interfaces;
-            if(!$index) $index = [];
-            $L = Interfaces::find(['index_interval>'=>0],null,null,false);
-            if($L) $index = array_merge($index, $L);
-            unset($L);
-        }
-
-        //if(Cache::get('studio/indexing')) return;
-        //Cache::set('studio/indexing', $t=TDZ_TIME, 20);
-        $q=null;
-        foreach($index as $a) {
-            $ref = null;
-            if(is_string($a)) {
-                $ref = $a;
-                $a = Api::find($a, false);
-                if(!$a) continue;
-            }
-            static::indexInterface($a, $ref);
-        }
         Cache::delete('studio/indexing');
         return true;
     }
