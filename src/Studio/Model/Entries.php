@@ -857,7 +857,6 @@ class Entries extends Model
             }
         } else if($multiview) return;
 
-        $meta = static::loadMeta($url, $page, $meta);
 
         $id = $source = null;
 
@@ -872,6 +871,34 @@ class Entries extends Model
         } else {
             $source = substr($page, strlen(Studio::documentRoot()));
         }
+
+        if($url===true) {
+            $urlb = '';
+            $urlr = $source;
+            if($extAttr) {
+                if(isset($extAttr['url']) && $extAttr['url']) $urlb = $extAttr['url'];
+                if(isset($extAttr['src']) && substr($urlr, 0, strlen($extAttr['src']))==$extAttr['src']) $urlr = substr($urlr, strlen($extAttr['src']));
+            }
+            if($p=strrpos($urlr, ':')) $urlr = substr($urlr, $p);
+            $url = $urlb;
+            if($url) {
+                if(substr($url, 0, 1)!=='/') $url='/'.$url;
+                if(substr($url, -1)==='/' && $url!=='/') $url = substr($url, 0, strlen($url)-1);
+            }
+
+            if($urlr) {
+                $url .= (substr($urlr, 0, 1)==='/') ?$urlr :'/'.$urlr;
+            }
+
+            if($isPage) {
+                $url = preg_replace('/\.[a-z]+$/', '', $url);
+                if(basename($url)===static::$indexFile) {
+                    $url = substr($url, 0, strlen($url) - strlen(static::$indexFile));
+                }
+            }
+        }
+
+        $meta = static::loadMeta($url, $page, $meta);
         $t = date('Y-m-d\TH:i:s', filemtime($page));
         $d = [
             //'id'=>S::hash($id, null, 'uuid'),
@@ -884,6 +911,7 @@ class Entries extends Model
         ];
         if($extAttr) {
             if($id) $d['id'] = $id;
+            $d['title'] = str_replace(['_', '-'], ' ', basename($url));
             $d['created'] = date('Y-m-d\TH:i:s', filectime($page));
             $d['__skip_timestamp_created'] = true;
             $d['__skip_timestamp_updated'] = true;
@@ -1462,7 +1490,7 @@ class Entries extends Model
 
     public static function fromFile($file, $attr=[])
     {
-        return self::_checkPage($file, $attr['url'], false, $attr);
+        return self::_checkPage($file, true, false, $attr);
     }
 
 }
