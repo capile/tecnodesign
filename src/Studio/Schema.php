@@ -16,10 +16,10 @@
 namespace Studio;
 
 use ArrayAccess;
-use tdz as S;
 use Tecnodesign_Exception as Exception;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Yaml as Yaml;
+use Studio as S;
 
 class Schema implements ArrayAccess
 {

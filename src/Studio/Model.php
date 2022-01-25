@@ -14,7 +14,7 @@
  */
 namespace Studio;
 
-use Tecnodesign_Studio as Studio;
+use Studio\Studio as Studio;
 use Tecnodesign_Query as Query;
 use tdz as S;
 

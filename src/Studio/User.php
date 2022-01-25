@@ -9,7 +9,8 @@
  * @version   2.6
  */
 namespace Studio;
-use tdz as S;
+
+use Studio as S;
 
 class User extends \Tecnodesign_User
 {
