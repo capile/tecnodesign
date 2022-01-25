@@ -500,6 +500,11 @@ class Tecnodesign_Query_Sql
         return 'ifnull(max('.$this->getAlias($fn).'),0)+1';
     }
 
+    protected function getFunctionAlias($fn)
+    {
+        return $fn;
+    }
+
     protected function getAlias($f, $ref=null, $noalias=null)
     {
         $sc = null;
@@ -514,6 +519,16 @@ class Tecnodesign_Query_Sql
         if(!$sc) $sc = $this->schema();
 
         $ofn = $fn = $f;
+        if(preg_match_all('#\$\{([a-z0-9\_\.]+)\}#', $fn, $m)) {
+            $r = [];
+            foreach($m[1] as $i=>$nfn) {
+                if(!isset($r[$m[0][$i]])) {
+                    $r[$m[0][$i]]=$this->getFunctionAlias($nfn);
+                    unset($i, $nfn);
+                }
+            }
+            $fn = strtr($fn, $r);
+        }
         $r = null;
         if($f==='null' || $f===false || (substr($f, 0, 1)=='-' && substr($f,-1)=='-')) {
             return false;

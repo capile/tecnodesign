@@ -90,4 +90,11 @@ class Tecnodesign_Query_Sqlite extends Tecnodesign_Query_Sql
     {
         return;
     }
+
+    protected function getFunctionAlias($fn)
+    {
+        if(strtolower($fn)==='greatest') return 'max';
+
+        return parent::getFunctionAlias($fn);
+    }
 }
