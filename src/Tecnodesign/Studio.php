@@ -14,10 +14,13 @@
  */
 
 use Tecnodesign_App as App;
-use Tecnodesign_Studio_Entry as Entry;
-use Tecnodesign_Studio_Content as Content;
+use Studio\Model\Entries as Entry;
+use Studio\Model\Contents as Content;
+use Studio\Model\Permissions as Permission;
+use Studio\Model\Relations as Relation;
 use Tecnodesign_Studio_Asset as Asset;
 use Tecnodesign_Query as Query;
+use Tecnodesign_Yaml as Yaml;
 use Studio as S;
 
 class Tecnodesign_Studio
@@ -374,18 +377,27 @@ class Tecnodesign_Studio
         return true;
     }
 
-    public static function content($page, $checkLang=true, $checkTemplates=true, $addResponse=true)
+    public static function content($page, $checkLang=true, $checkTemplates=true, $addResponse=true, $extAttr=[])
     {
         static $root;
 
         if(!file_exists($page)) return;
 
-        if(strpos($page, S_REPO_ROOT.'/')===0) {
-            $id = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
+        $C = $id = $source = null;
+
+        if($extAttr) {
+            $source = ((isset($extAttr['src'])) ?$extAttr['src'] :'').substr($page, strlen($extAttr['file']));
+            if($C=Content::find(['source'=>$source],1,['id'])) {
+                $id = $C->id;
+            }
+        } else if(strpos($page, S_REPO_ROOT.'/')===0) {
+            $source = $id = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
+            $id = S::hash($id, null, 'uuid');
         } else {
             if(is_null($root)) $root = self::documentRoot();
             if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot)) return;
-            $id = substr($page, strlen(self::documentRoot()));
+            $source = $id = substr($page, strlen(self::documentRoot()));
+            $id = S::hash($id, null, 'uuid');
         }
 
         $slotname = Entry::$slot;
@@ -393,7 +405,7 @@ class Tecnodesign_Studio
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
         $pp = explode('.', $pn);
-        $tpl = ($pp[0]=='_tpl_');
+        $tpl = ($pp[0]==='_tpl_');
         if($tpl && !$checkTemplates) return false;
         array_shift($pp);
         $ext = strtolower(array_pop($pp));
@@ -426,7 +438,7 @@ class Tecnodesign_Studio
         if(!$p) return false;
         $meta = null;
         if($m = Entry::meta($p)) {
-            $meta = Tecnodesign_Yaml::load($m);
+            $meta = Yaml::load($m);
             if(isset($meta['credential'])) {
                 if(!($U=S::getUser()) || !$U->hasCredential($meta['credential'], false)) {
                     return false;
@@ -439,20 +451,41 @@ class Tecnodesign_Studio
         }
 
         $lmod = date('Y-m-d\TH:i:s', filemtime($page));
-        $C = new Content(array(
-            'id'=>S::hash($id, null, 'uuid'),
+        $d = [
+            'id'=>$id,
             //'entry'=>Content::entry($id),
             'slot'=>$slotname,
             'content'=>$p,
             'content_type'=>$ext,
-            'source'=>$id,
+            'source'=>$source,
             'attributes'=>$meta,
             'content'=>$p,
             'position'=>$pos,
             'updated'=>$lmod,
             'published'=>$lmod,
+
             //'_position'=>$pos,
-        ));
+        ];
+        if(!$d['id']) unset($d['id']);
+        if($extAttr) {
+            $d['created'] = date('Y-m-d\TH:i:s', filectime($page));
+            $d['__skip_timestamp_created'] = true;
+            $d['__skip_timestamp_updated'] = true;
+            if($tpl) {
+                $url = (isset($extAttr['url'])) ?$extAttr['url'] :'';
+                if(substr($url, -1)==='/') $url = substr($url, 0, strlen($url)-1);
+                $url .= preg_replace('#/_tpl_\..*#', '/', substr($page, strlen($extAttr['file'])));
+                $d['ContentDisplay'][] = [
+                    'link'=>$url,
+                    'display'=>1,
+                    'created'=>$d['created'],
+                    'updated'=>$d['updated'],
+                    '__skip_timestamp_created' => true,
+                    '__skip_timestamp_updated' => true,
+                ];
+            }
+        }
+        $C = new Content($d);
         if(!is_null($pos)) $C->_position = $slotname.$pos;
 
         if($addResponse && isset($meta) && $meta) {
@@ -780,9 +813,9 @@ class Tecnodesign_Studio
     }
 
     /**
-     * These credentials should be set at the tdzPermission table, without entries
+     * These credentials should be set at the Permission table, without entries
      * To make them eligible as default values. The keypairs are:
-     *   tdzPermission->role: tdzPermission->credentials (csv)
+     *   Permission->role: Permission->credentials (csv)
      *
      * basic privilege: is overriden by role/object-specific calls
      *   all: ~
@@ -845,7 +878,7 @@ class Tecnodesign_Studio
                 self::$credentials=array();
                 $connEnabled = (self::$connection && self::config('enable_interface_credential'));
                 if($connEnabled) {
-                    $ps = tdzPermission::find(array('entry'=>''),0,array('role','credentials'),false,array('updated'=>'desc'));
+                    $ps = Permission::find(array('entry'=>''),0,array('role','credentials'),false,array('updated'=>'desc'));
                     if($ps) {
                         foreach($ps as $i=>$P) {
                             if(isset(self::$credentials[$P->role])) continue;
@@ -1066,11 +1099,42 @@ class Tecnodesign_Studio
 
         return $models;
     }
+
+    public static function fromFile($file, $attr=[])
+    {
+        if($R=Entry::fromFile($file, $attr)) {
+            if($R->type==='page' && ($C = Content::fromFile($file, $attr))) {
+                return [$R, $C];
+            }
+
+            return $R;
+
+        } else if($R=Content::fromFile($file, $attr)) {
+            $L = [];
+            if($R->ContentDisplay) {
+                $L = $R->ContentDisplay;
+                if(is_object($L)) $L = $L->getItems();
+                if(!$L) $L = [];
+
+                array_unshift($L, $R);
+                unset($R);
+
+                return $L;
+            } else {
+                return $R;
+            }
+        } else if($R=Relation::fromFile($file, $attr)) {
+            return $R;
+        }
+    }
+
 }
 
+/*
 if(!class_exists('tdzEntry')) {
     if(!in_array($libdir = dirname(__FILE__).'/Studio/Resources/model', S::$lib)) S::$lib[]=$libdir;
     unset($libdir);
 }
 
 if(!defined('TDZ_ESTUDIO')) define('TDZ_ESTUDIO', Tecnodesign_Studio::VERSION);
+*/

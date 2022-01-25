@@ -810,20 +810,14 @@ class Entries extends Model
         return $r;
     }
 
-    public static function fromFile($file, $attr=[])
-    {
-        S::debug(__METHOD__, $file, var_export(self::_checkPage($file, $attr['url'], false, $attr), true));
-
-    }
-
-    protected static function _checkPage($page, $url, $multiview=false, $extended=null)
+    protected static function _checkPage($page, $url, $multiview=false, $extAttr=null)
     {
         if(is_dir($page)) return;
         $base = preg_replace('/\..*/', '', basename($page));
         $pn = basename($page);
         //if(substr($pn, 0, strlen($base)+1)==$base.'.') $pn = substr($pn, strlen($base)+1);
         $pp = explode('.', $pn);
-        if(in_array('_tpl_', $pp)) return; // templates cannot be pages
+        if(in_array('_tpl_', $pp) || $pp[0]=='') return; // templates cannot be pages, neither .dotted files
         $ext = strtolower(array_pop($pp));
         //if(is_array(Contents::$disableExtensions) && in_array($ext, Contents::$disableExtensions)) return;
 
@@ -865,24 +859,39 @@ class Entries extends Model
 
         $meta = static::loadMeta($url, $page, $meta);
 
-        if(strpos($page, S_REPO_ROOT.'/')===0) $id = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
-        else $id = substr($page, strlen(Studio::documentRoot()));
+        $id = $source = null;
+
+        if($extAttr) {
+            $source = ((isset($extAttr['src'])) ?$extAttr['src'] :'').substr($page, strlen($extAttr['file']));
+            if($E=self::find(['source'=>$source],1,['id'])) {
+                $id = $E->id;
+                unset($E);
+            }
+        } else if(strpos($page, S_REPO_ROOT.'/')===0) {
+            $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
+        } else {
+            $source = substr($page, strlen(Studio::documentRoot()));
+        }
         $t = date('Y-m-d\TH:i:s', filemtime($page));
-        $P = new Entries(array(
+        $d = [
             //'id'=>S::hash($id, null, 'uuid'),
-            'source'=>$id,
+            'source'=>$source,
             'link'=>$url,
             'published'=>$t,
             'format'=>$format,
             'type'=>($isPage)?('page'):('file'),
             'updated'=>$t,
-        ));
-        if($extended) {
-            $P->created = date('Y-m-d\TH:i:s', filectime($page));
-            if(is_array($extended)) {
-                if(isset($extended['src']) && $extended['src']) $this->source = $extended['src'].$this->source;
-            }
+        ];
+        if($extAttr) {
+            if($id) $d['id'] = $id;
+            $d['created'] = date('Y-m-d\TH:i:s', filectime($page));
+            $d['__skip_timestamp_created'] = true;
+            $d['__skip_timestamp_updated'] = true;
         }
+
+        $cn = get_called_class();
+        $P = new $cn($d);
+
         // reindex?
         if($meta) {
             foreach($meta as $fn=>$v) {
@@ -1449,6 +1458,11 @@ class Entries extends Model
                 //$o->childrenOptions($r);
             }
         }
+    }
+
+    public static function fromFile($file, $attr=[])
+    {
+        return self::_checkPage($file, $attr['url'], false, $attr);
     }
 
 }

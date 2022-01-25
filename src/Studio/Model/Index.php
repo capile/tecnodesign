@@ -54,6 +54,51 @@ class Index extends Model
         // studio indexing
         if(!static::checkConnection()) return;
 
+        $files = [];
+        if(file_exists(S_REPO_ROOT) && ($repos=App::config('studio', 'web-repos'))) {
+            foreach($repos as $repo) {
+                $n = $repo['id'];
+                if(is_dir($d=S_REPO_ROOT.'/'.$n)) {
+                    if(isset($repo['mount-src']) && $repo['mount-src']) {
+                        $m = preg_replace('/^[^\:]+\:/', '', $repo['mount-src']);
+                        if($m=='.' || $m=='/') $m = null;
+                        else if(!is_dir($d=$d.'/'.$m)) continue;
+                    }
+
+                    $files[] = ['file'=>$d, 'model'=>Studio::class, 'url'=>(isset($repo['mount'])) ?$repo['mount'] :null, 'src'=>$repo['id'].':'];
+                }
+            }
+        }
+        if(file_exists(S_DOCUMENT_ROOT) && is_dir(S_DOCUMENT_ROOT)) {
+            $files[] = ['file'=>S_DOCUMENT_ROOT, 'model'=>Studio::class, 'url'=>null, 'src'=>null];
+        }
+
+        while($a=array_shift($files)) {
+            if(!method_exists($a['model'], 'fromFile')) continue;
+            $cn = $a['model'];
+            if(is_dir($a['file'])) {
+                $h = opendir($a['file']);
+                while (($f = readdir($h)) !== false) {
+                    if($f==='.' || $f==='..') continue;
+                    if($M=$cn::fromFile($a['file'].'/'.$f, $a)) {
+                        try {
+                            if(!is_array($M)) $M = [$M];
+                            foreach($M as $i=>$o) {
+                                $o->save();
+                                self::indexModel($o);
+                                unset($M[$i], $i, $o);
+                            }
+                            unset($M);
+                        } catch(Exception $e) {
+                            S::log('[WARNING] Could not index '.$M.': '.$e->getMessage()."\nexiting...");
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+
         $index = [];
         if(App::request('shell') && ($a = App::request('argv'))) {
             if(static::$interfaces) {
@@ -69,6 +114,7 @@ class Index extends Model
             }
         } else {
             $index = static::$interfaces;
+            if(!$index) $index = [];
             $L = Interfaces::find(['index_interval>'=>0],null,null,false);
             if($L) $index = array_merge($index, $L);
             unset($L);
@@ -88,6 +134,37 @@ class Index extends Model
         }
         Cache::delete('studio/indexing');
         return true;
+    }
+
+    public static function indexModel($M, $api=null, $indexProperties=null)
+    {
+        static $apiIndex=[];
+
+        if(!$api && !($api=$M::$schema->_indexId)) return;
+        if(!isset($apiIndex[$api])) {
+            $I = Interfaces::find(['id'=>$api],1,['id']);
+            if(!$I) {
+                $I = new Interfaces([
+                    'id' => $api,
+                    'title' => $M::label(),
+                    'model' => $M::$schema->className,
+                    'indexed' => S_TIMESTAMP,
+                ], true, true);
+            } else {
+                $I->indexed = S_TIMESTAMP;
+                $I->save();
+            }
+            unset($I);
+            $apiIndex[$api] = true;
+        }
+
+        //$indexProperties not implemented yet
+        return self::replace([
+            'interface'=>$api,
+            'id'=>$M->getPk(),
+            'summary'=>(string) $M,
+            'indexed'=>S_TIMESTAMP,
+        ]);
     }
 
     public static function indexInterface($a, $icn=null, $scope='preview', $keyFormat=false, $valueFormat=false, $serialize=false)
@@ -119,7 +196,7 @@ class Index extends Model
         if(!$II) {
             $II = Interfaces::replace([
                 'id'=>$id,
-                'label'=>(isset($a['label'])) ?$a['label'] :$cn::label(),
+                'title'=>(isset($a['label'])) ?$a['label'] :$cn::label(),
                 'model'=>$cn,
                 'credential'=>(isset($a['auth'])) ?tdz::serialize($a['auth'], 'json') :S::serialize(Api::$authDefault),
                 'indexed'=>TDZ_TIMESTAMP,
@@ -180,7 +257,7 @@ class Index extends Model
                             'interface'=>$id,
                             'id'=>$pk,
                             'summary'=>(string) $o,
-                            'indexed'=>TDZ_TIMESTAMP,
+                            'indexed'=>S_TIMESTAMP,
                             'IndexBlob'=>[],
                             'IndexBool'=>[],
                             'IndexDate'=>[],
