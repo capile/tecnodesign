@@ -17,8 +17,9 @@ use Studio\OAuth2\Client as Client;
 use Tecnodesign_Schema_Model as ModelSchema;
 use Tecnodesign_Studio as Studio;
 use Tecnodesign_App as App;
-use Tecnodesign_Query_Api as Api;
-use Tecnodesign_Interface as SInterface;
+use Tecnodesign_Query_Api as QueryApi;
+use Tecnodesign_Yaml as Yaml;
+use Studio\Api as Api;
 use tdz as S;
 
 class Interfaces extends Model
@@ -145,21 +146,30 @@ class Interfaces extends Model
 
         $id = S::slug($this->id, '_', true);
         $f =  $d.'/'.$id.'.yml';
+        $f0 = Api::configFile($id, [$f]);
         if(!file_exists($f) || !$this->updated || !($t=strtotime($this->updated)) || $t>filemtime($f)) {
-            $a = ['interface'=>$id] + $this->asArray('interface');
-            if(!isset($a['model'])) {
-                $a['model'] = 'Studio\\Model\\Index';
-                $a['search'] = ['interface'=>$this->id];
-                $a['key'] = 'id';
-                $a['options']['scope']['uid'] = ['id'];
+            $a = ['all'=>['interface'=>$id]];
+            if($f0 && $f0!==$f) {
+                //$a['all']['base'] = $id;
+                if(($a0 = Yaml::load($f0)) && isset($a['all']['interface']) && $a['all']['interface']==$id) {
+                    $a = $a0;
+                }
+                unset($a0);
+            }
+            $a['all'] += $this->asArray('interface');
+            if(!isset($a['all']['model'])) {
+                $a['all']['model'] = 'Studio\\Model\\Index';
+                $a['all']['search'] = ['interface'=>$this->id];
+                $a['all']['key'] = 'id';
+                $a['all']['options']['scope']['uid'] = ['id'];
+            } else {
+                $a['all']['model'] = str_replace('\\\\', '\\', $a['all']['model']);
             }
 
-            if(!isset($a['options'])) $a['options'] = [];
-            $a['options']['list-parent']=$n;
-            $a['options']['priority'] = $i++;
-            $a['options']['index'] = ($this->index_interval > 0);
+            if(!isset($a['all']['options'])) $a['all']['options'] = [];
+            $a['all']['options'] += ['list-parent'=>$n, 'priority'=>$i++, 'index'=>($this->index_interval > 0)];
 
-            if(!S::save($f, S::serialize(['all'=>$a], 'yaml'), true)) {
+            if(!S::save($f, S::serialize($a, 'yaml'), true)) {
                 $f = null;
             }
         }
@@ -194,13 +204,13 @@ class Interfaces extends Model
             try {
                 $m = 'import'.S::camelize($d['_schema_source_type'], true);
                 $msg = '';
-                if($R = Api::runStatic($d['schema_source'])) {
+                if($R = QueryApi::runStatic($d['schema_source'])) {
                     $S->$m($R, $msg);
                     $s .= $msg;
                 }
             } catch(\Exception $e) {
                 S::log('[ERROR] Could not import '.S::serialize($d, 'json').': '.$e->getMessage()."\n{$e}");
-                $msg = '<div class="z-i-msg z-i-error">'.S::t(SInterface::$importError).'<br />'.S::xml($e->getMessage()).'</div>';
+                $msg = '<div class="z-i-msg z-i-error">'.S::t(Api::$importError).'<br />'.S::xml($e->getMessage()).'</div>';
             }
         }
 
@@ -255,7 +265,7 @@ class Interfaces extends Model
 
                 $T->options = $options;
                 $T->save();
-                $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(SInterface::$importSuccess), $T::label(), (string)$T).'</div>';
+                $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(Api::$importSuccess), $T::label(), (string)$T).'</div>';
             }
         }
         // loop through paths and import APIs
@@ -282,7 +292,7 @@ class Interfaces extends Model
                     $a['schema_data'] = S::serialize($sc, 'json');
 
                     $A = self::replace($a);
-                    $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(SInterface::$importSuccess), $A::label(), (string)$A).'</div>';
+                    $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(Api::$importSuccess), $A::label(), (string)$A).'</div>';
                 }
             }
         }

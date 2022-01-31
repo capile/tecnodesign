@@ -1,7 +1,7 @@
 ---
 all:
   title: '*Files'
-  model: Tecnodesign_Studio_Entry
+  model: Studio\Model\Entries
   search:
     type: file
   options:

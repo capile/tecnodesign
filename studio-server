@@ -3,5 +3,12 @@ TAG='studio-server=2.6.11'
 PID=`pgrep -f "$TAG"`
 [ ! -z "$PID" ] && pkill -f "$TAG"
 mkdir -p "${0%/*}/data/log"
-php -S 127.0.0.1:9999 "${0%/*}/app.php" -s $TAG >> "${0%/*}/data/log/app.log" 2>&1 &
+PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:9999 \
+  -d memory_limit=16M \
+  -d display_errors=Off \
+  -d error_reporting=E_ALL \
+  -d error_log=data/log/app.log \
+  -d date.timezone=UTC \
+  -d cli_server.color=1 \
+  "${0%/*}/app.php" -s $TAG >> "${0%/*}/data/log/app.log" 2>&1 &
 pgrep -f "$TAG"

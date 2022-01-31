@@ -3,7 +3,7 @@
     "database": "studio",
     "tableName": "studio_contents",
     "className": "Studio\\Model\\Contents",
-    "_indexId": "_studio/content",
+    "_indexId": "content",
     "properties": {
         "id": { "increment": "auto", "required": true, "primary": true },
         "entry": { "type": "int", "index": [ "z_content__entry_idx" ] },

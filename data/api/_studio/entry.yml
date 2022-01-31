@@ -1,7 +1,7 @@
 ---
 all:
   title: '*Articles'
-  model: Tecnodesign_Studio_Entry
+  model: Studio\Model\Entries
   search:
     type: entry
   options:

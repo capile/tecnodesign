@@ -2,7 +2,7 @@
     "database": "studio",
     "tableName": "studio_contents_display",
     "className": "Studio\\Model\\ContentsDisplay",
-    "_indexId": "_studio/template",
+    "_indexId": "template",
     "properties": {
         "content": { "type": "int", "required": true, "primary": true },
         "link": { "type": "string", "size": "200", "required": true, "primary": true },

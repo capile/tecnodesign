@@ -16,6 +16,8 @@ namespace Studio;
 
 use Studio as S;
 use Studio\Model as Model;
+use Studio\Model\Interfaces as Interfaces;
+use Studio\Studio as Studio;
 use Tecnodesign_App as App;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Form as Form;
@@ -86,18 +88,13 @@ class Api implements ArrayAccess
         $listPagesOnBottom  = true,
         $translate          = true,
         $standalone         = false,
-        $headerOverflow     = false,
-        $newFromQueryString = false,
+        $headerOverflow     = true,
+        $newFromQueryString = true,
         $hitsPerPage        = 25,
-        $attrListClass      = 'tdz-i-list',
-        $attrPreviewClass   = 'tdz-i-preview',
-        $attrParamClass     = 'tdz-i-param',
-        $attrTermClass      = 'tdz-i-term',
-        $attrFooterClass    = 'tdz-i-footer',
-        $attrErrorClass     = 'z-i-msg z-i-error',
-        $attrSearchClass    = 'tdz-i-search',
-        $attrSearchFormClass= 'tdz-search',
-        $attrCounterClass   = 'tdz-counter',
+        $attrClassPrefix    = 's-api',
+        $attrErrorClass     = 's-msg s-msg-error',
+        $attrSearchFormClass= 's-form-search',
+        $attrCounterClass   = 's-counter',
         $attrGraphClass     = 'z-i-graph',
         $attrFormClass      = 'z-form',
         $attrButtonsClass   = '',
@@ -114,12 +111,12 @@ class Api implements ArrayAccess
                                 'schema'    => array('position'=>false, 'identified'=>false, 'batch'=>true,  'query'=>false, 'additional-params'=>true,  'renderer'=>'renderSchema', 'next'=>'list'),
                             ),
         $relationAction     =                  array('position'=>60,    'action' => 'executeInterface','identified'=>true,  'batch'=>false, 'query'=>false, 'renderer'=>'renderInterface'),
-        $additionalActions  = array(),
+        $additionalActions  = [],
         $listAction         = 'preview',
         $modelRenderPrefix  = 'render',
-        $actionsDefault     = array( 'preview', 'list' ),
+        $actionsDefault     = [ 'preview', 'list' ],
         $share              = null,
-        $boxTemplate        = '<div class="tdz-i-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
+        $boxTemplate        = '<div class="s-api-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
         $breadcrumbTemplate = '<div class="z-breadcrumbs">$LABEL</div>',
         $headingTemplate    = '<hr /><h3 class="z-title">$LABEL</h3>',
         $previewTemplate    = '<dl class="if--$ID z-i-field $CLASS"><dt>$LABEL</dt><dd data-action-item="$ID">$INPUT$ERROR</dd></dl>',
@@ -288,8 +285,8 @@ class Api implements ArrayAccess
         if(isset($d['template'])) {
             $this->template = $d['template'];
             unset($d['template']);
-        } else if(App::request('headers', 'z-interface-mode')=='standalone') {
-            $this->template = 'interface-standalone';
+        } else if(App::request('headers', 'z-api-mode')=='standalone') {
+            $this->template = 'api-standalone';
         }
         if(isset($d['config'])) {
             if(is_array($d['config'])) {
@@ -446,7 +443,7 @@ class Api implements ArrayAccess
 
     public static function loadAssets()
     {
-        App::$assets[] = 'Z.Interface';
+        App::$assets[] = 'Z.Api';
         App::$assets[] = '!'.Form::$assets;
         App::$assets[] = '!Z.Graph';
     }
@@ -466,7 +463,12 @@ class Api implements ArrayAccess
      */
     public static function run($n=null, $url=null)
     {
-        if(self::$className!=get_called_class()) self::$className = get_called_class();
+        if(self::$className!=get_called_class()) {
+            self::$className = get_called_class();
+        }
+        if(S_VAR!=S_ROOT.'/data' && Studio::config('enable_interface_index')) {
+            static::$dir[] = S_ROOT.'/data/api';
+        }
         try {
             if(!is_null($url)) S::scriptName($url);
             else if(($route=App::response('route')) && isset($route['url']) && !preg_match('/[\*\|\(\)]/', $route['url'])) S::scriptName($route['url']);
@@ -530,6 +532,7 @@ class Api implements ArrayAccess
             }
 
             static::loadAssets();
+            S::$variables['html-layout'] = 'studio-api';
 
             //if($I && $I->auth) S::cacheControl('private, no-store, no-cache, must-revalidate',0);
             $sn = S::scriptName();
@@ -556,7 +559,7 @@ class Api implements ArrayAccess
             App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             App::end($s);
         }
-        $s = '<div class="tdz-i-box" base-url="'.$this::$base.'">'.$s.'</div>';
+        $s = '<div class="s-api-box" base-url="'.$this::$base.'">'.$s.'</div>';
 
         if(App::request('headers', 'z-action')=='Interface') {
             App::end($s);
@@ -1932,7 +1935,7 @@ class Api implements ArrayAccess
             }
         }
 
-        $f=static::template($this->template, 'interface-'.static::$format, 'interface-'.$this->action, 'interface');
+        $f=static::template($this->template, 'api-'.static::$format, 'api-'.$this->action, 'api');
         $vars = $this->text;
         $vars['Interface'] = $this;
         $vars['title'] = $title;
@@ -2180,15 +2183,15 @@ class Api implements ArrayAccess
                 }
 
                 $fileName = $newInterface['base'] . date('-Y-m-d-') . S::salt(10);
-                Yaml::save(TDZ_VAR . '/interface-shared/' . $fileName . '.yml', ['all' => $newInterface]);
-                $this->message('<div class="tdz-i-msg tdz-i-success"><p>Shared interface /a/' . $fileName . ' created.</p></div>');
+                Yaml::save(TDZ_VAR . '/api-shared/' . $fileName . '.yml', ['all' => $newInterface]);
+                $this->message('<div class="s-msg s-msg-success"><p>Shared interface /a/' . $fileName . ' created.</p></div>');
                 $this->redirect("/a/$fileName");
             }
         } catch (Exception $e) {
             S::log('[INFO] User error while processing ' . __METHOD__ . ': ' . $e);
             $this->text['error'] = static::t('newError');
             $this->text['errorMessage'] = $e->getMessage();
-            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>' . $this->text['error'] . '</p>' . $this->text['errorMessage'] . '</div>';
+            $this->text['summary'] .= '<div class="s-msg s-msg-error"><p>' . $this->text['error'] . '</p>' . $this->text['errorMessage'] . '</div>';
         }
 
         return $form;
@@ -2289,7 +2292,7 @@ class Api implements ArrayAccess
             if(static::$format!='html') {
                 static::error(404, static::t('previewNoResult'));
             }
-            $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.static::t('previewNoResult').'</p></div>');
+            $this->message('<div class="s-msg s-msg-error"><p>'.static::t('previewNoResult').'</p></div>');
             return $this->redirect($this->link(false, false), $this->link());
         }
         if(!$scope && isset($this->options['preview-scope-property']) && ($n=$this->options['preview-scope-property']) && ($rs=S::slug($o->$n)) && isset($cn::$schema->scope[$rs])) {
@@ -2334,7 +2337,7 @@ class Api implements ArrayAccess
                         throw new Exception($err);
                     }
                     if(static::$format!='html') $this->text['error'] = $err;
-                    $msg = '<div class="tdz-i-msg tdz-i-error">'.static::t('newError').'</div>';
+                    $msg = '<div class="s-msg s-msg-error">'.static::t('newError').'</div>';
                 } else {
                     $oldurl = $this->link();
                     $o->save();
@@ -2363,7 +2366,7 @@ class Api implements ArrayAccess
                         if(!isset($this->actions[$next])) $next = null;
                     }
                     $this->text['success'] = sprintf(static::t('newSuccess'), $o::label(), $this->getTitle());
-                    $msg = '<div class="tdz-i-msg tdz-i-success">'.$this->text['success'].'</div>';
+                    $msg = '<div class="s-msg s-msg-success">'.$this->text['success'].'</div>';
                     if($next) {
                         $this->action = $next;
                         $this->message($msg);
@@ -2377,10 +2380,10 @@ class Api implements ArrayAccess
             S::log('[INFO] User error while processing '.__METHOD__.': '.$e->getMessage());
             $this->text['error'] = static::t('newError');
             $this->text['errorMessage'] = $e->getMessage();
-            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
+            $this->text['summary'] .= '<div class="s-msg s-msg-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
         }
         if(static::$standalone && isset($this->text['error']) && $this->text['error'] && is_object($fo)) {
-            $fo->before = '<div class="tdz-i-msg tdz-i-error">'.$this->text['error'].'</div>'.$fo->before;
+            $fo->before = '<div class="s-msg s-msg-error">'.$this->text['error'].'</div>'.$fo->before;
             $this->text['error'] = null;
         }
         return $fo;
@@ -2629,7 +2632,7 @@ class Api implements ArrayAccess
                         throw new Exception($err);
                     }
                     $this->text['error'] = static::t('updateError');
-                    $msg = '<div class="tdz-i-msg tdz-i-error">'.$this->text['error'].'</div>';
+                    $msg = '<div class="s-msg s-msg-error">'.$this->text['error'].'</div>';
                 } else {
                     $oldurl = $this->link();
                     $pk = implode('-', $o->getPk(true));
@@ -2637,7 +2640,7 @@ class Api implements ArrayAccess
                     $newpk = implode('-', $o->getPk(true));
                     // success message
                     $this->text['success'] = sprintf(static::t('updateSuccess'), $o::label(), $this->getTitle());
-                    $msg = '<div class="tdz-i-msg tdz-i-success">'.$this->text['success'].'</div>';
+                    $msg = '<div class="s-msg s-msg-success">'.$this->text['success'].'</div>';
 
                     $next = $url = null;
                     if(!($url=App::request('headers', 'z-interface')) || substr($url, 0, strlen(static::$base)+1)!=static::$base.'/') {
@@ -2681,11 +2684,11 @@ class Api implements ArrayAccess
             S::log('[INFO] User error while processing '.__METHOD__.': '.$e);
             $this->text['error'] = static::t('updateError');
             $this->text['errorMessage'] = $e->getMessage();
-            $this->text['summary'] .= '<div class="tdz-i-msg tdz-i-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
+            $this->text['summary'] .= '<div class="s-msg s-msg-error"><p>'.$this->text['error'].'</p>'.$this->text['errorMessage'].'</div>';
         }
 
         if(static::$standalone && isset($this->text['error']) && $this->text['error'] && is_object($fo)) {
-            $fo->before = '<div class="tdz-i-msg tdz-i-error">'.$this->text['error'].'</div>'.$fo->before;
+            $fo->before = '<div class="s-msg s-msg-error">'.$this->text['error'].'</div>'.$fo->before;
             $this->text['error'] = null;
         }
         return $fo;
@@ -2699,7 +2702,7 @@ class Api implements ArrayAccess
                 $s = $this->getTitle();
                 $M->delete(true);
                 $this->text['success'] = sprintf(static::t('deleteSuccess'), $M::label(), $s);
-                $msg = '<div class="tdz-i-msg tdz-i-success"><p>'.$this->text['success'].'</p></div>';
+                $msg = '<div class="s-msg s-msg-success"><p>'.$this->text['success'].'</p></div>';
 
                 $next = null;
                 if(isset($this->options['next'])) {
@@ -2745,7 +2748,7 @@ class Api implements ArrayAccess
             $this->message($msg);
             static::error(422, array('error'=>$msg));
         } else {
-            $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.$msg.'</p></div>');
+            $this->message('<div class="s-msg s-msg-error"><p>'.$msg.'</p></div>');
         }
         return $this->redirect($this->link(false, false));
     }
@@ -2842,7 +2845,7 @@ class Api implements ArrayAccess
         if(!$o || !($o instanceof Model)) {
             $o = $this->model();
             if(!$o) {
-                $this->message('<div class="tdz-i-msg tdz-i-error"><p>'.static::t('previewNoResult').'</p></div>');
+                $this->message('<div class="s-msg s-msg-error"><p>'.static::t('previewNoResult').'</p></div>');
                 return $this->redirect($this->link(false, false));
             }
         }
@@ -2946,14 +2949,14 @@ class Api implements ArrayAccess
             App::response(array('headers'=>array('Content-Type'=>'application/'.static::$format.'; charset=utf-8')));
             App::end($this->render());
         }
-        $this->template = 'interface-standalone';
+        $this->template = 'api-standalone';
         return $this->render();
     }
 
     protected function renderSub($r)
     {
         $I = $this->relation($r);
-        $I->template = 'interface-sub';
+        $I->template = 'api-sub';
 
         if($I->actions[$I->action]['identified'] && !$I->isOne()) {
             $r = $I->expand('render');
@@ -3157,7 +3160,7 @@ class Api implements ArrayAccess
                     $href = 'href="'.S::xml($this->link($an, ($id)?($sid):(false), true, $qs)).'"';
                 }
                 $s .= '<a '.$href.' class="'.$ac.'">'
-                    . '<span class="tdz-i-label">'
+                    . '<span class="s-api-label">'
                     . $label
                     . '</span>'
                     . '</a>';
@@ -3191,7 +3194,7 @@ class Api implements ArrayAccess
                 . (($id)?(' z-i-a-one'):(''))
             ;
             $s .= '<a '.$href.' class="'.trim($ac).'">'
-                . '<span class="tdz-i-label">'
+                . '<span class="s-api-label">'
                 . $label
                 . '</span>'
                 . '</a>';
@@ -3218,11 +3221,11 @@ class Api implements ArrayAccess
         if(!isset($this->text['error'])) $this->text['error']=array();
         if(!$this->text['count']) {
             $this->text['error'][] = static::t('listNoResults');
-            //$error = '<div class="tdz-i-msg tdz-i-error"><p>'.static::t('listNoResults').'</p></div>';
+            //$error = '<div class="s-msg s-msg-error"><p>'.static::t('listNoResults').'</p></div>';
             $found = false;
         } else if(isset($this->text['searchCount']) && !$this->text['searchCount']) {
             // $error = '';
-            //$error = '<div class="tdz-i-msg tdz-i-error"><p>'.static::t('listNoSearchResults').'</p></div>';
+            //$error = '<div class="s-msg s-msg-error"><p>'.static::t('listNoSearchResults').'</p></div>';
             $found = false;
         }
         if(!isset($found)) {
@@ -4001,6 +4004,25 @@ class Api implements ArrayAccess
                 unset($I, $i, $a);
             }
         }
+        if(Studio::config('enable_interface_index')) {
+            if($L = Interfaces::find($q,null,null,false)) {
+                foreach($L as $i=>$o) {
+                    if($o->indexed) {
+                        if($f = $o->cacheFile()) {
+                            $a = S::config($f, S::env());
+                        }
+                        $oid = basename($f, '.yml');
+                        if(isset($Is[$oid])) {
+                            $Is[$oid] = $a + $Is[$oid];
+                        } else {
+                            $Is[$oid] = $a;
+                        }
+                    }
+                    unset($L[$i], $i, $o);
+                }
+            }
+        }
+
         return $Is;
     }
 
@@ -4008,6 +4030,11 @@ class Api implements ArrayAccess
     {
         static $dd;
         if(is_null($dd)) $dd = App::config('app', 'data-dir');
+
+        if(Studio::config('enable_interface_index') && ($r=Interfaces::findCacheFile($s)) && !in_array($r, $skip)) {
+            return $r;
+        }
+
         $s = S::slug($s, '/_',true);
         if(!is_array($skip)) $skip = [];
         $base = static::base();
@@ -4077,6 +4104,67 @@ class Api implements ArrayAccess
             if(is_string($c)) $a = $c::$m($a);
             else $a = $c->$m($a);
             unset($c, $m);
+        }
+
+        $re = '/^(Tecnodesign_Studio_|Studio\\\Model\\\)/';
+        if(isset($a['model']) && preg_match($re, $a['model'])) {
+            $n = preg_replace($re, '', $a['model']);
+            if(!Studio::enabledModels($a['model'])) {
+                $a['options']['navigation'] = null;
+                $a['options']['list-parent'] = false;
+                $a['options']['priority'] = null;
+            }
+        } else {
+            $n = S::camelize($a['interface'], true);
+        }
+
+        // overwrite credentials
+        if($prepare && !isset($a['credential'])) {
+            $min = null;
+            if(!isset($a['actions'])) $a['actions'] = [];
+            $defaultActions = array_keys(static::$actionsAvailable);
+            if(isset($a['default-actions'])) {
+                if(!$a['default-actions']) {
+                    $defaultActions = array_keys($a['actions']);
+                } else {
+                    $defaultActions = (!is_array($a['default-actions'])) ?[$a['default-actions']] :$a['default-actions'];
+                    if(!isset($a['config'])) {
+                        $a['config'] = [];
+                    }
+                    $a['config']['actionsDefault'] = $defaultActions;
+                }
+            }
+            foreach(static::$actionsAvailable as $an=>$ad) {
+                if(!isset($a['actions'][$an]) && !in_array($an, $defaultActions)) {
+                    $a['actions'][$an] = false;
+                } else if(!is_null($c = Studio::credential($an.'Interface'.$n))) {
+                    if($c===true) {
+                        $min = $c;
+                        $a['actions'][$an] = true;
+                    } else if(!$c) {
+                        continue;
+                    } else {
+                        if(is_null($min)) $min = $c;
+                        else if(is_array($min)) $min = array_merge($min, $c);
+
+                        if(isset($a['actions'][$an]) && !is_array($a['actions'][$an])) $a['actions'][$an]=array();
+                        $a['actions'][$an]['credential'] = $c;
+                    }
+                }
+            }
+            if(!is_null($min)) {
+                if(is_array($min)) $min = array_unique($min);
+                $a['credential'] = $min;
+            }
+        }
+
+        if(!isset($a['credential'])) {
+            if(!is_null($c = Studio::credential('interface'.$n))
+                || !is_null($c = Studio::credential('interface'))
+                || !is_null($c = Studio::credential('edit'))
+            ) {
+                $a['credential'] = $c;
+            }
         }
 
         return $a;

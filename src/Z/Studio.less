@@ -1,11 +1,19 @@
-/*! Studio v2.5 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Studio v2.6 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
 @charset "utf8";
 @import (reference) "interface-vars-default.less";
 @import (optional)  "interface-vars.less";
 @import (reference) "studio-base.less";
 
-html {
-    .studio-type();
+html.studio-api {
+  .studio-type();
+  font-size:15px;
+  line-height:15px;
+  background: @colorBody;
+
+  &, body {
+    margin: 0;
+    padding: 0;
+  }
 }
 
 #studio{
@@ -31,7 +39,7 @@ html {
     font-weight: 700;
   }
 
-  .tdz-i-list {
+  .s-api-list {
     th.f-updated {
       width:10em;
     }
@@ -116,7 +124,7 @@ html {
 
   .s-right{float:right}
   .s-hidden{display:none}
-  .tdz-i-box{
+  .s-api-box{
     height:0;
     opacity: 0;
     z-index:1;
@@ -130,7 +138,7 @@ html {
     width:100%;
     height: 100%;
     z-index: 999;
-    .tdz-i-box {
+    .s-api-box {
       position:relative;
       bottom:0;
       left:0;
@@ -140,7 +148,7 @@ html {
     }
   }
 
-  .tdz-i-body {
+  .s-api-body {
     box-shadow: 0 1em 1em 1em rgba(0,0,0,@bgAlpha);
     height: calc(~"100% - 3em");
     overflow-y:auto;
@@ -169,7 +177,7 @@ html.studio-lock {
   #studio {
     overflow-y:hidden;
     overflow-x:hidden;
-    .tdz-i-box {
+    .s-api-box {
       max-height:100%;
     }
     .studio-logo,.studio-menu {
@@ -180,10 +188,10 @@ html.studio-lock {
 @media screen and (min-width: @mobileBreakPoint) {
   /*
   #studio {
-    .tdz-i-header {
+    .s-api-header {
       position:relative;
     }
-    .tdz-i-header, .tdz-i-body {
+    .s-api-header, .s-api-body {
       margin-left:1em;
       margin-right:1em;
     }

@@ -8,7 +8,7 @@ var _Z, _V, _L, _P, _Q, _Qt, _Qq, _ih={'z-action':'Interface'}, _Studio='/_studi
 // load authentication info
 function startup()
 {
-    if(!('Z' in window) || !('Z_Interface' in window)) {
+    if(!('Z' in window) || !('Z_Api' in window)) {
         return setTimeout(startup, 500);
     }
 
@@ -32,7 +32,7 @@ function startup()
 
     if(('options' in Z.plugins.studio) && ('button' in Z.plugins.studio.options) && Z.plugins.studio.options.button) {
         var ui = [
-          {e:'div',p:{id:'studio-viewport',className:'tdz-i-box'},a:{'base-url':_Studio}},
+          {e:'div',p:{id:'studio-viewport',className:'s-api-box'},a:{'base-url':_Studio}},
           {e:'div',p:{className:'studio-logo'}}/*,
           {e:'div',p:{className:'studio-menu'},c:[
             {e:'div',p:{className:'studio-box s-right z-i-actions'},c:[
@@ -47,7 +47,7 @@ function startup()
         if(!_Z) {
             _Z = Z.element.call(document.body, {e:'div',p:{id:'studio',className:'studio-interface'},c:ui});
         } else if(_Z.className.search(/\bs-active\b/)<0) {
-            var b=_Z.querySelector('.tdz-i-box');
+            var b=_Z.querySelector('.s-api-box');
             if(b) {
                 ui.shift();
                 b.id='studio-viewport';
@@ -83,10 +83,10 @@ function getViewport()
 {
     if(!_V) _V = document.getElementById('studio-viewport');
     if(_V && !_otherRoot) _otherRoot = Z.setInterfaceRoot(_V);
-    var b=_V.querySelector('.tdz-i-header');
+    var b=_V.querySelector('.s-api-header');
     if(!b) {
-        Z.element.call(_V,{e:'div',a:{'class':'tdz-i-header','data-overflow':1}});
-        b=Z.element.call(_V,{e:'div',a:{'class':'tdz-i-body','data-nav':1}});
+        Z.element.call(_V,{e:'div',a:{'class':'s-api-header','data-overflow':1}});
+        b=Z.element.call(_V,{e:'div',a:{'class':'s-api-body','data-nav':1}});
         _title = document.title;
     }
 
@@ -109,15 +109,15 @@ function addInterface(u)
     var p =(u.indexOf(/\?/)>-1) ?u.substr(0, u.indexOf(/\?/)) :u, 
         qs=(u.indexOf(/\?/)>-1) ?u.substr(u.indexOf(/\?/)+1) :'',
         add={
-        '.tdz-i-body':'tdz-i',
-        '.tdz-i-header':'tdz-i-title'
+        '.s-api-body':'s-api-app',
+        '.s-api-header':'s-api-title'
         }, n,
-        P, I,el={e:'div',a:{'class':'tdz-i', 'data-url':p, 'data-qs':qs, 'data-nav':'1'}};
+        P, I,el={e:'div',a:{'class':'s-api-app', 'data-url':p, 'data-qs':qs, 'data-nav':'1'}};
 
     for(n in add) {
-        I=_Z.querySelector('.tdz-i-box '+n+' .'+add[n]+'[data-url="'+encodeURIComponent(p)+'"]');
+        I=_Z.querySelector('.s-api-box '+n+' .'+add[n]+'[data-url="'+encodeURIComponent(p)+'"]');
         if(!I) {
-            P=_Z.querySelector('.tdz-i-box '+n);
+            P=_Z.querySelector('.s-api-box '+n);
             el.a.class = add[n];
             I=Z.element.call(P, el);
         }
@@ -152,7 +152,7 @@ function initStudio()
 {
     toggle.call(_Z, null, true);
     /*
-    var T=_V.querySelector('.tdz-i-header .tdz-i-title[data-url]'), h = (T) ?T.getAttribute('data-url') :null, qs = (T) ?T.getAttribute('data-qs') :null;
+    var T=_V.querySelector('.s-api-header .s-api-title[data-url]'), h = (T) ?T.getAttribute('data-url') :null, qs = (T) ?T.getAttribute('data-qs') :null;
     if(qs) h+= '?'+qs;
     Z.loadInterface.call(_V, h);
     */
@@ -168,7 +168,7 @@ function trigger(e, active)
     if(arguments.length>1) toggle.call(_Z, e, active);
     else toggle.call(_Z, e);
     var on=(_Z.className.search(/\bs-active\b/)>-1);
-    if(!_Z.querySelector('.tdz-i')) {
+    if(!_Z.querySelector('.s-api-app')) {
         // no interface, preview current page, if found
         searchInterface({e:{link:window.location.pathname}});
     }
@@ -223,7 +223,7 @@ function toggle(e, active)
 
 function checkInterfaces()
 {
-    if(!document.querySelector('.tdz-i-body .tdz-i')) {
+    if(!document.querySelector('.s-api-body .s-api-app')) {
         toggle.call(_Z, null, false);
     }
 }

@@ -29,9 +29,9 @@ if(!isset($before)) $before = '';
 if(!isset($after)) $after = '';
 if(isset($limits) && $limits) {
     if(isset($limits['error']) && $limits['error']) {
-        $before .= '<p class="tdz-i-msg tdz-i-error">'.tdz::xml($limits['error']).'</p>';
+        $before .= '<p class="s-msg s-msg-error">'.tdz::xml($limits['error']).'</p>';
     } else if(isset($limits['warn']) && $limits['warn']) {
-        $before .= '<p class="tdz-i-msg tdz-i-warn">'.tdz::xml($limits['warn']).'</p>';
+        $before .= '<p class="s-msg s-msg-warn">'.tdz::xml($limits['warn']).'</p>';
     }
     if(isset($limits['fields'])) {
         foreach($limits['fields'] as $fn=>$fo) {

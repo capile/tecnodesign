@@ -1,13 +1,14 @@
 ---
 all:
   title: '*Site Resources'
-  model: Tecnodesign_Studio_Entry
+  model: Studio\Model\Entries
   options:
+    list-parent: ~
     priority: 1000
     index: true
     group-by: id
     order:
-      'greatest(`updated`,`Contents.updated`)': desc
+      '${greatest}(`updated`,`Contents.updated`)': desc
     link-generator: interfaceLink
     redirect-by-property:
       type:
@@ -21,7 +22,7 @@ all:
         '*Type': type
         '*Title': title _title_tags
         URL: link
-        '*Last Modified': 'greatest(`updated`,`Contents.updated`) updated'
+        '*Last Modified': '${greatest}(`updated`,`Contents.updated`) updated'
       search:
         q:
           '*Title': title
@@ -31,7 +32,7 @@ all:
         URL: link
         '*Tag': Tag.slug
         '*Last modified': 
-          bind: 'greatest(`updated`,`Contents.updated`)'
+          bind: '${greatest}(`updated`,`Contents.updated`)'
           format: datetime
         '*Type': "substring_index(`type`,'/',1)"
       new:

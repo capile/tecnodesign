@@ -173,7 +173,8 @@ class Tecnodesign_Yaml
             return yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
         }
 
-        return Spyc::YAMLDump($data, $indent, $wordwrap);
+        // BUGFIX: Spyc does not escape keys starting with *
+        return preg_replace('/^( +)(\*[^\:]+)\:( |$)/m', '$1\'$2\':$3', Spyc::YAMLDump($data, $indent, $wordwrap));
     }
 
     /**

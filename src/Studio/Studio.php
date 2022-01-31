@@ -139,7 +139,7 @@ class Studio
             chdir(S_APP_ROOT);
         } else if(static::$webInterface) {
             App::$assets[] = '!Z.Studio';
-            App::$assets[] = '!Z.Interface';
+            App::$assets[] = '!Z.Api';
             App::$assets[] = '!'.Form::$assets;
         }
 
@@ -289,7 +289,7 @@ class Studio
                 S::scriptName(self::$home);
                 S::$translator = 'Studio\\Studio::translate';
                 App::$assets[] = 'Z.Studio';
-                App::$assets[] = 'Z.Interface';
+                App::$assets[] = 'Z.Api';
                 App::$assets[] = 'Z.Form';
                 App::response('layout', 'studio');
                 if(self::config('reset_interface_style')) App::response('style', []);
@@ -598,7 +598,7 @@ class Studio
                         'home'=>self::$home,
                         'options'=>[
                         ],
-                        'load'=>['z-studio','z-interface'],
+                        'load'=>['z-studio','z-api'],
                     ),
                 );
                 if(static::$webButton!==false) $r['plugins']['studio']['options']['button'] = true;
@@ -1025,7 +1025,7 @@ class Studio
     public static function interfaceId($M, $prefix=null)
     {
         $s = (is_string($M)) ?$M :implode('-', $M->getPk(true));
-        if($prefix) $s = $prefix.'/v/'.$s;
+        if($prefix) $s = $prefix.'/preview/'.$s;
 
         return S::encrypt($s, null, 'uuid');
     }

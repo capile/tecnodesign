@@ -19,24 +19,6 @@ use tdz as S;
 class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
 {
     public static
-        $breadcrumbs        = true,
-        $displaySearch      = true,
-        $displayList        = true,
-        $listPagesOnTop     = true,
-        $listPagesOnBottom  = true,
-        $translate          = true,
-        $headerOverflow     = true,
-        $newFromQueryString = true,
-        $hitsPerPage        = 25,
-        $attrListClass      = 'tdz-i-list',
-        $attrPreviewClass   = 'tdz-i-preview',
-        $attrParamClass     = 'tdz-i-param',
-        $attrTermClass      = 'tdz-i-term',
-        $attrErrorClass     = 'z-i-msg z-i-error',
-        $attrCounterClass   = 'tdz-counter',
-        $attrButtonsClass   = '',
-        $attrButtonClass    = '',
-        $dir                = [ 'api' ],
         $headingTemplate    = '<h2 class="z-title">$LABEL</h2><hr />',
         $actionAlias        = [
             'n'=>'new',
@@ -75,111 +57,6 @@ class Tecnodesign_Studio_Interface extends Tecnodesign_Interface
             static::$dir[] = S_ROOT.'/data/api';
         }
         return '<div id="studio" class="studio-interface s-active">'.parent::run($n, $url).'</div>';
-    }
-
-    public static function find($q=null, $checkAuth=true)
-    {
-        $Is = parent::find($q, $checkAuth);
-        if(!Studio::config('enable_interface_index')) {
-            return $Is;
-        }
-
-        if($L = Interfaces::find($q,null,null,false)) {
-
-            foreach($L as $i=>$o) {
-                if($o->indexed) {
-                    if($f = $o->cacheFile()) {
-                        $a = S::config($f, S::env());
-                    }
-                    $oid = basename($f, '.yml');
-                    if(isset($Is[$oid])) {
-                        $Is[$oid] = $a + $Is[$oid];
-                    } else {
-                        $Is[$oid] = $a;
-                    }
-                }
-                unset($L[$i], $i, $o);
-            }
-        }
-
-        return $Is;
-    }
-
-    public static function configFile($s, $skip=[])
-    {
-        if(!Studio::config('enable_interface_index') || !($r=Interfaces::findCacheFile($s))) {
-            $r = parent::configFile($s, $skip);
-        }
-
-        return $r;
-    }
-
-    public static function loadInterface($a=array(), $prepare=true)
-    {
-        $a = parent::loadInterface($a, $prepare);
-
-        $re = '/^(Tecnodesign_Studio_|Studio\\\Model\\\)/';
-        if(isset($a['model']) && preg_match($re, $a['model'])) {
-            $n = preg_replace($re, '', $a['model']);
-            if(!Studio::enabledModels($a['model'])) {
-                $a['options']['navigation'] = null;
-                $a['options']['list-parent'] = false;
-                $a['options']['priority'] = null;
-            }
-        } else {
-            $n = S::camelize($a['interface'], true);
-        }
-
-        // overwrite credentials
-        if($prepare && !isset($a['credential'])) {
-            $min = null;
-            if(!isset($a['actions'])) $a['actions'] = [];
-            $defaultActions = array_keys(static::$actionsAvailable);
-            if(isset($a['default-actions'])) {
-                if(!$a['default-actions']) {
-                    $defaultActions = array_keys($a['actions']);
-                } else {
-                    $defaultActions = (!is_array($a['default-actions'])) ?[$a['default-actions']] :$a['default-actions'];
-                    if(!isset($a['config'])) {
-                        $a['config'] = [];
-                    }
-                    $a['config']['actionsDefault'] = $defaultActions;
-                }
-            }
-            foreach(static::$actionsAvailable as $an=>$ad) {
-                if(!isset($a['actions'][$an]) && !in_array($an, $defaultActions)) {
-                    $a['actions'][$an] = false;
-                } else if(!is_null($c = Studio::credential($an.'Interface'.$n))) {
-                    if($c===true) {
-                        $min = $c;
-                        $a['actions'][$an] = true;
-                    } else if(!$c) {
-                        continue;
-                    } else {
-                        if(is_null($min)) $min = $c;
-                        else if(is_array($min)) $min = array_merge($min, $c);
-
-                        if(isset($a['actions'][$an]) && !is_array($a['actions'][$an])) $a['actions'][$an]=array();
-                        $a['actions'][$an]['credential'] = $c;
-                    }
-                }
-            }
-            if(!is_null($min)) {
-                if(is_array($min)) $min = array_unique($min);
-                $a['credential'] = $min;
-            }
-        }
-
-        if(!isset($a['credential'])) {
-            if(!is_null($c = Studio::credential('interface'.$n))
-                || !is_null($c = Studio::credential('interface'))
-                || !is_null($c = Studio::credential('edit'))
-            ) {
-                $a['credential'] = $c;
-            }
-        }
-
-        return $a;
     }
 
     public function checkEntryLink($o=null)

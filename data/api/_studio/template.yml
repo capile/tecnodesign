@@ -1,0 +1,8 @@
+---
+all:
+  title: '*Templates'
+  model: Studio\Model\ContentsDisplay
+  #prepare: prepareContentTypes
+  options:
+    list-parent: site
+    priority: 1020

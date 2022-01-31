@@ -1,7 +1,7 @@
 ---
 all:
   title: '*Pages'
-  model: Tecnodesign_Studio_Entry
+  model: Studio\Model\Entries
   search:
     type: page
   actions:

@@ -3,7 +3,7 @@
     "database": "studio",
     "tableName": "studio_entries",
     "className": "Studio\\Model\\Entries",
-    "_indexId": "_studio/entry",
+    "_indexId": "site",
     "properties": {
         "id": { "increment": "auto", "required": true, "primary": true },
         "title": { "type": "string", "size": 200 },

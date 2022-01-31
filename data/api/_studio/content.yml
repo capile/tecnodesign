@@ -1,13 +1,14 @@
 ---
 all:
-  model: Tecnodesign_Studio_Content
+  title: '*Contents'
+  model: Studio\Model\Contents
   prepare: prepareContentTypes
   actions:
     report: false
     publish: false
   index: true
   options:
-    list-parent: ~
+    list-parent: site
     priority: 1010
     redirect-by-property:
       entry:

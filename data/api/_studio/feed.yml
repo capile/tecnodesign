@@ -1,7 +1,7 @@
 ---
 all:
   title: '*Feeds'
-  model: Tecnodesign_Studio_Entry
+  model: Studio\Model\Entries
   search:
     type: feed
   options:

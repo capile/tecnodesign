@@ -17,7 +17,7 @@ use Studio\Model\Tags as Tag;
 use Studio\Studio as Studio;
 use Tecnodesign_App as App;
 use Tecnodesign_Cache as Cache;
-use Tecnodesign_Interface as Api;
+use Studio\Api as Api;
 use Tecnodesign_Collection as Collection;
 use Tecnodesign_Yaml as Yaml;
 use Tecnodesign_Exception as Exception;
@@ -112,7 +112,7 @@ class Contents extends Model
             $E = Entry::find(['id'=>$this->entry],1,['title','type']);
             if($E) {
                 if(substr(S::scriptName(), 0, strlen(Studio::$home)+1)==Studio::$home.'/') {
-                    $link = $E->getStudioLink().'/v/'.$E->id;
+                    $link = $E->getStudioLink().'/preview/'.$E->id;
                     return S::xml((string)$E).' <a href="'.$link.'" class="z-i-link z-i--preview"></a>';
                 } else {
                     return S::xml((string)$E);
@@ -349,7 +349,11 @@ class Contents extends Model
         $type = $this->content_type;
         $attr = array('id'=>'c'.$id);
         if(Studio::$webInterface) {
-            $attr['data-studio'] = Studio::interfaceId('content/v/'.$this->id);
+            if(!$this->id && $this->source && ($C=Content::find(['source'=>$source],1,['id']))) {
+                $this->id = $C->id;
+                unset($C);
+            }
+            $attr['data-studio'] = Studio::interfaceId('content/preview/'.$this->id);
         }
         if($p=Studio::config('content_class_name')) {
             $attr['class'] = $p;            

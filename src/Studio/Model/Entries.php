@@ -743,7 +743,6 @@ class Entries extends Model
         return $m;
     }
 
-
     public static function findPage($url, $multiview=false, $redirect=false)
     {
         // get file-based page definitions
@@ -862,16 +861,15 @@ class Entries extends Model
 
         if($extAttr) {
             $source = ((isset($extAttr['src'])) ?$extAttr['src'] :'').substr($page, strlen($extAttr['file']));
-            if($E=self::find(['source'=>$source],1,['id'])) {
-                $id = $E->id;
-                unset($E);
-            }
         } else if(strpos($page, S_REPO_ROOT.'/')===0) {
             $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
         } else {
             $source = substr($page, strlen(Studio::documentRoot()));
         }
-
+        if(Studio::$connection && ($E=self::find(['source'=>$source],1,['id']))) {
+            $id = $E->id;
+            unset($E);
+        }
         if($url===true) {
             $urlb = '';
             $urlr = $source;
@@ -901,6 +899,7 @@ class Entries extends Model
         $meta = static::loadMeta($url, $page, $meta);
         $t = date('Y-m-d\TH:i:s', filemtime($page));
         $d = [
+            'id' => $id,
             //'id'=>S::hash($id, null, 'uuid'),
             'source'=>$source,
             'link'=>$url,
@@ -910,12 +909,13 @@ class Entries extends Model
             'updated'=>$t,
         ];
         if($extAttr) {
-            if($id) $d['id'] = $id;
             $d['title'] = str_replace(['_', '-'], ' ', basename($url));
             $d['created'] = date('Y-m-d\TH:i:s', filectime($page));
             $d['__skip_timestamp_created'] = true;
             $d['__skip_timestamp_updated'] = true;
         }
+
+        if(S::isempty($d['id'])) unset($d['id']);
 
         $cn = get_called_class();
         $P = new $cn($d);
@@ -1190,7 +1190,7 @@ class Entries extends Model
     public function interfaceLink()
     {
         if(!$this->type) $this->refresh(['type']);
-        return Studio::$home.'/'.$this->type.'/v';
+        return Studio::$home.'/'.$this->type.'/preview';
     }
 
     public function previewContents()
