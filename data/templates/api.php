@@ -81,7 +81,7 @@ if(isset($attributes) && is_array($attributes)) {
         if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
             /*if(count($Interface::$urls)>1): ?><a class="s-api-a z-i--close" href="<?php echo S::xmlEscape(array_shift(array_keys($Interface::$urls))) ?>"></a><?php endif;*/
             ?><input type="checkbox" id="s-api-b-<?php echo $id; ?>" class="s-switch z-i-actions" /><label for="s-api-b-<?php echo $id; ?>"><?php
-            echo $Interface::$labelActions; ?></label><div class="s-buttons s-switched"><?php
+            echo $Interface::t('labelActions'); ?></label><div class="s-buttons s-switched"><?php
                 echo $buttons; 
         ?></div></div><?php endif; 
 

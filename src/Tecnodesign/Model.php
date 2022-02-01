@@ -2922,7 +2922,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(is_string($a0) && $serialize) {
                     $a0 = tdz::unserialize($a0, $serialize);
                 }
-                if(!$a0) {
+                if(!$a0 || is_string($a0)) {
                     $a0 = array();
                 }
 

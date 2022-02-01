@@ -991,6 +991,15 @@ class Tecnodesign_Query_Sql
             }
             return $str;
         }
+
+        if($enclose && static::$conn) {
+            foreach(static::$conn as $n=>$C) {
+                if($C && (is_resource($C) || method_exists($C, 'quote'))) {
+                    return $C->quote($str);
+                }
+                unset($n, $C);
+            }
+        }
         $str = str_replace(array('\\', "'"), array('\\\\', "''"), $str);
         $str = ($enclose) ? ("'{$str}'") : ($str);
         return $str;

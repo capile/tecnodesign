@@ -74,7 +74,7 @@ all:
           fieldset: '*Page information'
         '*Page':
             bind: entry
-            choices: Tecnodesign_Studio_Page
+            choices: Studio\Model\Page
             format: search
             class: i1s2
             attributes:
@@ -96,4 +96,4 @@ all:
           fieldset: '*Content'
         'Content':
           bind: content
-          class: ih10
+          class: ih20

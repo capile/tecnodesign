@@ -419,7 +419,6 @@
         if(!_reHash) return;
         //Z.debug('reHash');
         var l=_root.querySelectorAll('.s-api-header .s-api-title[data-url]'), i=0,a,h,I, qs;
-        console.log('rehashing: ', _H);
         _H=[];
         for(i=0;i<l.length;i++) {
             h=l[i].getAttribute('data-url');
@@ -433,7 +432,6 @@
             else _H.push(h);
         }
         if(a) _H.push(a);
-        console.log('rehashing! ', _H);
         setHash(false);
     }
 

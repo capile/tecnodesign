@@ -353,6 +353,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         static $textChecks=['checkDns', 'checkEmail', 'checkIp', 'checkIpBlock'];
         if($validation && in_array($this->type, static::$typesNotForValidation)) return true;
+        else if($validation===false) {
+            $this->value = $value;
+            return true;
+        }
 
         $this->error=array();
         $v0 = $value = $this->parseValue($value);
@@ -1925,6 +1929,15 @@ class Tecnodesign_Form_Field implements ArrayAccess
 
             // loop for each entry and add to $input
             if(is_array($value)) {
+                if(!isset($value[0])) {
+                    foreach($value as $i=>$o) {
+                        if(!is_numeric($i) && !is_array($o) && !is_object($o)) {
+                            $value = [$value];
+                        }
+                        unset($i, $o);
+                        break;
+                    }
+                }
                 foreach($value as $i=>$o) {
                     $fo['id'] = $prefix.'['.$i.']';
                     $form = Tecnodesign_Form::instance($fo['id'], $fo);
@@ -1943,8 +1956,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
                             $f->setValue($o[$id]);
                         }
                         $input .= $f->render();
+                        unset($fn, $f, $id);
                     }
                     $input .= '</div>';
+                    unset($i, $o);
                 }
             }
         }

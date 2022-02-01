@@ -3,7 +3,8 @@ all:
   title: "*Schema"
   model: Studio\Model\Schema
   options:
-    priority: 1020
+    priority: 1050
+    list-parent: site
     index: true
     scope:
       new:

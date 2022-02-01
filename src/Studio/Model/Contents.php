@@ -152,18 +152,28 @@ class Contents extends Model
         return false;
     }
 
-    public static function parseContent($r)
+    public static function parseContent($r, $contentType=null)
     {
         $r = trim(str_replace(["\r", '\\r'], '', $r));
         if($r && is_string($r)) {
-            if(substr($r, 0,1)=='{') {
+            if(substr($r, 0, 1)=='{') {
                 $r = S::unserialize($r, 'json');
             } else if(preg_match('#^\n*(---[^\n]*\n)?[a-z0-9\- ]+\:#i', $r)) {
                 $r = S::unserialize($r, 'yaml');
             }
         }
+
         if(!is_array($r)) {
-            $r = array($r);
+            if($contentType && isset(static::$schema->scope[$s='u-'.$contentType])) {
+                foreach(static::$schema->scope[$s] as $fn) {
+                    $fn = preg_replace('/^content\./', '', $fn);
+                    $r = [[ $fn => $r ]];
+                    unset($fn);
+                    break;
+                }
+            } else {
+                $r = array($r);
+            }
         }
         return $r;
 
@@ -305,7 +315,7 @@ class Contents extends Model
         }
         if($this->content) {
             if(is_string($this->content)) {
-                $this->content = self::parseContent($this->content);
+                $this->content = self::parseContent($this->content, $this->content_type);
             }
             if($p) {
                 if(isset($this->content[$p])) {
@@ -316,6 +326,28 @@ class Contents extends Model
         }
 
         return $this->content;
+    }
+
+    public function setContent($v)
+    {
+        if($v) {
+            if(is_string($v)) {
+                if(!S::unserialize($v)) {
+                    $v = ['txt'=>$v];
+                }
+            } else if(is_array($v)) {
+                if(isset($v[0]) && count($v)==1) $v = array_shift($v);
+                foreach($v as $k=>$d) {
+                    if(preg_match('/^(0\.)?content[\._]/', $k, $m)) {
+                        unset($v[$k]);
+                        $v[substr($k, strlen($m[0]))] = $d;
+                    }
+                    unset($m, $k, $d);
+                }
+            }
+        }
+
+        $this->content = $v;
     }
 
     public static function prepareContentTypes($a)
@@ -689,6 +721,14 @@ class Contents extends Model
     {
         if($C=Studio::content($file, false, true, false, $attr)) {
             return $C;
+        }
+    }
+
+    public function prepareContentFormField(&$arg, $Field=null)
+    {
+        $this->refresh(['content_type', 'entry']);
+        if(isset(static::$scope->scope['u-'.$this->content_type])) {
+            static::$scope->overlay['content']['scope']='u-'.$this->content_type;
         }
     }
 

@@ -20,5 +20,5 @@ if(isset($preview)) echo $preview;
 if(isset($list))
     echo 
         $listCounter,
-        ((isset($searchForm))?('<input type="checkbox" id="s-api-s-'.$id.'" class="s-switch s-api-search" /><label for="s-api-s-'.$id.'">'.$Interface::$labelFilter.'</label><div class="s-api-search s-switched">'.$searchForm.'</div>'):('')),
+        ((isset($searchForm))?('<input type="checkbox" id="s-api-s-'.$id.'" class="s-switch s-api-search" /><label for="s-api-s-'.$id.'">'.$Interface::t('labelFilter').'</label><div class="s-api-search s-switched">'.$searchForm.'</div>'):('')),
         $list; 
