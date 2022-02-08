@@ -11,9 +11,7 @@
 namespace Studio\Model;
 
 use Studio\Model as Model;
-use Studio\Model\Entries as Entry;
-use Studio\Model\Permissions as Permission;
-use Studio\Model\Tags as Tag;
+use Studio\Model\Entries as Entries;
 use Studio\Studio as Studio;
 use Tecnodesign_App as App;
 use Tecnodesign_Cache as Cache;
@@ -89,7 +87,7 @@ class Contents extends Model
     public static function choicesSlot()
     {
         $r = array();
-        foreach(Entry::$slots as $n=>$c) {
+        foreach(Entries::$slots as $n=>$c) {
             $r[$n] = Studio::t($n, ucfirst($n));
         }
         return $r;
@@ -109,7 +107,7 @@ class Contents extends Model
         }
 
         if($this->entry) {
-            $E = Entry::find(['id'=>$this->entry],1,['title','type']);
+            $E = Entries::find(['id'=>$this->entry],1,['title','type']);
             if($E) {
                 if(substr(S::scriptName(), 0, strlen(Studio::$home)+1)==Studio::$home.'/') {
                     $link = $E->getStudioLink().'/preview/'.$E->id;
@@ -126,7 +124,7 @@ class Contents extends Model
     {
         if((is_string($q) && ($page=S::decrypt($q, null, 'uuid'))) 
             || (isset($q['id']) && is_string($q['id'])&& ($page=S::decrypt($q['id'], null, 'uuid')))) {
-            $C = Studio::content(Entry::file($page), false);
+            $C = Studio::content(Entries::file($page), false);
             if($limit==1) return $C;
             else return array($C);
         //} else if(is_array($q) && isset($q['source']) && count($q)==1) {
@@ -154,8 +152,8 @@ class Contents extends Model
 
     public static function parseContent($r, $contentType=null)
     {
-        $r = trim(str_replace(["\r", '\\r'], '', $r));
         if($r && is_string($r)) {
+            $r = trim(str_replace(["\r", '\\r'], '', $r));
             if(substr($r, 0, 1)=='{') {
                 $r = S::unserialize($r, 'json');
             } else if(preg_match('#^\n*(---[^\n]*\n)?[a-z0-9\- ]+\:#i', $r)) {
@@ -187,7 +185,7 @@ class Contents extends Model
     public static function entry($page)
     {
         $url = preg_replace('#(/[^\.]+)(\.[^\.]+)*(\.[^\.]+)$#', '$1$3', $page);
-        if(Entry::file($url)) {
+        if(Entries::file($url)) {
             return $url;
         }
     }
@@ -228,7 +226,7 @@ class Contents extends Model
     public function save($beginTransaction=null, $relations=null, $conn=false)
     {
         if(!Studio::$connection) {
-            if($this->isNew() || ($this->source && ($f=Entry::file($this->source)))) {
+            if($this->isNew() || ($this->source && ($f=Entries::file($this->source)))) {
 
                 $m = array();
                 if($this->attributes) {
@@ -247,7 +245,7 @@ class Contents extends Model
                 $page = $this->getEntry().$slotpos.'.'.$this->content_type;
                 $rename = ($this->source && $page != $this->source);
 
-                if(!S::save(Entry::file($page, false), $c)) {
+                if(!S::save(Entries::file($page, false), $c)) {
                     throw new Exception("Could not save [{$this->source}]");
                     return false;
                 }
@@ -296,7 +294,7 @@ class Contents extends Model
 
     public function previewContentEntry()
     {
-        if(($e=$this['content.entry']) && ($E=Entry::find(['id'=>$e],1,'string'))) {
+        if(($e=$this['content.entry']) && ($E=Entries::find(['id'=>$e],1,'string'))) {
             if(Api::format()=='html') {
                 return S::xml((string)$E)
                         . ' <a class="z-i-a z-i-link z-i--list" href="'.Studio::$home.'/entry/q?'.S::slug(S::t('Newsfeed', 'model-tdz_entries')).'='.$E->id.'"></a>'
@@ -375,13 +373,13 @@ class Contents extends Model
             return false;
         }
         */
-        $id = Entry::$s++;
+        $id = Entries::$s++;
         $code = $this->getContents();
         $code['slot']=$this->slot;
         $type = $this->content_type;
         $attr = array('id'=>'c'.$id);
         if(Studio::$webInterface) {
-            if(!$this->id && $this->source && ($C=Content::find(['source'=>$source],1,['id']))) {
+            if(!$this->id && $this->source && ($C=Contents::find(['source'=>$source],1,['id']))) {
                 $this->id = $C->id;
                 unset($C);
             }
@@ -625,7 +623,7 @@ class Contents extends Model
 
         $eid = null;
         $E = null;
-        if(is_object($e) && ($e instanceof Entry)) {
+        if(is_object($e) && ($e instanceof Entries)) {
             $eid = (int)$e->id;
             $E = $e;
         } else if(isset($code['entry']) && is_numeric($code['entry'])) {
@@ -635,7 +633,7 @@ class Contents extends Model
             $q = $e;
         }
 
-        if(!$E) $E = Entry::find($q,1);
+        if(!$E) $E = Entries::find($q,1);
         $o['variables']['entry']=$E;
         if($E) {
             $o['variables'] += $E->asArray();
@@ -643,7 +641,7 @@ class Contents extends Model
             if(!(Studio::$private && !Studio::$cacheTimeout)) {
                 $f['published<']=date('Y-m-d\TH:i:s');
             }
-            $o['variables']['entries'] = Entry::find($f,null,'preview',(isset($code['hpp']) && $code['hpp']),($E->type=='page')?(array('Related.position'=>'asc','published'=>'desc')):(array('published'=>'desc')));
+            $o['variables']['entries'] = Entries::find($f,null,'preview',(isset($code['hpp']) && $code['hpp']),($E->type=='page')?(array('Related.position'=>'asc','published'=>'desc')):(array('published'=>'desc')));
         }
         /*
         if(!Studio::$cacheTimeout || (!isset($code['hpp']) || !$code['hpp'])) {
@@ -664,7 +662,7 @@ class Contents extends Model
             if(substr($ct, 0, 1)=='*') $ct = Studio::t(substr($ct, 1), ucfirst(substr($ct, 1)));
         }
         if($this->slot) {
-            $slot = (isset(Entry::$slots[$this->slot])) ?Entry::$slots[$this->slot] :null;
+            $slot = (isset(Entries::$slots[$this->slot])) ?Entries::$slots[$this->slot] :null;
             if($slot) $slot = Studio::t($slot, ucfirst($slot));
         }
 
@@ -732,52 +730,43 @@ class Contents extends Model
         }
     }
 
-    /*
-    public static function studioIndex($a, $icn=null, $scope='preview', $keyFormat=true, $valueFormat=true, $serialize=true)
+    public function updateSource()
     {
-        static $pages, $root;
+        if(!isset($this->source)) $this->refresh(['source']);
+        if(!$this->source) return true;
 
-        if(is_null($pages)) {
-            $pages = [];
-            $root = preg_replace('#/+$#', '', Entry::file(''));
-            if(!$root) return false;
-            $pages = glob($root.'/*');
-        }
-
-        if(!$pages) {
-            return;
-        }
-
-        $page = array_shift($pages);
-        $basename = basename($page);
-        if(substr($basename, 0, 1)=='.') {
-            // do nothing
-        } else if(is_dir($page)) {
-            $pages = array_merge($pages, glob($page.'/*'));
-        } else if($o=Studio::content($page, false, false, false)) {
-            // process $page
-            $pk = $o->getPk();
-            $P = [];
-            if($preview=$o->asArray($scope, $keyFormat, $valueFormat, $serialize)) {
-                foreach($preview as $n=>$v) {
-                    $P[] = ['interface'=>$a['interface'], 'id'=>$pk, 'name'=>$n, 'value'=>$v];
+        if($f=Studio::sourceFile($this->source)) {
+            // keep comments at the header and update contents
+            $M = [];
+            $a = null;
+            if($c = file_get_contents($f)) {
+                if($m = Entries::meta($c)) {
+                    $m = trim(preg_replace('/\.\.\.[\s\n]*$/', '', $m));
+                    $M = Yaml::load($m);
                 }
             }
 
-            try {
-                Tecnodesign_Studio_Index::replace([
-                    'interface'=>$a['interface'],
-                    'id'=>$pk,
-                    'summary'=>(string) $o,
-                    'indexed'=>TDZ_TIMESTAMP,
-                    'IndexProperties'=>$P,
-                ]);
-            } catch (\Exception $e) {
-                S::log('[ERROR] There was an issue while indexing contents: '.$e->getMessage());
+            if($C = $this->getContent()) {
+                if(isset($C['txt'])) {
+                    $a = $C['txt'];
+                    unset($C['txt']);
+                } else if(isset($C['html'])) {
+                    $a = $C['html'];
+                    unset($C['html']);
+                }
+
+                if($M) $C+=$M;
+            }
+
+            S::save($f, (($C) ?"<!--\n".Yaml::dump($C)."...\n-->\n" :'') . $a);
+
+            if(strpos($f, S_REPO_ROOT)===0) {
+                // update reposiroty
+                $rn = preg_replace('#^/*([^/]+)/.*#', '$1', substr($f, strlen(S_REPO_ROOT)+1));
+                S::log('[INFO] Update repository: '.$rn);
             }
         }
 
-        return static::studioIndex($a, $icn, $scope, $keyFormat, $valueFormat, $serialize);
+        return true;
     }
-    */
 }

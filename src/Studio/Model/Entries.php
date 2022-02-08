@@ -1029,6 +1029,8 @@ class Entries extends Model
                 if($updated && $r) $r = array_values($r);
 
             }
+
+            return $r;
         } else {
             $r = null;
         }
@@ -1196,7 +1198,7 @@ class Entries extends Model
     public function previewContents()
     {
         $tpl = '<div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.S::scriptName(true).'">'
-           .     '<a href="'.Studio::$home.'/content/n?entry='.$this->id.'&amp;position={position}&amp;slot={slot}&amp;scope=entry-content&amp;next=preview" class="tdz-i-button z-align-bottom z-i--new" data-inline-action="new"></a>'
+           .     '<a href="'.Studio::$home.'/content/new?entry='.$this->id.'&amp;position={position}&amp;slot={slot}&amp;scope=entry-content&amp;next=preview" class="tdz-i-button z-align-bottom z-i--new" data-inline-action="new"></a>'
            . '</div>';
         $r = str_replace(['{position}', '{slot}'], [1, static::$slot], $tpl);
         $slots = [];
@@ -1209,9 +1211,9 @@ class Entries extends Model
                 $slot = ($o->slot) ?$o->slot :static::$slot;
                 if(!isset($slots[$slot])) $slots[$slot] = '';
                 $slots[$slot] .= '<div class="ih5 z-item z-inner-block">'
-                    .   '<div class="tdz-i-scope-block" data-action-expects-url="'.Studio::$home.'/content/u/'.$o->id.'" data-action-schema="preview" data-action-url="'.S::scriptName(true).'">'
-                    .     '<a href="'.Studio::$home.'/content/u/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
-                    .     '<a href="'.Studio::$home.'/content/d/'.$o->id.'?scope=u-'.$ct.'&amp;next='.S::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
+                    .   '<div class="tdz-i-scope-block" data-action-expects-url="'.Studio::$home.'/content/update/'.$o->id.'" data-action-schema="preview" data-action-url="'.S::scriptName(true).'">'
+                    .     '<a href="'.Studio::$home.'/content/update/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
+                    .     '<a href="'.Studio::$home.'/content/delete/'.$o->id.'?scope=u-'.$ct.'&amp;next='.S::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
                     . (($o->content_type && in_array($o->content_type, $o::$previewContentType))
                         ?'<div class="z-t-center z-app-image"><span class="z-t-inline z-t-left">'.$o->previewContent().'</span></div>'
                         :$o->previewContent()

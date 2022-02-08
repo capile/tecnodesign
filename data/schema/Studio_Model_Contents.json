@@ -48,9 +48,9 @@
         "before-insert": [ "actAs" ],
         "before-update": [ "actAs" ],
         "before-delete": [ "actAs" ],
-        "after-insert": [ "actAs" ],
-        "after-update": [ "actAs" ],
-        "after-delete": [ "actAs" ],
+        "after-insert": [ "actAs", "updateSource" ],
+        "after-update": [ "actAs", "updateSource" ],
+        "after-delete": [ "actAs", "updateSource" ],
         "active-records": "`expired` is null"
     },
     "overlay": {

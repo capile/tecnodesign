@@ -15,10 +15,10 @@
 namespace Studio;
 
 use Tecnodesign_App as App;
-use Studio\Model\Entries as Entry;
-use Studio\Model\Contents as Content;
-use Studio\Model\Permissions as Permission;
-use Studio\Model\Relations as Relation;
+use Studio\Model\Entries as Entries;
+use Studio\Model\Contents as Contents;
+use Studio\Model\Permissions as Permissions;
+use Studio\Model\Relations as Relations;
 use Tecnodesign_Studio_Asset as Asset;
 use Tecnodesign_Collection as Collection;
 use Tecnodesign_Form as Form;
@@ -95,7 +95,7 @@ class Studio
     {
         static $root;
         if(is_null($root)) {
-            $root = preg_replace('#/+$#', '', S_VAR.'/'.Entry::$pageDir);
+            $root = preg_replace('#/+$#', '', S_VAR.'/'.Entries::$pageDir);
         }
         return $root;
     }
@@ -341,7 +341,7 @@ class Studio
         if($C['edit'] && ($d = App::request('post', 'c'))) {
             foreach($d as $i=>$id) {
                 $p = 'edit';
-                $o = Content::find($id,1,array('content_type'));
+                $o = Contents::find($id,1,array('content_type'));
                 if($o && $o->source && substr(basename($o->source), 0, 6)=='_tpl_.' && !$C['editTemplate']) $o=null;
                 if($o && !isset($C[$p='editContentType'.ucfirst($o->content_type)])) {
                     $C[$p] = ($U->isSuperAdmin() || ($c=self::credential($p)) && $U->hasCredential($c, false));
@@ -364,7 +364,7 @@ class Studio
                     }
                 }
                 $R[$k]['type'] = $o->content_type;
-                if($o->source && Entry::file($o->source)) $R[$k]['id'] = $o->source;
+                if($o->source && Entries::file($o->source)) $R[$k]['id'] = $o->source;
                 unset($d[$i], $id, $k, $o);
             }
         }
@@ -386,24 +386,28 @@ class Studio
 
         if(!file_exists($page)) return;
 
-        $C = $id = $source = null;
+        $C = $id = $source = $entry = null;
 
         if($extAttr) {
             $source = ((isset($extAttr['src'])) ?$extAttr['src'] :'').substr($page, strlen($extAttr['file']));
-            if($C=Content::find(['source'=>$source],1,['id'])) {
+            if($C=Contents::find(['source'=>$source],1,['id', 'entry'])) {
                 $id = $C->id;
+                if($C->entry) $entry = $C->entry;
+                unset($C);
+            }
+            if(!$entry && ($C=Entries::find(['source'=>$source],1,['id']))) {
+                $entry = $C->id;
+                unset($C);
             }
         } else if(strpos($page, S_REPO_ROOT.'/')===0) {
-            $source = $id = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
-            $id = S::hash($id, null, 'uuid');
+            $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
         } else {
             if(is_null($root)) $root = self::documentRoot();
             if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot)) return;
-            $source = $id = substr($page, strlen(self::documentRoot()));
-            $id = S::hash($id, null, 'uuid');
+            $source = substr($page, strlen(self::documentRoot()));
         }
 
-        $slotname = Entry::$slot;
+        $slotname = Entries::$slot;
         $pos = '00000';
         $pn = basename($page);
         //if(substr($pn, 0, strlen($link)+1)==$link.'.') $pn = substr($pn, strlen($link)+1);
@@ -435,12 +439,12 @@ class Studio
             }
             unset($tmp);
         }
-        if(!isset(Content::$contentType[$ext])) return false;
-        else if(is_array(Content::$disableExtensions) && in_array($ext, Content::$disableExtensions)) return false;
+        if(!isset(Contents::$contentType[$ext])) return false;
+        else if(is_array(Contents::$disableExtensions) && in_array($ext, Contents::$disableExtensions)) return false;
         $p = file_get_contents($page);
         if(!$p) return false;
         $meta = null;
-        if($m = Entry::meta($p)) {
+        if($m = Entries::meta($p)) {
             $meta = Yaml::load($m);
             if(isset($meta['credential'])) {
                 if(!($U=S::getUser()) || !$U->hasCredential($meta['credential'], false)) {
@@ -456,7 +460,7 @@ class Studio
         $lmod = date('Y-m-d\TH:i:s', filemtime($page));
         $d = [
             'id'=>$id,
-            //'entry'=>Content::entry($id),
+            'entry'=>$entry,
             'slot'=>$slotname,
             'content'=>$p,
             'content_type'=>$ext,
@@ -488,14 +492,14 @@ class Studio
                 ];
             }
         }
-        $C = new Content($d);
+        $C = new Contents($d);
         if(!is_null($pos)) $C->_position = $slotname.$pos;
 
         if($addResponse && isset($meta) && $meta) {
             if(isset($meta['attributes'])) unset($meta['attributes']);
             if(isset($meta['credential'])) unset($meta['credential']);
             if($meta) static::addResponse($meta);
-            foreach(Content::$schema->properties as $fn=>$fd) {
+            foreach(Contents::$schema->properties as $fn=>$fd) {
                 if(isset($meta[$fn])) $C->$fn = $meta[$fn];
                 unset($fd, $fn);
             }
@@ -653,7 +657,7 @@ class Studio
      * @param  string $url          Address to be searched
      * @param  bool   $exact        If multiviews should be allowed
      * @param  bool   $published    If only published pages should be retrieved
-     * @return        false || trdzEntry
+     * @return        false || Entries
      */
     public static function page($url, $exact=false, $published=null)
     {
@@ -668,13 +672,13 @@ class Studio
 
         $f=array(
             'link'=>$url,
-            'type'=>Entry::$previewEntryType,
+            'type'=>Entries::$previewEntryType,
             'expired'=>'',
         );
         static $scope = array('id','title','type','link','source','master','format','updated','published','version');
         self::$private = array();
         if(static::$response) static::addResponse(static::$response);
-        $connEnabled = (self::$connection && self::config('enable_interface_entry'));
+        $connEnabled = (self::$connection && self::config('enable_interface_content'));
         if(is_null($published)) {
             // get information from user credentials
             if($connEnabled && ($U=S::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
@@ -698,7 +702,7 @@ class Studio
             $f['published<'] = date('Y-m-d\TH:i:s');
         }
         $E=null;
-        if($connEnabled && ($E=Entry::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
+        if($connEnabled && ($E=Entries::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
             if($meta = $E::loadMeta($E->link)) {
                 foreach($meta as $fn=>$v) {
                     if(property_exists($E, $fn)) {
@@ -712,22 +716,22 @@ class Studio
             unset($f, $published);
             return $E;
         }
-        if(!$E && ($E=Entry::findPage($url, false, true))) {
+        if(!$E && ($E=Entries::findPage($url, false, true))) {
             unset($f, $published);
-        } else if(preg_match('/('.str_replace('.', '\.', implode('|',self::$allowedExtensions)).')$/', $url, $m) && ($E=Entry::findPage(substr($url,0,strlen($url)-strlen($m[1])), false, true))) {
+        } else if(preg_match('/('.str_replace('.', '\.', implode('|',self::$allowedExtensions)).')$/', $url, $m) && ($E=Entries::findPage(substr($url,0,strlen($url)-strlen($m[1])), false, true))) {
             $url = substr($url,0,strlen($url)-strlen($m[1]));
             unset($f, $published);
         }
         if(!$E && !$exact && substr($url, 0, 1)=='/' && strlen($url)>1) {
-            $f['Contents.content_type']=Content::$multiviewContentType;
+            $f['Contents.content_type']=Contents::$multiviewContentType;
             $u = $url;
             while(strlen($u)>1) {
                 $u = preg_replace('#/[^/]+$#', '', $u);
                 $f['link'] = $u;
-                if($connEnabled && ($E=Entry::find($f,1,$scope,false,array('type'=>'desc')))) {
+                if($connEnabled && ($E=Entries::find($f,1,$scope,false,array('type'=>'desc')))) {
                     unset($f, $published);
                     break;
-                } else if($u && ($E=Entry::findPage($u, true))) {
+                } else if($u && ($E=Entries::findPage($u, true))) {
                     unset($f, $published);
                     break;
                 }
@@ -748,7 +752,7 @@ class Studio
 
     public static function template($url=null)
     {
-        $E = new Entry(array('link'=>$url),false, false);
+        $E = new Entries(array('link'=>$url),false, false);
         $C = $E->getRelatedContent();
         unset($E);
         $tpl = array();
@@ -791,11 +795,11 @@ class Studio
         if(isset(S::$variables['route']['layout'])  && S::$variables['route']['layout']) {
             $layout = S::$variables['route']['layout'];
         } else {
-            $layout = self::templateFile(Entry::$layout, 'layout');
+            $layout = self::templateFile(Entries::$layout, 'layout');
         }
         static::$status = $code;
         self::template('/error'.$code);
-        Entry::loadMeta('/error'.$code);
+        Entries::loadMeta('/error'.$code);
 
         return self::$app->runError($code, $layout);
     }
@@ -874,7 +878,7 @@ class Studio
                 self::$credentials=array();
                 $connEnabled = (self::$connection && self::config('enable_interface_credential'));
                 if($connEnabled) {
-                    $ps = Permission::find(array('entry'=>''),0,array('role','credentials'),false,array('updated'=>'desc'));
+                    $ps = Permissions::find(array('entry'=>''),0,array('role','credentials'),false,array('updated'=>'desc'));
                     if($ps) {
                         foreach($ps as $i=>$P) {
                             if(isset(self::$credentials[$P->role])) continue;
@@ -993,7 +997,7 @@ class Studio
                 $c = ($e->id==self::$page)?(' class="current"'):('');
                 $s .= '<li'.$c.'>'
                     . (($e['link'])?('<a'.$c.' href="'.S::xml($e['link']).'">'.S::xml($e['title']).'</a>'):(S::xml($e['title'])))
-                    .  (($e instanceof Entry)?(self::li($e->getChildren())):(''))
+                    .  (($e instanceof Entries)?(self::li($e->getChildren())):(''))
                     . '</li>';
             }
             if($s) {
@@ -1098,14 +1102,14 @@ class Studio
 
     public static function fromFile($file, $attr=[])
     {
-        if($R=Entry::fromFile($file, $attr)) {
-            if($R->type==='page' && ($C = Content::fromFile($file, $attr))) {
+        if($R=Entries::fromFile($file, $attr)) {
+            if($R->type==='page' && ($C = Contents::fromFile($file, $attr))) {
                 return [$R, $C];
             }
 
             return $R;
 
-        } else if($R=Content::fromFile($file, $attr)) {
+        } else if($R=Contents::fromFile($file, $attr)) {
             $L = [];
             if($R->ContentDisplay) {
                 $L = $R->ContentDisplay;
@@ -1119,8 +1123,36 @@ class Studio
             } else {
                 return $R;
             }
-        } else if($R=Relation::fromFile($file, $attr)) {
+        } else if($R=Relations::fromFile($file, $attr)) {
             return $R;
         }
+    }
+
+    public static function sourceFile($src, $check=true)
+    {
+        if(!$src) return false;
+
+        if($p=strpos($src, ':')) {
+            $rs = Studio::config('web-repos');
+            $rn = substr($src, 0, $p);
+            if(!$rs || !isset($rs[$rn]) || !is_dir($d=S_REPO_ROOT.'/'.$rn)) return false;
+
+            $repo = $rs[$rn];
+            $mu = (isset($repo['mount-src'])) ?$repo['mount-src'] :'';
+            if($mu) {
+                if($mu==='.' || $mu==='./') $mu='';
+                else if(substr($mu, -1)!='/') $mu .= '/';
+            }
+            $murl = substr($src, $p+1);
+            $f = $d.'/'.$mu.$murl;
+        } else {
+            $f = Studio::documentRoot() . ((substr($src, 0, 1)!='/') ?'/' :'').$src;
+        }
+
+        if($check) {
+            return (file_exists($f)) ?$f :null;
+        }
+
+        return $f;
     }
 }
