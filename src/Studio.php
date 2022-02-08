@@ -21,7 +21,7 @@ use Tecnodesign_Mail as Mail;
 
 class Studio
 {
-    const VERSION = '2.6.11';
+    const VERSION = '2.6.14';
     const VER = 2.6;
 
     protected static
