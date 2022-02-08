@@ -2911,7 +2911,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         $dl = '';
         foreach ($options as $key=>$valueConfig) {
             if (is_array($valueConfig)) {
-                $dl .= '<div class="'.tdz::slug($key).'" label="'.tdz::xml($key).'"><span class="label">'.tdz::xml($key).'</span>'.implode('', $valueConfig).'</div>';
+                $dl .= '<div class="'.tdz::slug($key).'" label="'.tdz::xml($key).'"><span class="label">'.((!$this->html_labels) ?tdz::xml($key) :$key).'</span>'.implode('', $valueConfig).'</div>';
             } else {
                 $dl .= $valueConfig;
             }
