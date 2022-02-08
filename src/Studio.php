@@ -1087,52 +1087,61 @@ class Studio
         return $s;
     }
 
-    public static function exec($a)
+    public static function exec($arguments)
     {
-        if(isset($a['variables']) && is_array($a['variables'])) {
-            foreach ($a['variables'] as $var => $value) {
+        if(isset($arguments['variables']) && is_array($arguments['variables'])) {
+            foreach ($arguments['variables'] as $var => $value) {
                 $$var = $value;
+                unset($var, $value);
             }
         }
-        $R = null;
+        $execResult = null;
         ob_start();
-        if(isset($a['callback'])) {
-            if(isset($a['arguments'])) {
-                $R .= call_user_func_array($a['callback'], $a['arguments']);
+        if(isset($arguments['callback'])) {
+            if(isset($arguments['arguments'])) {
+                $execResult .= call_user_func_array($arguments['callback'], $arguments['arguments']);
             } else {
-                $R .= call_user_func($a['callback']);
+                $execResult .= call_user_func($arguments['callback']);
             }
-            if(!$R) $R.=ob_get_contents();
+            if($execResult) {
+                ob_clean();
+            }
         }
-        if (isset($a['pi']) && $a['pi']) {
+        if (isset($arguments['pi']) && $arguments['pi']) {
             if(self::$noeval) {
                 $pi = tempnam(TDZ_VAR, 'tdzapp');
-                file_put_contents($pi, '<?php '.$a['pi']);
+                file_put_contents($pi, '<?php '.$arguments['pi']);
                 include $pi;
-                $R.=ob_get_contents();
                 unlink($pi);
             } else {
-                $R.=eval($a['pi']);
-                if(!$R) $R.=ob_get_contents();
+                $execResult .= eval($arguments['pi']);
+                if($execResult) {
+                    ob_clean();
+                }
             }
         }
-        if (isset($a['script']) && substr($a['script'], -4) == '.php') {
-            $sn = str_replace('/../', '/', $a['script']);
+        if (isset($arguments['script']) && substr($arguments['script'], -4) == '.php') {
+            $sn = str_replace('/../', '/', $arguments['script']);
             include $sn;
-            $R.=ob_get_contents();
             unset($sn);
         }
-        if(isset($a['shell']) && $a['shell']) {
+        if(isset($arguments['shell']) && $arguments['shell']) {
             $output = [];
             $ret = 0;
-            exec($a['shell'], $output, $ret);
-            if($ret===0) $R.=implode("\n", $output);
-            else if(self::$log) self::log('[INFO] Error in command `'.$a['shell'].'`', implode("\n", $output));
+            exec($arguments['shell'], $output, $ret);
+            if($ret===0) {
+                $execResult .= implode("\n", $output);
+            } else if(self::$log) {
+                self::log('[INFO] Error in command `'.$arguments['shell'].'`', implode("\n", $output));
+            }
             unset($output, $ret);
         }
-        ob_end_clean();
+        if($execResult && (!is_string($execResult))) {
+            $execResult = (is_array($execResult)) ?self::serialize($execResult) :(string) $execResult;
+        }
+        $execResult .= ob_get_clean();
 
-        return $R;
+        return $execResult;
     }
 
     public static function isempty($a)
