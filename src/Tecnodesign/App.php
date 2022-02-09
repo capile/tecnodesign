@@ -550,7 +550,7 @@ class Tecnodesign_App
             if(!isset(self::$_response[$destination[$to]])) self::$_response[$destination[$to]]=array();
 
             $t = null;
-            $src=preg_split('/\s*\,\s*/', $component, null, PREG_SPLIT_NO_EMPTY);
+            $src=preg_split('/\s*\,\s*/', $component, -1, PREG_SPLIT_NO_EMPTY);
             $fmod = 0;
             foreach($src as $i=>$n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
@@ -691,7 +691,7 @@ class Tecnodesign_App
             if ($options['additional-params']) {
                 $ap=substr(self::$_request['self'],strlen($base));
                 if(substr($ap, 0, 1)=='/') $ap = substr($ap,1);
-                $ap=preg_split('#/#', $ap, null);
+                $ap=preg_split('#/#', $ap);
                 $ps=array_merge($ps, $ap);
             }
             foreach ($ps as $pi=>$pv) {
@@ -976,7 +976,7 @@ class Tecnodesign_App
         if($q==='cookie' && !isset(self::$_request[$q])) {
             self::$_request[$q] = [];
             if (isset($_SERVER['HTTP_COOKIE'])) {
-                $rawcookies=preg_split('/\;\s*/', $_SERVER['HTTP_COOKIE'], null, PREG_SPLIT_NO_EMPTY);
+                $rawcookies=preg_split('/\;\s*/', $_SERVER['HTTP_COOKIE'], -1, PREG_SPLIT_NO_EMPTY);
                 foreach ($rawcookies as $cookie) {
                     if (strpos($cookie, '=')===false) {
                         self::$_request[$q][$cookie] = true;

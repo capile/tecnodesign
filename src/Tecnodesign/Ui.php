@@ -39,7 +39,7 @@ class Tecnodesign_Ui
         $sn = tdz::scriptName();
         $fsn = tdz::scriptName(true);
         if(isset($arg['model']) && strlen($fsn)>strlen($sn) && substr($fsn, 0, strlen($sn)+1)==$sn.'/') {
-            $params = preg_split('#/+#', substr($fsn, strlen($sn)+1), null, PREG_SPLIT_NO_EMPTY);
+            $params = preg_split('#/+#', substr($fsn, strlen($sn)+1), -1, PREG_SPLIT_NO_EMPTY);
             if(isset($params[0])) {
                 $arg['action'] = array_search($params[0], self::$actions);
                 if($arg['action'] && isset($params[1])) {

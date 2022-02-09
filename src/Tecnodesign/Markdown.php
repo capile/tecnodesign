@@ -68,7 +68,7 @@ class Tecnodesign_Markdown extends Parsedown
     public function text($text)
     {
         $level = @error_reporting(E_ALL & ~E_NOTICE);
-        $markup = parent::text($text);
+        $markup = parent::text((string)$text);
 
         # merge consecutive dl elements
         $markup = preg_replace('/<\/dl>\s+<dl>\s+/', '', $markup);
@@ -97,7 +97,7 @@ class Tecnodesign_Markdown extends Parsedown
             if(count($this->InlineTypes['!'])===1) unset($this->InlineTypes['!']);
             else $this->InlineTypes['!'] = array_diff($this->InlineTypes['!'], ['App']);
         }
-        $r = $this->text($text);
+        $r = $this->text((string)$text);
         if($appBlock) {
             $this->BlockTypes['!'][] = 'App';
         }
@@ -451,7 +451,7 @@ class Tecnodesign_Markdown extends Parsedown
                     $G->set_language($lang);
                 }
                 if(is_string($Block['highlight'])) {
-                    $G->highlight_lines_extra(preg_split('/[^0-9]+/', $Block['highlight'], null, PREG_SPLIT_NO_EMPTY));
+                    $G->highlight_lines_extra(preg_split('/[^0-9]+/', $Block['highlight'], -1, PREG_SPLIT_NO_EMPTY));
                 }
                 unset($f);
                 $text = $G->parse_code();
@@ -500,7 +500,7 @@ class Tecnodesign_Markdown extends Parsedown
                 $l = count($r) -1;
                 $xtra = array();
                 if(is_string($Block['highlight'])) {
-                    $xtra=preg_split('/[^0-9]+/', $Block['highlight'], null, PREG_SPLIT_NO_EMPTY);
+                    $xtra=preg_split('/[^0-9]+/', $Block['highlight'], -1, PREG_SPLIT_NO_EMPTY);
                 }
 
                 foreach($r as $i=>$o) {

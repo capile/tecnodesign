@@ -379,7 +379,7 @@ class Contents extends Model
         $type = $this->content_type;
         $attr = array('id'=>'c'.$id);
         if(Studio::$webInterface) {
-            if(!$this->id && $this->source && ($C=Contents::find(['source'=>$source],1,['id']))) {
+            if(!$this->id && $this->source && ($C=Contents::find(['source'=>$this->source],1,['id']))) {
                 $this->id = $C->id;
                 unset($C);
             }

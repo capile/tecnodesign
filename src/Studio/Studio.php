@@ -235,7 +235,7 @@ class Studio
                 unset($lang);
             }
             if (!isset($lang) && ($langs=App::request('headers', 'accept-language'))) {
-                $accept = preg_split('/(;q=[0-9\.]+|\,)\s*/', $langs, null, PREG_SPLIT_NO_EMPTY);
+                $accept = preg_split('/(;q=[0-9\.]+|\,)\s*/', $langs, -1, PREG_SPLIT_NO_EMPTY);
                 foreach ($accept as $lang) {
                     if (in_array($lang, $l) || (strlen($lang)>2 && in_array($lang=substr($lang,0,2), $l))) {
                         break;
@@ -884,7 +884,7 @@ class Studio
                             if(isset(self::$credentials[$P->role])) continue;
                             if(!$P->credentials || $P->credentials=='~') $c=false;
                             else if($P->credentials=='*') $c=true;
-                            else $c = preg_split('/[\s\,\;]+/', $P->credentials, null, PREG_SPLIT_NO_EMPTY);
+                            else $c = preg_split('/[\s\,\;]+/', $P->credentials, -1, PREG_SPLIT_NO_EMPTY);
                             self::$credentials[$P->role] = $c;
                             unset($ps[$i], $P, $c);
                         }

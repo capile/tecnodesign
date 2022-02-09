@@ -615,9 +615,9 @@ class Api implements ArrayAccess
                 }
                 if(!isset($a['position'])) $a['position'] = 0.000;
                 $p = $a['position'];
-                while(isset($la[$p])) $p += 0.001;
+                while(isset($la[(string)$p])) $p = 0.001;
                 $a['id'] = $an;
-                $la[$p] = $a;
+                $la[(string)$p] = $a;
 
                 unset($actionsAvailable[$an], $b[$an], $an, $a, $p);
             }
@@ -637,9 +637,9 @@ class Api implements ArrayAccess
                 }
                 if(!isset($a['position'])) $a['position'] = 0.000;
                 $p = $a['position'];
-                while(isset($la[$p])) $p += 0.001;
+                while(isset($la[(string)$p])) $p += 0.001;
                 $a['id'] = $an;
-                $la[$p] = $a;
+                $la[(string)$p] = $a;
 
                 unset($additionalActions[$an], $b[$an], $an, $a, $p);
             }
@@ -654,16 +654,16 @@ class Api implements ArrayAccess
                 if(!isset($a['action'])) continue;
 
                 if(!isset($a['position'])) $a['position'] = 0.000;
-                $p = (float) $a['position'];
-                while(isset($la[$p])) $p += 0.001;
+                $p = $a['position'];
+                while(isset($la[(string)$p])) $p += 0.001;
                 $a['id'] = $an;
 
-                $la[$p] = $a;
+                $la[(string)$p] = $a;
 
                 unset($an, $a, $p);
             }
 
-            ksort($la);
+            ksort($la, SORT_NUMERIC);
             foreach($la as $ap=>$a) {
                 $this->actions[$a['id']] = $a;
                 unset($la[$ap], $ap, $a);
@@ -976,7 +976,7 @@ class Api implements ArrayAccess
                                 $add[$k] = array_shift($nc);
                             }
                         } else {
-                            if(strpos($n, ',')) $n = preg_split('/\s*\,\s*/', $n, null, PREG_SPLIT_NO_EMPTY);
+                            if(strpos($n, ',')) $n = preg_split('/\s*\,\s*/', $n, -1, PREG_SPLIT_NO_EMPTY);
                             $add = array($this->key=>$n);
                         }
                     } else {
@@ -2226,7 +2226,7 @@ class Api implements ArrayAccess
 
         foreach($ps as $s) {
             if(is_string($s) && strlen($s)>strlen($rs) && substr($s, 0, strlen($rs)+1)==$rs.':') {
-                if(S::getUser()->hasCredentials(preg_split('/,+/', substr($s, strlen($rs)+1), null, PREG_SPLIT_NO_EMPTY))) {
+                if(S::getUser()->hasCredentials(preg_split('/,+/', substr($s, strlen($rs)+1), -1, PREG_SPLIT_NO_EMPTY))) {
                     return true;
                 }
             }
@@ -3435,7 +3435,7 @@ class Api implements ArrayAccess
                 if(is_string($v) && substr($v, 0, 7)=='scope::') {
                     $v = substr($v, 7);
                     if(strpos($v, ':')) {
-                        $c = preg_split('/[\s\,\:]+/', substr($v, strpos($v, ':')+1), null, PREG_SPLIT_NO_EMPTY);
+                        $c = preg_split('/[\s\,\:]+/', substr($v, strpos($v, ':')+1), -1, PREG_SPLIT_NO_EMPTY);
                         $v = substr($v, 0, strpos($v, ':'));
                         if(!isset($U)) $U = S::getUser();
                         if($c && (!$U || !$U->hasCredential($c, false))) continue;
@@ -3752,7 +3752,7 @@ class Api implements ArrayAccess
                 if($k=='q') {
                     if(!$v) continue;
                     $w = (isset($d['w']))?($d['w']):(array_keys($ff['q']));
-                    if(!is_array($w)) $w = preg_split('/\,/', $w, null, PREG_SPLIT_NO_EMPTY);
+                    if(!is_array($w)) $w = preg_split('/\,/', $w, -1, PREG_SPLIT_NO_EMPTY);
                     $ps = $S;
                     $S = array();
                     foreach($w as $slug) {
@@ -4154,6 +4154,7 @@ class Api implements ArrayAccess
      *
      * @return mixed the stored value, or method results
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($name)
     {
         if (method_exists($this, $m='get'.S::camelize($name, true))) {
@@ -4171,7 +4172,7 @@ class Api implements ArrayAccess
      *
      * @return void
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
         if (method_exists($this, $m='set'.S::camelize($name, true))) {
             $this->$m($value);
@@ -4181,7 +4182,6 @@ class Api implements ArrayAccess
             $this->$name = $value;
         }
         unset($m);
-        return $this;
     }
 
     /**
@@ -4191,7 +4191,7 @@ class Api implements ArrayAccess
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return isset($this->$name);
     }
@@ -4202,8 +4202,8 @@ class Api implements ArrayAccess
      *
      * @param string $name parameter name, should start with lowercase
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
-        return $this->offsetSet($name, null);
+        $this->offsetSet($name, null);
     }	
 }

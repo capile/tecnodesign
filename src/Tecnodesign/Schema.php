@@ -359,7 +359,7 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $def, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=tdz::getUser();
-                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY),false)) {
+                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], -1, PREG_SPLIT_NO_EMPTY),false)) {
                             continue;
                         }
                     }

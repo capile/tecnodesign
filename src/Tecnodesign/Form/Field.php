@@ -1118,7 +1118,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
         if(!$type) return $filetype;
 
         if($type && !is_array($type)) {
-            $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
+            $type = preg_split('/[\s\,\;]+/', $type, -1, PREG_SPLIT_NO_EMPTY);
         }
         if($type && isset($type[0])) {
             $types = array();
@@ -1473,7 +1473,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 }
             } else if(is_string($choices)) {
                 if($noexec) {
-                    $choices = preg_split('/\s*\,\s*/', $choices, null, PREG_SPLIT_NO_EMPTY);
+                    $choices = preg_split('/\s*\,\s*/', $choices, -1, PREG_SPLIT_NO_EMPTY);
                 }else if(tdz::$enableEval && strpos($choices, '(')) {
                     tdz::log('[DEPRECATED] eval funcions are no longer supported. Please review the choices for '.$this->choices);
                     $choices = @eval('return '.$choices.';');
@@ -2102,7 +2102,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             if(isset($this->accept['type'])) {
                 $type = $this->accept['type'];
                 if($type && !is_array($type)) {
-                    $type = preg_split('/[\s\,\;]+/', $type, null, PREG_SPLIT_NO_EMPTY);
+                    $type = preg_split('/[\s\,\;]+/', $type, -1, PREG_SPLIT_NO_EMPTY);
                 }
                 if($type && isset($type[0])) {
                     $aa = array();
@@ -2554,7 +2554,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $value = $nv;
                     unset($nv);
                 } else {
-                    $value = preg_split('/\s*\,\s*/', $value, null, PREG_SPLIT_NO_EMPTY);
+                    $value = preg_split('/\s*\,\s*/', $value, -1, PREG_SPLIT_NO_EMPTY);
                 }
             } else if(tdz::isempty($value)) {
                 $value = array();
@@ -2834,7 +2834,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $oValue = $unserialized;
                 }
             } else {
-                $oValue = preg_split('/\s*\,\s*/', $oValue);
+                $oValue = preg_split('/\s*\,\s*/', (string) $oValue);
             }
             if (!is_array($oValue)) {
                 $oValue = array($oValue);
@@ -3115,7 +3115,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $values = $arg['value'];
                     $ha['value']=array();
                     if(!is_array($arg['value']) && !is_object($arg['value'])) {
-                        $arg['value']=preg_split('/\s*\,\s*/', $arg['value'], null, PREG_SPLIT_NO_EMPTY);
+                        $arg['value']=preg_split('/\s*\,\s*/', $arg['value'], -1, PREG_SPLIT_NO_EMPTY);
                     }
                     foreach($arg['value'] as $v) {
                         if(is_object($v) && $v instanceof Tecnodesign_Model) {
@@ -3161,7 +3161,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             $blank = ($this->placeholder)?($this->placeholder):(self::$labels['blank']);
             $options[] = '<option class="placeholder" value="">'.$blank.'</option>';
         }
-        $values = (!is_array($this->value))?(preg_split('/\s*\,\s*/', $this->value, null, PREG_SPLIT_NO_EMPTY)):($this->value);
+        $values = (!is_array($this->value))?(preg_split('/\s*\,\s*/', $this->value, -1, PREG_SPLIT_NO_EMPTY)):($this->value);
 
         if($values) {
             $ref = null;
@@ -3372,7 +3372,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return isset($this->$name);
     }
@@ -3384,6 +3384,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * @return mixed the stored value, or method results
      * @see __get()
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($name)
     {
         return $this->__get($name);
@@ -3397,9 +3398,9 @@ class Tecnodesign_Form_Field implements ArrayAccess
      * @return void
      * @see __set()
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
-        return $this->__set($name, $value);
+        $this->__set($name, $value);
     }
     /**
      * ArrayAccess abstract method. Unsets parameters to the PDF. Not yet implemented
@@ -3409,7 +3410,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
      *
      * @return void
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
         unset($this->$name);
     }

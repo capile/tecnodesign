@@ -190,7 +190,7 @@ class Tecnodesign_Pdf implements ArrayAccess
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return (isset($this->_vars[$name]) || isset($this->PDF->$name));
     }
@@ -202,6 +202,7 @@ class Tecnodesign_Pdf implements ArrayAccess
      * @return mixed the stored value, or method results
      * @see __get()
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($name)
     {
         return $this->__get($name);
@@ -215,9 +216,9 @@ class Tecnodesign_Pdf implements ArrayAccess
      * @return void
      * @see __set()
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
-        return $this->__set($name, $value);
+        $this->__set($name, $value);
     }
     /**
      * ArrayAccess abstract method. Unsets parameters to the PDF. Not yet implemented
@@ -227,7 +228,7 @@ class Tecnodesign_Pdf implements ArrayAccess
      * 
      * @return void
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
         unset($this->_vars[$name]);
     }

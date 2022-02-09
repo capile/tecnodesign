@@ -384,7 +384,7 @@ if($contents) {
                     'expired'=>$c['expired'],
                 );
                 if($c['show_at']) {
-                    $s = preg_split('/[\n\s\,]+/', $c['show_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $s = preg_split('/[\n\s\,]+/', $c['show_at'], -1, PREG_SPLIT_NO_EMPTY);
                     $b['display'] = 1;
                     foreach($s as $l) {
                         $b['link'] = $l;
@@ -394,7 +394,7 @@ if($contents) {
                     unset($s);
                }
                 if($c['hide_at']) {
-                    $s = preg_split('/[\n\s\,]+/', $c['hide_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $s = preg_split('/[\n\s\,]+/', $c['hide_at'], -1, PREG_SPLIT_NO_EMPTY);
                     $b['display'] = 0;
                     foreach($s as $l) {
                         $b['link'] = $l;
@@ -452,7 +452,7 @@ if($contents) {
                     'expired'=>$c['expired'],
                 );
                 if($c['show_at']) {
-                    $s = preg_split('/[\n\s]+/', $c['show_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $s = preg_split('/[\n\s]+/', $c['show_at'], -1, PREG_SPLIT_NO_EMPTY);
                     $b['display'] = 1;
                     foreach($s as $l) {
                         $b['link'] = $l;
@@ -462,7 +462,7 @@ if($contents) {
                     unset($s);
                }
                 if($c['hide_at']) {
-                    $s = preg_split('/[\n\s]+/', $c['hide_at'], null, PREG_SPLIT_NO_EMPTY);
+                    $s = preg_split('/[\n\s]+/', $c['hide_at'], -1, PREG_SPLIT_NO_EMPTY);
                     $b['display'] = 0;
                     foreach($s as $l) {
                         $b['link'] = $l;

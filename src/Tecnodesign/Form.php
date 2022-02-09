@@ -275,7 +275,7 @@ class Tecnodesign_Form implements ArrayAccess
         // get existing keys and check the keys limits
         $key = $this->limits['key'];
         if(!$key) return;
-        $keys = preg_split('/\++/', $key, null, PREG_SPLIT_NO_EMPTY);
+        $keys = preg_split('/\++/', $key, -1, PREG_SPLIT_NO_EMPTY);
         $timeout = $this->limits['timeout'];
         if(!$timeout) $timeout = 3600;
         $time = $this->limits['time'];
@@ -765,7 +765,7 @@ class Tecnodesign_Form implements ArrayAccess
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return isset($this->fields[$name]);
     }
@@ -777,6 +777,7 @@ class Tecnodesign_Form implements ArrayAccess
      * @return mixed the stored value, or method results
      * @see __get()
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($name)
     {
         return $this->__get($name);
@@ -790,9 +791,9 @@ class Tecnodesign_Form implements ArrayAccess
      * @return void
      * @see __set()
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
-        return $this->__set($name, $value);
+        $this->__set($name, $value);
     }
     /**
      * ArrayAccess abstract method. Unsets parameters to the PDF. Not yet implemented
@@ -802,7 +803,7 @@ class Tecnodesign_Form implements ArrayAccess
      *
      * @return void
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
         if(isset($this->fields[$name])) unset($this->fields[$name]);
         else unset($this->$name);

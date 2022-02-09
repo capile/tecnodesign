@@ -119,6 +119,7 @@ class Schema implements ArrayAccess
      *
      * @return mixed the stored value, or method results
      */
+    #[\ReturnTypeWillChange]
     public function &offsetGet($name)
     {
         $name = $this->resolveAlias($name);
@@ -158,7 +159,7 @@ class Schema implements ArrayAccess
      *
      * @return void
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
         $name = $this->resolveAlias($name);
         if (method_exists($this, $m='set'.S::camelize($name))) {
@@ -180,7 +181,6 @@ class Schema implements ArrayAccess
             $this->$name = $value;
         }
         unset($m);
-        return $this;
     }
 
     /**
@@ -190,7 +190,7 @@ class Schema implements ArrayAccess
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         $name = $this->resolveAlias($name);
         return isset($this->$name);
@@ -202,11 +202,11 @@ class Schema implements ArrayAccess
      *
      * @param string $name parameter name, should start with lowercase
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
         $schema = static::SCHEMA_PROPERTY;
         if(isset(static::${$schema}[$name]['alias'])) $name = static::${$schema}[$name]['alias'];
-        return $this->offsetSet($name, null);
+        $this->offsetSet($name, null);
     }
 
     public static function isSchema($o)
@@ -539,7 +539,7 @@ class Schema implements ArrayAccess
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $def, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=S::getUser();
-                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY),false)) {
+                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], -1, PREG_SPLIT_NO_EMPTY),false)) {
                             continue;
                         }
                     }

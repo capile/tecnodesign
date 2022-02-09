@@ -283,7 +283,7 @@ class Tecnodesign_Query_Sql
                 $cc = '';
                 if($this->_groupBy) {
                     if(strpos($this->_groupBy, ',')!==false && strpos($this->_groupBy, '(')===false) {
-                        $cc = $this->concat(preg_split('/\s*,\s*/', trim($this->_groupBy), null, PREG_SPLIT_NO_EMPTY),':',false);
+                        $cc = $this->concat(preg_split('/\s*,\s*/', trim($this->_groupBy), -1, PREG_SPLIT_NO_EMPTY),':',false);
                     } else {
                         $cc = trim($this->_groupBy);
                     }
@@ -1000,7 +1000,7 @@ class Tecnodesign_Query_Sql
                 unset($n, $C);
             }
         }
-        $str = str_replace(array('\\', "'"), array('\\\\', "''"), $str);
+        $str = str_replace(array('\\', "'"), array('\\\\', "''"), (string) $str);
         $str = ($enclose) ? ("'{$str}'") : ($str);
         return $str;
     }

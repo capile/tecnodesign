@@ -545,6 +545,9 @@ class Tecnodesign_User
 
     protected static function msgTimestamp($s, $t=null)
     {
+        if($t && !is_int($t)) {
+            $t = (int) $t;
+        }
         if(preg_match('#<div class="z-i-msg([^"]+)?"( data-created="[^"]+")?>(.*)</div>#', $s, $m)) {
             $msg = ($m[3]) ?'<div class="z-i-msg'.$m[1].'" data-created="'.date('c', $t).'">'.$m[3].'</div>' :null;
         } else if($s) {
@@ -648,12 +651,12 @@ class Tecnodesign_User
             $domain = Tecnodesign_App::request('hostname');
         }
         if(preg_match('/^[0-9\:]+([0-9a-f]*[\.\:])+[0-9a-f](\:|$)/', $domain)) {
-            $domain = null;
+            $domain = '';
             static::$cookieSecure = false;
         } else if($p=strpos($domain, ':')) {
             $domain = substr($domain, 0, $p);
         }
-        return $domain;
+        return (string) $domain;
     }
 
     public function setSessionCookie()
@@ -860,7 +863,7 @@ class Tecnodesign_User
         if(!isset(self::$_cookies[$cn])) {
             self::$_cookies[$cn]=array();
             if (isset($_SERVER['HTTP_COOKIE'])) {
-                $rawcookies=preg_split('/\;\s*/', $_SERVER['HTTP_COOKIE'], null, PREG_SPLIT_NO_EMPTY);
+                $rawcookies=preg_split('/\;\s*/', $_SERVER['HTTP_COOKIE'], -1, PREG_SPLIT_NO_EMPTY);
                 foreach ($rawcookies as $cookie) {
                     if (strpos($cookie, '=')===false) {
                         continue;
@@ -931,6 +934,9 @@ class Tecnodesign_User
         $uc = $this->getCredentials();
         if(!is_array($uc)) $uc=array();
         if(!is_array($credentials)) {
+            if(!is_string($credentials)) {
+                $credentials = (string) $credentials;
+            }
             $neg = false;
             if(static::$enableNegCredential && substr($credentials, 0, 1)=='!') {
                 $neg = true;

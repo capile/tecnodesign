@@ -158,7 +158,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
     }
     
 
-    public function rewind()
+    public function rewind(): void
     {
         $this->_current = 0;
     }
@@ -178,22 +178,24 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->getItem($this->_current);
     }
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return (isset($this->_items[$this->_current]))?($this->_items[$this->_current]):($this->_current);
     }
 
-    public function next()
+    public function next(): void
     {
         ++$this->_current;
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return (isset($this->_items[$this->_current]) || ($this->_query && $this->_current < $this->_count));
     }
@@ -543,9 +545,9 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      *  
      * @return int 
      */
-    public function count()
+    public function count(): int
     {
-        return $this->_count;
+        return (int) $this->_count;
     }
 
     /**
@@ -668,7 +670,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return (in_array($name, $this->_items) || ($this->_query && $this->_queryKey && $this->getNamedItem($name)) || ($this->_query && is_numeric($name) && (int)$name >=0 && (int)$name < $this->_count));
     }
@@ -681,6 +683,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      * @return mixed the stored value, or method results
      * @see __get()
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($name)
     {
         return $this->__get($name);
@@ -695,9 +698,9 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      * @return void
      * @see __set()
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
-        return $this->__set($name, $value);
+        $this->__set($name, $value);
     }
     
     /**
@@ -708,7 +711,7 @@ class Tecnodesign_Collection implements ArrayAccess, Countable, Iterator
      * 
      * @return void
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
         $key = array_search($name, $this->_items);
         if($key!==false) {

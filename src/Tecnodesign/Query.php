@@ -126,7 +126,8 @@ class Tecnodesign_Query implements \ArrayAccess
         return $cn;
     }
 
-    public function offsetSet($offset, $value) {
+    public function offsetSet($offset, $value): void
+    {
         if (is_null($offset)) {
             $i=0;
             while(isset($this->{$i})) {
@@ -149,7 +150,8 @@ class Tecnodesign_Query implements \ArrayAccess
             $this->{$offset} = $value;
         }
     }
-    public function offsetExists($offset) {
+    public function offsetExists($offset): bool
+    {
         if($p=strpos($offset, '/')) {
             $b = substr($offset, 0, $p);
             $offset = substr($offset, $p+1);
@@ -171,7 +173,8 @@ class Tecnodesign_Query implements \ArrayAccess
         }
         return isset($this->{$offset});
     }
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset): void
+    {
         if($p=strpos($offset, '/')) {
             $b = substr($offset, 0, $p);
             $offset = substr($offset, $p+1);
@@ -182,14 +185,14 @@ class Tecnodesign_Query implements \ArrayAccess
                 } else {
                     unset($this->{$b}[$offset]);
                 }
-                return $a;
             }
-            return false;
         }
         unset($this->{$offset});
     }
 
-    public function offsetGet($offset) {
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
+    {
         if($p=strpos($offset, '/')) {
             $b = substr($offset, 0, $p);
             $offset = substr($offset, $p+1);

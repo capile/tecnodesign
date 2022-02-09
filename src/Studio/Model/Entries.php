@@ -523,7 +523,7 @@ class Entries extends Model
                 if($co=$o->credentials) {
                     if(!is_array($co)) {
                         if(substr($co, 0, 1)=='{') $co = S::unserialize($co, 'json');
-                        else $co = preg_split('/\s*\,\s*/', $co, null, PREG_SPLIT_NO_EMPTY);
+                        else $co = preg_split('/\s*\,\s*/', $co, -1, PREG_SPLIT_NO_EMPTY);
                     }
                 }
 
@@ -638,7 +638,7 @@ class Entries extends Model
     {
         $rel = [];
         if($v) {
-            if(!is_array($v)) $v = preg_split('/\s*\,\s*/', $v, null, PREG_SPLIT_NO_EMPTY);
+            if(!is_array($v)) $v = preg_split('/\s*\,\s*/', $v, -1, PREG_SPLIT_NO_EMPTY);
             $tags = $this->getTags();
             if(!$tags) $tags = [];
             foreach($v as $o) {

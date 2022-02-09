@@ -546,10 +546,12 @@ class Studio
             foreach($s as $k=>$v) {
                 $s[$k] = self::replace($v, $r);
             }
-        } else if(is_null($r2)) {
-            $s = strtr($s, $r);
-        } else {
-            $s = str_replace($r, $r2, $s);
+        } else if($s) {
+            if(is_null($r2)) {
+                $s = strtr($s, $r);
+            } else {
+                $s = str_replace($r, $r2, $s);
+            }
         }
         return $s;
     }
@@ -564,7 +566,7 @@ class Studio
         if(!is_array($a) && !is_object($a)) return;
         if(substr($p, 0, 2)=='$.') $p = substr($p, 2);
         if(strpos($p, '|')!==false) {
-            foreach(preg_split('#\|+#', $p, null, PREG_SPLIT_NO_EMPTY) as $i=>$o) {
+            foreach(preg_split('#\|+#', $p, -1, PREG_SPLIT_NO_EMPTY) as $i=>$o) {
                 if(!is_null($r = self::extractValue($a, $o))) return $r;
             }
             return;
@@ -907,7 +909,7 @@ class Studio
             return $s;
         }
         $qs = ($q) ? (ENT_QUOTES) : (ENT_NOQUOTES);
-        return htmlspecialchars(html_entity_decode($s, $qs, 'UTF-8'), $qs, 'UTF-8', false);
+        return htmlspecialchars(html_entity_decode((string)$s, $qs, 'UTF-8'), $qs, 'UTF-8', false);
     }
 
     public static function browser($s=null)
@@ -1493,7 +1495,7 @@ class Studio
         if (connection_status() != 0 || !$file)
             return(false);
         if(!$fname && $attachment) $fname = basename($file);
-        $extension = strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1',$fname));
+        $extension = ($fname) ?strtolower(preg_replace('/.*\.([a-z0-9]{1,5})$/i', '$1', $fname)) :'';
         self::unflush();
 
         if(!file_exists($file)) {
@@ -1899,7 +1901,7 @@ class Studio
     public static function slug($s, $accept='_', $anycase=null)
     {
         $acceptPat = ($accept) ?preg_quote($accept, '/') :'';
-        $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', $s);
+        $r = preg_replace('/[^\pL\d'.$acceptPat.']+/u', '-', (string) $s);
         $r = @iconv('UTF-8', 'ASCII//TRANSLIT', $r);
         $r = preg_replace('/[^0-9a-z'.$acceptPat.']+/i', '-', $r);
         $r = trim($r, '-');

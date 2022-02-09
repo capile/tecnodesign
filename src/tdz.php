@@ -40,7 +40,7 @@ class tdz extends Studio
             $ba=array('margin', 'padding', 'border');
             foreach($ba as $a) {
                 if(isset($css[$i][$a])) {
-                    $bp = ($a=='border')?(array($css[$i][$a])):(preg_split('/\s+/', $css[$i][$a], null, PREG_SPLIT_NO_EMPTY));
+                    $bp = ($a=='border')?(array($css[$i][$a])):(preg_split('/\s+/', $css[$i][$a], -1, PREG_SPLIT_NO_EMPTY));
                     $p=array();
                     if(count($bp)==1) {
                         $p[$a.'-top']=$p[$a.'-right']=$p[$a.'-bottom']=$p[$a.'-left']=$bp[0];

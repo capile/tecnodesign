@@ -462,7 +462,7 @@ class Tecnodesign_Image
             return;
         } else if(strpos($img, ',')) {
             $r = array();
-            foreach(preg_split('/^\[|\s*\,\s*|\]$/', $img, null, PREG_SPLIT_NO_EMPTY) as $i) {
+            foreach(preg_split('/^\[|\s*\,\s*|\]$/', $img, -1, PREG_SPLIT_NO_EMPTY) as $i) {
                 if($v = static::base64Data($i)) {
                     $r[] = $v;
                 }

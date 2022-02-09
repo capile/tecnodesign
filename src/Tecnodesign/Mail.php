@@ -41,7 +41,7 @@ class Tecnodesign_Mail
         $this->headers=array();
         $this->contents=array();
         if(!is_array($headers)) {
-            $headers = preg_split('/\s*\n/', $headers, null, PREG_SPLIT_NO_EMPTY);
+            $headers = preg_split('/\s*\n/', $headers, -1, PREG_SPLIT_NO_EMPTY);
         }
         foreach($headers as $hint=>$header) {
             $this->addHeader($header, $hint);
@@ -100,7 +100,7 @@ class Tecnodesign_Mail
         if(!is_array($header)) {
             $header = trim($header);
             $header = preg_replace('/[\n\r]+ +/', '', $header);
-            $header = preg_split('/[\n\r]+/', $header, null, PREG_SPLIT_NO_EMPTY);
+            $header = preg_split('/[\n\r]+/', $header, -1, PREG_SPLIT_NO_EMPTY);
             if (count($header)>1) {
                 foreach($header as $h) {
                     $this->addHeader($h, $hint);

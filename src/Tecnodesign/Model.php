@@ -534,7 +534,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=tdz::getUser();
-                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY),false)) {
+                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], -1, PREG_SPLIT_NO_EMPTY),false)) {
                             continue;
                         }
                     }
@@ -2059,7 +2059,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
                 if(preg_match('/^([a-z0-9\-\_]+)::([a-z0-9\-\_\,]+)(:[a-z0-9\-\_\,\!]+)?$/i', $fn, $m)) {
                     if(isset($m[3])) {
                         if(!isset($U)) $U=tdz::getUser();
-                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], null, PREG_SPLIT_NO_EMPTY), false)) {
+                        if(!$U || !$U->hasCredential(preg_split('/[\,\:]+/', $m[3], -1, PREG_SPLIT_NO_EMPTY), false)) {
                             continue;
                         }
                     }
@@ -2219,7 +2219,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
         if(!is_array($link) && isset(tdz::$variables['Interface']) && is_object(tdz::$variables['Interface'])) {
             $I = tdz::$variables['Interface'];
             $sf = Tecnodesign_App::request('get', $I::REQ_ORDER);
-            if(strpos($sf, ',')) $sf = substr($sf, 0, strpos($sf, ','));
+            if($sf && strpos($sf, ',')) $sf = substr($sf, 0, strpos($sf, ','));
             if($sf && substr($sf, 0, 1)=='!') {
                 $sd = 'desc';
                 $sf = substr($sf,1);
@@ -2496,7 +2496,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
             if(isset($fd['serialize']) && is_string($v) && substr($v, 0, 1)==='[' && substr($v, -1)===']') {
                 $v = tdz::unserialize($v, $fd['serialize']);
             } else if(isset($fd['multiple']) && $fd['multiple'] && is_string($v) && strpos($v, ',')!==false) {
-                $v = preg_split('/\,/', $v, null, PREG_SPLIT_NO_EMPTY);
+                $v = preg_split('/\,/', $v, -1, PREG_SPLIT_NO_EMPTY);
             }
             if(isset($fd['choices'])) {
                 $choices=$fd['choices'];
@@ -2842,6 +2842,7 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      * @return mixed the stored value, or method results
      * @see __get()
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($name)
     {
         return $this->__get($name);
@@ -2959,9 +2960,9 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      * @return void
      * @see __set()
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
-        return $this->__set($name, $value);
+        $this->__set($name, $value);
     }
 
     /**
@@ -2971,11 +2972,11 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      *
      * @return bool true if the parameter exists, or false otherwise
      */
-    public function __isset($name)
+    public function __isset($name): bool
     {
         return isset($this->$name);
     }
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return $this->__isset($name);
     }
@@ -2988,14 +2989,14 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
      *
      * @return void
      */
-    public function __unset($name)
+    public function __unset($name): void
     {
         if(isset($this->$name)) unset($this->$name);
     }
 
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
-        return $this->__unset($name);
+        $this->__unset($name);
     }
 
 
@@ -3003,27 +3004,35 @@ class Tecnodesign_Model implements ArrayAccess, Iterator, Countable
     /**
      * Iterator
      */
-    public function rewind() {
+    public function rewind(): void
+    {
         $this->_p = 0;
     }
 
-    public function current() {
+    #[\ReturnTypeWillChange]
+    public function current()
+    {
         return $this->{$this->key()};
     }
 
-    public function key() {
+    #[\ReturnTypeWillChange]
+    public function key()
+    {
         return implode('', array_slice(array_keys(self::$schema['columns']), $this->_p, 1));
     }
 
-    public function next() {
+    public function next(): void
+    {
         ++$this->_p;
     }
 
-    public function valid() {
+    public function valid(): bool
+    {
         return ($this->_p > 0 && $this->_p < $this->count());
     }
 
-    public function count() {
+    public function count(): int
+    {
         return count(self::$schema['columns']);
     }
 

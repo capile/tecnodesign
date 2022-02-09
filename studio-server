@@ -10,7 +10,7 @@ mkdir -p "${0%/*}/data/log"
 LOG_DIR=$(realpath "${0%/*}/data/log")
 
 PHP="php -S $STUDIO_IP:$STUDIO_PORT \
-  -d memory_limit=8M \
+  -d memory_limit=16M \
   -d display_errors=Off \
   -d error_reporting=E_ALL \
   -d error_log=\"$LOG_DIR/app.log\" \
