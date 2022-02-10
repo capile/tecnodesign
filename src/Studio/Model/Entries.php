@@ -353,7 +353,7 @@ class Entries extends Model
                 $fpart = explode('|', $f);
                 $f = array_shift($fpart);
                 if($fpart && !$this->format) $this->format = array_shift($fpart);
-            } else if(!file_exists($file=static::file($f))
+            } else if(!(($file=static::file($f)) && file_exists($file))
                 && !file_exists($file=S_VAR.'/'.$f)
                 && !file_exists($file=S_DOCUMENT_ROOT.'/'.$f)
                 && !file_exists($file=Studio::$app->tecnodesign['document-root'].'/'.$f)
