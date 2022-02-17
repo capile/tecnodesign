@@ -450,14 +450,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             unset($F);
         }
-        $update = $this->value;
         $this->value = $value;
         if($this->bind) {
             $o = $this->getModel();
             if(isset($o::$schema->relations[$this->bind])) {
-                if($update) {
-                    $o->setRelation($this->bind, $update, true);
-                }
                 // map bindings
                 $o->setRelation($this->bind, $value);
             }
