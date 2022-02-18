@@ -702,7 +702,21 @@ class Tecnodesign_Query_Api
         $Q = new $qcn($n);
         unset($qcn);
         $conn = $Q->connect($n);
-        curl_setopt($conn, CURLOPT_URL, $q);
+
+        $url = $q;
+        if($Q->_url && strpos(substr($url, 0, 10), '://')===false) {
+            $qs = null;
+            $b = $Q->_url;
+            if($p=strpos($b, '?')) {
+                $qs = substr($b, $p+1);
+                $b = substr($b, 0, $p);
+            }
+            if(substr($url, 0, 1)!=='/' && substr($b, -1)!=='/') $b .= '/';
+            $url = $b.$url;
+
+            if($qs && strpos($url, '?')===false) $url .= '?'.$qs;
+        }
+        curl_setopt($conn, CURLOPT_URL, $url);
 
         if(!is_array($headers)) $headers = array();
 
