@@ -103,7 +103,7 @@ class Entries extends Model
         $master = $this->master;
         $c = $this->getCredentials('previewPublished');
         if(!$master || is_null($c)) {
-            if(Studio::$connection) {
+            if(Studio::connected('content')) {
                 $E = $this;
                 while($E=$E->getParent()) {
                     if(!$master) {
@@ -498,7 +498,7 @@ class Entries extends Model
             else if(isset($this->credential['default'])) return $this->credential['default']; 
             else if(isset($this->credential['auth'])) return $this->credential['auth']; 
         }
-        if($this->id && Studio::$connection) {
+        if($this->id && Studio::connected('content')) {
             $P = Permissions::find(array('entry'=>$this->id,'role'=>'previewPublished'),1,array('credentials'));
             if($P) {
                 if($P->credentials) return explode(',', $P->credentials);
@@ -866,7 +866,7 @@ class Entries extends Model
         } else {
             $source = substr($page, strlen(Studio::documentRoot()));
         }
-        if(Studio::$connection && ($E=self::find(['source'=>$source],1,['id']))) {
+        if(Studio::connected('content') && ($E=self::find(['source'=>$source],1,['id']))) {
             $id = $E->id;
             unset($E);
         }

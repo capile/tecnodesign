@@ -91,6 +91,8 @@ if(isset($list) && is_array($list)) {
     }
 
     if(!$list && $r) $r = array_shift($r);
+} else if(isset($preview) && is_string($preview)) {
+    $r = $preview;
 } else if(isset($response)) {
     $r = $response;
 }
@@ -136,5 +138,8 @@ if($Interface::$schema) {
 }
 
 $m = 'to'.ucfirst($Interface::format());
-echo $Interface::$m($r);
-
+if(method_exists($Interface, $m)) {
+    echo $Interface::$m($r);
+} else if($r && is_string($r)) {
+    echo $r;
+}
