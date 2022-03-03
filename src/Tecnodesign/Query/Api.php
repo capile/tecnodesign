@@ -62,6 +62,7 @@ class Tecnodesign_Query_Api
         $requestHeaders = array('accept: application/json'),
         $successPattern='/HTTP\/[0-9\.]+ +20[0-4] /i',
         $errorPattern='/HTTP\/[0-9\.]+ +[45][0-9]{2} .*/i',
+        $decode,
         $errorAttribute='error.message|error',
         $countable=true,
         $headerCount='x-total-count',
@@ -165,6 +166,7 @@ class Tecnodesign_Query_Api
             'countable',
             'cookieJar',
             'connectionCallback',
+            'decode',
         ];
         if($n) {
             if(isset($this->_options[$n])) {
@@ -843,34 +845,27 @@ class Tecnodesign_Query_Api
                 $body = $r;
             }
             $body = preg_replace('/^\xEF\xBB\xBF/', '', $body);
-            if($this->headers && strpos($this->header('content-type'), 'json')===false) {
-                $this->response = $body;
-            } else {
-                $this->response = json_decode($body, true);
-                if($this->response===null) {
-                    $err = json_last_error();
-                    if($err) {
-                        $errs = array (
-                          0 => 'JSON_ERROR_NONE',
-                          1 => 'JSON_ERROR_DEPTH',
-                          2 => 'JSON_ERROR_STATE_MISMATCH',
-                          3 => 'JSON_ERROR_CTRL_CHAR',
-                          4 => 'JSON_ERROR_SYNTAX',
-                          5 => 'JSON_ERROR_UTF8',
-                          6 => 'JSON_ERROR_RECURSION',
-                          7 => 'JSON_ERROR_INF_OR_NAN',
-                          8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
-                          9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
-                          10 => 'JSON_ERROR_UTF16',
-                        );
-                        if(isset($errs[$err])) {
-                            tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
-                        } else {
-                            tdz::log('[ERROR] JSON unknown error: '.$err);
-                        }
+            if($decode=$this->config('decode')) {
+                if(is_string($decode)) {
+                    $decode = preg_split('/\s*[\,\|]+\s*/', $decode, -1, PREG_SPLIT_NO_EMPTY);
+                }
+            } else if($this->headers && ($ct=$this->header('content-type'))) {
+                $decode = [];
+                if(strpos($ct, 'gzip')) $decode[] = 'gzip';
+                if(strpos($ct, 'json')) $decode[] = 'json';
+            }
+
+            if($decode) {
+                foreach($decode as $dn) {
+                    if(method_exists($this, $dm = 'decode'.tdz::camelize($dn, true))) {
+                        $body = $this->$dm($body);
+                        if(is_null($body) || $body===false) break;
+                        unset($dm, $dn);
                     }
                 }
             }
+            $this->response = $body;
+            unset($body);
         }
         unset($r);
 
@@ -967,7 +962,7 @@ class Tecnodesign_Query_Api
             unset($R);
         } else {
             if(($d=$this->config('dataAttribute')) && ($dataAttribute=$this->_expand($d))) {
-                if(static::$countAttribute) {
+                if($this->config('countAttribute')) {
                     $this->_count = $this->_getResponseAttribute($this->config('countAttribute'));
                 }
                 $R=$this->_getResponseAttribute($dataAttribute);
@@ -998,6 +993,88 @@ class Tecnodesign_Query_Api
         unset($r);
         return $this;
     }
+
+    public function decodeJson($s)
+    {
+        $r = json_decode($s, true, 512, JSON_INVALID_UTF8_IGNORE|JSON_BIGINT_AS_STRING);
+        if($r===null) {
+            $err = json_last_error();
+            if($err) {
+                $errs = array (
+                  0 => 'JSON_ERROR_NONE',
+                  1 => 'JSON_ERROR_DEPTH',
+                  2 => 'JSON_ERROR_STATE_MISMATCH',
+                  3 => 'JSON_ERROR_CTRL_CHAR',
+                  4 => 'JSON_ERROR_SYNTAX',
+                  5 => 'JSON_ERROR_UTF8',
+                  6 => 'JSON_ERROR_RECURSION',
+                  7 => 'JSON_ERROR_INF_OR_NAN',
+                  8 => 'JSON_ERROR_UNSUPPORTED_TYPE',
+                  9 => 'JSON_ERROR_INVALID_PROPERTY_NAME',
+                  10 => 'JSON_ERROR_UTF16',
+                );
+                if(isset($errs[$err])) {
+                    tdz::log('[ERROR] JSON decoding error: '.$errs[$err]);
+                } else {
+                    tdz::log('[ERROR] JSON unknown error: '.$err);
+                }
+            }
+        }
+
+        return $r;
+    }
+
+    public function decodeGzip($s)
+    {
+        // Perform GZIP decompression:
+        $ctx = inflate_init(ZLIB_ENCODING_GZIP);
+        $len = strlen($s);
+        $cur = 0;
+        $r = null;
+        $i = 1000;
+        while($cur < $len && $i--) {
+            if($cur) {
+                $s = substr($s, $cur);
+                $len = strlen($s);
+            }
+            $r .= inflate_add($ctx, $s, ZLIB_FINISH);
+            $cur = inflate_get_read_len($ctx);
+            if(!$cur) break;
+        }
+        return $r;
+    }
+
+    public function decodeBase64($s)
+    {
+        return base64_decode($s);
+    }
+
+    public function decodeCsv($s)
+    {
+        $t0 = microtime(true);
+        $sep = $this->config('csvSeparator');
+        if(!$sep) $sep = ',';
+        $enc = $this->config('csvEnclosure');
+        if(!$enc) $enc = '"';
+        $esc = $this->config('csvEscape');
+        if(!$esc) $esc = '\\';
+
+        $d = str_getcsv($s, "\n", $enc, $esc);
+        $r = [];
+        $keys = null;
+        while($line=array_shift($d)) {
+            if(substr(trim($line), 0, 1)==='#') continue; // comment
+
+            if(!$keys) {
+                $keys = str_getcsv($line, $sep, $enc, $esc);
+            } else {
+                $r[] = array_combine($keys, str_getcsv($line, $sep, $enc, $esc));
+            }
+        }
+
+        return $r;
+    }
+
 
     public function nextPage($q=null)
     {

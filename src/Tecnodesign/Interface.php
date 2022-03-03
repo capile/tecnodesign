@@ -38,6 +38,7 @@ class Tecnodesign_Interface extends Studio\Api
         $pretty             = true,
         $schema,
         $envelopeProperty   = 'data',
+        $envelopeAttributes = [],
         $doNotEnvelope      = array('access-control-allow-origin'),
         $listResult         = 'Only one record available.',
         $listResults        = '%s records available.',
@@ -3840,7 +3841,6 @@ class Tecnodesign_Interface extends Studio\Api
                     }
                 }
             }
-
             $this->search[] = $S;
             $this->text['searchCount'] = $this->count();
         } else if($active) {
@@ -4022,6 +4022,7 @@ class Tecnodesign_Interface extends Studio\Api
             }
             if(isset($a['base'])) {
                 $i=3;
+                \tdz::log($a, static::configFile($a['base'], $not));
                 while(isset($a['base']) && ($f=static::configFile($a['base'], $not))) {
                     $not[] = $f;
                     unset($a['base']);

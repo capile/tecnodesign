@@ -129,6 +129,16 @@ if($Interface::$schema) {
     if(isset($ret) && isset($add)) $ret = $add + $ret;
 }
 
+if($env=$Interface->config('envelopeAttributes')) {
+    $offset = $listOffset;
+    $limit = $listLimit;
+    foreach($env as $i=>$o) {
+        $n = (is_int($i)) ?$o :$i;
+        if(isset($$o)) $Interface::$headers[$n] = $$o;
+        unset($env[$i], $i, $o, $n);
+    }
+}
+
 $m = 'to'.ucfirst($Interface::format());
 echo $Interface::$m($r);
 
