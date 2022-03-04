@@ -123,6 +123,7 @@ if(isset($error) && $error) {
     $r = $R;
 }
 
+$schema = null;
 if($Interface::$schema) {
     if(is_string($Interface::$schema)) {
         $schema=S::buildUrl($Interface::$schema);
@@ -135,6 +136,20 @@ if($Interface::$schema) {
     }
     header('link: <'.$schema.'> rel=describedBy');
     if(isset($ret) && isset($add)) $ret = $add + $ret;
+}
+
+if($env=$Interface->config('envelopeAttributes')) {
+    $attrs = [ 'schema', 'id', 'url', 'offset', 'limit', 'total', 'count' ];
+    $count = (isset($total)) ?$total :null;
+    $offset = (isset($listOffset)) ?$listOffset :null;
+    $limit = (isset($listLimit)) ?$listLimit :null;
+    foreach($env as $i=>$o) {
+        $n = (is_int($i)) ?$o :$i;
+        if(in_array($o, $attrs) && isset($$o)) {
+            $Interface::$headers[$n] = $$o;
+        }
+        unset($env[$i], $i, $o, $n);
+    }
 }
 
 $m = 'to'.ucfirst($Interface::format());
