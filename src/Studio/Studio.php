@@ -10,7 +10,7 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.6
+ * @version   2.7
  */
 namespace Studio;
 
@@ -81,7 +81,7 @@ class Studio
             'index'=>['Studio\\Model\\Index','reindex'],
             'import'=>['Tecnodesign_Database','import'],
         ];
-    const VERSION = 2.6;    // should match the development branch 
+    const VERSION = 2.7;    // should match the development branch 
 
     /**
      * This is a App, the constructor is loaded once and then cached (until configuration changes)

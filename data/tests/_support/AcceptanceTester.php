@@ -1,21 +1,14 @@
 <?php
-
-
 /**
  * Inherited Methods
- * @method void wantToTest($text)
- * @method void wantTo($text)
- * @method void execute($callable)
- * @method void expectTo($prediction)
- * @method void expect($prediction)
- * @method void amGoingTo($argumentation)
- * @method void am($role)
- * @method void lookForwardTo($achieveValue)
- * @method void comment($description)
- * @method \Codeception\Lib\Friend haveFriend($name, $actorClass = NULL)
+ * PHP version 7.3+
  *
- * @SuppressWarnings(PHPMD)
-*/
+ * @package   capile/tecnodesign
+ * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.7
+ */
 class AcceptanceTester extends \Codeception\Actor
 {
     use _generated\AcceptanceTesterActions;

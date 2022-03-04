@@ -1,4 +1,13 @@
 <?php
+/**
+ * PHP version 7.3+
+ *
+ * @package   capile/tecnodesign
+ * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.7
+ */
 $title = tdz::t('Bad Server!', 'exception');
 $summary = tdz::t('The server has become unresponsive. Please try again in a few moments.', 'exception');
 if(TDZ_CLI) {

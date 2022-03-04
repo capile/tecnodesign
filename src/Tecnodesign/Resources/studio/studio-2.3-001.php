@@ -6,7 +6,7 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.6
+ * @version   2.7
  */
 if(!class_exists('tdz')) {
     $tdz = dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))).'/tdz.php';

@@ -2,13 +2,13 @@
 /**
  * Studio default layout
  * 
- * PHP version 7.3
- * 
+ * PHP version 7.3+
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.6
+ * @version   2.7
  */
 
 if(($accept=Tecnodesign_App::request('headers', 'accept')) && preg_match('#^(text|application)/json\b#', $accept)) {

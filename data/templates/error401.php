@@ -1,4 +1,13 @@
 <?php
+/**
+ * PHP version 7.3+
+ *
+ * @package   capile/tecnodesign
+ * @author    Tecnodesign <ti@tecnodz.com>
+ * @license   GNU General Public License v3.0
+ * @link      https://tecnodz.com
+ * @version   2.7
+ */
 $title = tdz::t('Not authenticated', 'exception');
 $summary = tdz::t('Authentication is required, and we could not authenticate your request. Please try signing in.', 'exception');
 if(!Tecnodesign_App::request('shell')) {

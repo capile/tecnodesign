@@ -2,13 +2,13 @@
 /**
  * Default entry template
  * 
- * PHP version 5.6+
- * 
+ * PHP version 7.3+
+ *
  * @package   capile/tecnodesign
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.3
+ * @version   2.7
  */
 $class='';$sf='';$dim='.200x100';
 $figures = $entry->getContents(array('content_type'=>'media'));
