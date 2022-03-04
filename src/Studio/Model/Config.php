@@ -14,10 +14,12 @@
 namespace Studio\Model;
 
 use Studio\App as App;
-use Studio\Model;
-use Studio\User;
-use Studio\Crypto;
+use Studio\Studio as Studio;
+use Studio\Model as Model;
+use Studio\User as User;
+use Studio\Crypto as Crypto;
 use Tecnodesign_Yaml as Yaml;
+use Tecnodesign_Query as Query;
 use Tecnodesign_Exception as Exception;
 use Studio as S;
 
@@ -150,6 +152,14 @@ class Config extends Model
 
         $C = new Config();
         $C->reloadConfiguration();
+
+        if(Studio::config('connection')==='studio') {
+            $db = Query::database('studio');
+            if(isset($db['dsn']) && $db['dsn']==='sqlite:data/studio.db' && !file_exists(S_VAR.'/studio.db')) {
+                S::exec(['shell'=>S_ROOT.'/studio :check']);
+                S::exec(['shell'=>S_ROOT.'/studio :index']);
+            }
+        }
 
         $os = strtolower(substr(PHP_OS, 0, 3));
         if($os==='win') {
