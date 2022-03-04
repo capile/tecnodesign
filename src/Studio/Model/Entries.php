@@ -862,7 +862,7 @@ class Entries extends Model
         if($extAttr) {
             $source = ((isset($extAttr['src'])) ?$extAttr['src'] :'').substr($page, strlen($extAttr['file']));
         } else if(strpos($page, S_REPO_ROOT.'/')===0) {
-            $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
+            $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:/$2', substr($page, strlen(S_REPO_ROOT)+1));
         } else {
             $source = substr($page, strlen(Studio::documentRoot()));
         }

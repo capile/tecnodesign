@@ -401,7 +401,7 @@ class Studio
                 unset($C);
             }
         } else if(strpos($page, S_REPO_ROOT.'/')===0) {
-            $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:$2', substr($page, strlen(S_REPO_ROOT)+1));
+            $source = preg_replace('#^/?([^/]+)/(.+)$#', '$1:/$2', substr($page, strlen(S_REPO_ROOT)+1));
         } else {
             if(is_null($root)) $root = self::documentRoot();
             if((substr($page, 0, strlen($root))!==$root && substr($page, 0, strlen(static::$templateRoot))!==static::$templateRoot)) return;

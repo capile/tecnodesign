@@ -125,9 +125,11 @@ class Contents extends Model
         if((is_string($q) && ($page=S::decrypt($q, null, 'uuid'))) 
             || (is_array($q) && isset($q['source']) && count($q)===1 && ($page=$q['source']))
             || (isset($q['id']) && is_string($q['id'])&& ($page=S::decrypt($q['id'], null, 'uuid')))) {
-            $C = Studio::content(Entries::file($page), false);
-            if($limit==1) return $C;
-            else return array($C);
+            if($f=Entries::file($page)) {
+                $C = Studio::content($f, false);
+                if($limit==1) return $C;
+                else return array($C);
+            }
         //} else if(is_array($q) && isset($q['source']) && count($q)==1) {
         //    $C = Studio::content(S_VAR.'/'.$q['source'], false, false, false);
         }
