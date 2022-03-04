@@ -2436,7 +2436,7 @@ class Api implements ArrayAccess
         $s = '';
         foreach($this->graph as $n=>$g) {
             $g['model'] = $cn;
-            $g['id'] = S::slug($this->url).'-'.\S::slug($n);
+            $g['id'] = S::slug($this->url).'-'.S::slug($n);
             if($this->search) $g['where'] = (isset($g['where'])) ?$this->search + $g['where'] :$this->search;
             if(!isset($g['scope'])) $g['scope'] = $n;
             $s .= static::graph($g, $n);

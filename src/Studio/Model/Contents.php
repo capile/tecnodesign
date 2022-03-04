@@ -123,6 +123,7 @@ class Contents extends Model
     public static function find($q=null, $limit=0, $scope=null, $collection=true, $orderBy=null, $groupBy=null)
     {
         if((is_string($q) && ($page=S::decrypt($q, null, 'uuid'))) 
+            || (is_array($q) && isset($q['source']) && count($q)===1 && ($page=$q['source']))
             || (isset($q['id']) && is_string($q['id'])&& ($page=S::decrypt($q['id'], null, 'uuid')))) {
             $C = Studio::content(Entries::file($page), false);
             if($limit==1) return $C;
@@ -130,7 +131,7 @@ class Contents extends Model
         //} else if(is_array($q) && isset($q['source']) && count($q)==1) {
         //    $C = Studio::content(S_VAR.'/'.$q['source'], false, false, false);
         }
-        if(!Studio::$connection) {
+        if(!Studio::connected('content')) {
             return false;
             //Studio::$connection = static::$schema['database'];
             //Studio::indexDb();

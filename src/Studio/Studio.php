@@ -19,6 +19,7 @@ use Studio\Model\Entries as Entries;
 use Studio\Model\Contents as Contents;
 use Studio\Model\Permissions as Permissions;
 use Studio\Model\Relations as Relations;
+use Studio\Model\Index as Index;
 use Tecnodesign_Studio_Asset as Asset;
 use Tecnodesign_Collection as Collection;
 use Tecnodesign_Form as Form;
@@ -678,7 +679,7 @@ class Studio
         static $scope = array('id','title','type','link','source','master','format','updated','published','version');
         self::$private = array();
         if(static::$response) static::addResponse(static::$response);
-        $connEnabled = (self::$connection && self::config('enable_interface_content'));
+        $connEnabled = (self::connected('content'));
         if(is_null($published)) {
             // get information from user credentials
             if($connEnabled && ($U=S::getUser()) && $U->hasCredential($c=self::credential('previewUnpublished'), false)) {
@@ -808,7 +809,7 @@ class Studio
     {
         if(self::$index) {
             // check if the studio connection should be set or changed to self::$index, if it's a string
-            Studio\Model\Index::check($M, $interface);
+            Index::check($M, $interface);
         }
     }
 
@@ -935,6 +936,11 @@ class Studio
             }
         }
         return false;
+    }
+
+    public static function connected($prop=null)
+    {
+        return ($prop) ?(self::$connection && self::config('enable_interface_'.$prop)) :self::$connection;
     }
 
     public static function templateFiles($type)

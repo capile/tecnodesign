@@ -338,6 +338,13 @@ class Tecnodesign_Form_Field implements ArrayAccess
                 if($this->value instanceof Tecnodesign_Collection) {
                     $this->value = ($this->value->count()>0)?($this->value->getItems()):(array());
                 }
+
+                if(isset($M::$schema->relations[$this->bind]) && $this->value && is_array($this->value)) {
+                    foreach($this->value as $i=>$o) {
+                        if(is_object($o) && $o->isDeleted()) unset($this->value[$i]);
+                        unset($i, $o);
+                    }
+                }
             } catch(Exception $e) {
                 $this->value = false;
             }
@@ -454,14 +461,10 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             unset($F);
         }
-        $update = $this->value;
         $this->value = $value;
         if($this->bind) {
             $o = $this->getModel();
             if(isset($o::$schema->relations[$this->bind])) {
-                if($update) {
-                    $o->setRelation($this->bind, $update, true);
-                }
                 // map bindings
                 $o->setRelation($this->bind, $value);
             }
