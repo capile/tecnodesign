@@ -10,8 +10,9 @@
  */
 namespace Studio\Model;
 
-use Studio\Model as Model;
-use Studio\Studio as Studio;
+use Studio as S;
+use Studio\Model;
+use Studio\Studio;
 
 class ContentsDisplay extends Model
 {
@@ -20,13 +21,14 @@ class ContentsDisplay extends Model
 
     public function matchUrl($url)
     {
-        if($this->link=='*' || $this->link==$url) {
+        if($this->link=='*' || $this->link==$url || (substr($this->link, -1)==='/' && substr($url, -1)!=='/' && $this->link===$url.'/')) {
             return true;
         } else {
             $link = preg_replace('#/\*$#', '', $this->link);
             if(strpos($link, '*')===false) {
                 // only if matches a folder
-                return (substr($url, 0, strlen($link)+1)==$link.'/');
+                if(substr($link, -1)!=='/') $link .= '/';
+                return (substr($url, 0, strlen($link))==$link);
             }
 
             $link = '@'.str_replace('/\*/', '.*', preg_replace('@[a-z0-9\.\-\_/\*]+@i', '', $link)).'@';

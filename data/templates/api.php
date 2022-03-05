@@ -12,7 +12,7 @@
  */
 
 use Studio as S;
-use Tecnodesign_App as App;
+use Studio\App;
 
 $id = S::slug($url);
 $cPrefix = $Interface::$attrClassPrefix;

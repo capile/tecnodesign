@@ -10,18 +10,18 @@
  */
 namespace Studio\Model;
 
-use Studio\Model as Model;
-use Studio\Model\Contents as Contents;
-use Studio\Model\Permissions as Permissions;
-use Studio\Model\Tags as Tags;
-use Studio\Studio as Studio;
-use Tecnodesign_App as App;
+use Studio as S;
+use Studio\Api;
+use Studio\App;
+use Studio\Model;
+use Studio\Model\Contents;
+use Studio\Model\Permissions;
+use Studio\Model\Tags;
+use Studio\Studio;
 use Tecnodesign_Cache as Cache;
-use Tecnodesign_Interface as Api;
 use Tecnodesign_Collection as Collection;
 use Tecnodesign_Yaml as Yaml;
 use Tecnodesign_Exception as Exception;
-use Studio as S;
 
 class Entries extends Model
 {
@@ -127,18 +127,20 @@ class Entries extends Model
             Studio::error($U->isAuthenticated() ?403 :401);
             return false;
         }
+
         if($c) {
             Studio::$private = (is_array($c))?($c):(array($c));
         }
+        if(Studio::$private && is_array(Studio::$private) && !implode('', Studio::$private)) Studio::$private = [];
         if(Studio::$staticCache && !is_null($c)) {
             Studio::$staticCache=false;
         }
         $id = ($this->id)?($this->id):(S::hash($this->link, null, 'uuid'));
         unset($c);
         if(Studio::$staticCache && Studio::$cacheTimeout) {
-            $cf = Cache::cacheDir().'/'.Cache::siteKey().'/'.S::env().'/e-studio/page/e'.$id.'-'.$this->version.'-'.S::$lang.'.php';
-            if(file_exists($cf) && (!Studio::$cacheTimeout || time()-filemtime($cf) < Studio::$cacheTimeout)) {
-                return array('layout'=>substr($cf, 0, strlen($cf)-4), 'template'=>'');
+            $ckey = 'studio/page/e'.$id.'-'.$this->version.'-'.S::$lang;
+            if(($lmod=Cache::lastModified($ckey)) && (!Studio::$cacheTimeout || time()-$lmod < Studio::$cacheTimeout) && ($r=Cache::get($ckey))) {
+                return $r;
             }
         }
         // layout file
@@ -156,6 +158,7 @@ class Entries extends Model
         if(count($add)>0) {
             $slots = array_merge($add,$slots);
         }
+        unset($add);
         $contents = $this->getRelatedContent();
         $langs = '<meta name="language" content="'.S::$lang.'" />';
         if(isset(Studio::$app->tecnodesign['languages'])) {
@@ -190,7 +193,7 @@ class Entries extends Model
 
         self::$s=1;
         if($contents && count($contents)>0) {
-            foreach($contents as $C) {
+            foreach($contents as $i=>$C) {
                 $dyn = false;
                 if($C->content_type=='php') {
                     $dyn = $this->dynamic = true;
@@ -219,6 +222,7 @@ class Entries extends Model
                     }
                     $slots[$slot][$pos][] = $C->render(false);
                 }
+                unset($contents[$i], $i, $C, $pos);
             }
         }
 
@@ -230,93 +234,87 @@ class Entries extends Model
 
         $slots['meta'][] = '<meta http-equiv="last-modified" content="'. gmdate('D, d M Y H:i:s',$this->modified) . ' GMT" />';
 
+        $sid = $this->studioId();
         $merge = array();
         $slotelements = array();
         foreach(static::$slotElements as $n) {
             if(is_string($n)) $slotelements[$n] = true;
         }
-        $addbr='';
-        $layout = '<'."?php\n"
-            .(($this->dynamic)?("//dynamic\n"):("//static\n"))
-            ."\nuse Studio as S;\n";
+
+        $a = ['variables'=>[]];
+        $parts = ['before', /*'export',*/ 'content', 'after'];
         if($dyn && Studio::$staticCache) Studio::$staticCache=false;
         foreach($slots as $slotname=>$slot) {
             ksort($slot);
-            $first = true;
-            $layout .= "\n\${$slotname} = ";
-            if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
-                $merge[]='$'.$slotname;
-            } else if($slotname!='meta' && $slotname!='title') {
-                $merge[]='$'.$slotname;
-            } else if(count($slot)==0) {
-                $layout .= "''";
-                $first = false;
-            }
+            $a['variables'][$slotname] = '';
+
             foreach($slot as $slotfrag) {
-                if(!is_array($slotfrag))$slotfrag=array($slotfrag);
-                foreach($slotfrag as $v) {
-                    if($first) {
-                        $first = false;
-                        $layout .= "";
-                    } else {
-                        $layout .= "\n    .";
-                    }
-        
-                    if(is_array($v) && isset($v['before'])) {
-                        $layout .= var_export($v['before'],true).'.';
-                    }
-        
-                    if(is_array($v) && isset($v['export'])) {
-                        $layout .= $v['export'];
-                    } else if(is_array($v)) {
-                        $layout .= var_export($v['content'],true);
-                    } else {
-                        $layout .= var_export($v,true);
-                    }
-                    if(is_array($v) && isset($v['after'])) {
-                        $layout .= '. '.var_export($v['after'],true);
+                if(!is_array($slotfrag)) {
+                    $a['variables'][$slotname] .= $slotfrag;
+                } else {
+                    foreach($slotfrag as $v) {
+                        if(is_array($v)) {
+                            foreach($parts as $part) {
+                                if(isset($v[$part])) {
+                                    $a['variables'][$slotname] .= $v[$part];
+                                }
+                            }
+                        } else {
+                            $a['variables'][$slotname] .= $v;
+                        }
                     }
                 }
+                unset($slot, $slotfrag);
             }
-            if($first) $layout .= "''";
-            $layout .= ';';
-        }
 
-        $sid = $this->studioId();
-
-        foreach($slots as $slotname=>$slot) {
-            if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
-                $layout .= "\n\${$slotname} = '<{$slotname}><div id=\"{$slotname}\" data-studio=\"{$sid}\">'\n    . S::get('before-{$slotname}').\${$slotname}.S::get('{$slotname}').S::get('after-{$slotname}')\n    . '</div></{$slotname}>{$addbr}';";
-            } else if($slotname!='meta' && $slotname!='title') {
-                $layout .= "\n\${$slotname} = '<div id=\"{$slotname}\" data-studio=\"{$sid}\">'\n    . S::get('before-{$slotname}').\${$slotname}.S::get('{$slotname}').S::get('after-{$slotname}')\n    . '</div>{$addbr}';";
+            if($slotname!='meta' && $slotname!='title') {
+                $merge[]=$slotname;
+                $a['variables'][$slotname] = "<div id=\"{$slotname}\" data-studio=\"{$sid}\">"
+                  . S::get('before-'.$slotname)
+                  . $a['variables'][$slotname]
+                  . S::get($slotname)
+                  . S::get('after-'.$slotname)
+                  . '</div>';
+                if(isset($slotelements[$slotname]) && $slotelements[$slotname]) {
+                    $a['variables'][$slotname] = "<{$slotname}>{$a['variables'][$slotname]}</{$slotname}>";
+                }
             }
+
+            unset($slots[$slotname], $slotname, $slot);
         }
-        $layout .= "\n\$meta.=S::meta();";
-        if($this->wrapper && is_array($this->wrapper)) {
+        if($merge && $this->wrapper && is_array($this->wrapper)) {
             foreach($this->wrapper as $n=>$s) {
                 $mrg = array();
                 $idx = null;
                 foreach($merge as $i=>$slotname) {
-                    if(in_array(substr($slotname,1), $s)) {
+                    if(in_array($slotname, $s)) {
                         if(is_null($idx)) {
                             $idx = $i;
-                            $mrg[$idx] = "'<div id=\"{$n}\">'.".$slotname;
-                        } else {
-                            $mrg[$idx] .= '.'.$slotname;
+                            $mrg[$idx] = "<div id=\"{$n}\">";
                         }
+                        $mrg[$idx] .= (isset($a['variables'][$slotname])) ?$a['variables'][$slotname] :'';
                     } else {
                         $mrg[$i] = $slotname; 
                     }
+                    unset($i, $slotname);
                 }
                 if(!is_null($idx)) {
-                    $mrg[$idx] .= ".'</div>'";
+                    $mrg[$idx] .= '</div>';
                     $merge = array_values($mrg);
                 }
+                unset($n, $s, $idx, $mrg);
             }
         }
-        if(count($merge)>0) {
-            $layout .= "\n\$content = ".implode('.',$merge).';';
+
+        if($merge) {
+            $a['variables']['content'] = '';
+            foreach($merge as $slotname) {
+                $a['variables']['content'] .= (substr($slotname, 0, 1)==='<') ?$slotname :$a['variables'][$slotname];
+            }
         }
+        if(!isset($a['variables']['meta'])) $a['variables']['meta'] = '';
+        $a['variables']['meta'] .= S::meta();
+
         // in App::runTemplate
         $app = get_class(Studio::$app);
         if($app::$assets) {
@@ -326,22 +324,22 @@ class Entries extends Model
             }
         }
         unset($app);
-
-        $mc = file_get_contents($master);
-        if(substr($mc, 0, 5)=='<'.'?php') $layout .= "\n".substr($mc, 5);
-        else $layout .= "\n?".'>'.$mc;
-        unset($mc, $master);
         if(Studio::$private) {
             Studio::$private = array_unique(Studio::$private);
             $cch = 'private';
             if(!Studio::$staticCache) $cch .= ', no-cache';
             S::cacheControl($cch, Studio::$staticCache);
+            unset($cch);
         }
-        if(Studio::$staticCache && Studio::$cacheTimeout && isset($cf) && S::save($cf, $layout, true)) {
-            return array('layout'=>substr($cf, 0, strlen($cf)-4), 'template'=>'');
-        } else {
-            return S::exec(array('pi'=>substr($layout,5), 'variables'=>App::response()));
+        $a['script'] = $master;
+        $a['variables'] += App::response();
+        $r = S::exec($a);
+        unset($a);
+        if(Studio::$staticCache && Studio::$cacheTimeout && isset($ckey)) {
+            Cache::set($ckey, $r, Studio::$cacheTimeout);
         }
+
+        return $r;
     }
 
     public function getFile()
@@ -1006,10 +1004,11 @@ class Entries extends Model
                 '|entry'=>$this->id,
                 '|ContentDisplay.link'=>array('*', $this->link),
             );
+            if(substr($this->link, -1)!=='/') $f['|ContentDisplay.link'][] = $this->link.'/';
             if(strrpos($this->link, '/')>1) {
                 $l = substr($this->link, 0, strrpos($this->link, '/'));
                 while($l) {
-                    $f['|ContentDisplay.link'][] = $l.'/*';
+                    $f['|ContentDisplay.link'][] = $l.'/';
                     $l = substr($l, 0, strrpos($l, '/'));
                 }
             }

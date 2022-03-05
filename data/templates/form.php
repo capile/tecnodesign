@@ -10,6 +10,9 @@
  * @link      https://tecnodz.com
  * @version   2.7
  */
+
+use Studio as S;
+
 $fieldsets=array();
 $hasFieldset = false;
 $fs = '';
@@ -29,9 +32,9 @@ if(!isset($before)) $before = '';
 if(!isset($after)) $after = '';
 if(isset($limits) && $limits) {
     if(isset($limits['error']) && $limits['error']) {
-        $before .= '<p class="s-msg s-msg-error">'.tdz::xml($limits['error']).'</p>';
+        $before .= '<p class="s-msg s-msg-error">'.S::xml($limits['error']).'</p>';
     } else if(isset($limits['warn']) && $limits['warn']) {
-        $before .= '<p class="s-msg s-msg-warn">'.tdz::xml($limits['warn']).'</p>';
+        $before .= '<p class="s-msg s-msg-warn">'.S::xml($limits['warn']).'</p>';
     }
     if(isset($limits['fields'])) {
         foreach($limits['fields'] as $fn=>$fo) {
@@ -53,16 +56,16 @@ if($hasFieldset) {
     $attributes['class'] .= ' z-fieldset';
 }
 
-?><form<?php if($id): ?> id="<?php echo $id ?>"<?php endif; ?> action="<?php echo tdz::xmlEscape($action) ?>" method="<?php echo $method ?>"<?php
+?><form<?php if($id): ?> id="<?php echo $id ?>"<?php endif; ?> action="<?php echo S::xml($action) ?>" method="<?php echo $method ?>"<?php
 if(isset($Form) && $Form) $attributes = $Form->attributes;
-foreach($attributes as $an=>$av) echo ' '.tdz::xmlEscape($an).'="'.tdz::xmlEscape($av).'"';
+foreach($attributes as $an=>$av) echo ' '.S::xml($an).'="'.S::xml($av).'"';
 ?>><?php
 
 foreach($fieldsets as $fn=>$fv) {
     if(!$fv) continue;
-    if(!is_int($fn) && !tdz::isempty($fn)) {
-        $fl = (substr($fn, 0, 1)=='*')?(tdz::t(substr($fn,1), 'form')):($fn);
-        echo '<fieldset id="'.tdz::slug($fn).'"><legend>'.$fl.'</legend>'.$before.$fv.'</fieldset>';
+    if(!is_int($fn) && !S::isempty($fn)) {
+        $fl = (substr($fn, 0, 1)=='*')?(S::t(substr($fn,1), 'form')):($fn);
+        echo '<fieldset id="'.S::slug($fn).'"><legend>'.$fl.'</legend>'.$before.$fv.'</fieldset>';
     } else {
         echo $before.$fv;
     }
@@ -73,10 +76,10 @@ if(isset($limits['recaptcha']) && $limits['recaptcha']) {
     $rc = $limits['recaptcha'];
     $rckey = null;
     if(is_array($rc) && isset($rc['site-key'])) $rckey = $rc['site-key'];
-    else if(isset(tdz::$variables['recaptcha-site-key'])) $rckey = tdz::$variables['recaptcha-site-key'];
+    else if(isset(S::$variables['recaptcha-site-key'])) $rckey = S::$variables['recaptcha-site-key'];
     if($rckey) {
         if(!isset($rc['submit']) || !$rc['submit']) {
-            echo '<div class="z-recaptcha" data-sitekey="'.tdz::xml($rckey).'"></div>';
+            echo '<div class="z-recaptcha" data-sitekey="'.S::xml($rckey).'"></div>';
         } else if(isset($buttons['submit'])) {
             echo '<script src="https://www.google.com/recaptcha/api.js"></script>';
             if(!is_array($buttons['submit'])) $buttons['submit'] = ['label'=>$buttons['submit'], 'attributes'=>[]];
@@ -84,7 +87,7 @@ if(isset($limits['recaptcha']) && $limits['recaptcha']) {
 
             if(isset($buttons['submit']['attributes']['class'])) $buttons['submit']['attributes']['class'] .= ' g-recaptcha';
             else $buttons['submit']['attributes']['class'] = 'g-recaptcha';
-            $buttons['submit']['attributes']['data-sitekey'] = tdz::xml($rckey);
+            $buttons['submit']['attributes']['data-sitekey'] = S::xml($rckey);
         }
     }
 }
@@ -97,7 +100,7 @@ foreach($buttons as $bn=>$label) {
     if(is_array($label)) {
         if(isset($label['attributes'])) {
             foreach($label['attributes'] as $n=>$v) {
-                $a .= ' '.tdz::xmlEscape($n).'="'.tdz::xmlEscape($v).'"';
+                $a .= ' '.S::xml($n).'="'.S::xml($v).'"';
                 unset($label['attributes'][$n], $n, $v);
             }
         }
@@ -105,7 +108,7 @@ foreach($buttons as $bn=>$label) {
         else $label = $bn;
     }
     if(substr($label, 0, 1)=='*') {
-        $label = tdz::t(substr($label, 1), 'form');
+        $label = S::t(substr($label, 1), 'form');
     }
     if(strpos($bn, '/')!==false) {
         echo '<a href="'.$bn.'">'.$label.'</a>';

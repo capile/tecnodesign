@@ -12,8 +12,8 @@
  */
 
 use Studio as S;
-use Studio\Model as Model;
-use Tecnodesign_App as App;
+use Studio\App;
+use Studio\Model;
 use Tecnodesign_Form as Form;
 use Tecnodesign_Excel as Excel;
 

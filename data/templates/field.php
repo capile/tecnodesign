@@ -10,14 +10,17 @@
  * @link      https://tecnodz.com
  * @version   2.7
  */
+
+use Studio as S;
+
 if(!isset($type)) $type='text';
 
-if(isset(tdz::$variables['form-field-f__'.$id])) {
-    $tpl = tdz::$variables['form-field-f__'.$id];
+if(isset(S::$variables['form-field-f__'.$id])) {
+    $tpl = S::$variables['form-field-f__'.$id];
 } else if($type=='hidden') {
     $tpl = ($label && $class)?('<div id="f__$ID" class="field field-hidden $CLASS"><p class="label">$LABEL</p>$INPUT$ERROR</div>'):('$INPUT$ERROR');
-} else if(isset(tdz::$variables['form-field-template'])) {
-    $tpl = tdz::$variables['form-field-template'];
+} else if(isset(S::$variables['form-field-template'])) {
+    $tpl = S::$variables['form-field-template'];
 } else if(strpos($input, '<div')!==false) {
     $tpl = '<div id="f__$ID" class="field $CLASS"><p class="label">$LABEL</p><div class="input">$INPUT</div>$ERROR</div>';
 } else {

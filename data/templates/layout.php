@@ -11,7 +11,10 @@
  * @version   2.7
  */
 
-if(($accept=Tecnodesign_App::request('headers', 'accept')) && preg_match('#^(text|application)/json\b#', $accept)) {
+use Studio as S;
+use Studio\App;
+
+if(($accept=App::request('headers', 'accept')) && preg_match('#^(text|application)/json\b#', $accept)) {
     $r = [];
     if(!isset($error)) {
         if(isset($title)) $error = $title;
@@ -29,7 +32,7 @@ if(($accept=Tecnodesign_App::request('headers', 'accept')) && preg_match('#^(tex
         $r['message'] = $message;
     }
 
-    Studio::output($r, 'json');
+    S::output($r, 'json');
     exit();
 }
 
@@ -43,13 +46,13 @@ if(isset($script)) {
     if(!is_array($script)) $script = explode(',', $script);
     foreach($script as $k=>$v) {
         if(is_string($k)) {
-            $js .= Studio::minify($v, S_DOCUMENT_ROOT, true, true, false, Studio::$assetsUrl.'/'.$k.'.js');
+            $js .= S::minify($v, S_DOCUMENT_ROOT, true, true, false, S::$assetsUrl.'/'.$k.'.js');
             unset($script[$k]);
         }
         unset($k, $v);
     }
     if($script) {
-        $js .= Studio::minify($script);
+        $js .= S::minify($script);
     }
     $nonce = base64_encode(openssl_random_pseudo_bytes(10));
     header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' data:; script-src 'nonce-{$nonce}' 'strict-dynamic' 'self'; form-action 'self'; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src https:; frame-ancestors 'none'; base-uri 'self'");
@@ -63,13 +66,13 @@ if(isset($style)) {
     if(!is_array($style)) $style = explode(',', $style);
     foreach($style as $k=>$v) {
         if(is_string($k)) {
-            $css .= Studio::minify($v, S_DOCUMENT_ROOT, true, true, false, '/_/'.$k.'.css');
+            $css .= S::minify($v, S_DOCUMENT_ROOT, true, true, false, '/_/'.$k.'.css');
             unset($style[$k]);
         }
         unset($k, $v);
     }
     if($style) {
-        $css .= Studio::minify($style);
+        $css .= S::minify($style);
     }
     $style = $css;
     unset($css);
@@ -91,4 +94,4 @@ if(!isset($content) && isset($data) && isset($slots) && class_exists('tdzEntry')
 }
 */
 
-?><!doctype html><html lang="<?php echo (Studio::$lang) ?Studio::$lang :'en'; ?>"<?php if(isset(Studio::$variables['html-layout'])) echo ' class="', Studio::xml(Studio::$variables['html-layout']), '"';?>><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title><?php if(isset($title)) echo $title ?></title><?php if(isset($meta)) echo $meta; ?><?php if(isset($style)) echo $style; ?></head><body class="no-js"><?php if(isset($data)) echo $data;if(isset($content)) echo $content; ?><?php if(isset($script)) echo $script; ?></body></html>
+?><!doctype html><html lang="<?php echo (S::$lang) ?S::$lang :'en'; ?>"<?php if(isset(S::$variables['html-layout'])) echo ' class="', S::xml(S::$variables['html-layout']), '"';?>><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title><?php if(isset($title)) echo $title ?></title><?php if(isset($meta)) echo $meta; ?><?php if(isset($style)) echo $style; ?></head><body class="no-js"><?php if(isset($data)) echo $data;if(isset($content)) echo $content; ?><?php if(isset($script)) echo $script; ?></body></html>

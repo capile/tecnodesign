@@ -10,16 +10,16 @@
  */
 namespace Studio\Model;
 
-use Studio\Model as Model;
-use Studio\Model\Entries as Entries;
-use Studio\Studio as Studio;
-use Tecnodesign_App as App;
+use Studio as S;
+use Studio\Api;
+use Studio\App;
+use Studio\Model;
+use Studio\Model\Entries;
+use Studio\Studio;
 use Tecnodesign_Cache as Cache;
-use Studio\Api as Api;
 use Tecnodesign_Collection as Collection;
 use Tecnodesign_Yaml as Yaml;
 use Tecnodesign_Exception as Exception;
-use Studio as S;
 
 class Contents extends Model
 {

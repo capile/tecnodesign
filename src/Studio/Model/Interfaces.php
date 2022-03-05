@@ -10,17 +10,17 @@
  */
 namespace Studio\Model;
 
-use Studio\Model as Model;
-use Studio\Schema as Schema;
-use Studio\OAuth2\Storage as Storage;
-use Studio\OAuth2\Client as Client;
+use Studio as S;
+use Studio\Api;
+use Studio\App;
+use Studio\Model;
+use Studio\Schema;
+use Studio\OAuth2\Storage;
+use Studio\OAuth2\Client;
+use Studio\Studio;
 use Tecnodesign_Schema_Model as ModelSchema;
-use Tecnodesign_Studio as Studio;
-use Tecnodesign_App as App;
 use Tecnodesign_Query_Api as QueryApi;
 use Tecnodesign_Yaml as Yaml;
-use Studio\Api as Api;
-use tdz as S;
 
 class Interfaces extends Model
 {

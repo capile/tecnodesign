@@ -1,9 +1,9 @@
 <?php
 /**
- * Tecnodesign Application Server
- *
- * This package enable Tecnodesign application management.
- *
+ * Tecnodesign HTTP Status Exception
+ * 
+ * Use this exception to terminate your application request with a proper status message
+ * 
  * PHP version 7.3+
  *
  * @package   capile/tecnodesign
@@ -12,4 +12,10 @@
  * @link      https://tecnodz.com
  * @version   2.7
  */
-class Tecnodesign_App extends Studio\App {}
+namespace Studio\Exception;
+
+use Exception;
+
+class End extends Exception
+{
+}

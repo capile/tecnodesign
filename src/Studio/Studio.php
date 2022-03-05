@@ -14,7 +14,7 @@
  */
 namespace Studio;
 
-use Tecnodesign_App as App;
+use Studio\App as App;
 use Studio\Model\Entries as Entries;
 use Studio\Model\Contents as Contents;
 use Studio\Model\Permissions as Permissions;

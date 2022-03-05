@@ -15,14 +15,14 @@
 namespace Studio;
 
 use Studio as S;
-use Studio\Model as Model;
-use Studio\Model\Interfaces as Interfaces;
-use Studio\Studio as Studio;
-use Tecnodesign_App as App;
+use Studio\App;
+use Studio\Exception\End;
+use Studio\Model;
+use Studio\Model\Interfaces;
+use Studio\Studio;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Form as Form;
 use Tecnodesign_Exception as Exception;
-use Tecnodesign_App_End as App_End;
 use Tecnodesign_Yaml as Yaml;
 use ArrayAccess;
 
@@ -586,7 +586,7 @@ class Api implements ArrayAccess
             static::$ui = (!TDZ_CLI && static::$format==='html');
             return $I->output($p);
 
-        } catch(App_End $e) {
+        } catch(End $e) {
             static::headers();
             throw $e;
         } catch(Exception $e) {

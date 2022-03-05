@@ -11,10 +11,12 @@
  * @version   2.7
  */
 
-if(isset(tdz::$variables['form-field-f__'.$id])) {
-    $tpl = tdz::$variables['form-field-f__'.$id];
-} else if(isset(tdz::$variables['form-field-template'])) {
-    $tpl = tdz::$variables['form-field-template'];
+use Studio as S;
+
+if(isset(S::$variables['form-field-f__'.$id])) {
+    $tpl = S::$variables['form-field-f__'.$id];
+} else if(isset(S::$variables['form-field-template'])) {
+    $tpl = S::$variables['form-field-template'];
 } else {
     $tpl = '<div id="f__$ID" class="field $CLASS">$ERROR<p class="label subform">$LABEL</p><div class="input">$INPUT</div></div>';
 }

@@ -13,15 +13,15 @@
 
 namespace Studio\Model;
 
+use Studio as S;
+use Studio\Api;
+use Studio\App;
 use Studio\Model;
-use Studio\OAuth2\Client as Client;
-use Studio\OAuth2\Storage as Storage;
-use Tecnodesign_Studio as Studio;
+use Studio\OAuth2\Client;
+use Studio\OAuth2\Storage;
+use Studio\Studio;
 use Tecnodesign_Cache as Cache;
-use Tecnodesign_App as App;
-use Tecnodesign_Query_Api as Api;
-use Tecnodesign_Interface as SInterface;
-use tdz as S;
+use Tecnodesign_Query_Api as QueryApi;
 
 class Tokens extends Model
 {
@@ -111,7 +111,7 @@ class Tokens extends Model
     public function previewOptionsApiEndpoint()
     {
         if($url=$this['options.api_endpoint']) {
-            if(SInterface::format()=='html' && ($I=SInterface::current())) {
+            if(Api::format()=='html' && ($I=Api::current())) {
                 return S::xml($url).' <a class="z-i-a z-i-button z-i--run-api" href="'.S::xml($I->link('run-api', null, false, false)).'">'.S::xml($I::t('Run API')).'</a>';
             }
             return $url;
@@ -145,7 +145,7 @@ class Tokens extends Model
             $url = $d[$prefix.'url'];
             if(substr($url, 0, 1)!='/') $url = '/'.$url;
             $url = $server['api_endpoint'].$url;
-            $R = Api::runStatic($url, $conn, $d[$prefix.'data'], $method, $H);
+            $R = QueryApi::runStatic($url, $conn, $d[$prefix.'data'], $method, $H);
             $Interface::$pretty = true;
             $Interface::$envelope = false;
             foreach($F->fields as $k=>$fd) {

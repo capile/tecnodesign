@@ -12,14 +12,14 @@
  */
 namespace Studio\Model;
 
-use Studio\Model as Model;
-use Studio\Studio as Studio;
-use Tecnodesign_App as App;
-use Tecnodesign_Studio_Interface as Api;
+use Studio as S;
+use Studio\Api;
+use Studio\App;
+use Studio\Model;
+use Studio\Studio;
 use Tecnodesign_Cache as Cache;
-use Tecnodesign_Query as Query;
 use Tecnodesign_Database as Database;
-use tdz as S;
+use Tecnodesign_Query as Query;
 
 class Index extends Model
 {
