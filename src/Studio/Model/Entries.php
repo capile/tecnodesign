@@ -61,8 +61,16 @@ class Entries extends Model
 
     public function studioId($prefix=null)
     {
+        static $plural = ['entry'=>'entries'];
+
         if(!$prefix) {
-            $prefix = ($this->type) ?$this->type :'site';
+            if(!$this->type) $this->refresh(['type']);
+
+            if($this->type) {
+                $prefix = ((isset($plural[$this->type])) ?$plural[$this->type] :$this->type.'s');
+            } else {
+                $prefix = 'site';
+            }
         }
 
         return Studio::interfaceId($this, $prefix);
@@ -755,8 +763,12 @@ class Entries extends Model
                 }
             }
 
-            //@TODO
-            if($redirect) {} // redirect rules: if it's a folder, S::scriptName() must end with / otherwise, can't end with /
+            // redirect rules: if it's a folder, S::scriptName() must end with / otherwise, can't end with /
+            if($redirect) {
+                if(substr($url, -1)!=='/' && S::scriptName()===$url && ((substr($P->link, -1)==='/' && $P->link===$url.'/') || ($P->source && preg_replace('/\..*$/', '', basename($P->source))===static::$indexFile))) {
+                    S::redirect($url.'/');
+                }
+            }
         } else if($url) {
             if(in_array('php', Contents::$multiviewContentType) && is_file($f=static::file($url.'.php')))
                 $P=self::_checkPage($f, $url, $multiview);
@@ -1190,14 +1202,16 @@ class Entries extends Model
 
     public function interfaceLink()
     {
+        static $plural = ['entry'=>'entries'];
         if(!$this->type) $this->refresh(['type']);
-        return Studio::$home.'/'.$this->type.'/preview';
+
+        return Studio::$home.'/'.((isset($plural[$this->type])) ?$plural[$this->type] :$this->type.'s').'/preview';
     }
 
     public function previewContents()
     {
         $tpl = '<div class="tdz-i-scope-block" data-action-schema="preview" data-action-url="'.S::scriptName(true).'">'
-           .     '<a href="'.Studio::$home.'/content/new?entry='.$this->id.'&amp;position={position}&amp;slot={slot}&amp;scope=entry-content&amp;next=preview" class="tdz-i-button z-align-bottom z-i--new" data-inline-action="new"></a>'
+           .     '<a href="'.Studio::$home.'/contents/new?entry='.$this->id.'&amp;position={position}&amp;slot={slot}&amp;scope=entry-content&amp;next=preview" class="tdz-i-button z-align-bottom z-i--new" data-inline-action="new"></a>'
            . '</div>';
         $r = str_replace(['{position}', '{slot}'], [1, static::$slot], $tpl);
         $slots = [];
@@ -1210,9 +1224,9 @@ class Entries extends Model
                 $slot = ($o->slot) ?$o->slot :static::$slot;
                 if(!isset($slots[$slot])) $slots[$slot] = '';
                 $slots[$slot] .= '<div class="ih5 z-item z-inner-block">'
-                    .   '<div class="tdz-i-scope-block" data-action-expects-url="'.Studio::$home.'/content/update/'.$o->id.'" data-action-schema="preview" data-action-url="'.S::scriptName(true).'">'
-                    .     '<a href="'.Studio::$home.'/content/update/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
-                    .     '<a href="'.Studio::$home.'/content/delete/'.$o->id.'?scope=u-'.$ct.'&amp;next='.S::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
+                    .   '<div class="tdz-i-scope-block" data-action-expects-url="'.Studio::$home.'/contents/update/'.$o->id.'" data-action-schema="preview" data-action-url="'.S::scriptName(true).'">'
+                    .     '<a href="'.Studio::$home.'/contents/update/'.$o->id.'?scope=u-'.$ct.'&amp;next=preview" class="tdz-i-button z-i--update" data-inline-action="update"></a>'
+                    .     '<a href="'.Studio::$home.'/contents/delete/'.$o->id.'?scope=u-'.$ct.'&amp;next='.S::scriptName(true).'" class="tdz-i-button z-i--delete" data-inline-action="delete"></a>'
                     . (($o->content_type && in_array($o->content_type, $o::$previewContentType))
                         ?'<div class="z-t-center z-app-image"><span class="z-t-inline z-t-left">'.$o->previewContent().'</span></div>'
                         :$o->previewContent()

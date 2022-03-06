@@ -1,4 +1,4 @@
-/*! Studio v2.6 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Studio v2.7 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
 (function() {
 
 "use strict";
@@ -136,15 +136,21 @@ function setStudio(d)
 {
     if(d && ('data' in d) && ('length' in d.data) && d.data.length>0) {
         if(!_V) getViewport();
-        var L=[], b;
+        var L=[], b, c;
         for(var i=0;i<d.data.length;i++) {
-            b=_Studio+'/'+d.data[i];
-            L.push(b);
-            addInterface(b);
+            if(d.data[i]) {
+                c=d.data[i];
+                b=_Studio+'/'+c;
+                L.push(b);
+                addInterface(b);
+                break;// only add the closest interface
+            }
         }
-        window.location.hash='!'+d.data.join(',');
-        Z.loadInterface.call(_V, L);
-        setTimeout(initStudio, 100);
+        if(c) {
+            window.location.hash='!'+c;
+            Z.loadInterface.call(_V, L);
+            setTimeout(initStudio, 100);
+        }
     }
 }
 
@@ -182,7 +188,7 @@ function trigger(e, active)
 
 function searchInterface(s)
 {
-    var d, u=_Studio+'/site/q';
+    var d, u=_Studio+'/site/list';
     if(typeof(s)=='object') {
         d = JSON.stringify({q:s});
     } else {
@@ -191,8 +197,6 @@ function searchInterface(s)
 
     loadInterface(u);
 }
-
-
 
 function toggle(e, active)
 {

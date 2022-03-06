@@ -386,7 +386,7 @@ class Contents extends Model
                 $this->id = $C->id;
                 unset($C);
             }
-            $attr['data-studio'] = Studio::interfaceId('content/preview/'.$this->id);
+            $attr['data-studio'] = Studio::interfaceId('contents/preview/'.$this->id);
         }
         if($p=Studio::config('content_class_name')) {
             $attr['class'] = $p;            

@@ -704,6 +704,9 @@ class Studio
         }
         $E=null;
         if($connEnabled && ($E=Entries::find($f, 1, $scope,false,array('type'=>'desc','published'=>'desc','version'=>'desc')))) {
+            if($E->link!==S::scriptName() && (S::scriptName()===$E->link.'/' || $E->link===S::scriptName().'/')) {
+                S::redirect($E->link);
+            }
             if($meta = $E::loadMeta($E->link)) {
                 foreach($meta as $fn=>$v) {
                     if(property_exists($E, $fn)) {
@@ -854,7 +857,7 @@ class Studio
      * remove contents/pages:
      *   delete: Administrator,Developer,Editor
      *
-     * public content/pages:
+     * public contents/pages:
      *   publish: Administrator,Editor
      * 
      * Authors may only publish content (and not the entry)

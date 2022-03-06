@@ -10,24 +10,22 @@ all:
   options:
     list-parent: site
     priority: 1010
-    redirect-by-property:
-      entry:
-        "*":
-          action: [ preview ]
-          interface: page
-          key: entry
+    #redirect-by-property:
+    #  entry:
+    #    "*":
+    #      action: [ preview ]
+    #      interface: pages
+    #      key: entry
     scope:
       search:
         - id
         - entry
       preview:
-        - "scope::_e"
-        - "scope::u"
         - "scope::c"
+        - "scope::_e"
       #new:
       #  - "scope::e"
       update:
-        - "scope::u"
         - "scope::c"
       new:
         __default:
@@ -57,18 +55,6 @@ all:
         '*Content Type':
             bind: content_type
             class: i1s2
-      u:
-        __default:
-          fieldset: '*Page information'
-        '*Location':
-          bind: slot
-          type: select
-          class: i1s2
-          choices: choicesSlot
-        '*Order':
-          bind: position
-          type: number
-          class: i1s2
       e:
         __default:
           fieldset: '*Page information'
@@ -96,4 +82,13 @@ all:
           fieldset: '*Content'
         'Content':
           bind: content
-          class: ih20
+          #class: ih20
+        '*Location':
+          bind: slot
+          type: select
+          class: i1s2
+          choices: choicesSlot
+        '*Order':
+          bind: position
+          type: number
+          class: i1s2
