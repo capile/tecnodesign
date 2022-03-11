@@ -13,18 +13,18 @@
 
 namespace Studio\OAuth2;
 
-use OAuth2\Request;
-use OAuth2\Response;
+use Studio\App;
 use Studio\OAuth2\Server;
 use Studio\OAuth2\Storage;
-use Studio\App;
+use Studio\Studio as Studio;
 use Studio\User;
-use Tecnodesign_Query_Api as Api;
-use Tecnodesign_Studio as Studio;
+use Studio as S;
+use OAuth2\Request;
+use OAuth2\Response;
+use Tecnodesign_Query_Api as QueryApi;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_PublicObject as PublicObject;
 use Tecnodesign_Exception as SException;
-use tdz as S;
 
 class Client extends PublicObject
 {
@@ -214,10 +214,73 @@ class Client extends PublicObject
         return $conn;
     }
 
+    public static function authSubRequest()
+    {
+        $auth = (isset($_SERVER['DOCUMENT_URI']) && $_SERVER['DOCUMENT_URI']==='@auth');
+
+        $sn = S::scriptName(true);
+        if(substr($sn, 0, strlen(static::$signInRoute))===static::$signInRoute) {
+            if($auth) exit();
+
+            S::scriptName(static::$signInRoute);
+            return static::authorizeSignIn();
+        }
+
+        $U = S::getUser();
+
+        if($U->isAuthenticated()) {
+            $o = null;
+            if($filter = static::config('filter')) {
+                // only users matching the filters are allowed
+                $valid = true;
+                if(!isset($o)) $o = $U->getObject();
+                foreach($filter as $k=>$v) {
+                    if(!isset($o->$k)) {
+                        $valid = false;
+                    } else {
+                        if(!is_array($t=$o->$k)) {
+                            $t = [$t];
+                        }
+                        if(!is_array($v)) {
+                            $v = [$v];
+                        }
+                        if(!array_intersect($t, $v)) {
+                            $valid = false;
+                        }
+                    }
+                    unset($filter[$k], $k, $v, $t);
+                    if(!$valid) break;
+                }
+                unset($filter);
+
+                if(!$valid) {
+                    return Studio::error(403);
+                }
+            }
+
+            if($export = static::config('export')) {
+                if(!is_array($export)) $export = [$export => $export];
+                if(!isset($o)) $o = $U->getObject();
+                foreach($export as $n=>$k) {
+                    if(isset($o->$k) && ($v=$o->$k)) {
+                        if(!is_string($v)) $v = S::serialize($v, 'json');
+                        header('x-auth-'.$n.': '.$v);
+                    }
+                }
+            }
+
+            App::end();
+        }
+        if(!preg_match('#\.(jpg|ico|js|css|png|gif)(\?|$)#', $sn)) {
+            $U->setAttribute('authorize-source', S::requestUri());
+        }
+
+        return Studio::error(401);
+    }
+
     public static function authorizeSignIn($options=[])
     {
         $S = static::config('servers');
-
         if(!($p=S::urlParams()) && ($route = App::response('route'))) {
             S::scriptName($route['url']);
             $p = S::urlParams();
@@ -230,7 +293,6 @@ class Client extends PublicObject
 
         if($p && ($p=implode('/', $p)) && isset($S[$p]) && isset($S[$p]['sign_in']) && $S[$p]['sign_in']) {
             $Server = new Client($S[$p]);
-
             $Client = $Server->currentClient(['options.access_token'=>true, 'scope'=>$Server->scope]);
             $User = null;
 
@@ -262,7 +324,6 @@ class Client extends PublicObject
                             unset($nso);
                         }
                     }
-
                     $U->setObject($ns, $User);
                     if($ref=$U->getAttribute('authorize-source')) {
                         $U->setAttribute('authorize-source', null);
@@ -317,18 +378,18 @@ class Client extends PublicObject
                     $tt = (isset($o['token_type'])) ?ucfirst($o['token_type']) :'Bearer';
                     $H[] = 'authorization: '.$tt.' '.$o['access_token'];
                 }
-                $R = Api::runStatic($this->userinfo_endpoint, $this->issuer, null, 'GET', $H, 'json', true);
+                $R = QueryApi::runStatic($this->userinfo_endpoint, $this->issuer, null, 'GET', $H, 'json', true);
 
                 $User = null;
                 $I = null;
-                if($R && $this->identity_key && ($idk=S::extractValue($R, $this->identity_key))) {
+                $key = ($this->identity_key) ?$this->identity_key :'sub';
+                if($R && ($idk=S::extractValue($R, $key))) {
                     $idk = $this->id.':'.$idk;
                     $q = ['type'=>'identity','token'=>$this->issuer,'id'=>$idk];
                     if(!(list($I)=Storage::find($q, false))) {
                         $I = Storage::replace($q+['options'=>$R]);
                     }
                 }
-
                 if(!$I) {
                     // could not fetch identity
                     return false;
@@ -397,19 +458,9 @@ class Client extends PublicObject
                     if($save) {
                         $User->save();
                     }
+                } else if(!$User && static::config('user_orphan') && $R) {
+                    $User = $R;
                 }
-
-                /*
-                if($R) {
-                    $o = $Client->options;
-                    if(!is_array($o)) $o = S::unserialize($o, 'json');
-                    if(!$o) $o = [];
-                    else if(isset($o['state'])) unset($o['state']);
-                    $o['userinfo'] = $R;
-                    $Client->options = $o;
-                    $Client->save();
-                }
-                */
 
                 return $User;
             }
@@ -431,7 +482,7 @@ class Client extends PublicObject
             ];
 
             $H = static::$requestHeaders;
-            $R = Api::runStatic($this->token_endpoint, $this->issuer, $data, 'POST', $H, 'json', true);
+            $R = QueryApi::runStatic($this->token_endpoint, $this->issuer, $data, 'POST', $H, 'json', true);
 
             if($R) {
                 if($Client) {
@@ -464,6 +515,13 @@ class Client extends PublicObject
             $Client = $this->currentClient(['options.state'=>$state]);
 
             if($Client) {
+                $auth = (Client::config('allow_credentials_in_request_body')) ?'client_secret_post' :'client_secret_basic';
+                $enc  = ($this->token_encoding) ?$this->token_encoding :'application/x-www-form-urlencoded';
+                $H = static::$requestHeaders;
+                if(static::$tokenHeaders) {
+                    $H = array_merge($H, static::$tokenHeaders);
+                }
+
                 $data = [
                     'code'=>$code,
                     'client_id'=>$this->client_id,
@@ -471,18 +529,23 @@ class Client extends PublicObject
                     'state'=>$state,
                     'redirect_uri'=>$url,
                 ];
-
+                if($auth==='client_secret_basic') {
+                    $H[] = 'authorization: Basic '.base64_encode(urlencode($this->client_id).':'.urlencode($this->client_secret));
+                }
                 if($this->grant_type) {
                     $data['grant_type'] = $this->grant_type;
                 } else if(isset($this->grant_types_supported)) {
-                    list($data['grant_type']) = array_values($this->grant_types_supported);
+                    if(in_array('authorization_code', $this->grant_types_supported)) {
+                        $data['grant_type'] = 'authorization_code';
+                    } else {
+                        list($data['grant_type']) = array_values($this->grant_types_supported);
+                    }
                 }
-
-                $H = static::$requestHeaders;
-                if(static::$tokenHeaders) {
-                    $H = array_merge($H, static::$tokenHeaders);
+                if($enc!=='json') {
+                    $data = http_build_query($data, null, '&');
+                    $H[] = 'content-type: '.$enc;
                 }
-                $R = Api::runStatic($this->token_endpoint, $this->issuer, $data, 'POST', $H, 'json', true);
+                $R = QueryApi::runStatic($this->token_endpoint, $this->issuer, $data, 'POST', $H, 'json', true);
 
                 if(!$R || isset($R['error'])) {
                     if(S::$log>0) S::log('[INFO] Failed OAuth2 authentication at '.$this->id, $R);

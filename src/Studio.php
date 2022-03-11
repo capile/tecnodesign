@@ -1762,17 +1762,17 @@ class Studio
             } else if($l=='error_log') {
                 $logs[0] = true;
             } else if($l=='cli') {
-                if(TDZ_CLI) $logs[2] = true;
+                if(S_CLI) $logs[2] = true;
             } else {
                 if(!$l) {
                     if(self::$_app && self::$_env) {
                         $l = self::getApp()->config('app', 'log-dir');
                     }
                     if(!$l) {
-                        $l = TDZ_VAR . '/log';
+                        $l = S_VAR . '/log';
                     }
                 }
-                if(substr($l, 0, 1)!='/') $l = realpath(TDZ_APP_ROOT.'/'.$l);
+                if(substr($l, 0, 1)!='/') $l = realpath(S_APP_ROOT.'/'.$l);
                 $logs[3] = $l . '/tdz.log';
             }
             unset($l);

@@ -319,14 +319,14 @@ class Tecnodesign_User
                 $nso = static::$cfg['ns'][$nso];
             }
         }
-        $this->_me = $me;
+        $this->_me = (object) $me;
         if($nso) {
             $this->_ns = $nso;
             if(isset($this->_ns['properties'])) {
                 $this->_map = $this->_ns['properties'];
             }
             $pk = (isset($this->_ns['properties']['id']))?($this->_ns['properties']['id']):('id');
-            $this->_uid = $this->_me->$pk;
+            $this->_uid = (isset($this->_me->$pk)) ?$this->_me->$pk :null;
             if(isset($this->_ns['cookie']) && $this->_ns['cookie']) {
                 if(!isset($timeout) || !$timeout) $timeout = static::$timeout;
                 $last = $this->getAttribute(static::LASTCOOKIE_ATTR);
@@ -1542,6 +1542,7 @@ class Tecnodesign_User
         $value = null;
         if($this->_me) {
             try {
+                if(!property_exists($this->_me, $name)) return false;
                 $value = $this->_me->$name;
             } catch(Exception $e) {
                 tdz::log("[INFO] Could not get {$name}: ".$e->getMessage());

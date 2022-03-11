@@ -732,13 +732,20 @@ class Tecnodesign_Query_Api
             }
         }
 
-        if($data) {
-            curl_setopt($conn, CURLOPT_POST, true);
-            curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
-        }
-
-        if($method && $method!='GET') {
+        if($method==='GET') {
             curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $method);
+            curl_setopt($conn, CURLOPT_POST, false);
+        } else {
+            if($data) {
+                if(!$method) {
+                    $method = 'POST';
+                }
+                curl_setopt($conn, CURLOPT_POST, true);
+                curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+            }
+            if($method) {
+                curl_setopt($conn, CURLOPT_CUSTOMREQUEST, $method);
+            }
         }
 
         if($headers) {
