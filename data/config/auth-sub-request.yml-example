@@ -1,0 +1,45 @@
+---
+all:
+  app:
+    routes:
+      #/signin/oauth2:
+      #  class: Studio\OAuth2\Client
+      #  method: authorizeSignIn
+      #  static: true
+      #  additional-params: true
+      #/signout/oauth2:
+      #  class: Studio\OAuth2\Client
+      #  method: signOut
+      #  static: true
+      #  additional-params: true
+      /.*:
+        class: Studio\OAuth2\Client
+        method: authSubRequest
+        static: true
+        additional-params: true
+    export:
+      Studio:
+        log: 1
+      Studio\OAuth2\Client:
+        signInRoute: /signin
+  studio:
+    enable_interface_index: true
+  user:
+    model: Studio\Model\Users
+    ns:
+      oauth2-client:
+        name: OAuth2 Client
+        enabled: true
+        cookie: studio-o
+        class: Studio\OAuth2\Client
+        static: true
+        user_orphan: true
+        redirect-success: /
+        filter:
+          role:
+            - mailinglist
+        export:
+          email: email
+          name: name
+          role: role
+
