@@ -74,10 +74,10 @@ class App
             $this->_name = $siteMemKey;
         }
         $this->start=time();
-        if (!defined('TDZ_ENV')) {
-            define('TDZ_ENV', $env);
+        if (!defined('S_ENV')) {
+            define('S_ENV', $env);
         } else {
-            $env = TDZ_ENV;
+            $env = S_ENV;
         }
         $this->_env = $env;
         if(is_array($s)) {
@@ -97,7 +97,7 @@ class App
         }
         $base = (isset($this->_vars['app']['apps-dir'])) ?$this->_vars['app']['apps-dir'] :null;
         if (!$base || $base === '.') {
-            $base = TDZ_APP_ROOT;
+            $base = S_APP_ROOT;
             $this->_vars['app']['apps-dir'] = $base;
         }
         if(!isset($this->_vars['app']['controller-options'])) {
@@ -139,10 +139,10 @@ class App
         $instance="{$name}/{$env}";
         $ckey="app/{$instance}";
         $app = false;
-        if (!defined('TDZ_ENV')) {
-            define('TDZ_ENV', $env);
+        if (!defined('S_ENV')) {
+            define('S_ENV', $env);
         } else {
-            $env = TDZ_ENV;
+            $env = S_ENV;
         }
         if (!$name) {
             if(is_null(App::$_instances)) {
@@ -480,9 +480,9 @@ class App
     }
 
     /**
-     * All loaded assets should be built into TDZ_DOCUMENT_ROOT.S::$assetsUrl (if assetUrl is set)
+     * All loaded assets should be built into S_DOCUMENT_ROOT.S::$assetsUrl (if assetUrl is set)
      *
-     * Currently they are loaded from TDZ_ROOT/src/Tecnodesign/Resources/assets but this should be evolved to a modular structure directly under src
+     * Currently they are loaded from S_ROOT/src/Tecnodesign/Resources/assets but this should be evolved to a modular structure directly under src
      * and external components should also be loaded (example: font-awesome, d3 etc)
      */
     public static function asset($component)
@@ -509,7 +509,7 @@ class App
 
         if(isset(static::$assetsOptional[$c0])) {
             foreach(static::$assetsOptional[$c0] as $n=>$c1) {
-                if(file_exists(TDZ_PROJECT_ROOT.'/node_modules/'.$n)) {
+                if(file_exists(S_PROJECT_ROOT.'/node_modules/'.$n)) {
                     $component .= ','.$c1;
                 }
                 unset($n, $c1);
@@ -521,7 +521,7 @@ class App
         static $copyExt='{eot,ttf,svg,woff,png,jpg,gif}';
         $build = false;
 
-        $projectRoot = file_exists(TDZ_APP_ROOT.'/composer.json') ?TDZ_APP_ROOT :dirname(TDZ_APP_ROOT);
+        $projectRoot = file_exists(S_APP_ROOT.'/composer.json') ?S_APP_ROOT :dirname(S_APP_ROOT);
         foreach($types as $from=>$to) {
             // first look for assets
             if(!isset(self::$_response[$destination[$to]])) self::$_response[$destination[$to]]=array();
@@ -531,24 +531,24 @@ class App
             $fmod = 0;
             foreach($src as $i=>$n) {
                 $n0 = preg_replace('#[\.\/].*#', '', $n);
-                if(file_exists($f=TDZ_DOCUMENT_ROOT.S::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'.'.$to)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$to)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
-                   || file_exists($f=TDZ_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
-                   || file_exists($f=TDZ_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
-                   || file_exists($f=dirname(TDZ_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
-                   //|| file_exists($f=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
+                if(file_exists($f=S_DOCUMENT_ROOT.S::$assetsUrl.'/'.$to.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'.'.$from)
+                   || file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'.'.$to)
+                   || file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$from)
+                   || file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'/'.$n.'.'.$to)
+                   || file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'/'.$from.'/'.$n.'.'.$from)
+                   || file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'/'.$to.'/'.$n.'.'.$to)
+                   || file_exists($f=S_ROOT.'/src/Tecnodesign/Resources/assets/'.$n.'.'.$from)
+                   || file_exists($f=S_ROOT.'/src/'.$n.'/'.$n.'.'.$from)
+                   || file_exists($f=S_ROOT.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(S_ROOT).'/'.$n0.'/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(S_ROOT).'/'.$n0.'/src/'.str_replace('.', '/', $n).'.'.$from)
+                   || file_exists($f=dirname(S_ROOT).'/'.$n0.'/dist/'.str_replace('.', '/', $n).'.'.$from)
+                   //|| file_exists($f=S_PROJECT_ROOT.'/node_modules/'.$n.'/package.json')
                 ) {
                     /*
                     if(substr($f, -13)=='/package.json') {
-                        if(($pkg = json_decode(file_get_contents($f), true)) && isset($pkg['main']) && substr($pkg['main'], -1*strlen($to))==$to && file_exists($f2=TDZ_PROJECT_ROOT.'/node_modules/'.$n.'/'.$pkg['main'])) {
+                        if(($pkg = json_decode(file_get_contents($f), true)) && isset($pkg['main']) && substr($pkg['main'], -1*strlen($to))==$to && file_exists($f2=S_PROJECT_ROOT.'/node_modules/'.$n.'/'.$pkg['main'])) {
                             $f = $f2;
                         } else {
                             unset($src[$i], $f);
@@ -561,7 +561,7 @@ class App
                     $src[$i]=$f;
                     if($t===null) {
                         $t =  S::$assetsUrl.'/'.S::slug($n).'.'.$to;
-                        $tf =  TDZ_DOCUMENT_ROOT.$t;
+                        $tf =  S_DOCUMENT_ROOT.$t;
                         if(in_array($t, self::$_response[$destination[$to]])) {
                             $t = null;
                             break;
@@ -582,7 +582,7 @@ class App
                     $build = true;
                 }
                 if($src) {
-                    Asset::minify($src, TDZ_DOCUMENT_ROOT, true, true, false, $t);
+                    Asset::minify($src, S_DOCUMENT_ROOT, true, true, false, $t);
                     if(!file_exists($tf)) {// && !copy($f, $tf)
                         S::log('[ERROR] Could not build component '.$component.': '.$tf.' from ', $src);
                     }
@@ -601,10 +601,10 @@ class App
             unset($t, $tf, $from, $to);
         }
 
-        if($build && ($files = glob(TDZ_ROOT.'/src/{'.str_replace('.', '/', $component).'}{-*,}.'.$copyExt, GLOB_BRACE))) {
-            $p = strlen(TDZ_ROOT.'/src/');
+        if($build && ($files = glob(S_ROOT.'/src/{'.str_replace('.', '/', $component).'}{-*,}.'.$copyExt, GLOB_BRACE))) {
+            $p = strlen(S_ROOT.'/src/');
             foreach($files as $source) {
-                $dest = TDZ_DOCUMENT_ROOT.S::$assetsUrl.'/'.S::slug(substr($source, $p),'.');
+                $dest = S_DOCUMENT_ROOT.S::$assetsUrl.'/'.S::slug(substr($source, $p),'.');
                 if(!file_exists($dest) || filemtime($dest)<filemtime($source)) {
                     copy($source, $dest);
                 }
@@ -613,7 +613,7 @@ class App
         }
         if($build && isset(static::$copyNodeAssets[$c0]) && ($files = glob($projectRoot.'/node_modules/'.static::$copyNodeAssets[$c0], GLOB_BRACE))) {
             foreach($files as $source) {
-                $dest = TDZ_DOCUMENT_ROOT.S::$assetsUrl.'/'.basename($source);
+                $dest = S_DOCUMENT_ROOT.S::$assetsUrl.'/'.basename($source);
                 if(!file_exists($dest) || filemtime($dest)<filemtime($source)) {
                     copy($source, $dest);
                 }
@@ -849,7 +849,7 @@ class App
             }
             unset($r);
             self::$_request=array('started'=>microtime(true));
-            self::$_request['shell']=TDZ_CLI;
+            self::$_request['shell']=S_CLI;
             self::$_request['method']=(!self::$_request['shell'])?(strtolower($_SERVER['REQUEST_METHOD'])):('get');
             self::$_request['ajax']=(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH']=='XMLHttpRequest');
             if (!self::$_request['shell']) {
