@@ -319,7 +319,7 @@ class Tecnodesign_User
                 $nso = static::$cfg['ns'][$nso];
             }
         }
-        $this->_me = $me;
+        $this->_me = (object) $me;
         if($nso) {
             $this->_ns = $nso;
             if(isset($this->_ns['properties'])) {

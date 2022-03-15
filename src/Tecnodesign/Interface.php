@@ -4022,7 +4022,6 @@ class Tecnodesign_Interface extends Studio\Api
             }
             if(isset($a['base'])) {
                 $i=3;
-                \tdz::log($a, static::configFile($a['base'], $not));
                 while(isset($a['base']) && ($f=static::configFile($a['base'], $not))) {
                     $not[] = $f;
                     unset($a['base']);
