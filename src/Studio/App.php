@@ -19,6 +19,7 @@ use Tecnodesign_Cache as Cache;
 use Studio\Exception\End as End;
 use Tecnodesign_Exception as Error;
 use Exception;
+use ArrayObject;
 use Tecnodesign_Studio_Asset as Asset;
 
 class App

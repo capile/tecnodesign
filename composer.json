@@ -23,7 +23,7 @@
     "autoload" : {
         "psr-0": {
             "tdz" : "",
-            "Studio" : "src/Studio.php",
+            "Studio" : "src/",
             "exclude-from-classmap": [ "src/" ]
         }
     },
