@@ -16,4 +16,8 @@ if(file_exists($a=__DIR__.'/vendor/autoload.php') || file_exists($a=__DIR__.'/..
 unset($a);
 require_once __DIR__.'/src/Studio.php';
 $appMemoryNamespace = file_exists(S_APP_ROOT.'/.appkey') ? Studio::slug(file_get_contents(S_APP_ROOT.'/.appkey')) : 'app';
-Studio::app(__DIR__.'/app.yml', $appMemoryNamespace, Studio::env())->run();
+if(!file_exists($configFile=S_PROJECT_ROOT.'/'.basename(S_PROJECT_ROOT).'.yml') &&
+   !file_exists($configFile=S_APP_ROOT.'/'.basename(S_APP_ROOT).'.yml')) {
+    $configFile = __DIR__.'/app.yml';
+}
+Studio::app($configFile, $appMemoryNamespace, Studio::env())->run();

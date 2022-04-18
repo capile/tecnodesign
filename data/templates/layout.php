@@ -36,9 +36,7 @@ if(($accept=App::request('headers', 'accept')) && preg_match('#^(text|applicatio
     exit();
 }
 
-
-
-if((!isset($script) || !$script) && isset($variables['script'])) $script = $variables['script'];
+if((!isset($script) || !$script || (count($script)==1 && isset($script[700]))) && isset($variables['script'])) $script = ($script) ?$script+$variables['script'] :$variables['script'];
 if((!isset($style) || !$style || (count($style)==1 && isset($style[700]))) && isset($variables['style']))  $style  = $variables['style'];
 
 if(isset($script)) {

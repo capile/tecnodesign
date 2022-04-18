@@ -764,7 +764,7 @@ class Entries extends Model
             }
 
             // redirect rules: if it's a folder, S::scriptName() must end with / otherwise, can't end with /
-            if($redirect) {
+            if($P && $redirect) {
                 if(substr($url, -1)!=='/' && S::scriptName()===$url && ((substr($P->link, -1)==='/' && $P->link===$url.'/') || ($P->source && preg_replace('/\..*$/', '', basename($P->source))===static::$indexFile))) {
                     S::redirect($url.'/');
                 }
