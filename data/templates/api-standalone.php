@@ -75,12 +75,12 @@ if(!isset($action)) $action = $Interface['action'];
             // list counter
             if(isset($searchForm)) {
                 if(isset($options['before-search-form'])) echo S::markdown($options['before-search-form']);
-                echo '<div class="'.$Interface::$attrSearchClass.'">'.$searchForm.'</div>';
+                echo '<div class="'.$Interface->config('attrSearchClass').'">'.$searchForm.'</div>';
                 if(isset($options['after-search-form'])) echo S::markdown($options['after-search-form']);
                 $content = true;
             }
 
-            echo '<span class="'.$Interface::$attrCounterClass.'">';
+            echo '<span class="'.$Interface->config('attrCounterClass').'">';
             if(isset($searchCount)) {
                 if($searchCount<=0) {
                     echo sprintf($Interface::t('listNoSearchResults'), S::number($count,0), $searchTerms);
@@ -103,13 +103,12 @@ if(!isset($action)) $action = $Interface['action'];
                 unset($end);
             }
             echo '</span>';
-
         }
 
     ?></div><?php 
 
     if(isset($list)): 
-        ?><div class="<?php echo $Interface::$attrListClass; ?>"><?php
+        ?><div class="<?php echo $Interface->config('attrListClass'); ?>"><?php
             if(is_string($list)) {
                 echo $list;
                 $content = true;
@@ -121,7 +120,7 @@ if(!isset($action)) $action = $Interface['action'];
                 $listOptions = (isset($options['list-options']) && is_array($options['list-options'])) ?$options['list-options'] +$options :$options;
                 $sn = S::scriptName(true);
                 S::scriptName($Interface->link());
-                echo $list->paginate($listLimit, $listRenderer, array('options'=>$listOptions), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
+                echo $list->paginate($listLimit, $listRenderer, array('options'=>$listOptions), $Interface->config('listPagesOnTop'), $Interface->config('listPagesOnBottom'));
                 S::scriptName($sn);
                 unset($sn);
                 $content = true;
@@ -131,7 +130,7 @@ if(!isset($action)) $action = $Interface['action'];
     endif;
 
     if(isset($preview)): 
-        ?><div class="<?php echo $Interface::$attrPreviewClass; ?>"><?php
+        ?><div class="<?php echo $Interface->config('attrPreviewClass'); ?>"><?php
             if(is_object($preview) && $preview instanceof Model) {
                 $box = $preview::$boxTemplate;
                 $preview::$boxTemplate = $Interface::$boxTemplate;
@@ -161,7 +160,5 @@ if(!isset($action)) $action = $Interface['action'];
 
     if(isset($options['after-'.$Interface['action']])) echo S::markdown($options['after-'.$Interface['action']]);
     else if(isset($options['after'])) echo S::markdown($options['after']);
-
-
 
 ?></div><?php

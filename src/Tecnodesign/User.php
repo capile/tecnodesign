@@ -934,11 +934,8 @@ class Tecnodesign_User
         $uc = $this->getCredentials();
         if(!is_array($uc)) $uc=array();
         if(!is_array($credentials)) {
-            if(!is_string($credentials)) {
-                $credentials = (string) $credentials;
-            }
             $neg = false;
-            if(static::$enableNegCredential && substr($credentials, 0, 1)=='!') {
+            if(static::$enableNegCredential && is_string($credentials) && substr($credentials, 0, 1)=='!') {
                 $neg = true;
                 $credentials = substr($credentials, 1);
             }
