@@ -1329,6 +1329,8 @@ class Tecnodesign_Query_Sql
                     if($fd->size) $d[0] = $fd->size;
                     $q .='('.implode(',', $d).')';
                 }
+            } else if($type=='string' && (!isset($fd['size']) || $fd['size']>8000)) {
+                $q .= (!isset($fd['size']) || $fd['size']<65000) ?'text' :'blob';
             } else if($type=='string') {
                 $q .= 'varchar('
                     . ((isset($fd['size']))?((int)$fd['size']):(255))

@@ -1121,6 +1121,8 @@ class Tecnodesign_Form_Field implements ArrayAccess
                     $multiple = true;
                 } else if(substr($ts, -1)=='/') {
                     $multiple = true;
+                } else if(strpos($ts, '/')===false && isset(tdz::$formats[$ts])) {
+                    $ts = tdz::$formats[$ts];
                 }
                 if($multiple) {
                     foreach(tdz::$formats as $ext=>$tn) {
