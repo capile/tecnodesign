@@ -2,7 +2,7 @@
 all:
   model: Studio\Model\Users
   options:
-    list-parent: i
+    list-parent: interfaces
     priority: 40
     index: true
     scope:

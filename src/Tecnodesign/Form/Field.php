@@ -1560,7 +1560,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
             }
             $this->label = tdz::t(trim($label), $ttable);
         }
-        if(substr($this->label, 0, 1)=='*' && strlen($this->label)>1) {
+        if($this->label && substr($this->label, 0, 1)=='*' && strlen($this->label)>1) {
             if(!$ttable) {
                 $ttable = 'labels';
                 if($schema=$this->getSchema()) {

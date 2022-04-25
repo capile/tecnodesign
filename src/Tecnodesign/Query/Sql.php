@@ -995,7 +995,7 @@ class Tecnodesign_Query_Sql
         if($enclose && static::$conn) {
             foreach(static::$conn as $n=>$C) {
                 if($C && (is_resource($C) || method_exists($C, 'quote'))) {
-                    return $C->quote($str);
+                    return $C->quote((string)$str);
                 }
                 unset($n, $C);
             }

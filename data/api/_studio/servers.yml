@@ -1,6 +1,6 @@
 ---
 all:
-  title: "*API Connectors"
+  title: "*API Servers"
   model: Studio\Model\Tokens
   actions:
     connect:

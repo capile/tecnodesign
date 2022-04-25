@@ -160,7 +160,7 @@ class Api implements ArrayAccess
         $additionalActions  = [ ],
         $listAction         = 'preview',
         $modelRenderPrefix  = 'render',
-        $actionsDefault     = [ 'preview', 'list' ],
+        $actionsDefault     = [ 'list', 'preview' ],
         $share              = null,
         $boxTemplate        = '<div class="s-api-scope-block scope-$ID" data-action-scope="$ID">$INPUT</div>',
         $breadcrumbTemplate = '<div class="z-breadcrumbs">$LABEL</div>',
