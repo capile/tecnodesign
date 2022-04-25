@@ -15,7 +15,7 @@ use Studio as S;
 use Studio\App;
 
 $id = S::slug($url);
-$cPrefix = $Interface::$attrClassPrefix;
+$cPrefix = $Interface->config('attrClassPrefix');
 $link = $url;
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
@@ -24,7 +24,7 @@ if(isset($title)) App::response('title', $title);
 if(!isset($action)) $action = $Interface['action'];
 
 $nav = null;
-if($Interface::$navigation) {
+if($Interface->config('navigation')) {
     if(!App::request('ajax') || App::request('headers', 'z-navigation')) {
         $nav = $Interface::listInterfaces();
     }
@@ -48,7 +48,7 @@ if(isset($attributes) && is_array($attributes)) {
 // .s-api-header
 ?><div class="s-api-header"<?php 
     if($nav) echo ' data-toggler="off"';
-    if($Interface::$headerOverflow) echo ' data-overflow="1"';
+    if($Interface->config('headerOverflow')) echo ' data-overflow="1"';
     echo '>'; 
     if($nav) echo '<a href="'.S::xml($Interface::base()).'" class="z-spacer z-left z-nav" data-draggable-style="width:{w0}"></a>';
     $urls = $Interface::$urls;
@@ -80,8 +80,7 @@ if(isset($attributes) && is_array($attributes)) {
     ?><div<?php foreach($a as $k=>$v) echo ' '.S::slug($k, '-_').'="'.S::xml($v).'"'; ?>><?php
         // .z-i-actions
         if(!isset($buttons)) $buttons = null;
-        if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface::$attrButtonsClass); ?>"><?php
-            /*if(count($Interface::$urls)>1): ?><a class="s-api-a z-i--close" href="<?php echo S::xmlEscape(array_shift(array_keys($Interface::$urls))) ?>"></a><?php endif;*/
+        if($buttons): ?><div class="<?php echo trim('z-i-actions '.$Interface->config('attrButtonsClass')); ?>"><?php
             ?><input type="checkbox" id="s-api-b-<?php echo $id; ?>" class="s-switch z-i-actions" /><label for="s-api-b-<?php echo $id; ?>"><?php
             echo $Interface::t('labelActions'); ?></label><div class="s-buttons s-switched"><?php
                 echo $buttons; 
@@ -90,13 +89,14 @@ if(isset($attributes) && is_array($attributes)) {
         // .s-api-container
         ?><div class="s-api-container"><?php 
 
-            if($title && $Interface::$breadcrumbs) {
+            if($title && $Interface->config('breadcrumbs')) {
                 $urls = $Interface::$urls;
                 if(!$urls) {
                     $urls = array(array('title'=>$title));
                 }
                 $b = '';
-                $la = ($Interface::$actionAlias && isset($Interface::$actionAlias['list']))?($Interface::$actionAlias['list']):('list');
+                $la = $Interface->config('actionAlias', 'list');
+                if(!$la) $la = 'list';
                 foreach($urls as $iurl=>$t) {
                     $ltitle = (isset($t['icon'])) ?'<img src="'.S::xml($t['icon']).'" title="'.S::xml($t['title']).'" />' :S::xml($t['title']);
                     if($iurl && $iurl!=$link && !($t['title']==$title && $link=$iurl.'/'.$la)) {
@@ -108,7 +108,7 @@ if(isset($attributes) && is_array($attributes)) {
                 }
 
                 if($b) {
-                    echo str_replace('$LABEL', $b, $Interface::$breadcrumbTemplate);
+                    echo str_replace('$LABEL', $b, $Interface->config('breadcrumbTemplate'));
                 }
             }
 
@@ -126,7 +126,7 @@ if(isset($attributes) && is_array($attributes)) {
                 if(isset($app)) echo $app;
 
                 if(isset($list) && ($g=$Interface->renderGraph())):
-                    ?><div class="<?php echo $Interface::$attrGraphClass; ?>"><?php
+                    ?><div class="<?php echo $Interface->config('attrGraphClass'); ?>"><?php
                         echo $g;
                     ?></div><?php
                 endif;
@@ -138,7 +138,7 @@ if(isset($attributes) && is_array($attributes)) {
                         echo '<div class="'.$cPrefix.'-search">'.$searchForm.'</div>';
                         if(isset($options['after-search-form'])) echo S::markdown($options['after-search-form']);
                     // list counter
-                    echo '<span class="'.$Interface::$attrCounterClass.'">';
+                    echo '<span class="'.$Interface->config('attrCounterClass').'">';
                     if(isset($searchCount)) {
                         if($searchCount<=0) {
                             echo sprintf($Interface::t('listNoSearchResults'), S::number($count,0), $searchTerms);
@@ -177,7 +177,7 @@ if(isset($attributes) && is_array($attributes)) {
                         if(!is_object($list)) {
                             $list = new Tecnodesign_Collection($list, $Interface->getModel());
                         }
-                        echo $list->paginate($listLimit, $listRenderer, array('options'=>$options), $Interface::$listPagesOnTop, $Interface::$listPagesOnBottom);
+                        echo $list->paginate($listLimit, $listRenderer, array('options'=>$options), $Interface->config('listPagesOnTop'), $Interface->config('listPagesOnBottom'));
                         S::scriptName($sn);
                         unset($sn);
                     }
@@ -188,7 +188,7 @@ if(isset($attributes) && is_array($attributes)) {
             if(isset($preview)): 
                 ?><div class="<?php echo $cPrefix, '-preview'; ?>"><?php
                     $next = null;
-                    if(in_array($Interface['action'], ['update', 'preview', 'new']) && !$Interface::$standalone) {
+                    if(in_array($Interface['action'], ['update', 'preview', 'new']) && !$Interface->config('standalone')) {
                         $next = ($Interface['action']=='update')?('preview'):('update');
                         if(!isset($Interface['actions'][$next]) || (isset($Interface['actions'][$next]['auth']) && !$Interface::checkAuth($Interface['actions'][$next]['auth']))) {
                             $next = null;
@@ -202,10 +202,10 @@ if(isset($attributes) && is_array($attributes)) {
 
                     if(is_object($preview) && $preview instanceof Studio\Model) {
                         $box = $preview::$boxTemplate;
-                        $preview::$boxTemplate = $Interface::$boxTemplate;
+                        $preview::$boxTemplate = $Interface->config('boxTemplate');
                         $excludeEmpty=(isset($options['preview-empty'])) ?!$options['preview-empty'] :null;
                         $showOriginal=(isset($options['preview-original'])) ?$options['preview-original'] :null;
-                        echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface::$previewTemplate, $Interface::$headingTemplate, $excludeEmpty, $showOriginal);
+                        echo $preview->renderScope($options['scope'], $xmlEscape, false, $Interface->config('previewTemplate'), $Interface->config('headingTemplate'), $excludeEmpty, $showOriginal);
                         $preview::$boxTemplate = $box;
                         unset($preview);
                     } else {

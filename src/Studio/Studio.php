@@ -270,7 +270,7 @@ class Studio
                 '/s'=>'listInterfaces',
                 //'/q'=>'listInterfaces',
             );
-            if(!($U=S::getUser()) || !$U->isAuthenticated() || !($U->isSuperAdmin() || ($c=self::credential(array('studio','edit','previewUnpublished'))) && $U->hasCredential($c, false))) {
+            if(!($U=S::getUser()) || !$U->isAuthenticated() || !($U->isSuperAdmin() || !($c=self::credential(array('studio','edit','previewUnpublished'))) || $U->hasCredential($c, false))) {
                 return self::error(403);
             }
 

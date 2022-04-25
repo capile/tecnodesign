@@ -72,6 +72,7 @@ class Api implements ArrayAccess
         $attrClassPrefix    = 's-api',
         $attrErrorClass     = 's-msg s-msg-error',
         $attrSearchFormClass= 's-form-search',
+        $attrSearchClass    = 's-form-search', // deprecated, use attrSearchFormClass
         $attrCounterClass   = 's-counter',
         $attrGraphClass     = 'z-i-graph',
         $attrFormClass      = 'z-form',
@@ -876,7 +877,7 @@ class Api implements ArrayAccess
                 return true;
             }
         }
-        if(isset($c['credential'])) {
+        if(array_key_exists('credential', $c)) {
             if(!$c['credential']) {
                 return true;
             } else {
