@@ -12,7 +12,7 @@
         "less-plugin-clean-css": "^1.5.1",
         "less-plugin-sass2less": "^1.2.0",
         "lessc": "^1.0.2",
-        "moment": "2.29.*",
+        "moment": "2.29.2",
         "node-ipc": "^9.1.4",
         "pell": "1.0.*",
         "pikaday-time": "1.6.1",
