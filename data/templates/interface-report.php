@@ -37,7 +37,7 @@ if($format=='html') {
     $Interface::format($format);
 }
 
-if(!isset($m['filename'])) $m['filename']=$interface;
+if(!isset($m['filename'])) $m['filename']=$interface.'-'.$action;
 $fname = $m['filename'];
 $filename = TDZ_VAR.'/cache/interface-report/'.date('YmdHis', floor(TDZ_TIME)).substr(fmod(TDZ_TIME,1), 1, 5).'-'.$fname;
 if(!is_dir(dirname($filename))) mkdir(dirname($filename), 0777, true);
@@ -185,7 +185,7 @@ while($list || $worksheet) {
                 }
                 $R->addContent(array(
                     'content'=>$e,
-                    'use'=>'.normal',
+                    'use'=>'.normal,.p-'.$action,
                     'position'=>array(1, '+1'),
                 ));
                 unset($e, $d[$i], $i, $v);

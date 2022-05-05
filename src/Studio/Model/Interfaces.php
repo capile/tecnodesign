@@ -14,12 +14,12 @@ use Studio\Model as Model;
 use Studio\Schema as Schema;
 use Studio\OAuth2\Storage as Storage;
 use Studio\OAuth2\Client as Client;
-use Tecnodesign_Schema_Model as ModelSchema;
-use Tecnodesign_Studio as Studio;
-use Tecnodesign_App as App;
-use Tecnodesign_Query_Api as Api;
-use Tecnodesign_Interface as SInterface;
-use tdz as S;
+use Studio\Schema\Model as ModelSchema;
+use Studio\Studio as Studio;
+use Studio\App as App;
+use Tecnodesign_Query_Api as QueryApi;
+use Tecnodesign_Interface as StudioApi;
+use Studio as S;
 
 class Interfaces extends Model
 {
@@ -194,13 +194,13 @@ class Interfaces extends Model
             try {
                 $m = 'import'.S::camelize($d['_schema_source_type'], true);
                 $msg = '';
-                if($R = Api::runStatic($d['schema_source'])) {
+                if($R = QueryApi::runStatic($d['schema_source'])) {
                     $S->$m($R, $msg);
                     $s .= $msg;
                 }
             } catch(\Exception $e) {
                 S::log('[ERROR] Could not import '.S::serialize($d, 'json').': '.$e->getMessage()."\n{$e}");
-                $msg = '<div class="z-i-msg z-i-error">'.S::t(SInterface::$importError).'<br />'.S::xml($e->getMessage()).'</div>';
+                $msg = '<div class="z-i-msg z-i-error">'.S::t(StudioApi::$importError).'<br />'.S::xml($e->getMessage()).'</div>';
             }
         }
 
@@ -255,7 +255,7 @@ class Interfaces extends Model
 
                 $T->options = $options;
                 $T->save();
-                $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(SInterface::$importSuccess), $T::label(), (string)$T).'</div>';
+                $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(StudioApi::$importSuccess), $T::label(), (string)$T).'</div>';
             }
         }
         // loop through paths and import APIs
@@ -282,7 +282,7 @@ class Interfaces extends Model
                     $a['schema_data'] = S::serialize($sc, 'json');
 
                     $A = self::replace($a);
-                    $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(SInterface::$importSuccess), $A::label(), (string)$A).'</div>';
+                    $msg .= '<div class="z-i-msg z-i-success">'.sprintf(S::t(StudioApi::$importSuccess), $A::label(), (string)$A).'</div>';
                 }
             }
         }

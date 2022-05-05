@@ -1705,7 +1705,8 @@ class Tecnodesign_Interface extends Studio\Api
             if(!$o) $o = $this->model([], 1, false, true);
             $this->text['preview'] = $o->$m($this);
             unset($o);
-        } else if(method_exists($this, $m='render'.tdz::camelize($this->action, true))) {
+        } else if((isset($this->actions[$this->action]['renderer']) && ($m=$this->actions[$this->action]['renderer']) && method_exists($this, $m)) 
+            || (method_exists($this, $m='render'.tdz::camelize($this->action, true)))) {
             $this->getButtons();
             $this->text['preview'] = $this->$m();
         } else {
@@ -3551,7 +3552,7 @@ class Tecnodesign_Interface extends Studio\Api
                     if(isset($fd0['label'])) $label = $fd0['label'];
                 }
 
-                if(strpos($fn, ' ')) {
+                if(is_string($fn) && strpos($fn, ' ')) {
                     $fn = preg_replace('/\s+_[a-z0-9\_]+$/', '', $fn);
                     $scope[$k]=$fn;
                 }
@@ -3561,7 +3562,12 @@ class Tecnodesign_Interface extends Studio\Api
                 } else if(is_int($label)) {
                     $label = $cn::fieldLabel($fn);
                 }
-                $fd = $cn::column($fn, true, true);
+
+                $fn0 = $fn;
+                if(is_array($fn)) {
+                    $fn0 = array_values($fn)[0];
+                }
+                $fd = $cn::column($fn0, true, true);
                 if(!$fd) {
                     $fd = array('type'=>'text');
                 }
@@ -3638,7 +3644,7 @@ class Tecnodesign_Interface extends Studio\Api
                     );
                     if(isset($fd['attributes'])) $fo['fields'][$slug]['attributes'] = $fd['attributes'];
                     if(isset($post[$slug])) $active=true;
-                } else if($type=='bool' || $fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
+                } else if($type=='bool' || $fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn0)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
                     if(!isset($cb))
                         $cb=array('1'=>static::t('Yes'), '-1'=>static::t('No'));
                     $fo['fields'][$slug]=array(
@@ -3702,7 +3708,7 @@ class Tecnodesign_Interface extends Studio\Api
                     }
                     if(isset($post['q'])) $active = true;
                 }
-                unset($scope[$k], $k, $fd, $fdo, $label, $fn, $slug);
+                unset($scope[$k], $k, $fd, $fdo, $label, $fn, $fn0, $slug);
             }
 
             if(isset($fo['fields']['w']) && !$fo['fields']['w']) unset($fo['fields']['w']);
@@ -3802,7 +3808,18 @@ class Tecnodesign_Interface extends Studio\Api
                     }
                 } else if($ff[$k]=='choices') {
                     if(tdz::isempty($v) || !is_object($F[$k0])) continue;
-                    $S[$fns[$k]] = $v;
+                    if(is_array($fns[$k])) {
+                        $sq = [];
+                        foreach($fns[$k] as $st) {
+                            if(!preg_match('/^[\|\&]/', $st)) $sq['|'.$st] = $v;
+                            else $sq[$st] = $v;
+                            unset($st);
+                        }
+                        $S[] = $sq;
+                        unset($sq);
+                    } else {
+                        $S[$fns[$k]] = $v;
+                    }
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.$this->config('attrParamClass').'">'.$F[$k0]->label.'</span>: '
                                 . '<span class="'.$this->config('attrTermClass').'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
@@ -3978,6 +3995,9 @@ class Tecnodesign_Interface extends Studio\Api
     {
         static $dd;
         if(is_null($dd)) $dd = tdz::getApp()->config('app', 'data-dir');
+        if(substr($s, 0, 7)==='studio:' && file_exists($f=S_ROOT.'/data/api/_studio/'.tdz::slug(substr($s,7), '/_').'.yml') && !in_array($f, $skip)) {
+            return $f;
+        }
         $s = tdz::slug($s, '/_',true);
         if(!is_array($skip)) $skip = [];
 
