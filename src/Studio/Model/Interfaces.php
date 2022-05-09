@@ -184,7 +184,7 @@ class Interfaces extends Model
         if(file_exists($f)) return $f;
     }
 
-    public function executeImport($Interface=null)
+    public static function executeImport($Interface=null)
     {
         if(!($p=S::urlParams()) && ($route = App::response('route'))) {
             S::scriptName($route['url']);

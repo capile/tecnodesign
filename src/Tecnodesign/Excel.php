@@ -478,19 +478,28 @@ class Tecnodesign_Excel
         $style = (isset($c['style']))?($this->val($c['style'])):(array());
         $on = '::nth-child('.((int)$x).')';
         if(isset($this->style[$on])) $style += $this->style[$on];
-        if(isset($c['use'])) {
-            if($x!==false && $y!==false) {
-                $ox = ($x%2)?($c['use'].':odd'):($c['use'].':even');
-                $oy = ($y%2)?(':odd '.$c['use']):(':even '.$c['use']);
-                $o = ($y%2)?(':odd '.$ox):(':even '.$ox);
-                if(isset($this->style[$oy.$on])) $style += $this->style[$oy.$on];
-                if(isset($this->style[$c['use'].$on])) $style += $this->style[$c['use'].$on];
-                if(isset($this->style[$o])) $style += $this->style[$o];
-                if(isset($this->style[$ox])) $style += $this->style[$ox];
-                if(isset($this->style[$oy])) $style += $this->style[$oy];
-                //tdz::log(array($on, $oy.$on, $c['use'].$on, $o, $ox, $oy, $c['use']));
+        if(isset($c['use']) && $c['use']) {
+            $sns = preg_split('/[, ]+/', $c['use'], -1, PREG_SPLIT_NO_EMPTY);
+            foreach($sns as $i=>$sn) {
+                if($x!==false && $y!==false) {
+                    $ox = ($x%2)?($sn.':odd'):($sn.':even');
+                    $oy = ($y%2)?(':odd '.$sn):(':even '.$sn);
+                    $o = ($y%2)?(':odd '.$ox):(':even '.$ox);
+                    if(isset($this->style[$oy.$on])) $style += $this->style[$oy.$on];
+                    if(isset($this->style[$sn.$on])) $style += $this->style[$sn.$on];
+                    if(isset($this->style[$o])) $style += $this->style[$o];
+                    if(isset($this->style[$ox])) $style += $this->style[$ox];
+                    if(isset($this->style[$oy])) $style += $this->style[$oy];
+                }
+                if(isset($this->style[$sn])) $style += $this->style[$sn];
+                unset($i, $sn);
             }
-            if(isset($this->style[$c['use']]))$style += $this->style[$c['use']];
+
+            if($i>0) {
+                $sn = implode(',', $sns);
+                if(isset($this->style[$sn])) $style += $this->style[$sn];
+            }
+            unset($sns);
         }
         if($cn && !is_numeric($cn) && isset($this->style[$cn])) {
             $style += $this->style[$cn];

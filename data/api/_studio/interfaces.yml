@@ -32,19 +32,24 @@ all:
       import:
         __default:
           fieldset: "*Connect to API"
-        "*Source":
+          class: i1s2
+        "*Schema Source URL":
           bind: schema_source
           format: url
           required: true
-        "*Source Type":
+        "*API Type":
           bind: _schema_source_type
           choices:
             openapi: OpenAPI
             SCIM: SCIM
             swagger: Swagger
-          format: radio
+          format: select
           required: true
         "*ID Prefix": id
+        "*Connection":
+          bind: connection
+          format: select
+          choices: choicesConnection
       n:
         __default:
           type: text

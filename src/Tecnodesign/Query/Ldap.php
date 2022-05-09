@@ -75,6 +75,7 @@ class Tecnodesign_Query_Ldap
                     if(substr($crt, 0, 1)!='/') $crt = TDZ_APP_ROOT.'/'.$crt;
                     putenv('LDAPTLS_CACERT='.$crt);
                 }
+                putenv('LDAPTLS_REQCERT=ALLOW');
                 $level = 'connect';
                 static::$conn[$n] = $ldapconn = ldap_connect($db['dsn']);
                 if(!static::$conn[$n]) {

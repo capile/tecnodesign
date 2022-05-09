@@ -1780,7 +1780,8 @@ class Api implements ArrayAccess
             if(!$o) $o = $this->model([], 1, false, true);
             $this->text['preview'] = $o->$m($this);
             unset($o);
-        } else if(method_exists($this, $m='render'.S::camelize($this->action, true))) {
+        } else if((isset($this->actions[$this->action]['renderer']) && ($m=$this->actions[$this->action]['renderer']) && method_exists($this, $m)) 
+            || (method_exists($this, $m='render'.S::camelize($this->action, true)))) {
             $this->getButtons();
             $this->text['preview'] = $this->$m();
         } else {
@@ -3629,7 +3630,7 @@ class Api implements ArrayAccess
                     if(isset($fd0['label'])) $label = $fd0['label'];
                 }
 
-                if(strpos($fn, ' ')) {
+                if(is_string($fn) && strpos($fn, ' ')) {
                     $fn = preg_replace('/\s+_[a-z0-9\_]+$/', '', $fn);
                     $scope[$k]=$fn;
                 }
@@ -3639,7 +3640,11 @@ class Api implements ArrayAccess
                 } else if(is_int($label)) {
                     $label = $cn::fieldLabel($fn);
                 }
-                $fd = $cn::column($fn, true, true);
+                $fn0 = $fn;
+                if(is_array($fn)) {
+                    $fn0 = array_values($fn)[0];
+                }
+                $fd = $cn::column($fn0, true, true);
                 if(!$fd) {
                     $fd = array('type'=>'text');
                 }
@@ -3716,7 +3721,7 @@ class Api implements ArrayAccess
                     );
                     if(isset($fd['attributes'])) $fo['fields'][$slug]['attributes'] = $fd['attributes'];
                     if(isset($post[$slug])) $active=true;
-                } else if($type=='bool' || $fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
+                } else if($type=='bool' || $fd['type']=='bool' || (isset($fd['foreign']) || (($fdo = $cn::column($fn0)) && isset($fdo['type']) && $fdo['type']=='bool'))) {
                     if(!isset($cb))
                         $cb=array('1'=>static::t('Yes'), '-1'=>static::t('No'));
                     $fo['fields'][$slug]=array(
@@ -3780,7 +3785,7 @@ class Api implements ArrayAccess
                     }
                     if(isset($post['q'])) $active = true;
                 }
-                unset($scope[$k], $k, $fd, $fdo, $label, $fn, $slug);
+                unset($scope[$k], $k, $fd, $fdo, $label, $fn, $fn0, $slug);
             }
 
             if(isset($fo['fields']['w']) && !$fo['fields']['w']) unset($fo['fields']['w']);
@@ -3880,7 +3885,18 @@ class Api implements ArrayAccess
                     }
                 } else if($ff[$k]=='choices') {
                     if(S::isempty($v) || !is_object($F[$k0])) continue;
-                    $S[$fns[$k]] = $v;
+                    if(is_array($fns[$k])) {
+                        $sq = [];
+                        foreach($fns[$k] as $st) {
+                            if(!preg_match('/^[\|\&]/', $st)) $sq['|'.$st] = $v;
+                            else $sq[$st] = $v;
+                            unset($st);
+                        }
+                        $S[] = $sq;
+                        unset($sq);
+                    } else {
+                        $S[$fns[$k]] = $v;
+                    }
                     $this->text['searchTerms'] .= (($this->text['searchTerms'])?('; '):(''))
                                 . '<span class="'.$this->config('attrParamClass').'">'.$F[$k0]->label.'</span>: '
                                 . '<span class="'.$this->config('attrTermClass').'">'.$cn::renderAs($v, $fns[$k], ((isset($fo['fields'][$k]))?($fo['fields'][$k]):(null))).'</span>';
@@ -4076,8 +4092,9 @@ class Api implements ArrayAccess
     {
         static $dd;
         if(is_null($dd)) $dd = App::config('app', 'data-dir');
-
-        if(Studio::config('enable_interface_index') && ($r=Interfaces::findCacheFile($s)) && !in_array($r, $skip)) {
+        if(substr($s, 0, 7)==='studio:' && file_exists($f=S_ROOT.'/data/api/_studio/'.S::slug(substr($s,7), '/_').'.yml') && !in_array($f, $skip)) {
+            return $f;
+        } else if(Studio::config('enable_interface_index') && ($r=Interfaces::findCacheFile($s)) && !in_array($r, $skip)) {
             return $r;
         }
 
