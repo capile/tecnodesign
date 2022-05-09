@@ -15,10 +15,12 @@ use Studio\Api;
 use Studio\App;
 use Studio\Model;
 use Studio\Schema;
+use Studio\Model\Tokens;
 use Studio\OAuth2\Storage;
 use Studio\OAuth2\Client;
 use Studio\Studio;
 use Tecnodesign_Schema_Model as ModelSchema;
+use Tecnodesign_Query as Query;
 use Tecnodesign_Query_Api as QueryApi;
 use Tecnodesign_Yaml as Yaml;
 
@@ -299,5 +301,36 @@ class Interfaces extends Model
 
         // combine models?
         return true;
+    }
+
+    public static function choicesConnection()
+    {
+        static $r;
+        if(is_null($r)) {
+            $r = [];
+            $L = Tokens::find(['type'=>'server'],null,['id'],false);
+            $sources = 0;
+            if($L) {
+                $sources++;
+                foreach($L as $i=>$o) {
+                    $r['server:'.$o->id] = $o->id;
+                    unset($L[$i], $i, $o);
+                }
+            }
+            $L = null;
+            $L = Query::database();
+            if($L) {
+                $sources++;
+                foreach($L as $i=>$o) {
+                    $n = (isset($o['name'])) ?$o['name'] :$i;
+                    $r[$i] = $n;
+                    unset($L[$i], $i, $o, $n);
+                }
+            }
+            $L = null;
+        }
+
+        if($sources > 1) asort($r);
+        return $r;
     }
 }

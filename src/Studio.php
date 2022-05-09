@@ -11,6 +11,8 @@
  * @version   2.7
  */
 use Studio\App as App;
+use Studio\Model;
+use Studio\Model\Entries;
 use Tecnodesign_Cache as Cache;
 use Tecnodesign_Query as Query;
 use Tecnodesign_Exception as AppException;
@@ -3039,6 +3041,39 @@ class Studio
         } else {
             if(self::$log) self::log($s." ({$mem}M)");
         }
+    }
+
+    public static function list($list, $childProperty='nav')
+    {
+        $s = '';
+        if(is_object($list) && ($list instanceof Collection)) {
+            $list = $list->getItems();
+        }
+        if($list && count($list)>0) {
+            foreach($list as $i=>$e) {
+                if(is_object($e) && ($e instanceof Entries)) {
+                    $c = ($e->id==self::$page)?(' class="current"'):('');
+                    $s .= '<li'.$c.'>'
+                        . (($e['link'])?('<a'.$c.' href="'.self::xml($e['link']).'">'.self::xml($e['title']).'</a>'):(self::xml($e['title'])))
+                        .  (($e instanceof Entries)?(self::list($e->getChildren(), $childProperty)):(''))
+                        . '</li>';
+                } else {
+                    $n = null;
+                    $a = (is_array($e) || ($e instanceof Model));
+                    if(!is_int($i)) $n = '<em>'.self::xml($i).': </em>';
+                    else if($a && isset($e['title'])) $n = self::xml($e['title']);
+                    if(!$a) $n .= self::xml($e);
+                    $s .= '<li>'
+                        . (($a && isset($e['link']))?('<a href="'.self::xml($e['link']).'">'.$n.'</a>'):($n))
+                        .  (($a && isset($e[$childProperty]))?(self::li($e[$childProperty], $childProperty)):(''))
+                        . '</li>';
+                }
+            }
+            if($s) {
+                $s = '<ul>'.$s.'</ul>';
+            }
+        }
+        return $s;
     }
 }
 

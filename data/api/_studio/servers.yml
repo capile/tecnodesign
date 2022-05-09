@@ -2,6 +2,9 @@
 all:
   title: "*API Servers"
   model: Studio\Model\Tokens
+  auth:
+    credential:
+      - admin
   actions:
     connect:
       action: executeMethod
@@ -25,7 +28,7 @@ all:
     type: server
   options:
     priority: 1010
-    list-parent: interfaces
+    list-parent: tokens
     index: true
     scope:
       uid:

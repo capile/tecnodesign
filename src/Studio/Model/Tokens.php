@@ -28,10 +28,20 @@ class Tokens extends Model
     public static $schema;
     protected $id, $type, $token, $user, $options, $created, $updated, $expires;
 
-    public static $types=[
-        'server'=>'Connection',
+    public static $types = [
+      'access_token'=>'Access Token',
+      'authorization_code' => 'Authorization Code',
+      'client_credentials' => 'Client Credentials',
+      'client' => 'Client',
+      'jwt_bearer' => 'JWT',
+      'public_key' => 'Public Key',
+      'refresh_token' => 'Refresh Token',
+      'scope' => 'Scope',
+      'server' => 'Server',
+      'authorization' => 'Server authorization',
+      'user_claims' => 'User Claims',
+      'user_credentials' => 'User Credentials',
     ];
-
 
     public function __toString()
     {
@@ -181,4 +191,60 @@ class Tokens extends Model
         return $v;
     }
 
+    public static function choicesType()
+    {
+        return static::$types;
+    }
+
+    public function previewOptions()
+    {
+        static $hide = ['client_secret', 'private_key'];
+
+        $s = null;
+        $r = $this->options;
+        if(is_string($r)) $r = S::unserialize($r, 'json');
+
+        foreach($r as $i=>$o) {
+            if(in_array($i, $hide)) {
+                $v = S::xml(substr($o, 0, 4)).'****';
+            } else if(is_array($o)) {
+                $v = S::list($o);
+            } else {
+                $v = S::xml($o);
+            }
+            $s .= '<dt>'.S::xml($i).'</dt><dd>'.$v.'</dd>';
+            unset($r[$i], $i, $o, $v);
+        }
+
+        if($s) $s = '<dl>'.$s.'</dl>';
+        return $s;
+    }
+
+    public function previewId()
+    {
+        static $hide = ['access_token', 'refresh_token'];
+
+        if(!$this->type) $this->refresh(['type']);
+
+        if(in_array($this->type, $hide)) {
+            return $this->previewIdPrivate();
+        }
+
+        return S::xml($this->id);
+    }
+
+    public function previewIdPrivate()
+    {
+        $s = (isset($this->_id_private)) ?$this->_id_private :$this->id;
+
+        if($s) {
+            if(($p=strpos($s, '-')) && $p < 16) {
+                $s = substr($s, 0, $p +5).'****';
+            } else {
+                $s = substr($s, 0, 4).'****';
+            }
+        }
+
+        return $s;
+    }
 }

@@ -1,0 +1,38 @@
+---
+all:
+  title: "*Authentication Tokens"
+  model: Studio\Model\Tokens
+  auth:
+    credential:
+      - admin
+  actions:
+    update: false
+    new: false
+  options:
+    priority: 1008
+    list-parent: ~
+    default-filter:
+      type:
+        - client_credentials
+    scope:
+      review:
+        "*Token ID": id
+        "*Type": type
+        "*User": user
+        "*Created": created
+        "*Expires": expires
+      search:
+        q:
+          ID: id
+          Token: token
+          Type: type
+          User: Profiles.name
+          E-mail: Profiles.email
+        "*User": user
+        "*Type":
+          bind: type
+          multiple: true
+        "*Created": created
+        "*Last Modified": updated
+        "*Expires": expires
+

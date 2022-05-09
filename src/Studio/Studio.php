@@ -996,26 +996,10 @@ class Studio
         return $translated;
     }
 
-
     public static function li($list)
     {
-        $s = '';
-        if($list instanceof Collection) $list = $list->getItems();
-        if($list && count($list)>0) {
-            foreach($list as $e) {
-                $c = ($e->id==self::$page)?(' class="current"'):('');
-                $s .= '<li'.$c.'>'
-                    . (($e['link'])?('<a'.$c.' href="'.S::xml($e['link']).'">'.S::xml($e['title']).'</a>'):(S::xml($e['title'])))
-                    .  (($e instanceof Entries)?(self::li($e->getChildren())):(''))
-                    . '</li>';
-            }
-            if($s) {
-                $s = '<ul>'.$s.'</ul>';
-            }
-        }
-        return $s;
+        return S::list($list);
     }
-
 
     public static function addResponse($a)
     {

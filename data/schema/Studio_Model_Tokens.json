@@ -27,6 +27,8 @@
         "before-delete": [ "actAs" ]
     },
     "overlay": {
+        "type": { "bind": "type", "format": "select", "choices": "choicesType" },
+        "created": { "bind": "created", "format": "datetime" }
     },
     "actAs": {
         "before-insert": { "timestampable": [ "created", "updated" ] },
