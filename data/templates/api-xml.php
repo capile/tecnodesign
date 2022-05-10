@@ -1,1 +1,1 @@
-<?php include 'api-text.php';
+<?php include 'api-txt.php';

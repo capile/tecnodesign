@@ -85,14 +85,15 @@ class Api implements ArrayAccess
                 'identified'=> false,
                 'batch'     => false,
                 'query'     => true,
-                'additional-params'=>true,
+                'additional-params'=>false,
+                'hide-action-param'=>true,
             ],
             'report' => [
                 'position'  => 10,
                 'identified'=> false,
                 'batch'     => false,
                 'query'     => true,
-                'additional-params'=>true,
+                'additional-params'=>false,
                 'renderer'  => 'renderReport',
             ],
             /*
@@ -1074,7 +1075,10 @@ class Api implements ArrayAccess
             }
 
             $this->action = $a;
-            static::$urls[$link=$this->link($a)] = [ 'title' => $this->getTitle(), 'action' => $a ];
+            $link = $this->link($a);
+            if(!isset(static::$urls[$link])) {
+                static::$urls[$link] = [ 'title' => $this->getTitle(), 'action' => $a ];
+            }
 
             if(!$this->auth($a, true)) {
                 return false;
@@ -1593,14 +1597,7 @@ class Api implements ArrayAccess
         }
 
         if(!$a || $a=='text') return $url;
-        if(static::$actionAlias && in_array($a, static::$actionAlias)) {
-            if($aa = array_search($a, static::$actionAlias)) {
-                $url .= '/'.$aa;
-            }
-            unset($aa);
-        } else {
-            $url .= '/'.$a;
-        }
+
         $A = (isset($this->actions[$a]))?($this->actions[$a]):(array());
         if(!is_array($A))$A=array();
         if($aa = $this->config('actionsAvailable', $a)) {
@@ -1609,6 +1606,18 @@ class Api implements ArrayAccess
             $A += $aa;
         }
         unset($aa);
+
+        if(!isset($A['hide-action-param']) || !$A['hide-action-param']) {
+            if(static::$actionAlias && in_array($a, static::$actionAlias)) {
+                if($aa = array_search($a, static::$actionAlias)) {
+                    $url .= '/'.$aa;
+                }
+                unset($aa);
+            } else {
+                $url .= '/'.$a;
+            }
+        }
+
         if(!S::isempty($this->id) || !S::isempty($id)) {
             if($id===true || (S::isempty($id) && isset($A['identified']) && $A['identified'])) {
                 $id = $this->id;
@@ -1774,18 +1783,16 @@ class Api implements ArrayAccess
             }
         }
 
+        $this->getButtons();
         if($one && method_exists($cn, $m=$this->config('modelRenderPrefix').S::camelize($this->action, true))) {
-            $this->getButtons();
             $this->scope((isset($cn::$schema->scope[$this->action]))?($this->action):('preview'));
             if(!$o) $o = $this->model([], 1, false, true);
             $this->text['preview'] = $o->$m($this);
             unset($o);
         } else if((isset($this->actions[$this->action]['renderer']) && ($m=$this->actions[$this->action]['renderer']) && method_exists($this, $m)) 
             || (method_exists($this, $m='render'.S::camelize($this->action, true)))) {
-            $this->getButtons();
             $this->text['preview'] = $this->$m();
         } else {
-            $this->getButtons();
             $this->text['summary'] = $this->getSummary();
             $this->getList($req);
         }
@@ -3146,6 +3153,7 @@ class Api implements ArrayAccess
         // strip current action, leave only the model
         $sn = substr($sn, 0, strrpos($sn, '/'));
         $attrButtonClass = $this->config('attrButtonClass');
+        $cPrefix = $this->config('attrClassPrefix');
         if($attrButtonClass) $attrButtonClass = ' '.$attrButtonClass;
 
         foreach($this->getActions() as $an=>$action) {
@@ -3188,7 +3196,7 @@ class Api implements ArrayAccess
                 }
             }
 
-            $ac = (isset($action['icon'])) ?'z-i-a '.$action['icon'] :'z-i-a z-i--'.$aa;
+            $ac = (isset($action['icon'])) ?'z-i-a '.$action['icon'] :'z-i-a '.$cPrefix.'--'.$aa;
             if(static::$standalone) {
                 if(preg_match('/^\{[a-z0-9\_\-]+\}$/i', $sid) || $an==$this->action) continue;
                 if(!S::isempty($this->id)) {// only show batch or identifiable buttons

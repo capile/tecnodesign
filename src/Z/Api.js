@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Api v2.6 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Api v2.7 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
     "use strict";

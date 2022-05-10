@@ -1,4 +1,4 @@
-/*! Tecnodesign Z.Form v2.6 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
+/*! Tecnodesign Z.Form v2.7 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
 (function()
 {
 
@@ -621,12 +621,12 @@ function preUpload(e)
 
 function errorMsg(o, m)
 {
-    return Z.element.call(o, {e:'div',p:{className:'tdz-i-msg tdz-i-error'},c:m});
+    return Z.element.call(o, {e:'div',p:{className:'z-i-msg z-i-error'},c:m});
 }
 
 function clearMsg(o)
 {
-    var L=o.querySelectorAll('.tdz-i-msg'), i=L.length;
+    var L=o.querySelectorAll('.z-i-msg'), i=L.length;
     while(i--) {
         L[i].parentNode.removeChild(L[i]);
     }
@@ -708,10 +708,10 @@ function uploadFile(file, U)
         if(retries && retryUpload.call(this, url)) return;
 
         // remove any error messages within this form field
-        var M=this.parentNode.querySelectorAll('.tdz-i-msg,.tdz-i-progress'), i=M.length, err=(d && ('message' in d)) ?d.message :'There was an error in the file upload.';
+        var M=this.parentNode.querySelectorAll('.z-i-msg,.tdz-i-progress'), i=M.length, err=(d && ('message' in d)) ?d.message :'There was an error in the file upload.';
         if(err) {
             while(i--) M[i].parentNode.removeChild(M[i]);
-            Z.element({e:'div',p:{className:'tdz-i-error tdz-i-msg'},c:err}, null, this);
+            Z.element({e:'div',p:{className:'z-i-error z-i-msg'},c:err}, null, this);
         }
 
         this.setAttribute('data-status', 'ready');

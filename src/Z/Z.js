@@ -1,5 +1,5 @@
-/*! Tecnodesign Z v2.6 | (c) 2021 Capile Tecnodesign <ti@tecnodz.com> */
-if(!('Z' in window)) window.Z={host:null,uid:'/_me',timeout:0,headers:{},env:'prod',timestamp:null};
+/*! Tecnodesign Z v2.7 | (c) 2022 Capile Tecnodesign <ti@tecnodz.com> */
+if(!('Z' in window)) window.Z={version:2.7, host:null,uid:'/_me',timeout:0,headers:{},env:'prod',timestamp:null};
 (function(Z) {
 "use strict";
 var _ajax={}, _isReady, _onReady=[], _onResize=[], _got=0, _langs={}, _assetUrl, _assets={},

@@ -14,5 +14,4 @@
  */
 class Tecnodesign_Interface extends Studio\Api
 {
-    public static $className='Tecnodesign_Interface';
 }

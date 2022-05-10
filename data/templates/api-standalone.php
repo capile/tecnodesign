@@ -17,6 +17,7 @@ use Studio\Model;
 use Tecnodesign_Form as Form;
 
 $id = S::slug($url);
+$cPrefix = $Interface->config('attrClassPrefix');
 $link = $url;
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
 else $qs='';
@@ -25,7 +26,7 @@ if($title) App::response('title', $title);
 if(!isset($action)) $action = $Interface['action'];
 
 // .s-api-app
-?><div class="s-api-standalone" data-base-url="<?php echo $Interface->getUrl(); ?>" data-url="<?php echo $url ?>"<?php 
+?><div class="<?php echo $cPrefix ?>-standalone" data-base-url="<?php echo $Interface->getUrl(); ?>" data-url="<?php echo $url ?>"<?php 
     if($qs) echo ' data-qs="',str_replace(',', '%2C', S::xml($qs)),'"';
     if($Interface['id']) echo ' data-id="',S::xml($Interface['id']),'"';
     ?>><?php
@@ -58,7 +59,7 @@ if(!isset($action)) $action = $Interface['action'];
     else if(isset($options['before'])) echo S::markdown($options['before']);
     $content = false;
 
-    ?><div class="s-api-summary z-i--<?php echo $Interface['action']; ?>"><?php
+    ?><div class="<?php echo $cPrefix, '-summary ', $cPrefix, '--', $Interface['action']; ?>"><?php
 
         if(!$Interface::$standalone && isset($summary)) {
             echo $summary;
@@ -67,7 +68,7 @@ if(!isset($action)) $action = $Interface['action'];
 
         echo $Interface->message(), (isset($app))?($app):('');
 
-        if($buttons && $Interface::$listPagesOnTop): ?><div class="s-api-standalone-buttons"><?php
+        if($buttons && $Interface::$listPagesOnTop): ?><div class="<?php echo $cPrefix ?>-standalone-buttons"><?php
             echo $buttons; 
         ?></div><?php endif;
 
@@ -108,7 +109,7 @@ if(!isset($action)) $action = $Interface['action'];
     ?></div><?php 
 
     if(isset($list)): 
-        ?><div class="<?php echo $Interface->config('attrListClass'); ?>"><?php
+        ?><div class="<?php echo $cPrefix, '-list'; ?>"><?php
             if(is_string($list)) {
                 echo $list;
                 $content = true;
@@ -130,8 +131,8 @@ if(!isset($action)) $action = $Interface['action'];
     endif;
 
     if(isset($preview)): 
-        ?><div class="<?php echo $Interface->config('attrPreviewClass'); ?>"><?php
-            if(is_object($preview) && $preview instanceof Model) {
+        ?><div class="<?php echo $cPrefix; ?>-preview"><?php
+            if(is_object($preview) && method_exists($preview, 'renderScope')) {
                 $box = $preview::$boxTemplate;
                 $preview::$boxTemplate = $Interface::$boxTemplate;
                 $excludeEmpty=(isset($options['preview-empty'])) ?!$options['preview-empty'] :null;

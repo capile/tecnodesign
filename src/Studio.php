@@ -23,8 +23,8 @@ use Tecnodesign_Mail as Mail;
 
 class Studio
 {
-    const VERSION = '2.6.14';
-    const VER = 2.6;
+    const VERSION = '2.7.0';
+    const VER = 2.7;
 
     protected static
     $_app = null,
