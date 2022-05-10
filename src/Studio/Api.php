@@ -3807,18 +3807,19 @@ class Api implements ArrayAccess
             }
         }
         $islug = S::slug($this->text['interface']);
+        $cPrefix = $this->config('attrClassPrefix');
         $fo['fields'] += [
             '_submit' => [
                 'type' => 'submit',
                 'value'=> '<span class="i-label">'.static::t('Search').'</span>',
                 'html_labels'=>true,
-                'class' => 'z-i--search',
+                'class' => $cPrefix.'--search',
             ],
             '_options' => [
                 'type' => 'button',
                 'value'=> '<span class="i-label">'.static::t('Search options').'</span>',
                 'html_labels'=>true,
-                'class' => 'z-i--filter',
+                'class' => $cPrefix.'--filter',
                 'attributes'=>[ 'data-display-switch'=>'#q-'.$islug.' .z-omnibar|#q-'.$islug.' fieldset,#q-'.$islug.' button .i-label'],
             ],
         ];
@@ -3972,7 +3973,7 @@ class Api implements ArrayAccess
                 $I['title'] = static::t(substr($I['title'], 1));
             }
             $p = str_pad((isset($I['options']['priority']))?($I['options']['priority']):(''), 5, '0', STR_PAD_LEFT).S::slug($I['title']);
-            if(isset($I['options']['list-parent'])) {
+            if(array_key_exists('list-parent', $I['options'])) {
                 if(!$I['options']['list-parent']) {
                     unset($Is[$k], $I, $k, $p, $m);
                     continue;

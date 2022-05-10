@@ -584,7 +584,7 @@
     border-left: 2em solid @colorTabActive;
   }
   */
-  .s-i--close, .z-i--close {
+  .s-api--close, .z-i--close {
     background:transparent;
     position:absolute;
     top:0.2em;
@@ -598,7 +598,7 @@
     border-radius:0.8em;
   }
   &:hover, &:active {
-    .s-i--close, .z-i--close {
+    .s-api--close, .z-i--close {
       background:inherit;
       opacity:1;
     }
@@ -675,8 +675,7 @@
   background: @colorBreadcrumbs;
   padding: 0.5em 3em 0.5em 0.5em;
   & ~ .z-i-summary {
-    padding-top:1.5em;
-    padding-bottom: 1em;
+    padding-top:1em;
   }
   a, span {
     &:link, &:visited {
@@ -877,6 +876,7 @@ input.s-switch{
   margin:0;
   padding: 0 0.5em;
   .s-api-scope-block {
+    &:empty {border:1px solid red;height:0;padding:0;}
     clear:both; 
     position:relative;
     margin: 0 -0.5em 0.5em -0.5em;
@@ -1062,6 +1062,10 @@ input.s-switch{
     padding:0 0.625em;
     /*color:@colorForeground;*/
     float:none;
+    &:empty + dd:empty {
+      min-height: auto;
+      padding: 0;
+    }
   }
   dd {
     display:block;
@@ -1284,7 +1288,7 @@ img.z-app-image, .z-app-image img {
     font-style:normal;
     &:before{display:inline-block;vertical-align:top;}
   }
-  .z-i--close {
+  .s-api--close {
     position:absolute;
   }
 }
@@ -1681,7 +1685,7 @@ form .i-mono dd {
 .z-i-actions {
   position:absolute;
   text-align: right;
-  right: 1em;
+  right: 0.5em;
   label {
     color:transparent;
     width:2.5em !important;
@@ -1767,44 +1771,39 @@ form .i-mono dd {
   color:@colorButtonText;
 }
 
-.z-i--list .z-i-labels, .z-i-label-action, .z-i-label-model {
-  display:none;
-}
-
-[class^="z-i--"], [class*=" z-i--"] {
+[class^="s-api--"], [class*=" s-api--"] {
   &:before {
     .icon(@iconDefault);
     width:1.5em;
   }
 }
-
-.z-i--list:before    {content: @iconList;}
-.z-i--report:before  {content: @iconReport;}
-.z-i--delete:before  {content: @iconDelete;}
-.z-i--update:before  {content: @iconUpdate;}
-.z-i--preview:before {content: @iconPreview;}
-.z-i--search:before  {content: @iconSearch !important;}
-.z-i--filter:before  {content: @iconFilter;}
-.z-i--new:before     {content: @iconNew;}
-.z-i--refresh:before {content: @iconRefresh;}
-.z-i--close:before   {content: @iconClose;}
-.z-i--up:before      {content: @iconUp !important;}
-.z-i--down:before    {content: @iconDown !important;}
-.z-i--left:before    {content: @iconLeft !important;}
-.z-i--right:before   {content: @iconRight !important;}
-.z-i--share:before   {content: @iconShare;}
-.z-i--text:before    {content: @iconText;}
-.z-i--file:before    {content: @iconFile;}
-.z-i--url:before     {content: @iconUrl;}
-.z-i--toggle:before  {content: @iconToggle;}
-.z-i--pdf:before     {content: @iconPdf;}
-.z-i--video:before   {content: @iconVideo;}
-.z-i--reload:before  {content: @iconReload;}
-.z-i--connect:before {content: @iconConnect;}
-.z-i--run-api:before {content: @iconConnect;}
-.z-i--import:before  {content: @iconBackup;}
-.z-i--config:before  {content: @iconConfig;}
-.z-i--doc:before, .z-i--docs:before, .z-i--document:before, .z-i--:before {content: @iconDocument;}
+.s-api--list:before    {content: @iconList;}
+.s-api--report:before  {content: @iconReport;}
+.s-api--delete:before  {content: @iconDelete;}
+.s-api--update:before  {content: @iconUpdate;}
+.s-api--preview:before {content: @iconPreview;}
+.s-api--search:before  {content: @iconSearch !important;}
+.s-api--filter:before  {content: @iconFilter;}
+.s-api--new:before     {content: @iconNew;}
+.s-api--refresh:before {content: @iconRefresh;}
+.s-api--close:before   {content: @iconClose;}
+.s-api--up:before      {content: @iconUp !important;}
+.s-api--down:before    {content: @iconDown !important;}
+.s-api--left:before    {content: @iconLeft !important;}
+.s-api--right:before   {content: @iconRight !important;}
+.s-api--share:before   {content: @iconShare;}
+.s-api--text:before    {content: @iconText;}
+.s-api--file:before    {content: @iconFile;}
+.s-api--url:before     {content: @iconUrl;}
+.s-api--toggle:before  {content: @iconToggle;}
+.s-api--pdf:before     {content: @iconPdf;}
+.s-api--video:before   {content: @iconVideo;}
+.s-api--reload:before  {content: @iconReload;}
+.s-api--connect:before {content: @iconConnect;}
+.s-api--run-api:before {content: @iconConnect;}
+.s-api--import:before  {content: @iconBackup;}
+.s-api--config:before  {content: @iconConfig;}
+.s-api--doc:before, .z-i--docs:before, .z-i--document:before, .z-i--:before {content: @iconDocument;}
 
 .app-enable-type-toggler input[type="file"][data-alt-type] {
   padding:0;
@@ -1952,13 +1951,16 @@ th > input[type=checkbox], td > input[type=checkbox] {
   p:last-child {margin-bottom:0;}
 }
 .z-i-summary {
-  padding:0.5em 3em 0.5em 0.5em;
+  padding:0.5em 0;
   p {margin:0 0 0.5em 0;padding:0; }
   p:last-child {margin-bottom:0;}
   .s-msg, .tdz-msg, .z-i-msg{display:inline-block;}
   &:before {float:left;width:1.5em;}
-  &.z-i--list:before {display:none;content:'';}
+  &:empty, &.s-api--list:before, &.s-api--list .z-i-labels, .z-i-label-action, .z-i-label-model {
+    display:none;
+  }
 }
+
 .s-api-footer, .s-api-footer .s-buttons {
   text-align:center;
   height:2.5em;
@@ -2065,7 +2067,6 @@ th > input[type=checkbox], td > input[type=checkbox] {
 .z-i-label-title {
   font-size: 1.25em;
   display: inline-block;
-  margin-bottom: 1em;
 }
 
 .s-api-list {

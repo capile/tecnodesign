@@ -122,7 +122,7 @@
                 M[j].removeAttribute('data-action-scope');
                 if(M[j].nodeName.toLowerCase()=='button') {
                     M[j].setAttribute('data-url', u+'?scope='+bu+iurl);
-                    M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'z-i--close';
+                    M[j].className = ((M[j].className)?(M[j].className+' '):(''))+'s-api--close';
                     if(('form' in M[j])) {
                         Z.bind(M[j], 'click', loadAction);
                         if(M[j].form) {
@@ -138,7 +138,7 @@
                 } else {
                     bt= M[j];
                 }
-                Z.element.call(bt, {e:'a',a:{href:u+'?scope='+bu+iurl,'class':'s-button z-i--'+k},t:{click:loadAction}});
+                Z.element.call(bt, {e:'a',a:{href:u+'?scope='+bu+iurl,'class':'s-button s-api--'+k},t:{click:loadAction}});
                 bt=null;
             }
         }
@@ -502,7 +502,7 @@
                 I = _root.querySelector('.s-api-app[data-url="'+I.getAttribute('data-url')+'"]');
                 if(!I) return true;
             } else if(!Z.parentNode(this, '.z-i-nav')) return true;
-            if(this.className.search(/\bz-i--close\b/)>-1) {
+            if(this.className.search(/\bs-api--close\b/)>-1) {
                 if((u=this.getAttribute('href'))) {
                     activeInterface(u);
                 }
@@ -569,7 +569,7 @@
                     // set index interface to be reloaded
                     var iu = u.replace(/\/[^/]+\/[^/]+(\?.*)$/, ''),
                         ib = Z.parentNode(this, '.s-api-box'),
-                        ih = (ib)?(ib.querySelector('.s-api-header .z-i--list[data-url^="'+iu+'"]')):(null);
+                        ih = (ib)?(ib.querySelector('.s-api-header .s-api--list[data-url^="'+iu+'"]')):(null);
                     if(ih) {
                         _reload[ih.getAttribute('data-url')]=true;
                     }
@@ -1167,7 +1167,7 @@
                     h=H.querySelector('.s-api-title[data-url="'+cu+'"]');
                     //Z.bind(Hs[i], 'click', activeInterface);
                     if(!Hs[i].querySelector('*[data-action="close"]')) {
-                        Z.element.call(Hs[i], {e:'span',a:{'class':'z-i-a z-i--close','data-action':'close'},t:{click:loadInterface}});
+                        Z.element.call(Hs[i], {e:'span',a:{'class':'z-i-a s-api--close','data-action':'close'},t:{click:loadInterface}});
                     }
                     if(h) H.replaceChild(Hs[i], h);
                     else if(cu==u) H.appendChild(Hs[i]);
@@ -1440,8 +1440,8 @@
 
     function initAutoRemove()
     {
-        if(!this.querySelector('.z-i--close')) {
-            var el=Z.element.call(this, {e:'i',p:{className:'z-i--close z-i-a z-round'},t:{click:autoRemove}});
+        if(!this.querySelector('.s-api--close')) {
+            var el=Z.element.call(this, {e:'i',p:{className:'s-api--close z-i-a z-round'},t:{click:autoRemove}});
             if(el.previousSibling.nodeName.toLowerCase()=='a' && !el.previousSibling.getAttribute('href')) Z.bind(el.previousSibling, 'click', autoRemove);
             var P=Z.parentNode(this,'.z-i-field,.field');
             if(P) P.className+=' has-auto-remove';

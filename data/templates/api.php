@@ -61,9 +61,16 @@ if(isset($attributes) && is_array($attributes)) {
         }
     }
     foreach($urls as $iurl=>$t) {
+        $tclass = 's-api-title';
+        $iqs='';
+        if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);
+        if($iurl==$url) $tclass .= ' s-api-title-active';
+        $taction = (isset($t['action']) && $t['action']) ?$t['action'] :'text';
+        $tclass .= ' '.$cPrefix.'--'.$taction;
         if($iurl!='/' && (!isset($t['interface']) || $t['interface'])):
-            ?><a href="<?php echo $iurl ?>" class="s-api-title<?php $iqs='';if(strpos($iurl, '?')!==false) list($iurl, $iqs)=explode('?', $iurl, 2);if($iurl==$url) echo ' s-api-title-active'; echo ' z-i--'.$t['action']; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', S::xml($iqs)), '"' ?>><span class="z-text"><?php echo S::xml($t['title']); ?></span></a><?php
+            ?><a href="<?php echo $iurl ?>" class="<?php echo $tclass; ?>" data-url="<?php echo $iurl ?>"<?php if($iqs) echo 'data-qs="', str_replace(',', '%2C', S::xml($iqs)), '"' ?>><span class="z-text"><?php echo S::xml($t['title']); ?></span></a><?php
         endif;
+        unset($tclass, $taction);
     }
 
 ?></div><?php
@@ -116,7 +123,7 @@ if(isset($attributes) && is_array($attributes)) {
             else if(isset($options['before'])) echo S::markdown($options['before']);
 
 
-            ?><div class="z-i-summary z-i--<?php echo $Interface['action']; ?>"><?php
+            ?><div class="z-i-summary <?php echo $cPrefix, '--', $Interface['action']; ?>"><?php
 
                 if(isset($summary)) {
                     echo $summary;
@@ -200,7 +207,7 @@ if(isset($attributes) && is_array($attributes)) {
                         echo '<div class="i--'.$interface.((isset($class))?(' '.$class):('')).'">';
                     }
 
-                    if(is_object($preview) && $preview instanceof Studio\Model) {
+                    if(is_object($preview) && method_exists($preview, 'renderScope')) {
                         $box = $preview::$boxTemplate;
                         $preview::$boxTemplate = $Interface->config('boxTemplate');
                         $excludeEmpty=(isset($options['preview-empty'])) ?!$options['preview-empty'] :null;
