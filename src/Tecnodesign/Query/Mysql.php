@@ -17,6 +17,7 @@ class Tecnodesign_Query_Mysql extends Tecnodesign_Query_Sql
         PDO::ATTR_PERSISTENT => false,
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ),
+    $tableAutoIncrement='auto_increment',
     $tableDefault='ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
 
     public function getTablesQuery($database=null, $enableViews=null)
