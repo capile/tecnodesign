@@ -192,6 +192,9 @@ class Tecnodesign_Schema extends Tecnodesign_PublicObject
                 $value = mb_strimwidth($value, 0, (int)$def['size'], '', 'UTF-8');
             }
         } else if($def['type']=='int') {
+            if($value===true) {
+                $value = 1;
+            }
             if (!is_numeric($value) && $value!='') {
                 $label = (isset($def['label']))?($def['label']):(tdz::t(ucwords(str_replace('_', ' ', $name)), 'labels'));
                 throw new Tecnodesign_Exception(sprintf(tdz::t(static::$errorInvalid, 'exception'), $label).' '.tdz::t(static::$errorInteger, 'exception'));

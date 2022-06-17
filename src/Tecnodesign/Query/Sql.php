@@ -1344,14 +1344,28 @@ class Tecnodesign_Query_Sql
                 $type = static::$typeMap[$type];
             }
             if(in_array($type, $formats)) {
-                $q .= $type;
                 if($type=='datetime') {
+                    $q .= $type;
                     if(static::$datetimeSize) $q .= '('.static::$datetimeSize.')';
                 } else if($type=='decimal') {
+                    $q .= $type;
                     $d = [10,2];
                     if($fd->decimal) $d[1] = $fd->decimal;
                     if($fd->size) $d[0] = $fd->size;
                     $q .='('.implode(',', $d).')';
+                } else if($type==='int') {
+                    $unsigned = ((string)$fd->min==='0');
+                    $max = (string)$fd->max;
+                    if($max) {
+                        if($max<=128 || ($max<=255 && !$unsigned)) $q .= 'tinyint';
+                        else if(strlen($max)>=10) $q .= 'bigint';
+                        else $q .= $type;
+                    } else {
+                        $q .= $type;
+                    }
+                    if ($unsigned) {
+                        $q .= ' unsigned';
+                    }
                 }
             } else if($type=='string' && (!isset($fd['size']) || $fd['size']>8000)) {
                 $q .= (!isset($fd['size']) || $fd['size']<65000) ?'text' :'blob';
@@ -1366,7 +1380,7 @@ class Tecnodesign_Query_Sql
             }
             if($fd->required) $q .= ' not';
             $q .= ' null';
-            if($fd->increment==="auto") {
+            if($fd->increment==="auto" && !$pk) {
                 $q .= ' '.static::$tableAutoIncrement;
             }
             if($fd->primary) $pk[]=$fn;
@@ -1401,19 +1415,25 @@ class Tecnodesign_Query_Sql
                 }
             }
         }
-        $q = 'create table '.$q0.$tn.$q1.' ('.$q."\n)".static::$tableDefault;
-        if(!$conn) {
-            $conn = self::connect($schema->database);
-        }
-        $this->_last = $q;
-        $r = $this->exec($this->_last, $conn);
-        if($r===false && $conn->errorCode()!=='00000') {
-            throw new Tecnodesign_Exception(array(tdz::t('Could not create %s.', 'exception'), $tn));
+        $q = 'create table '.$q0.$tn.$q1.' ('.$q."\n)".static::$tableDefault.';';
+        if($conn===false) {
+            $r = $q."\n";
+        } else {
+            if(!$conn) {
+                $conn = self::connect($schema->database);
+            }
+            $this->_last = $q;
+            $r = $this->exec($this->_last, $conn);
+            if($r===false && $conn->errorCode()!=='00000') {
+                throw new Tecnodesign_Exception(array(tdz::t('Could not create %s.', 'exception'), $tn));
+            }
         }
         if($idx) {
             foreach($idx as $in=>$fn) {
                 $q = "create index {$q0}{$in}{$q1} on {$q0}{$tn}{$q1}({$q0}".implode($q1.','.$q0, $fn).$q1.');';
-                if(!$this->exec($q, $conn) && $conn->errorCode()!=='00000') {
+                if($conn===false) {
+                    $r .= "{$q}\n";
+                } else if(!$this->exec($q, $conn) && $conn->errorCode()!=='00000') {
                     tdz::log('[WARNING] Could not create index '.$in.' on '.$tn.': '.$q);
                 }
             }

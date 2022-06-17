@@ -2783,7 +2783,7 @@ class Tecnodesign_Form_Field implements ArrayAccess
     {
         //$a = array('id'=>$arg['id']);
         $attributeList = array('type' => $type, 'name' => $arg['name']);
-        $bv = array('required', 'readonly', 'disabled');
+        $bv = ['readonly', 'disabled'];
         foreach ($bv as $attribute) {
             $value = $this->$attribute;
             if ($value) {

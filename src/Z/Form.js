@@ -524,9 +524,11 @@ function initDatepicker()
                 if(!D.valueOf() || D.valueOf()=='NaN') {
                     D = moment(this.value);
                 }
-                cfg.defaultDate = new Date(D.valueOf());
-                if(d=D.format(cfg.format)) this.value = d;
-                cfg.setDefaultDate = true;
+                if(D.valueOf() && D.valueOf()!='NaN') {
+                    cfg.defaultDate = new Date(D.valueOf());
+                    if(d=D.format(cfg.format)) this.value = d;
+                    cfg.setDefaultDate = true;
+                }
                 D=null;
                 d=null;
             }
