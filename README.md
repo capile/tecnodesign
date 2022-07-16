@@ -1,4 +1,4 @@
-# Studio CMS
+# Tecnodesign framework based on Studio CMS
 
 ![Build status](https://api.travis-ci.com/capile/tecnodesign.svg?branch=master)
 

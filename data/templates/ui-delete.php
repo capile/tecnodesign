@@ -8,7 +8,7 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.7
+ * @version   3.0
  */
 $title = tdz::t('Delete', 'ui-labels').' '.$ui->getModelLabel($model).': '.(string)$model;
 tdz::$variables['title']=$title;

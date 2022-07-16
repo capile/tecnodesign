@@ -10,7 +10,6 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.7
+ * @version   3.0
  */
-require_once __DIR__.'/src/Studio.php';
 require_once __DIR__.'/src/tdz.php';

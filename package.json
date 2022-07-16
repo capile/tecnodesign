@@ -1,6 +1,6 @@
 {
-    "name": "Studio",
-    "version": "2.7.0",
+    "name": "capile/tecnodesign",
+    "version": "3.0.0",
     "description": "Own your data!",
     "main": "studio.js",
     "author": "Guilherme Capilé",

@@ -5,6 +5,7 @@
     "license": "GPL-3.0-only",
     "require": {
         "php": ">=7.3",
+        "capile/studio": "*",
         "erusev/parsedown": "1.7.*",
         "leafo/lessphp": "^0.5.0",
         "scssphp/scssphp": "^1.1.1",
@@ -23,7 +24,6 @@
     "autoload" : {
         "psr-0": {
             "tdz" : "",
-            "Studio" : "src/",
             "exclude-from-classmap": [ "src/" ]
         }
     },
@@ -35,10 +35,6 @@
         "codeception/module-phpbrowser": "^1.0",
         "codeception/module-rest": "^1.3"
     },
-    "scripts": {
-        "test": "./studio-server && vendor/bin/codecept run -v "
-    },
-    "bin": [ "studio", "studio-server" ],
     "suggest" : {
         "ext-dom": "*",
         "geshi/geshi": "Allows syntax highlight in markdown text",

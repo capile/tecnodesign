@@ -8,7 +8,7 @@
  * @author    Tecnodesign <ti@tecnodz.com>
  * @license   GNU General Public License v3.0
  * @link      https://tecnodz.com
- * @version   2.7
+ * @version   3.0
  */
 $id = tdz::slug($url);
 if(strpos($url, '?')!==false) list($url, $qs)=explode('?', $url, 2);
