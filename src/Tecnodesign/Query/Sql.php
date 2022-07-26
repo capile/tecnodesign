@@ -1368,7 +1368,7 @@ class Tecnodesign_Query_Sql
                     }
                 }
             } else if($type=='string' && (!isset($fd['size']) || $fd['size']>8000)) {
-                $q .= (!isset($fd['size']) || $fd['size']<65000) ?'text' :'blob';
+                $q .= (!isset($fd['size']) || $fd['size']<65000) ?'text' :'mediumblob';
             } else if($type=='string') {
                 $q .= 'varchar('
                     . ((isset($fd['size']))?((int)$fd['size']):(255))

@@ -10,8 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Studio_Tag extends Tecnodesign_Studio_Model
+class Tecnodesign_Studio_Tag extends Studio\Model\Tags
 {
-    public static $schema;
-    protected $id, $entry, $tag, $slug, $version, $created, $updated, $expired, $Entry, $Perfil;
 }

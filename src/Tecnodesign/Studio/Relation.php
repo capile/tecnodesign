@@ -10,8 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Studio_Relation extends Tecnodesign_Studio_Model
+class Tecnodesign_Studio_Relation extends Studio\Model\Relations
 {
-    public static $schema;
-    protected $id, $parent, $entry, $position, $version, $created, $updated, $expired, $Child, $Parent, $Perfil, $Turma;
 }

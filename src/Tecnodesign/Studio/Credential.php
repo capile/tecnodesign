@@ -10,8 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Studio_Credential extends Tecnodesign_Studio_Model
+class Tecnodesign_Studio_Credential extends Studio\Model\Credentials
 {
-    public static $schema;
-    protected $user, $groupid, $created, $updated, $expired, $Group, $User;
 }

@@ -10,8 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Studio_Group extends Tecnodesign_Studio_Model
+class Tecnodesign_Studio_Group extends Studio\Model\Groups
 {
-    public static $schema;
-    protected $id, $name, $priority, $created, $updated, $expired, $Credential;
 }
