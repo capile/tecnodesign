@@ -10,7 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Query_Pgsql extends Tecnodesign_Query_Sql
+class Tecnodesign_Query_Pgsql extends Studio\Query\Pgsql
 {
-const DRIVER='pgsql';
 }

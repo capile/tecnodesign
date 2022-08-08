@@ -10,6 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Query_Http extends Tecnodesign_Query_Api
+class Tecnodesign_Query_Http  extends Studio\Query\Http
 {
 }

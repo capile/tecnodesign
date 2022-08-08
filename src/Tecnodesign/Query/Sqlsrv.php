@@ -10,8 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Query_Sqlsrv extends Tecnodesign_Query_Dblib
+class Tecnodesign_Query_Sqlsrv extends Studio\Query\Sqlsrv
 {
-    const DRIVER='sqlsrv', PDO_AUTOCOMMIT=0, PDO_TRANSACTION=1;
-    public static $tableAutoIncrement='identity';
 }

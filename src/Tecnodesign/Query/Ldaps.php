@@ -10,6 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Query_Ldaps extends Tecnodesign_Query_Ldap
+class Tecnodesign_Query_Ldaps extends Studio\Query\Ldaps
 {
 }

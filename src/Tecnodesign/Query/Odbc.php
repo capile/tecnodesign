@@ -10,7 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Query_Odbc extends Tecnodesign_Query_Dblib
+class Tecnodesign_Query_Odbc extends Studio\Query\Odbc
 {
-    const DRIVER='odbc', PDO_AUTOCOMMIT=0, PDO_TRANSACTION=1;
 }
