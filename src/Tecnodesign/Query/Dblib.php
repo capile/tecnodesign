@@ -162,7 +162,7 @@ class Tecnodesign_Query_Dblib extends Tecnodesign_Query_Sql
         $dbname = tdz::sql($dbname);
         $tn = tdz::sql($table);
 
-        return "select COLUMN_NAME as 'bind', DATA_TYPE as 'type', CHARACTER_MAXIMUM_LENGTH as 'size', COLUMN_DEFAULT as 'default', case when IS_NULLABLE='NO' then 1 else 0 end as 'required' from INFORMATION_SCHEMA.COLUMNS where TABLE_CATALOG={$dbname} and TABLE_NAME={$tn} order by ORDINAL_POSITION asc";
+        return "select COLUMN_NAME as 'bind', DATA_TYPE as 'type', coalesce(cast(CHARACTER_MAXIMUM_LENGTH as varchar), cast(NUMERIC_PRECISION as varchar)+','+cast(NUMERIC_SCALE as varchar)) as 'size', COLUMN_DEFAULT as 'default', case when IS_NULLABLE='NO' then 1 else 0 end as 'required' from INFORMATION_SCHEMA.COLUMNS where TABLE_CATALOG={$dbname} and TABLE_NAME={$tn} order by ORDINAL_POSITION asc";
     }
 
     public function getRelationSchemaQuery($table, $database=null, $enableViews=null)

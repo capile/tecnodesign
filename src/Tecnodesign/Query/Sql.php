@@ -1606,9 +1606,11 @@ class Tecnodesign_Query_Sql
             $f['decimal'] = (int) 2;
         } else if($type=='decimal') {
             $f['type'] = 'number';
-            $desc = explode(',',$desc);
-            $f['size'] = (int)$desc[0];
-            $f['decimal'] = (int)$desc[1];
+            if($desc) {
+                $desc = explode(',', $desc, 2);
+                $f['size'] = (int)$desc[0];
+                $f['decimal'] = (isset($desc[1])) ?(int)$desc[1] :2;
+            }
         } else if($type=='double') {
             $f['type'] = 'number';
             $f['size'] = (int) 10;
@@ -1638,7 +1640,7 @@ class Tecnodesign_Query_Sql
         else if(isset($fd['required'])) $f['required'] = ($fd['required']=='1');
         else $f['required'] = false;
 
-        if(isset($fd['size']) && is_numeric($fd['size'])) $f['size'] = (int)$fd['size'];
+        if(isset($fd['size']) && is_numeric($fd['size']) && $fd['size']>0) $f['size'] = (int)$fd['size'];
 
         if($fd['keys']=='PRI' || $fd['keys']=='1') {
             $f['primary']=true;
