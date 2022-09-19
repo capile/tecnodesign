@@ -1635,7 +1635,7 @@ class Tecnodesign_Query_Sql
             $f['type'] = 'string';
         }
         if($fd['null']=='YES') $f['required'] = false;
-        else if(isset($fd['required'])) $f['required'] = ($fd['required']!='1');
+        else if(isset($fd['required'])) $f['required'] = ($fd['required']=='1');
         else $f['required'] = false;
 
         if(isset($fd['size']) && is_numeric($fd['size'])) $f['size'] = (int)$fd['size'];
