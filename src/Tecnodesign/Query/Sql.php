@@ -1582,8 +1582,8 @@ class Tecnodesign_Query_Sql
                 $unsigned = true;
             }
         }
-        if ($type=='datetime' || $type=='date') {
-            $f['format'] = $type;
+        if (substr($type, 0, 8)=='datetime' || $type=='date') {
+            $f['format'] = substr($type, 0, 8);
             $f['type'] = 'string';
         //} else if($type=='tinyint' && $desc=='1') {
         //    $f['type'] = 'bool';
