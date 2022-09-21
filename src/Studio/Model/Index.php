@@ -279,7 +279,7 @@ class Index extends Model
         if(S::$log>0) S::log('[INFO] Indexed '.$total.' '.$cn.' in '.S::formatNumber(microtime(true)-$t0, 5).'s (mem: '.S::formatBytes(memory_get_peak_usage(true)).')');
     }
 
-    public function getSource()
+    public function getSource($format='array', $sort=null)
     {
         $r = [];
         foreach(self::$schema->relations as $rn=>$rd) {
@@ -299,7 +299,9 @@ class Index extends Model
             unset($R, $rn, $rd);
         }
 
-        return $r;
+        if($sort) ksort($r);
+
+        return ($format=='json') ?S::serialize($r, 'json') :$r;
     }
 
     public static function expandValues($name, $value, &$r=[])

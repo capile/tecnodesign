@@ -221,6 +221,8 @@ class Tecnodesign_Query_Api
         }
         if($this->config('token_endpoint')) {
             $this->requestToken($n, $exception);
+        } else if($c=$this->config('grant_type')) {
+            $this->authorizationHeader($c);
         }
         if($c = $this->config('connectionCallback')) {
             self::$C[$n] = call_user_func($c, self::$C[$n], $n);
@@ -279,8 +281,29 @@ class Tecnodesign_Query_Api
                 return false;
             }
         }
+        $this->authorizationHeader('Bearer',  $R['access_token']);
+    }
 
-        $add = 'authorization: Bearer '.$R['access_token'];
+    public function authorizationHeader($type, $credentials=null)
+    {
+        $add = 'authorization: '.$type;
+        if($credentials) {
+            $add .= ' '.$credentials;
+        } else if(is_null($credentials)) {
+            if(!($pw=$this->config('password'))) {
+                $pw=$this->config('client_secret');
+            }
+            if($pw && strtolower($type)=='bearer') {
+                $add .= ' '.$pw;
+            } else {
+                if(!($un=$this->config('username'))) {
+                    $un=$this->config('client_id');
+                }
+                if($un) {
+                    $add .= ' '.base64_encode(urlencode($un).':'.urlencode($pw));
+                }
+            }
+        }
         $H = $this->config('requestHeaders');
         foreach($H as $i=>$h) {
             if($h==$add) {
