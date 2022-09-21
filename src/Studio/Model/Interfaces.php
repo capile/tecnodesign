@@ -76,8 +76,10 @@ class Interfaces extends Model
         if(!$asArray) {
             $S = new ModelSchema($S);
             $pk = [];
-            foreach($S->properties as $fn=>$fd) {
-                if($fd['primary']) $pk[] = $fn;
+            if($S->properties) {
+                foreach($S->properties as $fn=>$fd) {
+                    if($fd['primary']) $pk[] = $fn;
+                }
             }
             if(!$pk) {
                 foreach(static::$pkids as $k) {

@@ -462,7 +462,7 @@ class Tecnodesign_Excel
         }
         if(isset($style['white-space']) || isset($wrap)) {
             if(isset($style['white-space'])) $wrap = ($style['white-space']=='nowrap' || $style['white-space']=='pre');
-            $s['alignment']['wrap'] = $wrap;
+            $s['alignment']['wrapText'] = $wrap;
         }
 
         if(count($s)>0) {
