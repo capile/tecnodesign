@@ -10,6 +10,10 @@
  * @link      https://tecnodz.com
  * @version   2.6
  */
+use Tecnodesign_Studio as Studio;
+use Studio\Model\Tokens;
+use Studio\OAuth2\Storage;
+
 class Tecnodesign_Query implements \ArrayAccess
 {
     public function __construct($o=array())
@@ -79,10 +83,30 @@ class Tecnodesign_Query implements \ArrayAccess
                         tdz::$database[$db]['options'] = $options;
                     }
                 }
-                return tdz::$database[$db];
+            } else {
+                if(class_exists($db) && defined($db.'::SCHEMA_PROPERTY')) {
+                    $sn = $db::SCHEMA_PROPERTY;
+                    if(isset($db::${$sn}->database)) {
+                        $db = $db::${$sn}->database;
+                        if(isset(tdz::$database[$db])) return tdz::$database[$db];
+                    } else {
+                        return;
+                    }
+                }
+                if($db==='studio' && ($dbo=Studio::config('database'))) {
+                    if(is_array($dbo)) {
+                        tdz::$database[$db] = $dbo;
+                    } else if(isset(tdz::$database[$dbo])) {
+                        tdz::$database[$db] = tdz::$database[$dbo];
+                    }
+                } else if($db!=='studio' && (Studio::config('enable_interface_index') || Studio::config('enable_api_index'))) {
+                    if(($T = Tokens::find(['type'=>'server', 'id'=>$db],1)) && ($dsn=$T['options.api_endpoint'])) {
+                        tdz::$database[$db] = ['dsn'=>$dsn, 'options'=>$T->asArray(Storage::$scopes['server'])];
+                    }
+                }
             }
 
-            return null;
+            return (isset(tdz::$database[$db])) ?tdz::$database[$db] :null;
         }
         return tdz::$database;
     }

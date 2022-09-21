@@ -13,8 +13,6 @@
 namespace Studio\Model;
 
 use Studio\Model as Model;
-use Studio\Model\Tokens;
-use Studio\OAuth2\Storage;
 use Tecnodesign_App as App;
 use Tecnodesign_Studio as Studio;
 use Tecnodesign_Studio_Interface as Api;
@@ -114,13 +112,6 @@ class Index extends Model
         if(!$cn || !$id) return;
         $t0 = microtime(true);
 
-        if(isset($a['connection']) && !Query::database($n=$a['connection'])) {
-            if(($T = Tokens::find(['type'=>'server', 'id'=>$n],1)) && ($dsn=$T['options.api_endpoint'])) {
-                S::$database[$n] = ['dsn'=>$dsn, 'options'=>$T->asArray(Storage::$scopes['server'])];
-            } else {
-                return;
-            }
-        }
         if(S::$log>0) S::log('[INFO] Indexing: '.$id.' (time: '.S::formatNumber($t0-TDZ_TIME, 5).', mem: '.S::formatBytes(memory_get_peak_usage(true)).')');
 
         if(!$II) $II = Interfaces::find(['id'=>$id],1);
