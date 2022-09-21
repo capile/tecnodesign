@@ -27,7 +27,8 @@ class Index extends Model
 {
     public static 
         $schema,
-        $interfaces;
+        $interfaces,
+        $pathSeparator='/';
     protected $interface, $id, $summary, $indexed, $created, $updated, $IndexText, $IndexDate, $IndexBool, $IndexNumber, $IndexBlob, $IndexInterfaces;
 
     /**
@@ -287,9 +288,49 @@ class Index extends Model
         if(S::$log>0) S::log('[INFO] Indexed '.$total.' '.$cn.' in '.S::formatNumber(microtime(true)-$t0, 5).'s (mem: '.S::formatBytes(memory_get_peak_usage(true)).')');
     }
 
+    public function getSource()
+    {
+        $r = [];
+        foreach(self::$schema->relations as $rn=>$rd) {
+            if(substr($rn, 0, 5)!=='Index') continue;
+            $R = null;
+            if(isset($this->$rn)) $R = $this->$rn;
+            else $R = $this->getRelation($rn, null, null, false);
+            if($R && is_object($R)) $R = $R->getItems();
+            if($R) {
+                foreach($R as $i=>$o) {
+                    if(!$o->isDeleted()) {
+                        self::expandValues($o->name, $o->value, $r);
+                    }
+                    unset($i, $o);
+                }
+            }
+            unset($R, $rn, $rd);
+        }
+
+        return $r;
+    }
+
+    public static function expandValues($name, $value, &$r=[])
+    {
+        if(strpos($name, self::$pathSeparator)!==false) {
+            list($pre, $name) = explode(self::$pathSeparator, $name, 2);
+            if(is_numeric($pre) && (int)$pre==$pre) $pre = (int) $pre;
+            if(!isset($r[$pre])) $r[$pre] = [];
+            return self::expandValues($name, $value, $r[$pre]);
+        } else {
+            $r[$name] = $value;
+        }
+
+        return $r;
+    }
+
     public static function propToRel($value, $name, $schema, &$output=[], $base=[])
     {
         static $map = ['string'=>'text', 'int64'=>'number', 'int'=>'number', 'float'=>'number', 'decimal'=>'number', 'char'=>'text', 'varchar'=>'text', 'nvarchar'=>'text', 'bit'=>'bool', 'boolean'=>'bool'];
+        static $skip = ['_new', '_original', '_update', '_delete', '_relation', '_query', '_connected', '_p', '_forms'];
+
+        if(in_array($name, $skip)) return $output;
         if($schema && isset($schema['format'])) {
             $type = $schema['format'];
         } else if($schema && isset($schema['type'])) {
@@ -304,7 +345,7 @@ class Index extends Model
                 if($subs) {
                     $fd = (isset($subs[$k])) ?$subs[$k] :null;
                 }
-                self::propToRel($v, $name.'.'.$k, $fd, $output, $base);
+                self::propToRel($v, $name.self::$pathSeparator.$k, $fd, $output, $base);
             }
             return $output;
         }
@@ -326,7 +367,7 @@ class Index extends Model
         if(is_array($arr)) {
             $r = [];
             foreach($arr as $k=>$v) {
-                $n = ($prefix) ?$prefix.'.'.$k :$k;
+                $n = ($prefix) ?$prefix.self::$pathSeparator.$k :$k;
                 if(is_array($v)) $r += self::expandProperties($v, $n);
                 else $r[$n] = $v;
             }
