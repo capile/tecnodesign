@@ -10,6 +10,10 @@
  * @link      https://tecnodz.com
  * @version   2.6
  */
+use Studio as S;
+use Tecnodesign_Cache as Cache;
+use Tecnodesign_Exception as AppException;
+
 class Tecnodesign_Query_Api
 {
     const TYPE='api', DRIVER='curl';
@@ -198,36 +202,98 @@ class Tecnodesign_Query_Api
     protected static $C=array();
     public function connect($n='', $exception=true, $tries=3)
     {
+        $req = false;
         if(!isset(self::$C[$n])) {
             self::$C[$n] = curl_init();
             if($c = $this->config('curlOptions')) {
                 curl_setopt_array(self::$C[$n], $c);
                 unset($c);
             }
-            if($c=$this->config('requestHeaders')) {
-                curl_setopt(self::$C[$n], CURLOPT_HTTPHEADER, $c);
-                unset($c);
-            }
+            $req = true;
         }
         if($c=$this->config('cookieJar')) {
             if(!is_string($c)) {
-                $c = tempnam(Tecnodesign_Cache::cacheDir(), 'cookie');
+                $c = tempnam(Cache::cacheDir(), 'cookie');
             }
             curl_setopt(self::$C[$n], CURLOPT_COOKIEFILE, $c);
             curl_setopt(self::$C[$n], CURLOPT_COOKIEJAR, $c);
             $this->config('cookieJar', $c);
         }
-
+        if($this->config('token_endpoint')) {
+            $this->requestToken($n, $exception);
+        }
         if($c = $this->config('connectionCallback')) {
             self::$C[$n] = call_user_func($c, self::$C[$n], $n);
             unset($c);
         }
+        if($req && ($c=$this->config('requestHeaders'))) {
+            curl_setopt(self::$C[$n], CURLOPT_HTTPHEADER, $c);
+            unset($c);
+        }
 
         if(!self::$C[$n]) {
-            tdz::log('[INFO] Failed connection to '.$n);
-            if($exception) throw new Tecnodesign_Exception(array(tdz::t('Could not connect to %s.', 'exception'), $n));
+            S::log('[INFO] Failed connection to '.$n);
+            if($exception) throw new AppException(array(S::t('Could not connect to %s.', 'exception'), $n));
         }
         return self::$C[$n];
+    }
+
+    public function requestToken($n='', $exception=true)
+    {
+        $ckey = $n.'/req-token';
+        if(!($url=$this->config('token_endpoint')) || !isset(self::$C[$n]) || !($conn = curl_copy_handle(self::$C[$n]))) return false;
+
+        if(!(($R=Cache::get($ckey, 0, 'file')) && isset($R['access_token']) && isset($R['expires']) && $R['expires']>time())) {
+            // try to fetch a new access_token based on the refresh token
+            $d = [
+                'grant_type' => ($c=$this->config('grant_type')) ?$c :'client_credentials',
+                'scope' => ($c=$this->config('scope')) ?$c :'openid',
+            ];
+            if(($ct = (string)$this->config('contentType')) && substr($c, -4)==='json') {
+                $data = S::serialize($d, 'json');
+            } else {
+                $data = http_build_query($d);
+                if(!$ct) $ct = 'application/x-www-form-urlencoded';
+
+            }
+            $method = 'POST';
+            $headers = array(
+                'accept: application/json',
+                'content-type: '.$ct,
+                'authorization: Basic '.base64_encode($this->config('client_id').':'.$this->config('client_secret')),
+            );
+            curl_setopt($conn, CURLOPT_HEADER, false);
+            curl_setopt($conn, CURLOPT_URL, $url);
+            curl_setopt($conn, CURLOPT_POST, true);
+            curl_setopt($conn, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($conn, CURLOPT_HTTPHEADER, $headers);
+            $R = S::unserialize(curl_exec($conn), 'json');
+            curl_close($conn);
+            if($R && isset($R['access_token'])) {
+                $expires = 100;
+                if(isset($R['expires_in'])) $expires = $R['expires_in'] -5;
+                $R['expires'] = time()+$expires;
+                Cache::set($ckey, $R, 0);
+            } else {
+                S::log('[WARNING] Could not retrieve '.$n.' tokens!');
+                return false;
+            }
+        }
+
+        $add = 'authorization: Bearer '.$R['access_token'];
+        $H = $this->config('requestHeaders');
+        foreach($H as $i=>$h) {
+            if($h==$add) {
+                $add = null;
+                break;
+            } else if(strtolower(substr($h, 0, 14))=='authorization:') {
+                unset($H[$i]);
+            }
+            unset($i, $o);
+        }
+        if($add) $H[] = $add;
+        $this->config('requestHeaders', $H);
+        unset($add, $H);
     }
 
     public function schema($prop=null)
