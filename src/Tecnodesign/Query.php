@@ -115,13 +115,13 @@ class Tecnodesign_Query implements \ArrayAccess
     {
         static $H = array();
         $n = '';
-        if(is_string($s) && static::database($s)) {
-            $n = $s;
-        } else if((is_string($s) && $s && property_exists($s, 'schema')) || $s instanceof Tecnodesign_Model) {
+        if(((is_string($s) && $s) || is_object($s)) && property_exists($s, 'schema')) {
             $n = $s::$schema->database;
             if(is_object($s)) {
                 $s = (isset($s::$schema->className))?($s::$schema->className):(get_class($s));
             }
+        } else if(is_string($s) && static::database($s)) {
+            $n = $s;
         }
         if(!isset($H[$n])) {
             $H[$n] = self::databaseHandler($n);
@@ -133,16 +133,7 @@ class Tecnodesign_Query implements \ArrayAccess
 
     public static function databaseHandler($n)
     {
-        $dbs = self::database();
-        if(isset($dbs[$n])) {
-            $db = $dbs[$n];
-        } else if((is_string($n) && $n && property_exists($n, 'schema')) || $n instanceof Tecnodesign_Model) {
-            $n = $n::$schema->database;
-            if(isset($dbs[$n])) {
-                $db = $dbs[$n];
-            }
-        }
-        if(!isset($db)) {
+        if(!($db=static::database($n))) {
             throw new Tecnodesign_Exception(['There\'s no %s database configured', $n]);
         }
         $cn = (isset($db['class']))?($db['class']):('Tecnodesign_Query_'.ucfirst(substr($db['dsn'], 0, strpos($db['dsn'], ':'))));
