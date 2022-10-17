@@ -492,7 +492,7 @@ class Tecnodesign_Excel
                     if(isset($this->style[$oy])) $style += $this->style[$oy];
                 }
                 if(isset($this->style[$sn])) $style += $this->style[$sn];
-                unset($i, $sn);
+                unset($sn);
             }
 
             if($i>0) {
