@@ -10,16 +10,6 @@
  * @link      https://tecnodz.com
  * @version   3.0
  */
-class Tecnodesign_Exception extends Exception
+class Tecnodesign_Exception extends Studio\Exception\AppException
 {
-    public $error = true;
-
-    public function __construct($message, $code = 0, $previous = null)
-    {
-        if (is_array($message)) {
-            $m = array_shift($message);
-            $message = vsprintf($m, $message);
-        }
-        parent::__construct($message, $code, $previous);
-    }
 }
