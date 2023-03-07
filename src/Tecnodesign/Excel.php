@@ -326,7 +326,7 @@ class Tecnodesign_Excel
                 $n++;
             }
         } else {
-            $s = (string) $s;
+            $s = tdz::text((string) $s);
             if(isset($this->sheets[$s])) {
                 $this->sheet = $this->excel->setActiveSheetIndex($this->sheets[$s]);
             } else {
@@ -631,6 +631,14 @@ class Tecnodesign_Excel
 
     public function val($s)
     {
+        if(is_array($s)) {
+            foreach($s as $i=>$o) {
+                $s[$i] = $this->val($o);
+                unset($i, $o);
+            }
+            return $s;
+        }
+
         return str_replace(array_keys($this->r), array_values($this->r), $s);
     }
 
