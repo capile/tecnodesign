@@ -376,10 +376,12 @@ class Tecnodesign_Markdown extends Parsedown
     protected function inlineLink($Excerpt)
     {
         $Link = parent::inlineLink($Excerpt);
-        $remainder = substr($Excerpt['text'], $Link['extent']);
-        if (preg_match('/^[ ]*{('.$this->regexAttribute.'+)}/', $remainder, $matches)) {
-            $Link['element']['attributes'] += $this->parseAttributeData($matches[1]);
-            $Link['extent'] += strlen($matches[0]);
+        if(isset($Link['extent'])) {
+            $remainder = substr($Excerpt['text'], $Link['extent']);
+            if (preg_match('/^[ ]*{('.$this->regexAttribute.'+)}/', $remainder, $matches)) {
+                $Link['element']['attributes'] += $this->parseAttributeData($matches[1]);
+                $Link['extent'] += strlen($matches[0]);
+            }
         }
 
         return $Link;
