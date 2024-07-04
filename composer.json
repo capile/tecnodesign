@@ -7,12 +7,12 @@
         "php": ">=7.3",
         "capile/studio": "*",
         "erusev/parsedown": "1.7.*",
-        "phpoffice/phpspreadsheet": "^1.6.0",
+        "phpoffice/phpspreadsheet": "*",
         "foxy/foxy": "^1.1.0",
-        "bshaffer/oauth2-server-php": "^1.11",
-        "mustangostang/spyc": "^0.6.2",
+        "bshaffer/oauth2-server-php": "*",
+        "mustangostang/spyc": "*",
         "ext-mbstring": "*",
-        "jumbojett/openid-connect-php": "^0.9.2"
+        "jumbojett/openid-connect-php": "*"
     },
     "extra": {
         "foxy": true
