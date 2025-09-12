@@ -159,11 +159,6 @@ class tdz extends Studio
         return $d;
     }
 
-    public static function checkEmail($email, $checkDomain=true)
-    {
-        return parent::checkEmail($email, $checkDomain);
-    }
-
     public static function map()
     {
         $a = func_get_args();
